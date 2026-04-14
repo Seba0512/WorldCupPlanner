@@ -9,7 +9,7 @@ namespace WorldCupPlanner.Domain
 	
 	public bool EsValido()
 	{
-		return !string.IsNullOrWhiteSpace(Nombre) && Nombre.Length <= 60 && RankingFIFA > 299;
+		return !string.IsNullOrWhiteSpace(Nombre) && Nombre.Length <= 60 && RankingFIFA > 299 && RankingFIFA <2501;
 	}
 
         public Equipo()
