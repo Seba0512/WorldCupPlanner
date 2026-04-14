@@ -19,4 +19,18 @@ public class EquipoTests
         // Assert
         Assert.IsFalse(resultado);
     }
+
+    [TestMethod]
+    public void Equipo_ConNombreMas60Caracteres_Valido()
+    {
+        //Arrange
+        var equipo = new Equipo();
+        equipo.Nombre = new string('A', 61);
+        
+        //Act
+        var resultado = equipo.EsValido();
+        
+        //Assert
+        Assert.IsFalse(resultado);
+    }
 }
