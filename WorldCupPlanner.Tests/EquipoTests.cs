@@ -48,4 +48,19 @@ public class EquipoTests
         //Assert
         Assert.IsFalse(resultado);
     }
+    
+    [TestMethod]
+    public void Equipo_ConRankingFIFAMayorA2500_NoEsValido()
+    {
+        //Arrange
+        var equipo = new Equipo();
+        equipo.Nombre = "Barcelona";
+        equipo.RankingFIFA = 2501;
+        
+        //Act
+        var resultado = equipo.EsValido();
+        
+        //Assert
+        Assert.IsFalse(resultado);
+    }
 }
