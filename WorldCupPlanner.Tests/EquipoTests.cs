@@ -63,4 +63,20 @@ public class EquipoTests
         //Assert
         Assert.IsFalse(resultado);
     }
+    
+    [TestMethod]
+    public void Equipo_SinConferacion_NoEsValido()
+    {
+        // Arrange
+        var equipo = new Equipo();
+        equipo.Nombre = "Barcelona";
+        equipo.RankingFIFA = 500;
+        equipo.Confederacion = Confederacion.UEFA;
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
 }
