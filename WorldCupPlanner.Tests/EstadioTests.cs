@@ -50,4 +50,21 @@ public class EstadioTests
         // Assert
         Assert.IsFalse(resultado);
     }
+    [TestMethod]
+    public void Estadio_CiudadExcede60Caracteres_EsInvalido()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio Centenaario",
+            Ciudad = new string('A', 61),
+            Capacidad = 20000
+        };
+        // Act
+        var resultado = estadio.EsValido();
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    
 }
