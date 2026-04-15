@@ -65,6 +65,23 @@ public class EstadioTests
         // Assert
         Assert.IsFalse(resultado);
     }
+    
+    [TestMethod]
+    public void Estadio_CapacidadMenorA20000_EsInvalido()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "Montevideo",
+            Capacidad = 19999
+        };
+        // Act
+        var resultado = estadio.EsValido();
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
 
     
 }
