@@ -15,6 +15,11 @@ public class ServicioEstadio
         _estadios.Add(estadio);
     }
 
+    public void EliminarEstadio(Estadio estadio)
+    {
+        _estadios.Remove(estadio);
+    }
+
     public List<Estadio> ObtenerEstadios()
     {
         return _estadios;
