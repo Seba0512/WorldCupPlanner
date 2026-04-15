@@ -15,6 +15,15 @@ public class ServicioEstadio
         _estadios.Add(estadio);
     }
 
+    public void EditarEstadio(Estadio estadio)
+    {
+        var existente = _estadios.FirstOrDefault(e => e.Nombre == estadio.Nombre);
+        if (existente == null)
+            throw new Exception("El estadio no existe.");
+        var index = _estadios.IndexOf(existente);
+        _estadios[index] = estadio;
+    }
+
     public void EliminarEstadio(Estadio estadio)
     {
         _estadios.Remove(estadio);
