@@ -53,4 +53,19 @@ public class ServicioEstadioTests
         // Assert
         Assert.ThrowsException<Exception>(() => _servicio.AgregarEstadio(estadio2));
     }
+    
+    [TestMethod]
+    public void AgregarEstadio_EstadioInvalido_LanzaExcepcion()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "",
+            Ciudad = "Montevideo",
+            Capacidad = 60000
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<Exception>(() => _servicio.AgregarEstadio(estadio));
+    }
 }

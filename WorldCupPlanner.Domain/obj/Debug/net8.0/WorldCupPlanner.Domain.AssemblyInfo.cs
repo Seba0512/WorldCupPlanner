@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WorldCupPlanner.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e9341bacb1e157ad0913bd711e79ee6f798bc2a8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0458cee350b55373f4f061dc5872869302f741a2")]
 [assembly: System.Reflection.AssemblyProductAttribute("WorldCupPlanner.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WorldCupPlanner.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
