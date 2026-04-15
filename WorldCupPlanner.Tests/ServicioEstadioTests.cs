@@ -29,4 +29,28 @@ public class ServicioEstadioTests
         // Assert
         Assert.AreEqual(1, _servicio.ObtenerEstadios().Count);
     }
+    
+    [TestMethod]
+    public void AgregarEstadio_NombreDuplicado_LanzaExcepcion()
+    {
+        // Arrange
+        var estadio1 = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "Montevideo",
+            Capacidad = 60000
+        };
+        var estadio2 = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "Montevideo",
+            Capacidad = 40000
+        };
+
+        // Act
+        _servicio.AgregarEstadio(estadio1);
+
+        // Assert
+        Assert.ThrowsException<Exception>(() => _servicio.AgregarEstadio(estadio2));
+    }
 }
