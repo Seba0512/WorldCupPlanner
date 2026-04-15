@@ -9,7 +9,7 @@ public class Estadio
     
     public bool EsValido()
     {        
-        return !string.IsNullOrWhiteSpace(Nombre) && Nombre.Length <= 80;
+        return !string.IsNullOrWhiteSpace(Nombre) && Nombre.Length <= 80 && !string.IsNullOrWhiteSpace(Ciudad);
     }
 }
 }
