@@ -18,4 +18,20 @@ public class EstadioTests
         // Assert
         Assert.IsFalse(resultado);
     }
+    
+    [TestMethod]
+    public void Estadio_NombreExcede80Caracteres_EsInvalido()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = new string('A', 81),
+            Ciudad = "Montevideo",
+            Capacidad = 20000
+        };
+        // Act
+        var resultado = estadio.EsValido();
+        // Assert
+        Assert.IsFalse(resultado);
+    }
 }
