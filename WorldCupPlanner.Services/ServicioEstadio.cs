@@ -8,6 +8,8 @@ public class ServicioEstadio
 
     public void AgregarEstadio(Estadio estadio)
     {
+        if (_estadios.Any(e => e.Nombre == estadio.Nombre))
+            throw new Exception("Ya existe un estadio con ese nombre.");
         _estadios.Add(estadio);
     }
 
