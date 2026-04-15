@@ -81,6 +81,23 @@ public class EstadioTests
         // Assert
         Assert.IsFalse(resultado);
     }
+    
+    [TestMethod]
+    public void Estadio_DescripcionExcede400Caracteres_EsInvalido()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "Montevideo",
+            Capacidad = 20000,
+            Descripcion = new string('A', 401)
+        };
+        // Act
+        var resultado = estadio.EsValido();
+        // Assert
+        Assert.IsFalse(resultado);
+    }
 
 
     
