@@ -101,167 +101,167 @@ public class UsuarioTests
 
     #endregion
 
-    #region Contraseña - Tests de Validación
+    #region Contrasenia - Tests de Validación
 
     [TestMethod]
-    public void EstablecerContraseña_ConContraseñaValida_DebeEstablecerseExitosamente()
+    public void EstablecerContrasenia_ConContrasesiaValida_DebeEstablecerseExitosamente()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contraseña = "MyPassword123!";
+        var contrasenia = "MyPassword123!";
 
         // Act
-        usuario.EstablecerContraseña(contraseña);
+        usuario.EstablecerContrasenia(contrasenia);
 
         // Assert
-        Assert.IsTrue(usuario.VerificarContraseña(contraseña));
+        Assert.IsTrue(usuario.VerificarContrasenia(contrasenia));
     }
 
     [TestMethod]
-    public void EstablecerContraseña_ConMenosDe8Caracteres_DebeLanzarExcepcion()
+    public void EstablecerContrasenia_ConMenosDe8Caracteres_DebeLanzarExcepcion()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contraseña = "Pass12!"; // 7 caracteres
+        var contrasenia = "Pass12!"; // 7 caracteres
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContraseña(contraseña)
+            usuario.EstablecerContrasenia(contrasenia)
         );
     }
 
     [TestMethod]
-    public void EstablecerContraseña_SinMayúsculas_DebeLanzarExcepcion()
+    public void EstablecerContrasenia_SinMayúsculas_DebeLanzarExcepcion()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contraseña = "password123!"; // Sin mayúsculas
+        var contrasenia = "password123!"; // Sin mayúsculas
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContraseña(contraseña)
+            usuario.EstablecerContrasenia(contrasenia)
         );
     }
 
     [TestMethod]
-    public void EstablecerContraseña_SinMinúsculas_DebeLanzarExcepcion()
+    public void EstablecerContrasenia_SinMinúsculas_DebeLanzarExcepcion()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contraseña = "PASSWORD123!"; // Sin minúsculas
+        var contrasenia = "PASSWORD123!"; // Sin minúsculas
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContraseña(contraseña)
+            usuario.EstablecerContrasenia(contrasenia)
         );
     }
 
     [TestMethod]
-    public void EstablecerContraseña_SinNúmeros_DebeLanzarExcepcion()
+    public void EstablecerContrasenia_SinNúmeros_DebeLanzarExcepcion()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contraseña = "PasswordAbc!"; // Sin números
+        var contrasenia = "PasswordAbc!"; // Sin números
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContraseña(contraseña)
+            usuario.EstablecerContrasenia(contrasenia)
         );
     }
 
     [TestMethod]
-    public void EstablecerContraseña_SinCaracteresEspeciales_DebeLanzarExcepcion()
+    public void EstablecerContrasenia_SinCaracteresEspeciales_DebeLanzarExcepcion()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contraseña = "Password1234"; // Sin caracteres especiales
+        var contrasenia = "Password1234"; // Sin caracteres especiales
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContraseña(contraseña)
+            usuario.EstablecerContrasenia(contrasenia)
         );
     }
 
     [TestMethod]
-    public void EstablecerContraseña_ConContraseñaVacia_DebeLanzarExcepcion()
+    public void EstablecerContrasenia_ConContrasesiaVacia_DebeLanzarExcepcion()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContraseña(string.Empty)
+            usuario.EstablecerContrasenia(string.Empty)
         );
     }
 
     [TestMethod]
-    public void EstablecerContraseña_DebeAlmacenarCifrada_NoEnTextoPlano()
+    public void EstablecerContrasenia_DebeAlmacenarCifrada_NoEnTextoPlano()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contraseña = "MyPassword123!";
+        var contrasenia = "MyPassword123!";
 
         // Act
-        usuario.EstablecerContraseña(contraseña);
+        usuario.EstablecerContrasenia(contrasenia);
 
         // Assert
-        Assert.IsFalse(usuario.ContraseñaCifrada == contraseña,
-            "La contraseña no debe almacenarse en texto plano");
-        Assert.IsNotNull(usuario.ContraseñaCifrada);
-        Assert.IsTrue(usuario.ContraseñaCifrada.Length > 0);
+        Assert.IsFalse(usuario.ContraseniaCifrada == contrasenia,
+            "La contrasenia no debe almacenarse en texto plano");
+        Assert.IsNotNull(usuario.ContraseniaCifrada);
+        Assert.IsTrue(usuario.ContraseniaCifrada.Length > 0);
     }
 
     [TestMethod]
-    public void VerificarContraseña_ConContraseñaCorrecta_DebeRetornarVerdadero()
+    public void VerificarContrasenia_ConContrasesiaCorrecta_DebeRetornarVerdadero()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contraseña = "MyPassword123!";
-        usuario.EstablecerContraseña(contraseña);
+        var contrasenia = "MyPassword123!";
+        usuario.EstablecerContrasenia(contrasenia);
 
         // Act
-        var resultado = usuario.VerificarContraseña(contraseña);
+        var resultado = usuario.VerificarContrasenia(contrasenia);
 
         // Assert
         Assert.IsTrue(resultado);
     }
 
     [TestMethod]
-    public void VerificarContraseña_ConContraseñaIncorrecta_DebeRetornarFalso()
+    public void VerificarContrasenia_ConContrasesiaIncorrecta_DebeRetornarFalso()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contraseña = "MyPassword123!";
-        usuario.EstablecerContraseña(contraseña);
+        var contrasenia = "MyPassword123!";
+        usuario.EstablecerContrasenia(contrasenia);
 
         // Act
-        var resultado = usuario.VerificarContraseña("WrongPassword123!");
+        var resultado = usuario.VerificarContrasenia("WrongPassword123!");
 
         // Assert
         Assert.IsFalse(resultado);
     }
 
     [TestMethod]
-    public void VerificarContraseña_ConContraseñaCasoDiferente_DebeRetornarFalso()
+    public void VerificarContrasenia_ConContrasesiaCasoDiferente_DebeRetornarFalso()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contraseña = "MyPassword123!";
-        usuario.EstablecerContraseña(contraseña);
+        var contrasenia = "MyPassword123!";
+        usuario.EstablecerContrasenia(contrasenia);
 
         // Act - Intenta con caso diferente
-        var resultado = usuario.VerificarContraseña("mypassword123!");
+        var resultado = usuario.VerificarContrasenia("mypassword123!");
 
         // Assert
         Assert.IsFalse(resultado);
     }
 
     [TestMethod]
-    public void EstablecerContraseña_ConCaracteresEspecialesValidos_DebeAceptarlos()
+    public void EstablecerContrasenia_ConCaracteresEspecialesValidos_DebeAceptarlos()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contraseñas = new[]
+        var contrasenias = new[]
         {
             "Password123@",
             "Password123#",
@@ -270,11 +270,11 @@ public class UsuarioTests
         };
 
         // Act & Assert
-        foreach (var contraseña in contraseñas)
+        foreach (var contrasenia in contrasenias)
         {
-            usuario.EstablecerContraseña(contraseña);
-            Assert.IsTrue(usuario.VerificarContraseña(contraseña),
-                $"Debería aceptar contraseña con carácter especial: {contraseña}");
+            usuario.EstablecerContrasenia(contrasenia);
+            Assert.IsTrue(usuario.VerificarContrasenia(contrasenia),
+                $"Debería aceptar contrasenia con carácter especial: {contrasenia}");
         }
     }
 

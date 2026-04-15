@@ -9,14 +9,14 @@ using System.Text.RegularExpressions;
 
 public class Usuario
 {
-    private string? _contraseñaCifrada;
+    private string? _contraseniaCifrada;
     private HashSet<Rol> _roles;
 
     public string Nombre { get; private set; }
     public string Apellido { get; private set; }
     public string Email { get; private set; }
     public DateTime FechaNacimiento { get; private set; }
-    public string? ContraseñaCifrada => _contraseñaCifrada;
+    public string? ContraseniaCifrada => _contraseniaCifrada;
 
     public Usuario(string nombre, string apellido, string email, DateTime fechaNacimiento)
     {
@@ -75,65 +75,65 @@ public class Usuario
 
     #endregion
 
-    #region Gestión de Contraseña
+    #region Gestión de Contrasenia
 
-    public void EstablecerContraseña(string contraseña)
+    public void EstablecerContrasenia(string contrasenia)
     {
-        ValidarContraseña(contraseña);
-        _contraseñaCifrada = CifrarContraseña(contraseña);
+        ValidarContrasenia(contrasenia);
+        _contraseniaCifrada = CifrarContrasenia(contrasenia);
     }
 
-    private void ValidarContraseña(string contraseña)
+    private void ValidarContrasenia(string contrasenia)
     {
-        if (string.IsNullOrWhiteSpace(contraseña))
+        if (string.IsNullOrWhiteSpace(contrasenia))
         {
-            throw new ArgumentException("La contraseña no puede estar vacía.", nameof(contraseña));
+            throw new ArgumentException("La contrasenia no puede estar vacía.", nameof(contrasenia));
         }
 
-        if (contraseña.Length < 8)
+        if (contrasenia.Length < 8)
         {
-            throw new ArgumentException("La contraseña debe tener al menos 8 caracteres.", nameof(contraseña));
+            throw new ArgumentException("La contrasenia debe tener al menos 8 caracteres.", nameof(contrasenia));
         }
 
-        if (!Regex.IsMatch(contraseña, @"[A-Z]"))
+        if (!Regex.IsMatch(contrasenia, @"[A-Z]"))
         {
-            throw new ArgumentException("La contraseña debe incluir al menos una letra mayúscula.", nameof(contraseña));
+            throw new ArgumentException("La contrasenia debe incluir al menos una letra mayúscula.", nameof(contrasenia));
         }
 
-        if (!Regex.IsMatch(contraseña, @"[a-z]"))
+        if (!Regex.IsMatch(contrasenia, @"[a-z]"))
         {
-            throw new ArgumentException("La contraseña debe incluir al menos una letra minúscula.", nameof(contraseña));
+            throw new ArgumentException("La contrasenia debe incluir al menos una letra minúscula.", nameof(contrasenia));
         }
 
-        if (!Regex.IsMatch(contraseña, @"[0-9]"))
+        if (!Regex.IsMatch(contrasenia, @"[0-9]"))
         {
-            throw new ArgumentException("La contraseña debe incluir al menos un número.", nameof(contraseña));
+            throw new ArgumentException("La contrasenia debe incluir al menos un número.", nameof(contrasenia));
         }
 
-        if (!Regex.IsMatch(contraseña, @"[@#$\.\!\&\*\-_\+=\?]"))
+        if (!Regex.IsMatch(contrasenia, @"[@#$\.\!\&\*\-_\+=\?]"))
         {
-            throw new ArgumentException("La contraseña debe incluir al menos un carácter especial (@, #, $, ., !, &, *, -, _, +, =, ?).", nameof(contraseña));
+            throw new ArgumentException("La contrasenia debe incluir al menos un carácter especial (@, #, $, ., !, &, *, -, _, +, =, ?).", nameof(contrasenia));
         }
     }
 
-    private string CifrarContraseña(string contraseña)
+    private string CifrarContrasenia(string contrasenia)
     {
         using (var sha256 = SHA256.Create())
         {
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(contraseña));
+            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(contrasenia));
             return Convert.ToBase64String(hashedBytes);
         }
     }
 
-    public bool VerificarContraseña(string contraseña)
+    public bool VerificarContrasenia(string contrasenia)
     {
-        if (string.IsNullOrEmpty(_contraseñaCifrada))
+        if (string.IsNullOrEmpty(_contraseniaCifrada))
         {
             return false;
         }
 
-        var contraseñaCifradaIngresada = CifrarContraseña(contraseña);
-        return _contraseñaCifrada == contraseñaCifradaIngresada;
+        var contraseniaCifradaIngresada = CifrarContrasenia(contrasenia);
+        return _contraseniaCifrada == contraseniaCifradaIngresada;
     }
 
     #endregion
