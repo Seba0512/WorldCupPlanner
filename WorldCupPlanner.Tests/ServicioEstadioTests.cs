@@ -65,7 +65,26 @@ public class ServicioEstadioTests
             Capacidad = 60000
         };
 
-        // Act & Assert
+        // Act yAssert
         Assert.ThrowsException<Exception>(() => _servicio.AgregarEstadio(estadio));
+    }
+    
+    [TestMethod]
+    public void EliminarEstadio_EstadioExistente_SeEliminaCorrectamente()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "Montevideo",
+            Capacidad = 60000
+        };
+        _servicio.AgregarEstadio(estadio);
+
+        // Act
+        _servicio.EliminarEstadio(estadio);
+
+        // Assert
+        Assert.AreEqual(0, _servicio.ObtenerEstadios().Count);
     }
 }
