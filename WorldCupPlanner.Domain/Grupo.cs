@@ -1,4 +1,6 @@
-﻿namespace WorldCupPlanner.Domain;
+﻿using System.Collections.Generic;
+
+namespace WorldCupPlanner.Domain;
 
 public class Grupo
 {
