@@ -1,10 +1,10 @@
-# Default ignored files
+﻿# Default ignored files
 /shelf/
 /workspace.xml
 # Rider ignored files
-/.idea.328344-274754-282949.iml
-/contentModel.xml
+/.idea.WorldCupPlanner.iml
 /modules.xml
+/contentModel.xml
 /projectSettingsUpdater.xml
 # Ignored default folder with query files
 /queries/
