@@ -1,5 +1,4 @@
-﻿using System;
-namespace WorldCupPlanner.Domain
+﻿namespace WorldCupPlanner.Domain
 {
 	public class Equipo
 	{
@@ -16,6 +15,7 @@ namespace WorldCupPlanner.Domain
 
         public Equipo()
 		{
+			
 		}
 	}
 }
