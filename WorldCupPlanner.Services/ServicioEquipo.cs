@@ -19,7 +19,9 @@ namespace WorldCupPlanner.Services
         {
             if (!equipo.EsValido())
                 throw new Exception("El equipo no es válido.");
-            var existente = _equipos.FirstOrDefault(e => e.Nombre == equipo.Nombre);
+            if (_equipos.Any(e => e.Nombre == equipo.Nombre && e != equipo))
+                throw new Exception("Ya existe un equipo con ese nombre.");
+            var existente = _equipos.FirstOrDefault(e => e == equipo);
             if (existente == null)
                 throw new Exception("El equipo no existe.");
             var index = _equipos.IndexOf(existente);
