@@ -8,6 +8,8 @@ namespace WorldCupPlanner.Services
 
         public void AgregarEquipo(Equipo equipo)
         {
+            if (!equipo.EsValido())
+                throw new Exception("El equipo no es válido.");
             if (_equipos.Any(e => e.Nombre == equipo.Nombre))
                 throw new Exception("Ya existe un equipo con ese nombre.");
             _equipos.Add(equipo);
