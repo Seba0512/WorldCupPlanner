@@ -65,7 +65,26 @@ public class ServicioEquipoTests
             Confederacion = Confederacion.CONMEBOL
         };
 
-        // Act & Assert
+        // Act y Assert
         Assert.ThrowsException<Exception>(() => _servicio.AgregarEquipo(equipo));
+    }
+    
+    [TestMethod]
+    public void EliminarEquipo_EquipoExistente_SeEliminaCorrectamente()
+    {
+        // Arrange
+        var equipo = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL
+        };
+        _servicio.AgregarEquipo(equipo);
+
+        // Act
+        _servicio.EliminarEquipo(equipo);
+
+        // Assert
+        Assert.AreEqual(0, _servicio.ObtenerEquipos().Count);
     }
 }
