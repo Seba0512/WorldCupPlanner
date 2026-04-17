@@ -1,6 +1,21 @@
-namespace DefaultNamespace;
+using WorldCupPlanner.Domain;
 
-public class ServicioEquipo
+namespace WorldCupPlanner.Services
 {
-    
+    public class ServicioEquipo
+    {
+        private List<Equipo> _equipos = new List<Equipo>();
+
+        public void AgregarEquipo(Equipo equipo)
+        {
+            if (_equipos.Any(e => e.Nombre == equipo.Nombre))
+                throw new Exception("Ya existe un equipo con ese nombre.");
+            _equipos.Add(equipo);
+        }
+
+        public List<Equipo> ObtenerEquipos()
+        {
+            return _equipos;
+        }
+    }
 }
