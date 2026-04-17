@@ -15,6 +15,11 @@ namespace WorldCupPlanner.Services
             _equipos.Add(equipo);
         }
 
+        public void EliminarEquipo(Equipo equipo)
+        {
+            _equipos.Remove(equipo);
+        }
+
         public List<Equipo> ObtenerEquipos()
         {
             return _equipos;
