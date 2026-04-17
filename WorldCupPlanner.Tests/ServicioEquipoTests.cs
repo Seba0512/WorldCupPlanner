@@ -53,4 +53,19 @@ public class ServicioEquipoTests
         // Assert
         Assert.ThrowsException<Exception>(() => _servicio.AgregarEquipo(equipo2));
     }
+    
+    [TestMethod]
+    public void AgregarEquipo_EquipoInvalido_LanzaExcepcion()
+    {
+        // Arrange
+        var equipo = new Equipo
+        {
+            Nombre = "",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<Exception>(() => _servicio.AgregarEquipo(equipo));
+    }
 }
