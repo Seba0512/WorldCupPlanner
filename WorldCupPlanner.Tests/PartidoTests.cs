@@ -28,4 +28,23 @@ public class PartidoTests
         // Assert
         Assert.IsFalse(resultado);
     }
+    
+    [TestMethod]
+    public void Partido_SinEstadio_EsInvalido()
+    {
+        // Arrange
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+
+        // Act
+        var resultado = partido.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
 }
