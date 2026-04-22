@@ -47,4 +47,42 @@ public class PartidoTests
         // Assert
         Assert.IsFalse(resultado);
     }
+    
+    [TestMethod]
+    public void Partido_SinEquipoLocal_EsInvalido()
+    {
+        // Arrange
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+
+        // Act
+        var resultado = partido.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Partido_SinEquipoVisitante_EsInvalido()
+    {
+        // Arrange
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+
+        // Act
+        var resultado = partido.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
 }
