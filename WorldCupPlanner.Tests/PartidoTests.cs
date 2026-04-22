@@ -129,4 +129,49 @@ public class PartidoTests
         // Assert
         Assert.AreEqual(equipoLocal, resultado);
     }
+    
+    [TestMethod]
+    public void Partido_GolesIguales_EsEmpate()
+    {
+        // Arrange
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.FaseDeGrupos,
+            GolesLocal = 1,
+            GolesVisitante = 1
+        };
+
+        // Act
+        var resultado = partido.EsEmpate();
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void Partido_GolesVisitanteMayor_GanaVisitante()
+    {
+        // Arrange
+        var equipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL };
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            EquipoVisitante = equipoVisitante,
+            Fase = FaseTorneo.FaseDeGrupos,
+            GolesLocal = 0,
+            GolesVisitante = 2
+        };
+
+        // Act
+        var resultado = partido.Ganador();
+
+        // Assert
+        Assert.AreEqual(equipoVisitante, resultado);
+    }
 }
