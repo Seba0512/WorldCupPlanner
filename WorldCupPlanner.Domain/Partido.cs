@@ -31,5 +31,10 @@ namespace WorldCupPlanner.Domain
             if (GolesVisitante > GolesLocal) return EquipoVisitante;
             return null;
         }
+
+        public bool EsEmpate()
+        {
+            return EstaJugado() && GolesLocal == GolesVisitante;
+        }
     }
 }
