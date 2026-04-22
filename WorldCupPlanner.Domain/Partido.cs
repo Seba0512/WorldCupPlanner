@@ -16,7 +16,7 @@ namespace WorldCupPlanner.Domain
 
         public bool EsValido()
         {
-            return EquipoLocal != EquipoVisitante && Estadio != null;
+            return EquipoLocal != null && EquipoVisitante != null && EquipoLocal != EquipoVisitante && Estadio != null;
         }
     }
 }
