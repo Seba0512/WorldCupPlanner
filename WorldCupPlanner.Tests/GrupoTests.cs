@@ -5,83 +5,76 @@ namespace WorldCupPlanner.Tests;
 [TestClass]
 public class GrupoTests
 {
+    #region Constructor - Validación de Etiqueta
+
     [TestMethod]
-    public void Grupo_ConEtiquetaVacia_NoEsValido()
+    public void Grupo_ConEtiquetaVacia_DebeLanzarExcepcion()
     {
         // Arrange
-        var grupo = new Grupo();
-        grupo.Etiqueta = "";
+        string etiquetaVacia = string.Empty;
 
-        // Act
-        var resultado = grupo.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Grupo(etiquetaVacia)
+        );
     }
 
     [TestMethod]
-    public void Grupo_ConEtiquetaDeMasDeUnCaracter_NoEsValido()
+    public void Grupo_ConEtiquetaDeMasDeUnCaracter_DebeLanzarExcepcion()
     {
         // Arrange
-        var grupo = new Grupo();
-        grupo.Etiqueta = "AB";
+        string etiquetaInvalida = "AB";
 
-        // Act
-        var resultado = grupo.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Grupo(etiquetaInvalida)
+        );
     }
 
     [TestMethod]
-    public void Grupo_ConEtiquetaFueraDeRango_NoEsValido()
+    public void Grupo_ConEtiquetaFueraDeRango_DebeLanzarExcepcion()
     {
         // Arrange
-        var grupo = new Grupo();
-        grupo.Etiqueta = "M";
+        string etiquetaFueraDeRango = "M";
 
-        // Act
-        var resultado = grupo.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Grupo(etiquetaFueraDeRango)
+        );
     }
 
+    #endregion
+
+    #region Constructor - Validación de Equipos
+
     [TestMethod]
-    public void Grupo_ConMasDeCuatroEquipos_NoEsValido()
+    public void Grupo_ConMasDeCuatroEquipos_DebeLanzarExcepcion()
     {
         // Arrange
-        var grupo = new Grupo();
-        grupo.Etiqueta = "A";
-        grupo.Equipos = new List<Equipo>
+        var equipos = new List<Equipo>
         {
-            new Equipo(),
-            new Equipo(),
-            new Equipo(),
-            new Equipo(),
-            new Equipo()
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.UEFA),
+            CrearEquipoValido("Equipo3", Confederacion.CONMEBOL),
+            CrearEquipoValido("Equipo4", Confederacion.AFC),
+            CrearEquipoValido("Equipo5", Confederacion.CAF)
         };
 
-        // Act
-        var resultado = grupo.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Grupo("A", equipos)
+        );
     }
+
+    #endregion
+
+    #region Validación - Equipos Válidos y Confederaciones
 
     [TestMethod]
     public void Grupo_ConEtiquetaValida_YHastaCuatroEquipos_EsValido()
     {
         // Arrange
-        var grupo = new Grupo();
-        grupo.Etiqueta = "B";
-        grupo.Equipos = new List<Equipo>
-        {
-            new Equipo { Nombre = "Equipo1", RankingFIFA = 500, Confederacion = Confederacion.UEFA },
-            new Equipo { Nombre = "Equipo2", RankingFIFA = 600, Confederacion = Confederacion.UEFA },
-            new Equipo { Nombre = "Equipo3", RankingFIFA = 700, Confederacion = Confederacion.CONMEBOL },
-            new Equipo { Nombre = "Equipo4", RankingFIFA = 800, Confederacion = Confederacion.AFC }
-        };
+        var grupo = CrearGrupoValido("B");
 
         // Act
         var resultado = grupo.EsValido();
@@ -94,15 +87,14 @@ public class GrupoTests
     public void Grupo_ConTresEquiposUEFA_NoEsValido()
     {
         // Arrange
-        var grupo = new Grupo();
-        grupo.Etiqueta = "C";
-        grupo.Equipos = new List<Equipo>
+        var equipos = new List<Equipo>
         {
-            new Equipo { Nombre = "Equipo1", RankingFIFA = 500, Confederacion = Confederacion.UEFA },
-            new Equipo { Nombre = "Equipo2", RankingFIFA = 600, Confederacion = Confederacion.UEFA },
-            new Equipo { Nombre = "Equipo3", RankingFIFA = 700, Confederacion = Confederacion.UEFA },
-            new Equipo { Nombre = "Equipo4", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL }
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.UEFA),
+            CrearEquipoValido("Equipo3", Confederacion.UEFA),
+            CrearEquipoValido("Equipo4", Confederacion.CONMEBOL)
         };
+        var grupo = new Grupo("C", equipos);
 
         // Act
         var resultado = grupo.EsValido();
@@ -115,15 +107,14 @@ public class GrupoTests
     public void Grupo_ConDosEquiposConmebol_NoEsValido()
     {
         // Arrange
-        var grupo = new Grupo();
-        grupo.Etiqueta = "D";
-        grupo.Equipos = new List<Equipo>
+        var equipos = new List<Equipo>
         {
-            new Equipo { Nombre = "Equipo1", RankingFIFA = 500, Confederacion = Confederacion.UEFA },
-            new Equipo { Nombre = "Equipo2", RankingFIFA = 600, Confederacion = Confederacion.CONMEBOL },
-            new Equipo { Nombre = "Equipo3", RankingFIFA = 700, Confederacion = Confederacion.CONMEBOL },
-            new Equipo { Nombre = "Equipo4", RankingFIFA = 800, Confederacion = Confederacion.AFC }
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.CONMEBOL),
+            CrearEquipoValido("Equipo3", Confederacion.CONMEBOL),
+            CrearEquipoValido("Equipo4", Confederacion.AFC)
         };
+        var grupo = new Grupo("D", equipos);
 
         // Act
         var resultado = grupo.EsValido();
@@ -136,15 +127,14 @@ public class GrupoTests
     public void Grupo_ConDosEquiposConcacaf_NoEsValido()
     {
         // Arrange
-        var grupo = new Grupo();
-        grupo.Etiqueta = "E";
-        grupo.Equipos = new List<Equipo>
+        var equipos = new List<Equipo>
         {
-            new Equipo { Nombre = "Equipo1", RankingFIFA = 500, Confederacion = Confederacion.UEFA },
-            new Equipo { Nombre = "Equipo2", RankingFIFA = 600, Confederacion = Confederacion.CONCACAF },
-            new Equipo { Nombre = "Equipo3", RankingFIFA = 700, Confederacion = Confederacion.CONCACAF },
-            new Equipo { Nombre = "Equipo4", RankingFIFA = 800, Confederacion = Confederacion.AFC }
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.CONCACAF),
+            CrearEquipoValido("Equipo3", Confederacion.CONCACAF),
+            CrearEquipoValido("Equipo4", Confederacion.AFC)
         };
+        var grupo = new Grupo("E", equipos);
 
         // Act
         var resultado = grupo.EsValido();
@@ -157,15 +147,14 @@ public class GrupoTests
     public void Grupo_ConDosEquiposCAF_NoEsValido()
     {
         // Arrange
-        var grupo = new Grupo();
-        grupo.Etiqueta = "F";
-        grupo.Equipos = new List<Equipo>
+        var equipos = new List<Equipo>
         {
-            new Equipo { Nombre = "Equipo1", RankingFIFA = 500, Confederacion = Confederacion.UEFA },
-            new Equipo { Nombre = "Equipo2", RankingFIFA = 600, Confederacion = Confederacion.CAF },
-            new Equipo { Nombre = "Equipo3", RankingFIFA = 700, Confederacion = Confederacion.CAF },
-            new Equipo { Nombre = "Equipo4", RankingFIFA = 800, Confederacion = Confederacion.AFC }
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.CAF),
+            CrearEquipoValido("Equipo3", Confederacion.CAF),
+            CrearEquipoValido("Equipo4", Confederacion.AFC)
         };
+        var grupo = new Grupo("F", equipos);
 
         // Act
         var resultado = grupo.EsValido();
@@ -178,15 +167,14 @@ public class GrupoTests
     public void Grupo_ConDosEquiposAFC_NoEsValido()
     {
         // Arrange
-        var grupo = new Grupo();
-        grupo.Etiqueta = "G";
-        grupo.Equipos = new List<Equipo>
+        var equipos = new List<Equipo>
         {
-            new Equipo { Nombre = "Equipo1", RankingFIFA = 500, Confederacion = Confederacion.UEFA },
-            new Equipo { Nombre = "Equipo2", RankingFIFA = 600, Confederacion = Confederacion.AFC },
-            new Equipo { Nombre = "Equipo3", RankingFIFA = 700, Confederacion = Confederacion.AFC },
-            new Equipo { Nombre = "Equipo4", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL }
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.AFC),
+            CrearEquipoValido("Equipo3", Confederacion.AFC),
+            CrearEquipoValido("Equipo4", Confederacion.CONMEBOL)
         };
+        var grupo = new Grupo("G", equipos);
 
         // Act
         var resultado = grupo.EsValido();
@@ -199,15 +187,14 @@ public class GrupoTests
     public void Grupo_ConDosEquiposOFC_NoEsValido()
     {
         // Arrange
-        var grupo = new Grupo();
-        grupo.Etiqueta = "H";
-        grupo.Equipos = new List<Equipo>
+        var equipos = new List<Equipo>
         {
-            new Equipo { Nombre = "Equipo1", RankingFIFA = 500, Confederacion = Confederacion.UEFA },
-            new Equipo { Nombre = "Equipo2", RankingFIFA = 600, Confederacion = Confederacion.OFC },
-            new Equipo { Nombre = "Equipo3", RankingFIFA = 700, Confederacion = Confederacion.OFC },
-            new Equipo { Nombre = "Equipo4", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL }
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.OFC),
+            CrearEquipoValido("Equipo3", Confederacion.OFC),
+            CrearEquipoValido("Equipo4", Confederacion.CONMEBOL)
         };
+        var grupo = new Grupo("H", equipos);
 
         // Act
         var resultado = grupo.EsValido();
@@ -220,15 +207,14 @@ public class GrupoTests
     public void Grupo_ConDosUEFAYUnoDeOtraConfederacion_EsValido()
     {
         // Arrange
-        var grupo = new Grupo();
-        grupo.Etiqueta = "I";
-        grupo.Equipos = new List<Equipo>
+        var equipos = new List<Equipo>
         {
-            new Equipo { Nombre = "Equipo1", RankingFIFA = 500, Confederacion = Confederacion.UEFA },
-            new Equipo { Nombre = "Equipo2", RankingFIFA = 600, Confederacion = Confederacion.UEFA },
-            new Equipo { Nombre = "Equipo3", RankingFIFA = 700, Confederacion = Confederacion.CONMEBOL },
-            new Equipo { Nombre = "Equipo4", RankingFIFA = 800, Confederacion = Confederacion.AFC }
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.UEFA),
+            CrearEquipoValido("Equipo3", Confederacion.CONMEBOL),
+            CrearEquipoValido("Equipo4", Confederacion.AFC)
         };
+        var grupo = new Grupo("I", equipos);
 
         // Act
         var resultado = grupo.EsValido();
@@ -241,12 +227,11 @@ public class GrupoTests
     public void Grupo_ConEquipoInvalido_NoEsValido()
     {
         // Arrange
-        var grupo = new Grupo();
-        grupo.Etiqueta = "A";
-        grupo.Equipos = new List<Equipo>
+        var equipos = new List<Equipo>
         {
             new Equipo { Nombre = "", RankingFIFA = 500, Confederacion = Confederacion.UEFA }
         };
+        var grupo = new Grupo("A", equipos);
 
         // Act
         var resultado = grupo.EsValido();
@@ -254,4 +239,28 @@ public class GrupoTests
         // Assert
         Assert.IsFalse(resultado);
     }
+
+    #endregion
+
+    #region Métodos Helper
+
+    private Grupo CrearGrupoValido(string etiqueta = "A")
+    {
+        var equipos = new List<Equipo>
+        {
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.UEFA),
+            CrearEquipoValido("Equipo3", Confederacion.CONMEBOL),
+            CrearEquipoValido("Equipo4", Confederacion.AFC)
+        };
+
+        return new Grupo(etiqueta, equipos);
+    }
+
+    private Equipo CrearEquipoValido(string nombre, Confederacion confederacion)
+    {
+        return new Equipo { Nombre = nombre, RankingFIFA = 500, Confederacion = confederacion };
+    }
+
+    #endregion
 }

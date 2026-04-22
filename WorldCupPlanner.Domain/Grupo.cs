@@ -2,84 +2,79 @@
 
 public class Grupo
 {
-    public string Etiqueta { get; set; } = "";
-    public List<Equipo> Equipos { get; set; } = new List<Equipo>();
-    // public List<Partido> Partidos { get; set; } = new List<Partido>(); // Será agregado cuando Partido esté disponible
+    private const char EtiquetaMinima = 'A';
+    private const char EtiquetaMaxima = 'L';
+    private const int CantidadMaximaEquipos = 4;
+    private const int MaximoEquiposUefa = 2;
+    private const int MaximoEquiposOtrasConfederaciones = 1;
+
+    public string Etiqueta { get; private set; }
+    public List<Equipo> Equipos { get; private set; }
+
+    public Grupo(string etiqueta, List<Equipo>? equipos = null)
+    {
+        ValidarEtiqueta(etiqueta);
+        ValidarEquipos(equipos);
+
+        Etiqueta = etiqueta;
+        Equipos = equipos ?? new List<Equipo>();
+    }
+
+    private void ValidarEtiqueta(string etiqueta)
+    {
+        if (string.IsNullOrEmpty(etiqueta))
+            throw new ArgumentException("La etiqueta del grupo no puede estar vacía.", nameof(etiqueta));
+
+        if (etiqueta.Length != 1)
+            throw new ArgumentException("La etiqueta del grupo debe tener exactamente un carácter.", nameof(etiqueta));
+
+        if (etiqueta[0] < EtiquetaMinima || etiqueta[0] > EtiquetaMaxima)
+            throw new ArgumentException($"La etiqueta debe estar entre {EtiquetaMinima} y {EtiquetaMaxima}.", nameof(etiqueta));
+    }
+
+    private void ValidarEquipos(List<Equipo>? equipos)
+    {
+        if (equipos != null && equipos.Count > CantidadMaximaEquipos)
+            throw new ArgumentException($"Un grupo no puede tener más de {CantidadMaximaEquipos} equipos.", nameof(equipos));
+    }
 
     public bool EsValido()
     {
-        if (string.IsNullOrEmpty(Etiqueta))
-        {
-            return false;
-        }
-
-        if (Etiqueta.Length != 1)
-        {
-            return false;
-        }
-
-        if (Etiqueta[0] < 'A' || Etiqueta[0] > 'L')
-        {
-            return false;
-        }
-
-
-        if (Equipos.Count > 4)
-        {
-            return false;
-        }
-
-        // Validar que todos los equipos sean válidos
-        foreach (var equipo in Equipos)
-        {
-            if (!equipo.EsValido())
-            {
-                return false;
-            }
-        }
-
-        // Validación de restricciones por confederaciones
-        if (!ValidarConfederaciones())
-        {
-            return false;
-        }
-
-        return true;
+        return SonEquiposValidos() && CumpleRestriccionesConfederaciones();
     }
 
-    private bool ValidarConfederaciones()
+    private bool SonEquiposValidos()
     {
-        // Contar equipos por confederación
-        var conteoConfederaciones = new Dictionary<Confederacion, int>();
+        return Equipos.All(e => e.EsValido());
+    }
 
-        foreach (var equipo in Equipos)
-        {
-            if (equipo.Confederacion.HasValue)
-            {
-                var confederacion = equipo.Confederacion.Value;
-                if (!conteoConfederaciones.ContainsKey(confederacion))
-                {
-                    conteoConfederaciones[confederacion] = 0;
-                }
-                conteoConfederaciones[confederacion]++;
-            }
-        }
+    private bool CumpleRestriccionesConfederaciones()
+    {
+        return CumpleRestriccionUefa() && CumpleRestriccionesPorOtrasConfederaciones();
+    }
 
-        // UEFA puede tener máximo 2 equipos en un grupo
-        if (conteoConfederaciones.ContainsKey(Confederacion.UEFA) && conteoConfederaciones[Confederacion.UEFA] > 2)
-        {
-            return false;
-        }
+    private bool CumpleRestriccionUefa()
+    {
+        var conteoUefa = ObtenerConteoConfederacion(Confederacion.UEFA);
+        return conteoUefa <= MaximoEquiposUefa;
+    }
 
-        // Las demás confederaciones pueden tener máximo 1 equipo en un grupo
-        foreach (var confederacion in new[] { Confederacion.CONMEBOL, Confederacion.CONCACAF, Confederacion.CAF, Confederacion.AFC, Confederacion.OFC })
-        {
-            if (conteoConfederaciones.ContainsKey(confederacion) && conteoConfederaciones[confederacion] > 1)
-            {
-                return false;
-            }
-        }
+    private bool CumpleRestriccionesPorOtrasConfederaciones()
+    {
+        var confederacionesNoUefa = new[] 
+        { 
+            Confederacion.CONMEBOL, 
+            Confederacion.CONCACAF, 
+            Confederacion.CAF, 
+            Confederacion.AFC, 
+            Confederacion.OFC 
+        };
 
-        return true;
+        return confederacionesNoUefa.All(c => ObtenerConteoConfederacion(c) <= MaximoEquiposOtrasConfederaciones);
+    }
+
+    private int ObtenerConteoConfederacion(Confederacion confederacion)
+    {
+        return Equipos.Count(e => e.Confederacion == confederacion);
     }
 }
