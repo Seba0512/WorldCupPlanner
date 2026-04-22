@@ -28,4 +28,16 @@ public class NormalizarTests
         // Assert
         Assert.AreEqual("paris", resultado);
     }
+    [TestMethod]
+    public void Normalizar_TextoConCaracteresEspeciales_ReemplazaPorEspacio()
+    {
+        // Arrange
+        var texto = "estadio#central";
+
+        // Act
+        var resultado = Normalizar.NormalizarTexto(texto);
+
+        // Assert
+        Assert.AreEqual("estadio central", resultado);
+    }
 }
