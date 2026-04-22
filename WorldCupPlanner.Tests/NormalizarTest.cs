@@ -15,4 +15,17 @@ public class NormalizarTests
         // Assert
         Assert.AreEqual("uruguay", resultado);
     }
+    
+    [TestMethod]
+    public void Normalizar_TextoConTildes_EliminaTildes()
+    {
+        // Arrange
+        var texto = "París";
+
+        // Act
+        var resultado = Normalizar.NormalizarTexto(texto);
+
+        // Assert
+        Assert.AreEqual("paris", resultado);
+    }
 }
