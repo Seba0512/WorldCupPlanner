@@ -12,6 +12,7 @@ public class Normalizar
             if (System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark)
                 sb.Append(c);
         var sinTildes = sb.ToString().Normalize(NormalizationForm.FormC).ToLower();
-        return System.Text.RegularExpressions.Regex.Replace(sinTildes, @"[^a-z0-9 ]", " ");
+        var sinEspeciales = System.Text.RegularExpressions.Regex.Replace(sinTildes, @"[^a-z0-9 ]", " ");
+        return System.Text.RegularExpressions.Regex.Replace(sinEspeciales, @" +", " ").Trim();
     }
 }
