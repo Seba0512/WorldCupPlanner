@@ -11,6 +11,7 @@ public class Normalizar
         foreach (var c in normalizado)
             if (System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark)
                 sb.Append(c);
-        return sb.ToString().Normalize(NormalizationForm.FormC).ToLower();
+        var sinTildes = sb.ToString().Normalize(NormalizationForm.FormC).ToLower();
+        return System.Text.RegularExpressions.Regex.Replace(sinTildes, @"[^a-z0-9 ]", " ");
     }
 }
