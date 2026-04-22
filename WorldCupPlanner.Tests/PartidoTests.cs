@@ -174,4 +174,25 @@ public class PartidoTests
         // Assert
         Assert.AreEqual(equipoVisitante, resultado);
     }
+     
+    [TestMethod]
+    public void Partido_SinGoles_GanadorEsNull()
+    {
+        // Arrange
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+
+        // Act
+        var resultado = partido.Ganador();
+
+        // Assert
+        Assert.IsNull(resultado);
+    }
+    
 }
