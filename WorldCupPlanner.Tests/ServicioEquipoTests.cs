@@ -132,4 +132,31 @@ public class ServicioEquipoTests
         // Assert
         Assert.ThrowsException<Exception>(() => _servicio.EditarEquipo(equipo2));
     }
+    [TestMethod]
+    public void Normalizar_TextoConEspaciosMultiples_ColapsaEspacios()
+    {
+        // Arrange
+        var texto = "estadio   central";
+
+        // Act
+        var resultado = Normalizar.NormalizarTexto(texto);
+
+        // Assert
+        Assert.AreEqual("estadio central", resultado);
+    }
+    
+    [TestMethod]
+    public void Normalizar_TextoConEspaciosAlRededor_EliminaEspacios()
+    {
+        // Arrange
+        var texto = "  uruguay  ";
+
+        // Act
+        var resultado = Normalizar.NormalizarTexto(texto);
+
+        // Assert
+        Assert.AreEqual("uruguay", resultado);
+    }
+    
+    
 }
