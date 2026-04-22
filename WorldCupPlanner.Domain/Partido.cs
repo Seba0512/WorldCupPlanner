@@ -18,5 +18,18 @@ namespace WorldCupPlanner.Domain
         {
             return EquipoLocal != null && EquipoVisitante != null && EquipoLocal != EquipoVisitante && Estadio != null;
         }
+
+        public bool EstaJugado()
+        {
+            return GolesLocal.HasValue && GolesVisitante.HasValue;
+        }
+
+        public Equipo? Ganador()
+        {
+            if (!EstaJugado()) return null;
+            if (GolesLocal > GolesVisitante) return EquipoLocal;
+            if (GolesVisitante > GolesLocal) return EquipoVisitante;
+            return null;
+        }
     }
 }
