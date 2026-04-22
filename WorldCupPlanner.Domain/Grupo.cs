@@ -37,10 +37,15 @@ public class Grupo
         if (equipos != null && equipos.Count > CantidadMaximaEquipos)
             throw new ArgumentException($"Un grupo no puede tener más de {CantidadMaximaEquipos} equipos.", nameof(equipos));
     }
+    
+    private bool TieneCantidadCorrectaDeEquipos()
+    {
+        return Equipos.Count == CantidadMaximaEquipos;
+    }
 
     public bool EsValido()
     {
-        return SonEquiposValidos() && CumpleRestriccionesConfederaciones();
+        return TieneCantidadCorrectaDeEquipos() && SonEquiposValidos() && CumpleRestriccionesConfederaciones();
     }
 
     private bool SonEquiposValidos()
