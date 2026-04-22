@@ -239,6 +239,25 @@ public class GrupoTests
         // Assert
         Assert.IsFalse(resultado);
     }
+    
+    [TestMethod]
+    public void Grupo_ConMenosDeCuatroEquipos_NoEsValido()
+    {
+        // Arrange
+        var equipos = new List<Equipo>
+        {
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.CONMEBOL),
+            CrearEquipoValido("Equipo3", Confederacion.AFC)
+        };
+        var grupo = new Grupo("J", equipos);
+
+        // Act
+        var resultado = grupo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
 
     #endregion
 
