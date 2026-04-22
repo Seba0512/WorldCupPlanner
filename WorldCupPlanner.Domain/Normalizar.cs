@@ -1,9 +1,16 @@
+using System.Text;
+
 namespace WorldCupPlanner.Domain;
 
 public class Normalizar
 {
     public static string NormalizarTexto(string texto)
     {
-        return texto.ToLower();
+        var normalizado = texto.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder();
+        foreach (var c in normalizado)
+            if (System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark)
+                sb.Append(c);
+        return sb.ToString().Normalize(NormalizationForm.FormC).ToLower();
     }
 }
