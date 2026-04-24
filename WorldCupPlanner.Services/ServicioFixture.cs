@@ -12,7 +12,14 @@ public class ServicioFixture
         ValidarCantidadEquipos(equipos);
         ValidarCantidadEstadios(estadios);
 
-        return new Fixture();
+        var fixture = new Fixture();
+
+        for (char etiqueta = 'A'; etiqueta <= 'L'; etiqueta++)
+        {
+            fixture.Grupos.Add(new Grupo(etiqueta.ToString()));
+        }
+
+        return fixture;
     }
 
     private void ValidarCantidadEquipos(List<Equipo> equipos)
