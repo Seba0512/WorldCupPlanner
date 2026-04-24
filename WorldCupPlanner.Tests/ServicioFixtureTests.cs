@@ -78,4 +78,20 @@ public class ServicioFixtureTests
 
         return equipos;
     }
+    
+    [TestMethod]
+    public void GenerarFixture_Con48EquiposY4Estadios_DebeGenerar12Grupos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidos(48);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        Assert.AreEqual(12, fixture.Grupos.Count);
+    }
 }
