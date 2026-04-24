@@ -6,20 +6,15 @@ public class ServicioFixture
 {
     private const int CantidadMinimaEquipos = 48;
     private const int CantidadMinimaEstadios = 4;
+    private const char PrimeraEtiquetaGrupo = 'A';
+    private const char UltimaEtiquetaGrupo = 'L';
 
     public Fixture GenerarFixture(List<Equipo> equipos, List<Estadio> estadios, ConfiguracionTorneo configuracionTorneo)
     {
         ValidarCantidadEquipos(equipos);
         ValidarCantidadEstadios(estadios);
 
-        var fixture = new Fixture();
-
-        for (char etiqueta = 'A'; etiqueta <= 'L'; etiqueta++)
-        {
-            fixture.Grupos.Add(new Grupo(etiqueta.ToString()));
-        }
-
-        return fixture;
+        return CrearFixtureConGrupos();
     }
 
     private void ValidarCantidadEquipos(List<Equipo> equipos)
@@ -36,5 +31,17 @@ public class ServicioFixture
         {
             throw new InvalidOperationException("No se puede generar el fixture con menos de 4 estadios.");
         }
+    }
+
+    private Fixture CrearFixtureConGrupos()
+    {
+        var fixture = new Fixture();
+
+        for (char etiqueta = PrimeraEtiquetaGrupo; etiqueta <= UltimaEtiquetaGrupo; etiqueta++)
+        {
+            fixture.Grupos.Add(new Grupo(etiqueta.ToString()));
+        }
+
+        return fixture;
     }
 }
