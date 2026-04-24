@@ -37,4 +37,45 @@ public class ServicioFixtureTests
 
         return estadios;
     }
+    
+    [TestMethod]
+    public void GenerarFixture_ConMenosDe4Estadios_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidos(48);
+        var estadios = CrearEstadiosValidos(3);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
+        );
+    }
+
+    private List<Equipo> CrearEquiposValidos(int cantidad)
+    {
+        var equipos = new List<Equipo>();
+        var confederaciones = new[]
+        {
+            Confederacion.UEFA,
+            Confederacion.CONMEBOL,
+            Confederacion.CONCACAF,
+            Confederacion.CAF,
+            Confederacion.AFC,
+            Confederacion.OFC
+        };
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            equipos.Add(new Equipo
+            {
+                Nombre = $"Equipo{i}",
+                RankingFIFA = 500 + i,
+                Confederacion = confederaciones[(i - 1) % confederaciones.Length]
+            });
+        }
+
+        return equipos;
+    }
 }
