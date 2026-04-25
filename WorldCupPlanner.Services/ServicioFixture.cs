@@ -41,17 +41,23 @@ public class ServicioFixture
 
         for (char etiqueta = PrimeraEtiquetaGrupo; etiqueta <= UltimaEtiquetaGrupo; etiqueta++)
         {
-            var equiposDelGrupo = new List<Equipo>();
-
-            for (int i = 0; i < CantidadEquiposPorGrupo; i++)
-            {
-                equiposDelGrupo.Add(equipos[indiceEquipo]);
-                indiceEquipo++;
-            }
-
+            var equiposDelGrupo = ObtenerEquiposDelGrupo(equipos, ref indiceEquipo);
             fixture.Grupos.Add(new Grupo(etiqueta.ToString(), equiposDelGrupo));
         }
 
         return fixture;
+    }
+
+    private List<Equipo> ObtenerEquiposDelGrupo(List<Equipo> equipos, ref int indiceEquipo)
+    {
+        var equiposDelGrupo = new List<Equipo>();
+
+        for (int i = 0; i < CantidadEquiposPorGrupo; i++)
+        {
+            equiposDelGrupo.Add(equipos[indiceEquipo]);
+            indiceEquipo++;
+        }
+
+        return equiposDelGrupo;
     }
 }
