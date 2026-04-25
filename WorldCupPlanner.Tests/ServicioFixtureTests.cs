@@ -94,4 +94,27 @@ public class ServicioFixtureTests
         // Assert
         Assert.AreEqual(12, fixture.Grupos.Count);
     }
+    
+    [TestMethod]
+    public void GenerarFixture_DebeCrearGruposConEtiquetasDeAToL()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidos(48);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        var etiquetasEsperadas = new List<string>
+        {
+            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"
+        };
+
+        var etiquetasObtenidas = fixture.Grupos.Select(g => g.Etiqueta).ToList();
+
+        CollectionAssert.AreEqual(etiquetasEsperadas, etiquetasObtenidas);
+    }
 }
