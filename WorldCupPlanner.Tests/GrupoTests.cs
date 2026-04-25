@@ -71,7 +71,7 @@ public class GrupoTests
     #region Validación - Equipos Válidos y Confederaciones
 
     [TestMethod]
-    public void Grupo_ConEtiquetaValida_YHastaCuatroEquipos_EsValido()
+    public void Grupo_ConEtiquetaValida_YCuatroEquiposValidos_EsValido()
     {
         // Arrange
         var grupo = CrearGrupoValido("B");
