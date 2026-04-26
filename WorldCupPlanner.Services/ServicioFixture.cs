@@ -6,16 +6,16 @@ public class ServicioFixture
 {
     private const int CantidadMinimaEquipos = 48;
     private const int CantidadMinimaEstadios = 4;
+    private const int CantidadGrupos = 12;
     private const char PrimeraEtiquetaGrupo = 'A';
     private const char UltimaEtiquetaGrupo = 'L';
-    private const int CantidadGrupos = 12;
 
     public Fixture GenerarFixture(List<Equipo> equipos, List<Estadio> estadios, ConfiguracionTorneo configuracionTorneo)
     {
         ValidarCantidadEquipos(equipos);
         ValidarCantidadEstadios(estadios);
 
-        return CrearFixtureConGrupos(equipos);
+        return CrearFixtureConDistribucionRoundRobin(equipos);
     }
 
     private void ValidarCantidadEquipos(List<Equipo> equipos)
@@ -34,14 +34,13 @@ public class ServicioFixture
         }
     }
 
-    private Fixture CrearFixtureConGrupos(List<Equipo> equipos)
+    private Fixture CrearFixtureConDistribucionRoundRobin(List<Equipo> equipos)
     {
         var fixture = CrearFixtureVacioConGrupos();
 
         for (int i = 0; i < equipos.Count; i++)
         {
-            int indiceGrupo = i % CantidadGrupos;
-            fixture.Grupos[indiceGrupo].Equipos.Add(equipos[i]);
+            AsignarEquipoAGrupoCorrespondiente(fixture, equipos[i], i);
         }
 
         return fixture;
@@ -57,5 +56,11 @@ public class ServicioFixture
         }
 
         return fixture;
+    }
+
+    private void AsignarEquipoAGrupoCorrespondiente(Fixture fixture, Equipo equipo, int indiceEquipo)
+    {
+        int indiceGrupo = indiceEquipo % CantidadGrupos;
+        fixture.Grupos[indiceGrupo].Equipos.Add(equipo);
     }
 }
