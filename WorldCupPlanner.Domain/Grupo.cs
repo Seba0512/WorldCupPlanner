@@ -8,6 +8,15 @@ public class Grupo
     private const int MaximoEquiposUefa = 2;
     private const int MaximoEquiposOtrasConfederaciones = 1;
 
+    private static readonly Confederacion[] ConfederacionesNoUefa =
+    {
+        Confederacion.CONMEBOL,
+        Confederacion.CONCACAF,
+        Confederacion.CAF,
+        Confederacion.AFC,
+        Confederacion.OFC
+    };
+
     public string Etiqueta { get; private set; }
     public List<Equipo> Equipos { get; private set; }
 
@@ -40,7 +49,14 @@ public class Grupo
 
     public bool EsValido()
     {
-        return SonEquiposValidos() && CumpleRestriccionesConfederaciones();
+        return TieneCantidadCorrectaDeEquipos()
+               && SonEquiposValidos()
+               && CumpleRestriccionesConfederaciones();
+    }
+
+    private bool TieneCantidadCorrectaDeEquipos()
+    {
+        return Equipos.Count == CantidadMaximaEquipos;
     }
 
     private bool SonEquiposValidos()
@@ -61,16 +77,8 @@ public class Grupo
 
     private bool CumpleRestriccionesPorOtrasConfederaciones()
     {
-        var confederacionesNoUefa = new[] 
-        { 
-            Confederacion.CONMEBOL, 
-            Confederacion.CONCACAF, 
-            Confederacion.CAF, 
-            Confederacion.AFC, 
-            Confederacion.OFC 
-        };
-
-        return confederacionesNoUefa.All(c => ObtenerConteoConfederacion(c) <= MaximoEquiposOtrasConfederaciones);
+        return ConfederacionesNoUefa.All(c =>
+            ObtenerConteoConfederacion(c) <= MaximoEquiposOtrasConfederaciones);
     }
 
     private int ObtenerConteoConfederacion(Confederacion confederacion)

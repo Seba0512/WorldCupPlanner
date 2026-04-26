@@ -71,7 +71,7 @@ public class GrupoTests
     #region Validación - Equipos Válidos y Confederaciones
 
     [TestMethod]
-    public void Grupo_ConEtiquetaValida_YHastaCuatroEquipos_EsValido()
+    public void Grupo_ConEtiquetaValida_YCuatroEquiposValidos_EsValido()
     {
         // Arrange
         var grupo = CrearGrupoValido("B");
@@ -232,6 +232,25 @@ public class GrupoTests
             new Equipo { Nombre = "", RankingFIFA = 500, Confederacion = Confederacion.UEFA }
         };
         var grupo = new Grupo("A", equipos);
+
+        // Act
+        var resultado = grupo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+    
+    [TestMethod]
+    public void Grupo_ConMenosDeCuatroEquipos_NoEsValido()
+    {
+        // Arrange
+        var equipos = new List<Equipo>
+        {
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.CONMEBOL),
+            CrearEquipoValido("Equipo3", Confederacion.AFC)
+        };
+        var grupo = new Grupo("J", equipos);
 
         // Act
         var resultado = grupo.EsValido();
