@@ -15,7 +15,7 @@ public class ServicioFixture
         ValidarCantidadEquipos(equipos);
         ValidarCantidadEstadios(estadios);
 
-        return CrearFixtureConDistribucionRoundRobin(equipos);
+        return CrearFixtureConDistribucionRoundRobin(equipos, configuracionTorneo);
     }
 
     private void ValidarCantidadEquipos(List<Equipo> equipos)
@@ -34,10 +34,10 @@ public class ServicioFixture
         }
     }
 
-    private Fixture CrearFixtureConDistribucionRoundRobin(List<Equipo> equipos)
+    private Fixture CrearFixtureConDistribucionRoundRobin(List<Equipo> equipos, ConfiguracionTorneo configuracionTorneo)
     {
         var fixture = CrearFixtureVacioConGrupos();
-        var equiposOrdenados = OrdenarEquiposPorRankingDescendente(equipos);
+        var equiposOrdenados = OrdenarEquiposParaFixture(equipos, configuracionTorneo.SemillaFixture);
 
         for (int i = 0; i < equiposOrdenados.Count; i++)
         {
@@ -47,11 +47,26 @@ public class ServicioFixture
         return fixture;
     }
 
-    private List<Equipo> OrdenarEquiposPorRankingDescendente(List<Equipo> equipos)
+    private List<Equipo> OrdenarEquiposParaFixture(List<Equipo> equipos, int semillaFixture)
     {
+        var random = new Random(semillaFixture);
+
         return equipos
-            .OrderByDescending(e => e.RankingFIFA)
+            .GroupBy(e => e.RankingFIFA)
+            .OrderByDescending(g => g.Key)
+            .SelectMany(g => MezclarEquipos(g.ToList(), random))
             .ToList();
+    }
+
+    private List<Equipo> MezclarEquipos(List<Equipo> equipos, Random random)
+    {
+        for (int i = equipos.Count - 1; i > 0; i--)
+        {
+            int j = random.Next(i + 1);
+            (equipos[i], equipos[j]) = (equipos[j], equipos[i]);
+        }
+
+        return equipos;
     }
 
     private Fixture CrearFixtureVacioConGrupos()
