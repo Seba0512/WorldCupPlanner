@@ -37,9 +37,7 @@ public class ServicioFixture
     private Fixture CrearFixtureConDistribucionRoundRobin(List<Equipo> equipos)
     {
         var fixture = CrearFixtureVacioConGrupos();
-        var equiposOrdenados = equipos
-            .OrderByDescending(e => e.RankingFIFA)
-            .ToList();
+        var equiposOrdenados = OrdenarEquiposPorRankingDescendente(equipos);
 
         for (int i = 0; i < equiposOrdenados.Count; i++)
         {
@@ -47,6 +45,13 @@ public class ServicioFixture
         }
 
         return fixture;
+    }
+
+    private List<Equipo> OrdenarEquiposPorRankingDescendente(List<Equipo> equipos)
+    {
+        return equipos
+            .OrderByDescending(e => e.RankingFIFA)
+            .ToList();
     }
 
     private Fixture CrearFixtureVacioConGrupos()
