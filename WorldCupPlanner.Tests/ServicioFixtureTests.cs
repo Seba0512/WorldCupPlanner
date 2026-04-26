@@ -160,4 +160,59 @@ public class ServicioFixtureTests
 
         return equipos;
     }
+    
+    private List<Equipo> CrearEquiposValidosConMismoRanking(int cantidad)
+    {
+        var equipos = new List<Equipo>();
+        var confederaciones = new[]
+        {
+            Confederacion.UEFA,
+            Confederacion.CONMEBOL,
+            Confederacion.CONCACAF,
+            Confederacion.CAF,
+            Confederacion.AFC,
+            Confederacion.OFC
+        };
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            equipos.Add(new Equipo
+            {
+                Nombre = $"Equipo{i}",
+                RankingFIFA = 1000,
+                Confederacion = confederaciones[(i - 1) % confederaciones.Length]
+            });
+        }
+
+        return equipos;
+    }
+    
+    [TestMethod]
+    public void GenerarFixture_ConEmpatesEnRanking_YDistintaSemilla_DebeGenerarDistribucionDistinta()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosConMismoRanking(48);
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo1 = new ConfiguracionTorneo { SemillaFixture = 1 };
+        var configuracionTorneo2 = new ConfiguracionTorneo { SemillaFixture = 2 };
+
+        // Act
+        var fixture1 = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo1);
+        var fixture2 = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo2);
+
+        // Assert
+        var ordenFixture1 = fixture1.Grupos
+            .SelectMany(g => g.Equipos)
+            .Select(e => e.Nombre)
+            .ToList();
+
+        var ordenFixture2 = fixture2.Grupos
+            .SelectMany(g => g.Equipos)
+            .Select(e => e.Nombre)
+            .ToList();
+
+        CollectionAssert.AreNotEqual(ordenFixture1, ordenFixture2);
+    }
 }

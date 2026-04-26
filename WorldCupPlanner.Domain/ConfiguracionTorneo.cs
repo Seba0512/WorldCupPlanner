@@ -2,5 +2,5 @@
 
 public class ConfiguracionTorneo
 {
-    
+    public int SemillaFixture { get; set; }
 }
