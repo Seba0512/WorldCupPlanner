@@ -50,12 +50,22 @@ public class ServicioFixture
     private List<Equipo> OrdenarEquiposParaFixture(List<Equipo> equipos, int semillaFixture)
     {
         var random = new Random(semillaFixture);
+        var equiposOrdenados = new List<Equipo>();
 
+        foreach (var grupoDeRanking in ObtenerGruposPorRankingDescendente(equipos))
+        {
+            var equiposMezclados = MezclarEquipos(grupoDeRanking.ToList(), random);
+            equiposOrdenados.AddRange(equiposMezclados);
+        }
+
+        return equiposOrdenados;
+    }
+
+    private IEnumerable<IGrouping<int, Equipo>> ObtenerGruposPorRankingDescendente(List<Equipo> equipos)
+    {
         return equipos
             .GroupBy(e => e.RankingFIFA)
-            .OrderByDescending(g => g.Key)
-            .SelectMany(g => MezclarEquipos(g.ToList(), random))
-            .ToList();
+            .OrderByDescending(g => g.Key);
     }
 
     private List<Equipo> MezclarEquipos(List<Equipo> equipos, Random random)
