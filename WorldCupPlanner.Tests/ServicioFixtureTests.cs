@@ -92,7 +92,7 @@ public class ServicioFixtureTests
     }
 
     [TestMethod]
-    public void GenerarFixture_DebeDistribuirLosEquiposEnRoundRobinEntreLosGrupos()
+    public void GenerarFixture_DebeDistribuirLosEquiposOrdenadosPorRankingEnRoundRobin()
     {
         // Arrange
         var servicioFixture = new ServicioFixture();
@@ -108,12 +108,12 @@ public class ServicioFixtureTests
         var nombresGrupoB = fixture.Grupos[1].Equipos.Select(e => e.Nombre).ToList();
 
         CollectionAssert.AreEqual(
-            new List<string> { "Equipo1", "Equipo13", "Equipo25", "Equipo37" },
+            new List<string> { "Equipo48", "Equipo36", "Equipo24", "Equipo12" },
             nombresGrupoA
         );
 
         CollectionAssert.AreEqual(
-            new List<string> { "Equipo2", "Equipo14", "Equipo26", "Equipo38" },
+            new List<string> { "Equipo47", "Equipo35", "Equipo23", "Equipo11" },
             nombresGrupoB
         );
     }
