@@ -37,10 +37,13 @@ public class ServicioFixture
     private Fixture CrearFixtureConDistribucionRoundRobin(List<Equipo> equipos)
     {
         var fixture = CrearFixtureVacioConGrupos();
+        var equiposOrdenados = equipos
+            .OrderByDescending(e => e.RankingFIFA)
+            .ToList();
 
-        for (int i = 0; i < equipos.Count; i++)
+        for (int i = 0; i < equiposOrdenados.Count; i++)
         {
-            AsignarEquipoAGrupoCorrespondiente(fixture, equipos[i], i);
+            AsignarEquipoAGrupoCorrespondiente(fixture, equiposOrdenados[i], i);
         }
 
         return fixture;
