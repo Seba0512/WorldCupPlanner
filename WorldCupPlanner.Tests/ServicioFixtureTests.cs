@@ -21,6 +21,103 @@ public class ServicioFixtureTests
         );
     }
 
+    [TestMethod]
+    public void GenerarFixture_ConMenosDe4Estadios_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidos(48);
+        var estadios = CrearEstadiosValidos(3);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
+        );
+    }
+
+    [TestMethod]
+    public void GenerarFixture_Con48EquiposY4Estadios_DebeGenerar12Grupos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidos(48);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        Assert.AreEqual(12, fixture.Grupos.Count);
+    }
+
+    [TestMethod]
+    public void GenerarFixture_DebeCrearGruposConEtiquetasDeAToL()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidos(48);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        var etiquetasEsperadas = new List<string>
+        {
+            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"
+        };
+
+        var etiquetasObtenidas = fixture.Grupos.Select(g => g.Etiqueta).ToList();
+
+        CollectionAssert.AreEqual(etiquetasEsperadas, etiquetasObtenidas);
+    }
+
+    [TestMethod]
+    public void GenerarFixture_DebeCrearGruposConCuatroEquiposCadaUno()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidos(48);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        Assert.IsTrue(fixture.Grupos.All(g => g.Equipos.Count == 4));
+    }
+
+    [TestMethod]
+    public void GenerarFixture_DebeDistribuirLosEquiposEnRoundRobinEntreLosGrupos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidos(48);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        var nombresGrupoA = fixture.Grupos[0].Equipos.Select(e => e.Nombre).ToList();
+        var nombresGrupoB = fixture.Grupos[1].Equipos.Select(e => e.Nombre).ToList();
+
+        CollectionAssert.AreEqual(
+            new List<string> { "Equipo1", "Equipo13", "Equipo25", "Equipo37" },
+            nombresGrupoA
+        );
+
+        CollectionAssert.AreEqual(
+            new List<string> { "Equipo2", "Equipo14", "Equipo26", "Equipo38" },
+            nombresGrupoB
+        );
+    }
+
     private List<Estadio> CrearEstadiosValidos(int cantidad)
     {
         var estadios = new List<Estadio>();
@@ -36,21 +133,6 @@ public class ServicioFixtureTests
         }
 
         return estadios;
-    }
-    
-    [TestMethod]
-    public void GenerarFixture_ConMenosDe4Estadios_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var servicioFixture = new ServicioFixture();
-        var equipos = CrearEquiposValidos(48);
-        var estadios = CrearEstadiosValidos(3);
-        var configuracionTorneo = new ConfiguracionTorneo();
-
-        // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
-            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
-        );
     }
 
     private List<Equipo> CrearEquiposValidos(int cantidad)
@@ -77,60 +159,5 @@ public class ServicioFixtureTests
         }
 
         return equipos;
-    }
-    
-    [TestMethod]
-    public void GenerarFixture_Con48EquiposY4Estadios_DebeGenerar12Grupos()
-    {
-        // Arrange
-        var servicioFixture = new ServicioFixture();
-        var equipos = CrearEquiposValidos(48);
-        var estadios = CrearEstadiosValidos(4);
-        var configuracionTorneo = new ConfiguracionTorneo();
-
-        // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
-
-        // Assert
-        Assert.AreEqual(12, fixture.Grupos.Count);
-    }
-    
-    [TestMethod]
-    public void GenerarFixture_DebeCrearGruposConEtiquetasDeAToL()
-    {
-        // Arrange
-        var servicioFixture = new ServicioFixture();
-        var equipos = CrearEquiposValidos(48);
-        var estadios = CrearEstadiosValidos(4);
-        var configuracionTorneo = new ConfiguracionTorneo();
-
-        // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
-
-        // Assert
-        var etiquetasEsperadas = new List<string>
-        {
-            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"
-        };
-
-        var etiquetasObtenidas = fixture.Grupos.Select(g => g.Etiqueta).ToList();
-
-        CollectionAssert.AreEqual(etiquetasEsperadas, etiquetasObtenidas);
-    }
-    
-    [TestMethod]
-    public void GenerarFixture_DebeCrearGruposConCuatroEquiposCadaUno()
-    {
-        // Arrange
-        var servicioFixture = new ServicioFixture();
-        var equipos = CrearEquiposValidos(48);
-        var estadios = CrearEstadiosValidos(4);
-        var configuracionTorneo = new ConfiguracionTorneo();
-
-        // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
-
-        // Assert
-        Assert.IsTrue(fixture.Grupos.All(g => g.Equipos.Count == 4));
     }
 }
