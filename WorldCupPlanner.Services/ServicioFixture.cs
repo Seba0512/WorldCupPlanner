@@ -8,7 +8,7 @@ public class ServicioFixture
     private const int CantidadMinimaEstadios = 4;
     private const char PrimeraEtiquetaGrupo = 'A';
     private const char UltimaEtiquetaGrupo = 'L';
-    private const int CantidadEquiposPorGrupo = 4;
+    private const int CantidadGrupos = 12;
 
     public Fixture GenerarFixture(List<Equipo> equipos, List<Estadio> estadios, ConfiguracionTorneo configuracionTorneo)
     {
@@ -36,28 +36,26 @@ public class ServicioFixture
 
     private Fixture CrearFixtureConGrupos(List<Equipo> equipos)
     {
-        var fixture = new Fixture();
-        var indiceEquipo = 0;
+        var fixture = CrearFixtureVacioConGrupos();
 
-        for (char etiqueta = PrimeraEtiquetaGrupo; etiqueta <= UltimaEtiquetaGrupo; etiqueta++)
+        for (int i = 0; i < equipos.Count; i++)
         {
-            var equiposDelGrupo = ObtenerEquiposDelGrupo(equipos, ref indiceEquipo);
-            fixture.Grupos.Add(new Grupo(etiqueta.ToString(), equiposDelGrupo));
+            int indiceGrupo = i % CantidadGrupos;
+            fixture.Grupos[indiceGrupo].Equipos.Add(equipos[i]);
         }
 
         return fixture;
     }
 
-    private List<Equipo> ObtenerEquiposDelGrupo(List<Equipo> equipos, ref int indiceEquipo)
+    private Fixture CrearFixtureVacioConGrupos()
     {
-        var equiposDelGrupo = new List<Equipo>();
+        var fixture = new Fixture();
 
-        for (int i = 0; i < CantidadEquiposPorGrupo; i++)
+        for (char etiqueta = PrimeraEtiquetaGrupo; etiqueta <= UltimaEtiquetaGrupo; etiqueta++)
         {
-            equiposDelGrupo.Add(equipos[indiceEquipo]);
-            indiceEquipo++;
+            fixture.Grupos.Add(new Grupo(etiqueta.ToString()));
         }
 
-        return equiposDelGrupo;
+        return fixture;
     }
 }
