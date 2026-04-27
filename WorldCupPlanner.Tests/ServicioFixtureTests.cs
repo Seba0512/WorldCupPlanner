@@ -244,4 +244,64 @@ public class ServicioFixtureTests
 
         CollectionAssert.AreEqual(ordenFixture1, ordenFixture2);
     }
+    
+    private List<Equipo> CrearEquiposQueRequierenAjustePorConfederacion()
+    {
+        var confederacionesPorOrden = new List<Confederacion>();
+
+        for (int i = 0; i < 12; i++)
+        {
+            confederacionesPorOrden.Add(Confederacion.UEFA);
+        }
+
+        confederacionesPorOrden.Add(Confederacion.CONMEBOL);
+
+        for (int i = 13; i < 24; i++)
+        {
+            confederacionesPorOrden.Add(Confederacion.UEFA);
+        }
+
+        confederacionesPorOrden.Add(Confederacion.CONMEBOL);
+        confederacionesPorOrden.Add(Confederacion.UEFA);
+
+        for (int i = 26; i < 36; i++)
+        {
+            confederacionesPorOrden.Add(Confederacion.CONMEBOL);
+        }
+
+        for (int i = 36; i < 48; i++)
+        {
+            confederacionesPorOrden.Add(Confederacion.AFC);
+        }
+
+        var equipos = new List<Equipo>();
+
+        for (int i = 0; i < confederacionesPorOrden.Count; i++)
+        {
+            equipos.Add(new Equipo
+            {
+                Nombre = $"Equipo{i + 1}",
+                RankingFIFA = 2000 - i,
+                Confederacion = confederacionesPorOrden[i]
+            });
+        }
+
+        return equipos;
+    }
+    
+    [TestMethod]
+    public void GenerarFixture_DebeCrearGruposValidosRespetandoRestriccionesDeConfederacion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposQueRequierenAjustePorConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        Assert.IsTrue(fixture.Grupos.All(g => g.EsValido()));
+    }
 }
