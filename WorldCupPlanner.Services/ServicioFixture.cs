@@ -43,10 +43,12 @@ public class ServicioFixture
         var fixture = CrearFixtureVacioConGrupos();
         var equiposOrdenados = OrdenarEquiposParaFixture(equipos, configuracionTorneo.SemillaFixture);
 
-        for (int indiceEquipo = 0; indiceEquipo < equiposOrdenados.Count; indiceEquipo++)
+        for (int i = 0; i < equiposOrdenados.Count; i++)
         {
-            AsignarEquipoAUnGrupoValido(fixture, equiposOrdenados[indiceEquipo], indiceEquipo);
+            AsignarEquipoAUnGrupoValido(fixture, equiposOrdenados[i], i);
         }
+
+        GenerarPartidosDeGrupos(fixture);
 
         return fixture;
     }
@@ -144,5 +146,66 @@ public class ServicioFixture
         }
 
         return cantidadMismaConfederacion < MaximoEquiposOtrasConfederacionesPorGrupo;
+    }
+
+    private void GenerarPartidosDeGrupos(Fixture fixture)
+    {
+        foreach (var grupo in fixture.Grupos)
+        {
+            GenerarPartidosDelGrupo(grupo);
+        }
+    }
+
+    private void GenerarPartidosDelGrupo(Grupo grupo)
+    {
+        var equipos = grupo.Equipos;
+
+        grupo.Partidos.Add(new Partido
+        {
+            EquipoLocal = equipos[0],
+            EquipoVisitante = equipos[3],
+            Grupo = grupo,
+            Fase = FaseTorneo.FaseDeGrupos
+        });
+
+        grupo.Partidos.Add(new Partido
+        {
+            EquipoLocal = equipos[1],
+            EquipoVisitante = equipos[2],
+            Grupo = grupo,
+            Fase = FaseTorneo.FaseDeGrupos
+        });
+
+        grupo.Partidos.Add(new Partido
+        {
+            EquipoLocal = equipos[0],
+            EquipoVisitante = equipos[2],
+            Grupo = grupo,
+            Fase = FaseTorneo.FaseDeGrupos
+        });
+
+        grupo.Partidos.Add(new Partido
+        {
+            EquipoLocal = equipos[1],
+            EquipoVisitante = equipos[3],
+            Grupo = grupo,
+            Fase = FaseTorneo.FaseDeGrupos
+        });
+
+        grupo.Partidos.Add(new Partido
+        {
+            EquipoLocal = equipos[0],
+            EquipoVisitante = equipos[1],
+            Grupo = grupo,
+            Fase = FaseTorneo.FaseDeGrupos
+        });
+
+        grupo.Partidos.Add(new Partido
+        {
+            EquipoLocal = equipos[2],
+            EquipoVisitante = equipos[3],
+            Grupo = grupo,
+            Fase = FaseTorneo.FaseDeGrupos
+        });
     }
 }

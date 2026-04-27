@@ -19,6 +19,7 @@ public class Grupo
 
     public string Etiqueta { get; private set; }
     public List<Equipo> Equipos { get; private set; }
+    public List<Partido> Partidos { get; private set; }
 
     public Grupo(string etiqueta, List<Equipo>? equipos = null)
     {
@@ -27,6 +28,7 @@ public class Grupo
 
         Etiqueta = etiqueta;
         Equipos = equipos ?? new List<Equipo>();
+        Partidos = new List<Partido>();
     }
 
     private void ValidarEtiqueta(string etiqueta)
