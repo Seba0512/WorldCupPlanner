@@ -352,4 +352,40 @@ public class ServicioFixtureTests
         // Assert
         Assert.IsTrue(fixture.Grupos.All(g => g.Partidos.Count == 6));
     }
+    
+    [TestMethod]
+    public void GenerarFixture_DebeCrearPartidosDelGrupoSegunPatronDeJornadas()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        var grupo = fixture.Grupos[0];
+        var equiposDelGrupo = grupo.Equipos;
+        var partidos = grupo.Partidos;
+
+        Assert.AreEqual(equiposDelGrupo[0], partidos[0].EquipoLocal);
+        Assert.AreEqual(equiposDelGrupo[3], partidos[0].EquipoVisitante);
+
+        Assert.AreEqual(equiposDelGrupo[1], partidos[1].EquipoLocal);
+        Assert.AreEqual(equiposDelGrupo[2], partidos[1].EquipoVisitante);
+
+        Assert.AreEqual(equiposDelGrupo[0], partidos[2].EquipoLocal);
+        Assert.AreEqual(equiposDelGrupo[2], partidos[2].EquipoVisitante);
+
+        Assert.AreEqual(equiposDelGrupo[1], partidos[3].EquipoLocal);
+        Assert.AreEqual(equiposDelGrupo[3], partidos[3].EquipoVisitante);
+
+        Assert.AreEqual(equiposDelGrupo[0], partidos[4].EquipoLocal);
+        Assert.AreEqual(equiposDelGrupo[1], partidos[4].EquipoVisitante);
+
+        Assert.AreEqual(equiposDelGrupo[2], partidos[5].EquipoLocal);
+        Assert.AreEqual(equiposDelGrupo[3], partidos[5].EquipoVisitante);
+    }
 }
