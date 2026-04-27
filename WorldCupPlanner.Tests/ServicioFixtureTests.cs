@@ -215,4 +215,33 @@ public class ServicioFixtureTests
 
         CollectionAssert.AreNotEqual(ordenFixture1, ordenFixture2);
     }
+    
+    [TestMethod]
+    public void GenerarFixture_ConMismaSemilla_YEmpatesEnRanking_DebeGenerarMismaDistribucion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosConMismoRanking(48);
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo1 = new ConfiguracionTorneo { SemillaFixture = 7 };
+        var configuracionTorneo2 = new ConfiguracionTorneo { SemillaFixture = 7 };
+
+        // Act
+        var fixture1 = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo1);
+        var fixture2 = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo2);
+
+        // Assert
+        var ordenFixture1 = fixture1.Grupos
+            .SelectMany(g => g.Equipos)
+            .Select(e => e.Nombre)
+            .ToList();
+
+        var ordenFixture2 = fixture2.Grupos
+            .SelectMany(g => g.Equipos)
+            .Select(e => e.Nombre)
+            .ToList();
+
+        CollectionAssert.AreEqual(ordenFixture1, ordenFixture2);
+    }
 }
