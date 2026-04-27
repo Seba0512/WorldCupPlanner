@@ -336,4 +336,20 @@ public class ServicioFixtureTests
         // Assert
         Assert.IsTrue(fixture.Grupos.All(g => g.EsValido()));
     }
+    
+    [TestMethod]
+    public void GenerarFixture_DebeCrearSeisPartidosPorGrupo()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        Assert.IsTrue(fixture.Grupos.All(g => g.Partidos.Count == 6));
+    }
 }
