@@ -160,52 +160,22 @@ public class ServicioFixture
     {
         var equipos = grupo.Equipos;
 
-        grupo.Partidos.Add(new Partido
-        {
-            EquipoLocal = equipos[0],
-            EquipoVisitante = equipos[3],
-            Grupo = grupo,
-            Fase = FaseTorneo.FaseDeGrupos
-        });
+        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[0], equipos[3]));
+        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[1], equipos[2]));
+        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[0], equipos[2]));
+        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[1], equipos[3]));
+        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[0], equipos[1]));
+        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[2], equipos[3]));
+    }
 
-        grupo.Partidos.Add(new Partido
+    private Partido CrearPartidoDeGrupo(Grupo grupo, Equipo local, Equipo visitante)
+    {
+        return new Partido
         {
-            EquipoLocal = equipos[1],
-            EquipoVisitante = equipos[2],
+            EquipoLocal = local,
+            EquipoVisitante = visitante,
             Grupo = grupo,
             Fase = FaseTorneo.FaseDeGrupos
-        });
-
-        grupo.Partidos.Add(new Partido
-        {
-            EquipoLocal = equipos[0],
-            EquipoVisitante = equipos[2],
-            Grupo = grupo,
-            Fase = FaseTorneo.FaseDeGrupos
-        });
-
-        grupo.Partidos.Add(new Partido
-        {
-            EquipoLocal = equipos[1],
-            EquipoVisitante = equipos[3],
-            Grupo = grupo,
-            Fase = FaseTorneo.FaseDeGrupos
-        });
-
-        grupo.Partidos.Add(new Partido
-        {
-            EquipoLocal = equipos[0],
-            EquipoVisitante = equipos[1],
-            Grupo = grupo,
-            Fase = FaseTorneo.FaseDeGrupos
-        });
-
-        grupo.Partidos.Add(new Partido
-        {
-            EquipoLocal = equipos[2],
-            EquipoVisitante = equipos[3],
-            Grupo = grupo,
-            Fase = FaseTorneo.FaseDeGrupos
-        });
+        };
     }
 }
