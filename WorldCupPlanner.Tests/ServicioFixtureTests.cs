@@ -96,7 +96,7 @@ public class ServicioFixtureTests
     {
         // Arrange
         var servicioFixture = new ServicioFixture();
-        var equipos = CrearEquiposValidos(48);
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo();
 
@@ -160,39 +160,19 @@ public class ServicioFixtureTests
 
         return equipos;
     }
-    
-    private List<Equipo> CrearEquiposValidosConMismoRanking(int cantidad)
-    {
-        var equipos = new List<Equipo>();
-        var confederaciones = new[]
-        {
-            Confederacion.UEFA,
-            Confederacion.CONMEBOL,
-            Confederacion.CONCACAF,
-            Confederacion.CAF,
-            Confederacion.AFC,
-            Confederacion.OFC
-        };
 
-        for (int i = 1; i <= cantidad; i++)
-        {
-            equipos.Add(new Equipo
-            {
-                Nombre = $"Equipo{i}",
-                RankingFIFA = 1000,
-                Confederacion = confederaciones[(i - 1) % confederaciones.Length]
-            });
-        }
-
-        return equipos;
-    }
-    
     [TestMethod]
     public void GenerarFixture_ConEmpatesEnRanking_YDistintaSemilla_DebeGenerarDistribucionDistinta()
     {
         // Arrange
         var servicioFixture = new ServicioFixture();
-        var equipos = CrearEquiposValidosConMismoRanking(48);
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        // Cambiar algunos rankings para tener empates, permitiendo diferentes mezclas
+        for (int i = 0; i < 12; i++)
+        {
+            equipos[i].RankingFIFA = 1000;
+        }
+        
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo1 = new ConfiguracionTorneo { SemillaFixture = 1 };
@@ -221,7 +201,13 @@ public class ServicioFixtureTests
     {
         // Arrange
         var servicioFixture = new ServicioFixture();
-        var equipos = CrearEquiposValidosConMismoRanking(48);
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        
+        for (int i = 0; i < 12; i++)
+        {
+            equipos[i].RankingFIFA = 1000;
+        }
+        
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo1 = new ConfiguracionTorneo { SemillaFixture = 7 };
@@ -245,44 +231,90 @@ public class ServicioFixtureTests
         CollectionAssert.AreEqual(ordenFixture1, ordenFixture2);
     }
     
-    private List<Equipo> CrearEquiposQueRequierenAjustePorConfederacion()
+    private List<Equipo> CrearEquiposValidosSinConflictosDeConfederacion()
     {
-        var confederacionesPorOrden = new List<Confederacion>();
-
-        for (int i = 0; i < 12; i++)
+        var confederacionesPorOrden = new[]
         {
-            confederacionesPorOrden.Add(Confederacion.UEFA);
-        }
+            Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA,
+            Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA,
+            Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA,
 
-        confederacionesPorOrden.Add(Confederacion.CONMEBOL);
+            Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA,
+            Confederacion.CONMEBOL, Confederacion.CONMEBOL, Confederacion.CONMEBOL,
+            Confederacion.CONMEBOL, Confederacion.CONMEBOL, Confederacion.CONMEBOL,
+            Confederacion.CONMEBOL, Confederacion.OFC,
 
-        for (int i = 13; i < 24; i++)
-        {
-            confederacionesPorOrden.Add(Confederacion.UEFA);
-        }
+            Confederacion.CONCACAF, Confederacion.CONCACAF, Confederacion.CONCACAF,
+            Confederacion.CONCACAF, Confederacion.CONCACAF, Confederacion.CONCACAF,
+            Confederacion.CONCACAF,
 
-        confederacionesPorOrden.Add(Confederacion.CONMEBOL);
-        confederacionesPorOrden.Add(Confederacion.UEFA);
+            Confederacion.CAF, Confederacion.CAF, Confederacion.CAF, Confederacion.CAF,
+            Confederacion.CAF, Confederacion.CAF, Confederacion.CAF, Confederacion.CAF,
+            Confederacion.CAF,
 
-        for (int i = 26; i < 36; i++)
-        {
-            confederacionesPorOrden.Add(Confederacion.CONMEBOL);
-        }
-
-        for (int i = 36; i < 48; i++)
-        {
-            confederacionesPorOrden.Add(Confederacion.AFC);
-        }
+            Confederacion.AFC, Confederacion.AFC, Confederacion.AFC, Confederacion.AFC,
+            Confederacion.AFC, Confederacion.AFC, Confederacion.AFC, Confederacion.AFC
+        };
 
         var equipos = new List<Equipo>();
 
-        for (int i = 0; i < confederacionesPorOrden.Count; i++)
+        for (int posicion = 0; posicion < confederacionesPorOrden.Length; posicion++)
         {
+            int numeroEquipo = 48 - posicion;
+
             equipos.Add(new Equipo
             {
-                Nombre = $"Equipo{i + 1}",
-                RankingFIFA = 2000 - i,
-                Confederacion = confederacionesPorOrden[i]
+                Nombre = $"Equipo{numeroEquipo}",
+                RankingFIFA = 500 + numeroEquipo,
+                Confederacion = confederacionesPorOrden[posicion]
+            });
+        }
+
+        return equipos;
+    }
+    
+    private List<Equipo> CrearEquiposQueRequierenAjustePorConfederacion()
+    {
+        var confederacionesPorOrden = new List<Confederacion>
+        {
+            Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA,
+            Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA,
+            Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA,
+
+            Confederacion.CONMEBOL,
+
+            Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA, Confederacion.UEFA,
+
+            Confederacion.CONMEBOL, Confederacion.CONMEBOL, Confederacion.CONMEBOL,
+            Confederacion.CONMEBOL, Confederacion.CONMEBOL,
+
+            Confederacion.OFC,
+            Confederacion.CONCACAF,
+
+            Confederacion.CONMEBOL,
+
+            Confederacion.CONCACAF, Confederacion.CONCACAF, Confederacion.CONCACAF,
+            Confederacion.CONCACAF, Confederacion.CONCACAF, Confederacion.CONCACAF,
+
+            Confederacion.CAF, Confederacion.CAF, Confederacion.CAF, Confederacion.CAF,
+            Confederacion.CAF, Confederacion.CAF, Confederacion.CAF, Confederacion.CAF,
+            Confederacion.CAF,
+
+            Confederacion.AFC, Confederacion.AFC, Confederacion.AFC, Confederacion.AFC,
+            Confederacion.AFC, Confederacion.AFC, Confederacion.AFC, Confederacion.AFC
+        };
+
+        var equipos = new List<Equipo>();
+
+        for (int posicion = 0; posicion < confederacionesPorOrden.Count; posicion++)
+        {
+            int numeroEquipo = 48 - posicion;
+
+            equipos.Add(new Equipo
+            {
+                Nombre = $"Equipo{numeroEquipo}",
+                RankingFIFA = 500 + numeroEquipo,
+                Confederacion = confederacionesPorOrden[posicion]
             });
         }
 

@@ -41,7 +41,7 @@ public class ServicioFixture
 
         for (int i = 0; i < equiposOrdenados.Count; i++)
         {
-            AsignarEquipoAGrupoCorrespondiente(fixture, equiposOrdenados[i], i);
+            AsignarEquipoAUnGrupoValido(fixture, equiposOrdenados[i], i);
         }
 
         return fixture;
@@ -91,9 +91,43 @@ public class ServicioFixture
         return fixture;
     }
 
-    private void AsignarEquipoAGrupoCorrespondiente(Fixture fixture, Equipo equipo, int indiceEquipo)
+    private void AsignarEquipoAUnGrupoValido(Fixture fixture, Equipo equipo, int indiceEquipo)
     {
-        int indiceGrupo = indiceEquipo % CantidadGrupos;
-        fixture.Grupos[indiceGrupo].Equipos.Add(equipo);
+        for (int intento = 0; intento < CantidadGrupos; intento++)
+        {
+            int indiceGrupo = (indiceEquipo + intento) % CantidadGrupos;
+            var grupo = fixture.Grupos[indiceGrupo];
+
+            if (PuedeAsignarseEquipoAGrupo(equipo, grupo))
+            {
+                grupo.Equipos.Add(equipo);
+                return;
+            }
+        }
+
+        throw new InvalidOperationException("No se pudo asignar el equipo a ningún grupo respetando las restricciones de confederación.");
+    }
+
+    private bool PuedeAsignarseEquipoAGrupo(Equipo equipo, Grupo grupo)
+    {
+        if (grupo.Equipos.Count >= 4)
+        {
+            return false;
+        }
+
+        if (!equipo.EsValido())
+        {
+            return false;
+        }
+
+        var confederacion = equipo.Confederacion!.Value;
+        int cantidadMismaConfederacion = grupo.Equipos.Count(e => e.Confederacion == confederacion);
+
+        if (confederacion == Confederacion.UEFA)
+        {
+            return cantidadMismaConfederacion < 2;
+        }
+
+        return cantidadMismaConfederacion == 0;
     }
 }
