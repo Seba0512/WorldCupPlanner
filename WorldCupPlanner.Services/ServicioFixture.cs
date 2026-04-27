@@ -7,6 +7,10 @@ public class ServicioFixture
     private const int CantidadMinimaEquipos = 48;
     private const int CantidadMinimaEstadios = 4;
     private const int CantidadGrupos = 12;
+    private const int CantidadEquiposPorGrupo = 4;
+    private const int MaximoEquiposUefaPorGrupo = 2;
+    private const int MaximoEquiposOtrasConfederacionesPorGrupo = 1;
+
     private const char PrimeraEtiquetaGrupo = 'A';
     private const char UltimaEtiquetaGrupo = 'L';
 
@@ -39,9 +43,9 @@ public class ServicioFixture
         var fixture = CrearFixtureVacioConGrupos();
         var equiposOrdenados = OrdenarEquiposParaFixture(equipos, configuracionTorneo.SemillaFixture);
 
-        for (int i = 0; i < equiposOrdenados.Count; i++)
+        for (int indiceEquipo = 0; indiceEquipo < equiposOrdenados.Count; indiceEquipo++)
         {
-            AsignarEquipoAUnGrupoValido(fixture, equiposOrdenados[i], i);
+            AsignarEquipoAUnGrupoValido(fixture, equiposOrdenados[indiceEquipo], indiceEquipo);
         }
 
         return fixture;
@@ -54,7 +58,7 @@ public class ServicioFixture
 
         foreach (var grupoDeRanking in ObtenerGruposPorRankingDescendente(equipos))
         {
-            var equiposMezclados = MezclarEquipos(grupoDeRanking.ToList(), random);
+            var equiposMezclados = MezclarEquiposConFisherYates(grupoDeRanking.ToList(), random);
             equiposOrdenados.AddRange(equiposMezclados);
         }
 
@@ -68,7 +72,7 @@ public class ServicioFixture
             .OrderByDescending(g => g.Key);
     }
 
-    private List<Equipo> MezclarEquipos(List<Equipo> equipos, Random random)
+    private List<Equipo> MezclarEquiposConFisherYates(List<Equipo> equipos, Random random)
     {
         for (int i = equipos.Count - 1; i > 0; i--)
         {
@@ -95,8 +99,7 @@ public class ServicioFixture
     {
         for (int intento = 0; intento < CantidadGrupos; intento++)
         {
-            int indiceGrupo = (indiceEquipo + intento) % CantidadGrupos;
-            var grupo = fixture.Grupos[indiceGrupo];
+            var grupo = ObtenerGrupoCandidato(fixture, indiceEquipo, intento);
 
             if (PuedeAsignarseEquipoAGrupo(equipo, grupo))
             {
@@ -105,12 +108,19 @@ public class ServicioFixture
             }
         }
 
-        throw new InvalidOperationException("No se pudo asignar el equipo a ningún grupo respetando las restricciones de confederación.");
+        throw new InvalidOperationException(
+            "No se pudo asignar el equipo a ningún grupo respetando las restricciones de confederación.");
+    }
+
+    private Grupo ObtenerGrupoCandidato(Fixture fixture, int indiceEquipo, int intento)
+    {
+        int indiceGrupo = (indiceEquipo + intento) % CantidadGrupos;
+        return fixture.Grupos[indiceGrupo];
     }
 
     private bool PuedeAsignarseEquipoAGrupo(Equipo equipo, Grupo grupo)
     {
-        if (grupo.Equipos.Count >= 4)
+        if (grupo.Equipos.Count >= CantidadEquiposPorGrupo)
         {
             return false;
         }
@@ -120,14 +130,19 @@ public class ServicioFixture
             return false;
         }
 
+        return CumpleRestriccionDeConfederacion(equipo, grupo);
+    }
+
+    private bool CumpleRestriccionDeConfederacion(Equipo equipo, Grupo grupo)
+    {
         var confederacion = equipo.Confederacion!.Value;
         int cantidadMismaConfederacion = grupo.Equipos.Count(e => e.Confederacion == confederacion);
 
         if (confederacion == Confederacion.UEFA)
         {
-            return cantidadMismaConfederacion < 2;
+            return cantidadMismaConfederacion < MaximoEquiposUefaPorGrupo;
         }
 
-        return cantidadMismaConfederacion == 0;
+        return cantidadMismaConfederacion < MaximoEquiposOtrasConfederacionesPorGrupo;
     }
 }
