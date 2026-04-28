@@ -48,7 +48,7 @@ public class ServicioFixture
             AsignarEquipoAUnGrupoValido(fixture, equiposOrdenados[i], i);
         }
 
-        GenerarPartidosDeGrupos(fixture);
+        GenerarPartidosDeGrupos(fixture, configuracionTorneo);
 
         return fixture;
     }
@@ -148,30 +148,44 @@ public class ServicioFixture
         return cantidadMismaConfederacion < MaximoEquiposOtrasConfederacionesPorGrupo;
     }
 
-    private void GenerarPartidosDeGrupos(Fixture fixture)
+    private void GenerarPartidosDeGrupos(Fixture fixture, ConfiguracionTorneo configuracionTorneo)
     {
         foreach (var grupo in fixture.Grupos)
         {
-            GenerarPartidosDelGrupo(grupo);
+            GenerarPartidosDelGrupo(grupo, configuracionTorneo);
         }
     }
 
-    private void GenerarPartidosDelGrupo(Grupo grupo)
+    private void GenerarPartidosDelGrupo(Grupo grupo, ConfiguracionTorneo configuracionTorneo)
     {
         var equipos = grupo.Equipos;
 
-        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[0], equipos[3]));
-        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[1], equipos[2]));
-        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[0], equipos[2]));
-        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[1], equipos[3]));
-        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[0], equipos[1]));
-        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[2], equipos[3]));
+        var fechaJornada1 = ObtenerFechaDeJornada(configuracionTorneo, 0);
+        var fechaJornada2 = ObtenerFechaDeJornada(configuracionTorneo, 1);
+        var fechaJornada3 = ObtenerFechaDeJornada(configuracionTorneo, 2);
+
+        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[0], equipos[3], fechaJornada1));
+        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[1], equipos[2], fechaJornada1));
+
+        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[0], equipos[2], fechaJornada2));
+        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[1], equipos[3], fechaJornada2));
+
+        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[0], equipos[1], fechaJornada3));
+        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[2], equipos[3], fechaJornada3));
     }
 
-    private Partido CrearPartidoDeGrupo(Grupo grupo, Equipo local, Equipo visitante)
+    private DateTime ObtenerFechaDeJornada(ConfiguracionTorneo configuracionTorneo, int indiceJornada)
+    {
+        return configuracionTorneo.FechaInicioTorneo.Date
+            .Add(configuracionTorneo.HoraInicioPartidos)
+            .AddDays(configuracionTorneo.SeparacionEntreFechas * indiceJornada);
+    }
+
+    private Partido CrearPartidoDeGrupo(Grupo grupo, Equipo local, Equipo visitante, DateTime fecha)
     {
         return new Partido
         {
+            Fecha = fecha,
             EquipoLocal = local,
             EquipoVisitante = visitante,
             Grupo = grupo,
