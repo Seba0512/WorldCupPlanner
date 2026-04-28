@@ -10,9 +10,15 @@ public class ServicioFixture
     private const int CantidadEquiposPorGrupo = 4;
     private const int MaximoEquiposUefaPorGrupo = 2;
     private const int MaximoEquiposOtrasConfederacionesPorGrupo = 1;
+
     private const int IndiceJornadaUno = 0;
     private const int IndiceJornadaDos = 1;
     private const int IndiceJornadaTres = 2;
+
+    private const int EquipoUno = 0;
+    private const int EquipoDos = 1;
+    private const int EquipoTres = 2;
+    private const int EquipoCuatro = 3;
 
     private const char PrimeraEtiquetaGrupo = 'A';
     private const char UltimaEtiquetaGrupo = 'L';
@@ -160,11 +166,11 @@ public class ServicioFixture
         List<Estadio> estadios)
     {
         var estadiosOrdenados = OrdenarEstadiosPorNombreNormalizado(estadios);
-        var indicePartido = 0;
+        var indicePartidoGlobal = 0;
 
         foreach (var grupo in fixture.Grupos)
         {
-            GenerarPartidosDelGrupo(grupo, configuracionTorneo, estadiosOrdenados, ref indicePartido);
+            GenerarPartidosDelGrupo(grupo, configuracionTorneo, estadiosOrdenados, ref indicePartidoGlobal);
         }
     }
 
@@ -172,7 +178,7 @@ public class ServicioFixture
         Grupo grupo,
         ConfiguracionTorneo configuracionTorneo,
         List<Estadio> estadiosOrdenados,
-        ref int indicePartido)
+        ref int indicePartidoGlobal)
     {
         var equipos = grupo.Equipos;
 
@@ -180,23 +186,36 @@ public class ServicioFixture
         var fechaJornada2 = ObtenerFechaDeJornada(configuracionTorneo, IndiceJornadaDos);
         var fechaJornada3 = ObtenerFechaDeJornada(configuracionTorneo, IndiceJornadaTres);
 
-        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[0], equipos[3], fechaJornada1,
-            ObtenerEstadioParaPartido(estadiosOrdenados, indicePartido++)));
+        AgregarPartidoDeGrupo(grupo, equipos, EquipoUno, EquipoCuatro, fechaJornada1, estadiosOrdenados, ref indicePartidoGlobal);
+        AgregarPartidoDeGrupo(grupo, equipos, EquipoDos, EquipoTres, fechaJornada1, estadiosOrdenados, ref indicePartidoGlobal);
 
-        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[1], equipos[2], fechaJornada1,
-            ObtenerEstadioParaPartido(estadiosOrdenados, indicePartido++)));
+        AgregarPartidoDeGrupo(grupo, equipos, EquipoUno, EquipoTres, fechaJornada2, estadiosOrdenados, ref indicePartidoGlobal);
+        AgregarPartidoDeGrupo(grupo, equipos, EquipoDos, EquipoCuatro, fechaJornada2, estadiosOrdenados, ref indicePartidoGlobal);
 
-        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[0], equipos[2], fechaJornada2,
-            ObtenerEstadioParaPartido(estadiosOrdenados, indicePartido++)));
+        AgregarPartidoDeGrupo(grupo, equipos, EquipoUno, EquipoDos, fechaJornada3, estadiosOrdenados, ref indicePartidoGlobal);
+        AgregarPartidoDeGrupo(grupo, equipos, EquipoTres, EquipoCuatro, fechaJornada3, estadiosOrdenados, ref indicePartidoGlobal);
+    }
 
-        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[1], equipos[3], fechaJornada2,
-            ObtenerEstadioParaPartido(estadiosOrdenados, indicePartido++)));
+    private void AgregarPartidoDeGrupo(
+        Grupo grupo,
+        List<Equipo> equipos,
+        int indiceEquipoLocal,
+        int indiceEquipoVisitante,
+        DateTime fecha,
+        List<Estadio> estadiosOrdenados,
+        ref int indicePartidoGlobal)
+    {
+        var estadio = ObtenerEstadioParaPartido(estadiosOrdenados, indicePartidoGlobal);
+        var partido = CrearPartidoDeGrupo(
+            grupo,
+            equipos[indiceEquipoLocal],
+            equipos[indiceEquipoVisitante],
+            fecha,
+            estadio
+        );
 
-        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[0], equipos[1], fechaJornada3,
-            ObtenerEstadioParaPartido(estadiosOrdenados, indicePartido++)));
-
-        grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[2], equipos[3], fechaJornada3,
-            ObtenerEstadioParaPartido(estadiosOrdenados, indicePartido++)));
+        grupo.Partidos.Add(partido);
+        indicePartidoGlobal++;
     }
 
     private DateTime ObtenerFechaDeJornada(ConfiguracionTorneo configuracionTorneo, int indiceJornada)
@@ -213,9 +232,9 @@ public class ServicioFixture
             .ToList();
     }
 
-    private Estadio ObtenerEstadioParaPartido(List<Estadio> estadiosOrdenados, int indicePartido)
+    private Estadio ObtenerEstadioParaPartido(List<Estadio> estadiosOrdenados, int indicePartidoGlobal)
     {
-        return estadiosOrdenados[indicePartido % estadiosOrdenados.Count];
+        return estadiosOrdenados[indicePartidoGlobal % estadiosOrdenados.Count];
     }
 
     private Partido CrearPartidoDeGrupo(
