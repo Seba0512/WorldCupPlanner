@@ -424,4 +424,37 @@ public class ServicioFixtureTests
         Assert.AreEqual(fechaJornada3, partidos[4].Fecha);
         Assert.AreEqual(fechaJornada3, partidos[5].Fecha);
     }
+    
+    private List<Estadio> CrearEstadiosValidosDesordenadosParaRotacion()
+    {
+        return new List<Estadio>
+        {
+            new Estadio { Nombre = "Estadio3", Ciudad = "Ciudad3", Capacidad = 30000 },
+            new Estadio { Nombre = "Estadio1", Ciudad = "Ciudad1", Capacidad = 30000 },
+            new Estadio { Nombre = "Estadio4", Ciudad = "Ciudad4", Capacidad = 30000 },
+            new Estadio { Nombre = "Estadio2", Ciudad = "Ciudad2", Capacidad = 30000 }
+        };
+    }
+    
+    [TestMethod]
+    public void GenerarFixture_DebeAsignarEstadiosPorRotacionSegunNombreNormalizado()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidosDesordenadosParaRotacion();
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        var partidos = fixture.Grupos.SelectMany(g => g.Partidos).ToList();
+
+        Assert.AreEqual("Estadio1", partidos[0].Estadio.Nombre);
+        Assert.AreEqual("Estadio2", partidos[1].Estadio.Nombre);
+        Assert.AreEqual("Estadio3", partidos[2].Estadio.Nombre);
+        Assert.AreEqual("Estadio4", partidos[3].Estadio.Nombre);
+        Assert.AreEqual("Estadio1", partidos[4].Estadio.Nombre);
+    }
 }
