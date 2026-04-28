@@ -10,6 +10,9 @@ public class ServicioFixture
     private const int CantidadEquiposPorGrupo = 4;
     private const int MaximoEquiposUefaPorGrupo = 2;
     private const int MaximoEquiposOtrasConfederacionesPorGrupo = 1;
+    private const int IndiceJornadaUno = 0;
+    private const int IndiceJornadaDos = 1;
+    private const int IndiceJornadaTres = 2;
 
     private const char PrimeraEtiquetaGrupo = 'A';
     private const char UltimaEtiquetaGrupo = 'L';
@@ -160,9 +163,9 @@ public class ServicioFixture
     {
         var equipos = grupo.Equipos;
 
-        var fechaJornada1 = ObtenerFechaDeJornada(configuracionTorneo, 0);
-        var fechaJornada2 = ObtenerFechaDeJornada(configuracionTorneo, 1);
-        var fechaJornada3 = ObtenerFechaDeJornada(configuracionTorneo, 2);
+        var fechaJornada1 = ObtenerFechaDeJornada(configuracionTorneo, IndiceJornadaUno);
+        var fechaJornada2 = ObtenerFechaDeJornada(configuracionTorneo, IndiceJornadaDos);
+        var fechaJornada3 = ObtenerFechaDeJornada(configuracionTorneo, IndiceJornadaTres);
 
         grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[0], equipos[3], fechaJornada1));
         grupo.Partidos.Add(CrearPartidoDeGrupo(grupo, equipos[1], equipos[2], fechaJornada1));
