@@ -388,4 +388,40 @@ public class ServicioFixtureTests
         Assert.AreEqual(equiposDelGrupo[2], partidos[5].EquipoLocal);
         Assert.AreEqual(equiposDelGrupo[3], partidos[5].EquipoVisitante);
     }
+    
+    [TestMethod]
+    public void GenerarFixture_DebeAsignarFechasSegunJornadasDelGrupo()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaFixture = 1,
+            FechaInicioTorneo = new DateTime(2026, 6, 1),
+            SeparacionEntreFechas = 3,
+            HoraInicioPartidos = new TimeSpan(14, 0, 0)
+        };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        var partidos = fixture.Grupos[0].Partidos;
+
+        var fechaJornada1 = new DateTime(2026, 6, 1, 14, 0, 0);
+        var fechaJornada2 = new DateTime(2026, 6, 4, 14, 0, 0);
+        var fechaJornada3 = new DateTime(2026, 6, 7, 14, 0, 0);
+
+        Assert.AreEqual(fechaJornada1, partidos[0].Fecha);
+        Assert.AreEqual(fechaJornada1, partidos[1].Fecha);
+
+        Assert.AreEqual(fechaJornada2, partidos[2].Fecha);
+        Assert.AreEqual(fechaJornada2, partidos[3].Fecha);
+
+        Assert.AreEqual(fechaJornada3, partidos[4].Fecha);
+        Assert.AreEqual(fechaJornada3, partidos[5].Fecha);
+    }
 }
