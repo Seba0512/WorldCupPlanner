@@ -705,4 +705,33 @@ public class ServicioFixtureTests
             }
         }
     }
+
+    [TestMethod]
+    public void GenerarFixture_TodosLosPartidosDebenTenerEstadioAsignado()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        foreach (var grupo in fixture.Grupos)
+        {
+            foreach (var partido in grupo.Partidos)
+            {
+                Assert.IsNotNull(partido.Estadio,
+                    $"El partido entre {partido.EquipoLocal.Nombre} y {partido.EquipoVisitante.Nombre} debe tener estadio asignado");
+                
+                Assert.IsTrue(estadios.Contains(partido.Estadio),
+                    $"El estadio {partido.Estadio.Nombre} debe ser uno de los estadios disponibles");
+                
+                Assert.IsTrue(partido.Estadio.EsValido(),
+                    $"El estadio {partido.Estadio.Nombre} asignado debe ser válido");
+            }
+        }
+    }
 }
