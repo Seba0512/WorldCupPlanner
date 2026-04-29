@@ -594,4 +594,31 @@ public class ServicioFixtureTests
         var equiposEnFixtureSet = new HashSet<string>(todosLosEquiposEnFixture.Select(e => e.Nombre));
         CollectionAssert.AreEquivalent(equiposSet.ToList(), equiposEnFixtureSet.ToList());
     }
+
+    [TestMethod]
+    public void GenerarFixture_CadaEquipoDebeJugarTresPartidosEnSuGrupo()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        foreach (var grupo in fixture.Grupos)
+        {
+            foreach (var equipo in grupo.Equipos)
+            {
+                var partidosDelEquipo = grupo.Partidos
+                    .Where(p => p.EquipoLocal == equipo || p.EquipoVisitante == equipo)
+                    .ToList();
+
+                Assert.AreEqual(3, partidosDelEquipo.Count, 
+                    $"El equipo {equipo.Nombre} en el grupo {grupo.Etiqueta} debe jugar exactamente 3 partidos");
+            }
+        }
+    }
 }
