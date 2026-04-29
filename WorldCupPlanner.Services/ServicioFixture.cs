@@ -65,6 +65,11 @@ public class ServicioFixture
         {
             throw new InvalidOperationException("No se puede generar el fixture con menos de 4 estadios.");
         }
+
+        if (estadios.Any(e => !e.EsValido()))
+        {
+            throw new InvalidOperationException("No se puede generar el fixture con estadios inválidos.");
+        }
     }
 
     private Fixture CrearFixtureConDistribucionRoundRobin(
