@@ -210,12 +210,14 @@ public class ServicioFixture
         ref int indicePartidoGlobal)
     {
         var estadio = ObtenerEstadioParaPartido(estadiosOrdenados, indicePartidoGlobal);
+        int idPartido = indicePartidoGlobal + 1;
         var partido = CrearPartidoDeGrupo(
             grupo,
             equipos[indiceEquipoLocal],
             equipos[indiceEquipoVisitante],
             fecha,
-            estadio
+            estadio,
+            idPartido
         );
 
         grupo.Partidos.Add(partido);
@@ -277,10 +279,12 @@ public class ServicioFixture
         Equipo local,
         Equipo visitante,
         DateTime fecha,
-        Estadio estadio)
+        Estadio estadio,
+        int id)
     {
         return new Partido
         {
+            Id = id,
             Fecha = fecha,
             Estadio = estadio,
             EquipoLocal = local,
