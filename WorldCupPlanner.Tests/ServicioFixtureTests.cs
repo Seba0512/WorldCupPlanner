@@ -155,7 +155,6 @@ public class ServicioFixtureTests
                 Confederacion = confederaciones[(i - 1) % confederaciones.Length]
             });
         }
-
         return equipos;
     }
 
