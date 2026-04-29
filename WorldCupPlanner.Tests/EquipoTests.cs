@@ -21,7 +21,7 @@ public class EquipoTests
     }
 
     [TestMethod]
-    public void Equipo_ConNombreMas60Caracteres_Valido()
+    public void Equipo_ConNombreMasDe60Caracteres_NoEsValido()
     {
         //Arrange
         var equipo = new Equipo();
