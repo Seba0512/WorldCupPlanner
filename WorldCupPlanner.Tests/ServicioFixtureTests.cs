@@ -652,4 +652,28 @@ public class ServicioFixtureTests
             }
         }
     }
+
+    [TestMethod]
+    public void GenerarFixture_TodosLosPartidosGeneradosDebenSerDeFaseDeGrupos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        foreach (var grupo in fixture.Grupos)
+        {
+            foreach (var partido in grupo.Partidos)
+            {
+                Assert.AreEqual(FaseTorneo.FaseDeGrupos, partido.Fase,
+                    $"El partido entre {partido.EquipoLocal.Nombre} y {partido.EquipoVisitante.Nombre} " +
+                    $"debe tener fase FaseDeGrupos");
+            }
+        }
+    }
 }
