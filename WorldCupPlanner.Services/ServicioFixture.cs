@@ -53,8 +53,7 @@ public class ServicioFixture
 
     private void ValidarTodosLosEquiposSonValidos(List<Equipo> equipos)
     {
-        var equiposInvalidos = equipos.Where(e => !e.EsValido()).ToList();
-        if (equiposInvalidos.Count > 0)
+        if (equipos.Any(e => !e.EsValido()))
         {
             throw new InvalidOperationException("No se puede generar el fixture con equipos inválidos.");
         }
