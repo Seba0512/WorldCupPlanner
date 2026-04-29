@@ -568,4 +568,30 @@ public class ServicioFixtureTests
             servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
         );
     }
+
+    [TestMethod]
+    public void GenerarFixture_DebeAsignarCadaEquipoUnaSolaVez()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var equiposSet = new HashSet<string>(equipos.Select(e => e.Nombre));
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert - Total de 48 equipos asignados
+        var todosLosEquiposEnFixture = fixture.Grupos.SelectMany(g => g.Equipos).ToList();
+        Assert.AreEqual(48, todosLosEquiposEnFixture.Count);
+
+        // Assert - No hay repetidos
+        var equiposUnicos = new HashSet<string>(todosLosEquiposEnFixture.Select(e => e.Nombre));
+        Assert.AreEqual(48, equiposUnicos.Count);
+
+        // Assert - Todos los originales están en el fixture
+        var equiposEnFixtureSet = new HashSet<string>(todosLosEquiposEnFixture.Select(e => e.Nombre));
+        CollectionAssert.AreEquivalent(equiposSet.ToList(), equiposEnFixtureSet.ToList());
+    }
 }
