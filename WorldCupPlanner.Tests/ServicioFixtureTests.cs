@@ -509,4 +509,19 @@ public class ServicioFixtureTests
         Assert.AreEqual(72, partidos.Count);
         CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
     }
+    
+    [TestMethod]
+    public void GenerarFixture_ConMasDe48Equipos_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidos(49);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
+        );
+    }
 }
