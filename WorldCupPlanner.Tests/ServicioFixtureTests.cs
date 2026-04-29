@@ -130,7 +130,6 @@ public class ServicioFixtureTests
                 Capacidad = 30000
             });
         }
-
         return estadios;
     }
 
