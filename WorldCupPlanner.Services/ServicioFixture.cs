@@ -210,8 +210,8 @@ public class ServicioFixture
         ref int indicePartidoGlobal)
     {
         var estadio = ObtenerEstadioParaPartido(estadiosOrdenados, indicePartidoGlobal);
-        int idPartido = indicePartidoGlobal + 1;
-        var partido = CrearPartidoDeGrupo(
+        int idPartido = ObtenerSiguienteIdPartido(indicePartidoGlobal);
+        var partido = CrearPartidoDeGrupoConId(
             grupo,
             equipos[indiceEquipoLocal],
             equipos[indiceEquipoVisitante],
@@ -274,7 +274,12 @@ public class ServicioFixture
         return estadiosOrdenados[indicePartidoGlobal % estadiosOrdenados.Count];
     }
 
-    private Partido CrearPartidoDeGrupo(
+    private int ObtenerSiguienteIdPartido(int indicePartidoGlobal)
+    {
+        return indicePartidoGlobal + 1;
+    }
+
+    private Partido CrearPartidoDeGrupoConId(
         Grupo grupo,
         Equipo local,
         Equipo visitante,
