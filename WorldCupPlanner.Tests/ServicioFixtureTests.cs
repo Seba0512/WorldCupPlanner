@@ -485,4 +485,28 @@ public class ServicioFixtureTests
 
         Assert.IsTrue(cantidadPartidosPorDia.All(cantidad => cantidad <= configuracionTorneo.MaxPartidosPorDia));
     }
+
+    [TestMethod]
+    public void GenerarFixture_DebeAsignarIdsIncrementalesALosPartidos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        var partidos = fixture.Grupos
+            .SelectMany(g => g.Partidos)
+            .ToList();
+
+        var idsEsperados = Enumerable.Range(1, 72).ToList();
+        var idsObtenidos = partidos.Select(p => p.Id).ToList();
+
+        Assert.AreEqual(72, partidos.Count);
+        CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
+    }
 }
