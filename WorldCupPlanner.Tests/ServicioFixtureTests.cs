@@ -620,4 +620,37 @@ public class ServicioFixtureTests
             }
         }
     }
+
+    [TestMethod]
+    public void GenerarFixture_NoDebeRepetirEnfrentamientosDentroDelGrupo()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        foreach (var grupo in fixture.Grupos)
+        {
+            var partidosUnicos = new HashSet<string>();
+
+            foreach (var partido in grupo.Partidos)
+            {
+                // Crear clave normalizada del enfrentamiento (sin importar orden)
+                var clave = string.Concat(
+                    new[] { partido.EquipoLocal.Nombre, partido.EquipoVisitante.Nombre }.OrderBy(x => x)
+                );
+
+                Assert.IsTrue(
+                    partidosUnicos.Add(clave),
+                    $"El enfrentamiento entre {partido.EquipoLocal.Nombre} y {partido.EquipoVisitante.Nombre} " +
+                    $"aparece repetido en el grupo {grupo.Etiqueta}"
+                );
+            }
+        }
+    }
 }
