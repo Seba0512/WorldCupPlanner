@@ -454,4 +454,35 @@ public class ServicioFixtureTests
         Assert.AreEqual("Estadio4", partidos[3].Estadio.Nombre);
         Assert.AreEqual("Estadio1", partidos[4].Estadio.Nombre);
     }
+
+    [TestMethod]
+    public void GenerarFixture_NoDebeSuperarMaximoPartidosPorDia()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaFixture = 1,
+            FechaInicioTorneo = new DateTime(2026, 6, 1),
+            SeparacionEntreFechas = 3,
+            HoraInicioPartidos = new TimeSpan(14, 0, 0),
+            SeparacionHorasEntrePartidos = 4,
+            MaxPartidosPorDia = 3
+        };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        var cantidadPartidosPorDia = fixture.Grupos
+            .SelectMany(g => g.Partidos)
+            .GroupBy(p => p.Fecha.Date)
+            .Select(g => g.Count())
+            .ToList();
+
+        Assert.IsTrue(cantidadPartidosPorDia.All(cantidad => cantidad <= configuracionTorneo.MaxPartidosPorDia));
+    }
 }
