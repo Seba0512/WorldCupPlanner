@@ -524,4 +524,26 @@ public class ServicioFixtureTests
             servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
         );
     }
+
+    [TestMethod]
+    public void GenerarFixture_ConEquipoInvalido_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidos(47);
+        // Agregar un equipo inválido (sin confederación)
+        equipos.Add(new Equipo
+        {
+            Nombre = "EquipoInvalido",
+            RankingFIFA = 500,
+            Confederacion = null
+        });
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
+        );
+    }
 }
