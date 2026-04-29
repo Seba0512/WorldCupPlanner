@@ -4,7 +4,7 @@ namespace WorldCupPlanner.Services;
 
 public class ServicioFixture
 {
-    private const int CantidadMinimaEquipos = 48;
+    private const int CantidadExactaEquipos = 48;
     private const int CantidadMinimaEstadios = 4;
     private const int CantidadGrupos = 12;
     private const int CantidadEquiposPorGrupo = 4;
@@ -34,17 +34,50 @@ public class ServicioFixture
 
     private void ValidarCantidadEquipos(List<Equipo> equipos)
     {
-        if (equipos.Count < CantidadMinimaEquipos)
+        ValidarCantidadExactaDeEquipos(equipos);
+        ValidarTodosLosEquiposSonValidos(equipos);
+    }
+
+    private void ValidarCantidadExactaDeEquipos(List<Equipo> equipos)
+    {
+        if (equipos.Count < CantidadExactaEquipos)
         {
             throw new InvalidOperationException("No se puede generar el fixture con menos de 48 equipos.");
+        }
+
+        if (equipos.Count > CantidadExactaEquipos)
+        {
+            throw new InvalidOperationException("No se puede generar el fixture con más de 48 equipos.");
+        }
+    }
+
+    private void ValidarTodosLosEquiposSonValidos(List<Equipo> equipos)
+    {
+        if (equipos.Any(e => !e.EsValido()))
+        {
+            throw new InvalidOperationException("No se puede generar el fixture con equipos inválidos.");
         }
     }
 
     private void ValidarCantidadEstadios(List<Estadio> estadios)
     {
+        ValidarCantidadMinimaDeEstadios(estadios);
+        ValidarTodosLosEstadiosSonValidos(estadios);
+    }
+
+    private void ValidarCantidadMinimaDeEstadios(List<Estadio> estadios)
+    {
         if (estadios.Count < CantidadMinimaEstadios)
         {
             throw new InvalidOperationException("No se puede generar el fixture con menos de 4 estadios.");
+        }
+    }
+
+    private void ValidarTodosLosEstadiosSonValidos(List<Estadio> estadios)
+    {
+        if (estadios.Any(e => !e.EsValido()))
+        {
+            throw new InvalidOperationException("No se puede generar el fixture con estadios inválidos.");
         }
     }
 

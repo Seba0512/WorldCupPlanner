@@ -1,6 +1,5 @@
 ﻿using WorldCupPlanner.Domain;
 using WorldCupPlanner.Services;
-
 namespace WorldCupPlanner.Tests;
 
 [TestClass]
@@ -131,7 +130,6 @@ public class ServicioFixtureTests
                 Capacidad = 30000
             });
         }
-
         return estadios;
     }
 
@@ -157,7 +155,6 @@ public class ServicioFixtureTests
                 Confederacion = confederaciones[(i - 1) % confederaciones.Length]
             });
         }
-
         return equipos;
     }
 
@@ -508,5 +505,233 @@ public class ServicioFixtureTests
 
         Assert.AreEqual(72, partidos.Count);
         CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
+    }
+    
+    [TestMethod]
+    public void GenerarFixture_ConMasDe48Equipos_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidos(49);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
+        );
+    }
+
+    [TestMethod]
+    public void GenerarFixture_ConEquipoInvalido_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidos(47);
+        // Agregar un equipo inválido (sin confederación)
+        equipos.Add(new Equipo
+        {
+            Nombre = "EquipoInvalido",
+            RankingFIFA = 500,
+            Confederacion = null
+        });
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
+        );
+    }
+
+    [TestMethod]
+    public void GenerarFixture_ConEstadioInvalido_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidos(48);
+        var estadios = CrearEstadiosValidos(3);
+        // Agregar un estadio inválido (capacidad menor a 20000)
+        estadios.Add(new Estadio
+        {
+            Nombre = "EstadioInvalido",
+            Ciudad = "Ciudad",
+            Capacidad = 10000
+        });
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
+        );
+    }
+
+    [TestMethod]
+    public void GenerarFixture_DebeAsignarCadaEquipoUnaSolaVez()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var equiposSet = new HashSet<string>(equipos.Select(e => e.Nombre));
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert - Total de 48 equipos asignados
+        var todosLosEquiposEnFixture = fixture.Grupos.SelectMany(g => g.Equipos).ToList();
+        Assert.AreEqual(48, todosLosEquiposEnFixture.Count);
+
+        // Assert - No hay repetidos
+        var equiposUnicos = new HashSet<string>(todosLosEquiposEnFixture.Select(e => e.Nombre));
+        Assert.AreEqual(48, equiposUnicos.Count);
+
+        // Assert - Todos los originales están en el fixture
+        var equiposEnFixtureSet = new HashSet<string>(todosLosEquiposEnFixture.Select(e => e.Nombre));
+        CollectionAssert.AreEquivalent(equiposSet.ToList(), equiposEnFixtureSet.ToList());
+    }
+
+    [TestMethod]
+    public void GenerarFixture_CadaEquipoDebeJugarTresPartidosEnSuGrupo()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        foreach (var grupo in fixture.Grupos)
+        {
+            foreach (var equipo in grupo.Equipos)
+            {
+                var partidosDelEquipo = grupo.Partidos
+                    .Where(p => p.EquipoLocal == equipo || p.EquipoVisitante == equipo)
+                    .ToList();
+
+                Assert.AreEqual(3, partidosDelEquipo.Count, 
+                    $"El equipo {equipo.Nombre} en el grupo {grupo.Etiqueta} debe jugar exactamente 3 partidos");
+            }
+        }
+    }
+
+    [TestMethod]
+    public void GenerarFixture_NoDebeRepetirEnfrentamientosDentroDelGrupo()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        foreach (var grupo in fixture.Grupos)
+        {
+            var partidosUnicos = new HashSet<string>();
+
+            foreach (var partido in grupo.Partidos)
+            {
+                // Crear clave normalizada del enfrentamiento (sin importar orden)
+                var clave = string.Concat(
+                    new[] { partido.EquipoLocal.Nombre, partido.EquipoVisitante.Nombre }.OrderBy(x => x)
+                );
+
+                Assert.IsTrue(
+                    partidosUnicos.Add(clave),
+                    $"El enfrentamiento entre {partido.EquipoLocal.Nombre} y {partido.EquipoVisitante.Nombre} " +
+                    $"aparece repetido en el grupo {grupo.Etiqueta}"
+                );
+            }
+        }
+    }
+
+    [TestMethod]
+    public void GenerarFixture_TodosLosPartidosGeneradosDebenSerDeFaseDeGrupos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        foreach (var grupo in fixture.Grupos)
+        {
+            foreach (var partido in grupo.Partidos)
+            {
+                Assert.AreEqual(FaseTorneo.FaseDeGrupos, partido.Fase,
+                    $"El partido entre {partido.EquipoLocal.Nombre} y {partido.EquipoVisitante.Nombre} " +
+                    $"debe tener fase FaseDeGrupos");
+            }
+        }
+    }
+
+    [TestMethod]
+    public void GenerarFixture_TodosLosPartidosDebenTenerGrupoAsignado()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        foreach (var grupo in fixture.Grupos)
+        {
+            foreach (var partido in grupo.Partidos)
+            {
+                Assert.IsNotNull(partido.Grupo,
+                    $"El partido entre {partido.EquipoLocal.Nombre} y {partido.EquipoVisitante.Nombre} debe tener grupo asignado");
+                
+                Assert.AreEqual(grupo, partido.Grupo,
+                    $"El partido debe pertenencer al grupo {grupo.Etiqueta}");
+                
+                var etiqueta = grupo.Etiqueta;
+                Assert.IsTrue(etiqueta[0] >= 'A' && etiqueta[0] <= 'L',
+                    $"La etiqueta del grupo '{etiqueta}' debe estar entre A y L");
+            }
+        }
+    }
+
+    [TestMethod]
+    public void GenerarFixture_TodosLosPartidosDebenTenerEstadioAsignado()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        foreach (var grupo in fixture.Grupos)
+        {
+            foreach (var partido in grupo.Partidos)
+            {
+                Assert.IsNotNull(partido.Estadio,
+                    $"El partido entre {partido.EquipoLocal.Nombre} y {partido.EquipoVisitante.Nombre} debe tener estadio asignado");
+                
+                Assert.IsTrue(estadios.Contains(partido.Estadio),
+                    $"El estadio {partido.Estadio.Nombre} debe ser uno de los estadios disponibles");
+                
+                Assert.IsTrue(partido.Estadio.EsValido(),
+                    $"El estadio {partido.Estadio.Nombre} asignado debe ser válido");
+            }
+        }
     }
 }
