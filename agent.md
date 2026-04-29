@@ -136,6 +136,8 @@ Debe tener:
 - GolesLocal
 - GolesVisitante
 - Vencedor, que puede implementarse como propiedad almacenada o como resultado calculado, siempre que el sistema pueda consultar claramente el ganador cuando corresponda.
+  - En fase de grupos puede haber empate, por lo que `Vencedor` puede ser null o equivalente si el partido termina empatado.
+  - En fases eliminatorias debe existir un vencedor.
 
 Reglas:
 
@@ -586,6 +588,3 @@ Este archivo es tu brújula. Consúltalo en cada cambio de código. Cualquier du
 Si existe conflicto entre este archivo y la letra oficial del obligatorio, prevalece siempre la letra oficial del PDF.
 
 Este archivo es una guía operativa para ayudar al desarrollo, pero no sustituye el documento oficial del obligatorio.
-
-- En fase de grupos puede haber empate, por lo que `Vencedor` puede ser null o equivalente si el partido termina empatado.
-- En fases eliminatorias debe existir un vencedor.
