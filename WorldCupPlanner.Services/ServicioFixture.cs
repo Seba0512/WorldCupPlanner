@@ -182,18 +182,22 @@ public class ServicioFixture
     {
         var equipos = grupo.Equipos;
 
-        var fechaJornada1 = ObtenerFechaDeJornada(configuracionTorneo, IndiceJornadaUno);
-        var fechaJornada2 = ObtenerFechaDeJornada(configuracionTorneo, IndiceJornadaDos);
-        var fechaJornada3 = ObtenerFechaDeJornada(configuracionTorneo, IndiceJornadaTres);
+        var fechaHoraJornada1Partido1 = ObtenerFechaDeJornada(configuracionTorneo, IndiceJornadaUno);
+        var fechaHoraJornada1Partido2 = ObtenerFechaSegundoPartidoDeJornada(configuracionTorneo, fechaHoraJornada1Partido1);
 
-        AgregarPartidoDeGrupo(grupo, equipos, EquipoUno, EquipoCuatro, fechaJornada1, estadiosOrdenados, ref indicePartidoGlobal);
-        AgregarPartidoDeGrupo(grupo, equipos, EquipoDos, EquipoTres, fechaJornada1, estadiosOrdenados, ref indicePartidoGlobal);
+        var fechaHoraJornada2Partido1 = ObtenerFechaDeJornada(configuracionTorneo, IndiceJornadaDos);
+        var fechaHoraJornada2Partido2 = ObtenerFechaSegundoPartidoDeJornada(configuracionTorneo, fechaHoraJornada2Partido1);
 
-        AgregarPartidoDeGrupo(grupo, equipos, EquipoUno, EquipoTres, fechaJornada2, estadiosOrdenados, ref indicePartidoGlobal);
-        AgregarPartidoDeGrupo(grupo, equipos, EquipoDos, EquipoCuatro, fechaJornada2, estadiosOrdenados, ref indicePartidoGlobal);
+        var fechaHoraJornada3 = ObtenerFechaDeJornada(configuracionTorneo, IndiceJornadaTres);
 
-        AgregarPartidoDeGrupo(grupo, equipos, EquipoUno, EquipoDos, fechaJornada3, estadiosOrdenados, ref indicePartidoGlobal);
-        AgregarPartidoDeGrupo(grupo, equipos, EquipoTres, EquipoCuatro, fechaJornada3, estadiosOrdenados, ref indicePartidoGlobal);
+        AgregarPartidoDeGrupo(grupo, equipos, EquipoUno, EquipoCuatro, fechaHoraJornada1Partido1, estadiosOrdenados, ref indicePartidoGlobal);
+        AgregarPartidoDeGrupo(grupo, equipos, EquipoDos, EquipoTres, fechaHoraJornada1Partido2, estadiosOrdenados, ref indicePartidoGlobal);
+
+        AgregarPartidoDeGrupo(grupo, equipos, EquipoUno, EquipoTres, fechaHoraJornada2Partido1, estadiosOrdenados, ref indicePartidoGlobal);
+        AgregarPartidoDeGrupo(grupo, equipos, EquipoDos, EquipoCuatro, fechaHoraJornada2Partido2, estadiosOrdenados, ref indicePartidoGlobal);
+
+        AgregarPartidoDeGrupo(grupo, equipos, EquipoUno, EquipoDos, fechaHoraJornada3, estadiosOrdenados, ref indicePartidoGlobal);
+        AgregarPartidoDeGrupo(grupo, equipos, EquipoTres, EquipoCuatro, fechaHoraJornada3, estadiosOrdenados, ref indicePartidoGlobal);
     }
 
     private void AgregarPartidoDeGrupo(
@@ -223,6 +227,11 @@ public class ServicioFixture
         return configuracionTorneo.FechaInicioTorneo.Date
             .Add(configuracionTorneo.HoraInicioPartidos)
             .AddDays(configuracionTorneo.SeparacionEntreFechas * indiceJornada);
+    }
+
+    private DateTime ObtenerFechaSegundoPartidoDeJornada(ConfiguracionTorneo configuracionTorneo, DateTime fechaPrimerPartido)
+    {
+        return fechaPrimerPartido.AddHours(configuracionTorneo.SeparacionHorasEntrePartidos);
     }
 
     private List<Estadio> OrdenarEstadiosPorNombreNormalizado(List<Estadio> estadios)
