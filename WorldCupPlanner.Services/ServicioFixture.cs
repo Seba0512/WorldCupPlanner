@@ -61,11 +61,20 @@ public class ServicioFixture
 
     private void ValidarCantidadEstadios(List<Estadio> estadios)
     {
+        ValidarCantidadMinimaDeEstadios(estadios);
+        ValidarTodosLosEstadiosSonValidos(estadios);
+    }
+
+    private void ValidarCantidadMinimaDeEstadios(List<Estadio> estadios)
+    {
         if (estadios.Count < CantidadMinimaEstadios)
         {
             throw new InvalidOperationException("No se puede generar el fixture con menos de 4 estadios.");
         }
+    }
 
+    private void ValidarTodosLosEstadiosSonValidos(List<Estadio> estadios)
+    {
         if (estadios.Any(e => !e.EsValido()))
         {
             throw new InvalidOperationException("No se puede generar el fixture con estadios inválidos.");
