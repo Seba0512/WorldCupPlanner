@@ -1,6 +1,5 @@
 ﻿using WorldCupPlanner.Domain;
 using WorldCupPlanner.Services;
-
 namespace WorldCupPlanner.Tests;
 
 [TestClass]
