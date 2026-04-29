@@ -546,4 +546,26 @@ public class ServicioFixtureTests
             servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
         );
     }
+
+    [TestMethod]
+    public void GenerarFixture_ConEstadioInvalido_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidos(48);
+        var estadios = CrearEstadiosValidos(3);
+        // Agregar un estadio inválido (capacidad menor a 20000)
+        estadios.Add(new Estadio
+        {
+            Nombre = "EstadioInvalido",
+            Ciudad = "Ciudad",
+            Capacidad = 10000
+        });
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
+        );
+    }
 }
