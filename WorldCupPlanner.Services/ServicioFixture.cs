@@ -38,6 +38,11 @@ public class ServicioFixture
         {
             throw new InvalidOperationException("No se puede generar el fixture con menos de 48 equipos.");
         }
+
+        if (equipos.Count > CantidadMinimaEquipos)
+        {
+            throw new InvalidOperationException("No se puede generar el fixture con más de 48 equipos.");
+        }
     }
 
     private void ValidarCantidadEstadios(List<Estadio> estadios)
