@@ -168,9 +168,10 @@ public class ServicioFixture
         var estadiosOrdenados = OrdenarEstadiosPorNombreNormalizado(estadios);
         var indicePartidoGlobal = 0;
 
-        foreach (var grupo in fixture.Grupos)
+        for (int indiceGrupo = 0; indiceGrupo < fixture.Grupos.Count; indiceGrupo++)
         {
-            GenerarPartidosDelGrupo(grupo, configuracionTorneo, estadiosOrdenados, ref indicePartidoGlobal);
+            var grupo = fixture.Grupos[indiceGrupo];
+            GenerarPartidosDelGrupo(grupo, configuracionTorneo, estadiosOrdenados, indiceGrupo, ref indicePartidoGlobal);
         }
     }
 
@@ -178,13 +179,15 @@ public class ServicioFixture
         Grupo grupo,
         ConfiguracionTorneo configuracionTorneo,
         List<Estadio> estadiosOrdenados,
+        int indiceGrupo,
         ref int indicePartidoGlobal)
     {
         var equipos = grupo.Equipos;
+        var fechaBaseGrupo = ObtenerFechaBaseDelGrupo(configuracionTorneo, indiceGrupo);
 
-        var (fechaJornada1Partido1, fechaJornada1Partido2) = ObtenerFechasJornada1(configuracionTorneo);
-        var (fechaJornada2Partido1, fechaJornada2Partido2) = ObtenerFechasJornada2(configuracionTorneo);
-        var fechaJornada3 = ObtenerFechasJornada3(configuracionTorneo);
+        var (fechaJornada1Partido1, fechaJornada1Partido2) = ObtenerFechasJornada1(configuracionTorneo, fechaBaseGrupo);
+        var (fechaJornada2Partido1, fechaJornada2Partido2) = ObtenerFechasJornada2(configuracionTorneo, fechaBaseGrupo);
+        var fechaJornada3 = ObtenerFechasJornada3(configuracionTorneo, fechaBaseGrupo);
 
         AgregarPartidoDeGrupo(grupo, equipos, EquipoUno, EquipoCuatro, fechaJornada1Partido1, estadiosOrdenados, ref indicePartidoGlobal);
         AgregarPartidoDeGrupo(grupo, equipos, EquipoDos, EquipoTres, fechaJornada1Partido2, estadiosOrdenados, ref indicePartidoGlobal);
@@ -225,6 +228,19 @@ public class ServicioFixture
             .AddDays(configuracionTorneo.SeparacionEntreFechas * indiceJornada);
     }
 
+    private DateTime ObtenerFechaDeJornadaAPartirDeBase(DateTime fechaBase, ConfiguracionTorneo configuracionTorneo, int indiceJornada)
+    {
+        return fechaBase.Date
+            .Add(configuracionTorneo.HoraInicioPartidos)
+            .AddDays(configuracionTorneo.SeparacionEntreFechas * indiceJornada);
+    }
+
+    private DateTime ObtenerFechaBaseDelGrupo(ConfiguracionTorneo configuracionTorneo, int indiceGrupo)
+    {
+        return configuracionTorneo.FechaInicioTorneo
+            .AddDays(indiceGrupo * configuracionTorneo.SeparacionEntreFechas * 3);
+    }
+
     private DateTime ObtenerFechaSegundoPartidoDeJornada(ConfiguracionTorneo configuracionTorneo, DateTime fechaPrimerPartido)
     {
         return fechaPrimerPartido.AddHours(configuracionTorneo.SeparacionHorasEntrePartidos);
@@ -237,6 +253,13 @@ public class ServicioFixture
         return (fechaPartido1, fechaPartido2);
     }
 
+    private (DateTime Partido1, DateTime Partido2) ObtenerFechasJornada1(ConfiguracionTorneo configuracionTorneo, DateTime fechaBaseGrupo)
+    {
+        var fechaPartido1 = ObtenerFechaDeJornadaAPartirDeBase(fechaBaseGrupo, configuracionTorneo, IndiceJornadaUno);
+        var fechaPartido2 = ObtenerFechaSegundoPartidoDeJornada(configuracionTorneo, fechaPartido1);
+        return (fechaPartido1, fechaPartido2);
+    }
+
     private (DateTime Partido1, DateTime Partido2) ObtenerFechasJornada2(ConfiguracionTorneo configuracionTorneo)
     {
         var fechaPartido1 = ObtenerFechaDeJornada(configuracionTorneo, IndiceJornadaDos);
@@ -244,9 +267,21 @@ public class ServicioFixture
         return (fechaPartido1, fechaPartido2);
     }
 
+    private (DateTime Partido1, DateTime Partido2) ObtenerFechasJornada2(ConfiguracionTorneo configuracionTorneo, DateTime fechaBaseGrupo)
+    {
+        var fechaPartido1 = ObtenerFechaDeJornadaAPartirDeBase(fechaBaseGrupo, configuracionTorneo, IndiceJornadaDos);
+        var fechaPartido2 = ObtenerFechaSegundoPartidoDeJornada(configuracionTorneo, fechaPartido1);
+        return (fechaPartido1, fechaPartido2);
+    }
+
     private DateTime ObtenerFechasJornada3(ConfiguracionTorneo configuracionTorneo)
     {
         return ObtenerFechaDeJornada(configuracionTorneo, IndiceJornadaTres);
+    }
+
+    private DateTime ObtenerFechasJornada3(ConfiguracionTorneo configuracionTorneo, DateTime fechaBaseGrupo)
+    {
+        return ObtenerFechaDeJornadaAPartirDeBase(fechaBaseGrupo, configuracionTorneo, IndiceJornadaTres);
     }
 
     private List<Estadio> OrdenarEstadiosPorNombreNormalizado(List<Estadio> estadios)
