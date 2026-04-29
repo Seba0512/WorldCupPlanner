@@ -390,7 +390,7 @@ public class ServicioFixtureTests
     }
     
     [TestMethod]
-    public void GenerarFixture_DebeAsignarFechasSegunJornadasDelGrupo()
+    public void GenerarFixture_DebeAsignarHorariosSegunJornadasDelGrupo()
     {
         // Arrange
         var servicioFixture = new ServicioFixture();
@@ -402,7 +402,8 @@ public class ServicioFixtureTests
             SemillaFixture = 1,
             FechaInicioTorneo = new DateTime(2026, 6, 1),
             SeparacionEntreFechas = 3,
-            HoraInicioPartidos = new TimeSpan(14, 0, 0)
+            HoraInicioPartidos = new TimeSpan(14, 0, 0),
+            SeparacionHorasEntrePartidos = 4
         };
 
         // Act
@@ -411,18 +412,14 @@ public class ServicioFixtureTests
         // Assert
         var partidos = fixture.Grupos[0].Partidos;
 
-        var fechaJornada1 = new DateTime(2026, 6, 1, 14, 0, 0);
-        var fechaJornada2 = new DateTime(2026, 6, 4, 14, 0, 0);
-        var fechaJornada3 = new DateTime(2026, 6, 7, 14, 0, 0);
+        Assert.AreEqual(new DateTime(2026, 6, 1, 14, 0, 0), partidos[0].Fecha);
+        Assert.AreEqual(new DateTime(2026, 6, 1, 18, 0, 0), partidos[1].Fecha);
 
-        Assert.AreEqual(fechaJornada1, partidos[0].Fecha);
-        Assert.AreEqual(fechaJornada1, partidos[1].Fecha);
+        Assert.AreEqual(new DateTime(2026, 6, 4, 14, 0, 0), partidos[2].Fecha);
+        Assert.AreEqual(new DateTime(2026, 6, 4, 18, 0, 0), partidos[3].Fecha);
 
-        Assert.AreEqual(fechaJornada2, partidos[2].Fecha);
-        Assert.AreEqual(fechaJornada2, partidos[3].Fecha);
-
-        Assert.AreEqual(fechaJornada3, partidos[4].Fecha);
-        Assert.AreEqual(fechaJornada3, partidos[5].Fecha);
+        Assert.AreEqual(new DateTime(2026, 6, 7, 14, 0, 0), partidos[4].Fecha);
+        Assert.AreEqual(new DateTime(2026, 6, 7, 14, 0, 0), partidos[5].Fecha);
     }
     
     private List<Estadio> CrearEstadiosValidosDesordenadosParaRotacion()
