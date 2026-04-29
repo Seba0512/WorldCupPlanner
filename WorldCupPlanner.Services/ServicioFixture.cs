@@ -34,6 +34,11 @@ public class ServicioFixture
 
     private void ValidarCantidadEquipos(List<Equipo> equipos)
     {
+        ValidarCantidadExactaDeEquipos(equipos);
+    }
+
+    private void ValidarCantidadExactaDeEquipos(List<Equipo> equipos)
+    {
         if (equipos.Count < CantidadMinimaEquipos)
         {
             throw new InvalidOperationException("No se puede generar el fixture con menos de 48 equipos.");
