@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\WorldCupPlanner.Domain\WorldCupPlanner.Domain.csproj" />
     <ProjectReference Include="..\WorldCupPlanner.Services\WorldCupPlanner.Services.csproj" />
+    <ProjectReference Include="..\WorldCupPlanner.DataAccess\WorldCupPlanner.DataAccess.csproj" />
   </ItemGroup>
 
 </Project>

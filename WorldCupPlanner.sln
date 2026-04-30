@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.Tests", "Wo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.WebApp", "WorldCupPlanner.WebApp\WorldCupPlanner.WebApp.csproj", "{92544D5E-BD33-48CE-96C4-9B77365C259F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.DataAccess", "WorldCupPlanner.DataAccess\WorldCupPlanner.DataAccess.csproj", "{4CC3514E-4318-44D5-9EB8-0E6CC3A657AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{92544D5E-BD33-48CE-96C4-9B77365C259F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{92544D5E-BD33-48CE-96C4-9B77365C259F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{92544D5E-BD33-48CE-96C4-9B77365C259F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CC3514E-4318-44D5-9EB8-0E6CC3A657AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CC3514E-4318-44D5-9EB8-0E6CC3A657AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CC3514E-4318-44D5-9EB8-0E6CC3A657AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CC3514E-4318-44D5-9EB8-0E6CC3A657AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
