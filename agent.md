@@ -1,4 +1,4 @@
-﻿# Agent Instructions — WorldCupPlanner 2026
+# Agent Instructions — WorldCupPlanner 2026
 
 ## Contexto general del proyecto
 
@@ -7,11 +7,12 @@ El sistema se llama **WorldCupPlanner 2026**.
 
 La aplicación debe gestionar la fase de grupos del Mundial 2026, con 48 equipos, 12 grupos de 4 equipos, generación automática de fixture, preparación de cruces eliminatorios, simulación de resultados, auditoría y trazabilidad mediante semillas determinísticas.
 
-El trabajo debe desarrollarse en **C# con .NET 8 y Blazor Server App**. La lógica de negocio debe estar separada de la interfaz. No usar base de datos en esta primera entrega: toda la información se guarda en memoria mediante listas, objetos y servicios.
+El trabajo debe desarrollarse en **C# con .NET 8 y Blazor Server App**. La lógica de negocio debe estar separada de la interfaz. No usar base de datos en esta primera entrega: toda la información se guarda en memoria mediante objetos, servicios y repositorios en memoria.
 
 ## Reglas obligatorias de desarrollo
 
 Todas las clases que no sean UI deben desarrollarse usando **TDD con MSTest**.  
+
 Para el requerimiento **Generación de fixture**, se debe evidenciar claramente el ciclo:
 
 1. RED: escribir primero el test que falla.
@@ -26,10 +27,27 @@ Usar mensajes de commit con este estilo:
 [RED] test: descripcion del test
 [GREEN] feat: descripcion del comportamiento implementado
 [REFACTOR] refactor: descripcion de la mejora interna
-```
+````
 
 No agregar funcionalidad nueva durante un refactor.
 No cambiar tests durante GREEN salvo que un test anterior contradiga explícitamente la letra del obligatorio. Si eso ocurre, explicar por qué se ajusta el test.
+
+## Forma de trabajar los TDD
+
+Cuando Seba pida “siguiente TDD”, Copilot debe:
+
+1. Elegir el siguiente requerimiento pendiente de las responsabilidades de Seba.
+2. Indicar claramente qué regla de la letra se está cubriendo.
+3. Proponer primero el test RED.
+4. Luego proponer el GREEN mínimo.
+5. Luego proponer el REFACTOR, solo si corresponde.
+6. No adelantar funcionalidades grandes que no correspondan al TDD actual.
+
+Importante:
+
+Solo el requerimiento de **Generación de Fixture** exige evidenciar explícitamente el ciclo RED / GREEN / REFACTOR en commits separados o claramente identificables.
+
+Para el resto de funcionalidades, también se debe trabajar con TDD porque la letra exige TDD para las clases no UI, pero no es necesario evidenciar cada fase con commits separados. En esos casos se puede hacer RED, GREEN y REFACTOR dentro del mismo flujo o commit, siempre que el código final tenga tests y respete la lógica de TDD.
 
 ## Git, Gitflow y GitHub Actions
 
@@ -45,13 +63,48 @@ Los commits de Generación de Fixture deben indicar claramente si corresponden a
 
 El proyecto está organizado al menos en estos namespaces/proyectos:
 
-- WorldCupPlanner.Domain
-- WorldCupPlanner.Services
-- WorldCupPlanner.Tests
+* `WorldCupPlanner.Domain`: entidades, enums y lógica básica de dominio.
+* `WorldCupPlanner.Services`: servicios de aplicación y lógica de negocio.
+* `WorldCupPlanner.DataAccess`: repositorios en memoria para esta primera entrega.
+* `WorldCupPlanner.Tests`: tests unitarios con MSTest.
+* `WorldCupPlanner.WebApp`: interfaz Blazor Server.
 
-La lógica de negocio debe ir en Domain y Services.
-Los tests unitarios deben ir en Tests.
+La lógica de negocio debe ir en `Domain` y `Services`.
+
+La persistencia en esta primera entrega debe ser en memoria, mediante repositorios simples en `WorldCupPlanner.DataAccess`.
+
+Los tests unitarios deben ir en `Tests`.
+
 No poner lógica de negocio en la UI.
+
+## Persistencia en memoria / DataAccess
+
+Para esta primera entrega no se debe usar base de datos.
+
+Actualmente existe un proyecto `WorldCupPlanner.DataAccess` con repositorios en memoria:
+
+* `RepositorioEquipoEnMemoria`
+* `RepositorioEstadioEnMemoria`
+* `RepositorioGrupoEnMemoria`
+* `RepositorioPartidoEnMemoria`
+
+Cada repositorio expone operaciones básicas:
+
+* `Agregar`
+* `Actualizar`
+* `Eliminar`
+* `ObtenerTodos`
+
+Los servicios deben usar estos repositorios cuando corresponda, preferentemente mediante inyección por constructor.
+
+Ejemplos actuales:
+
+* `ServicioEquipo` usa `RepositorioEquipoEnMemoria`.
+* `ServicioEstadio` usa `RepositorioEstadioEnMemoria`.
+
+No volver a implementar listas internas en servicios si ya existe un repositorio en memoria para esa entidad.
+
+Los repositorios no deben tener reglas de negocio complejas. Las validaciones de negocio deben permanecer en `Domain` o `Services`.
 
 ## Clases relevantes del dominio
 
@@ -59,164 +112,210 @@ No poner lógica de negocio en la UI.
 
 Debe tener:
 
-- Nombre
-- RankingFIFA
-- Confederacion
+* Nombre
+* RankingFIFA
+* Confederacion
 
 Reglas:
 
-- Nombre obligatorio, 1 a 60 caracteres.
-- Confederación obligatoria.
-- Ranking FIFA obligatorio entre 300 y 2500.
-- Nombre único a nivel del sistema.
-- Cupos globales por confederación:
-  - UEFA: 16
-  - CONMEBOL: 7
-  - CONCACAF: 7
-  - CAF: 9
-  - AFC: 8
-  - OFC: 1
+* Nombre obligatorio, 1 a 60 caracteres.
+* Confederación obligatoria.
+* Ranking FIFA obligatorio entre 300 y 2500.
+* Nombre único a nivel del sistema.
+* Cupos globales por confederación:
+
+  * UEFA: 16
+  * CONMEBOL: 7
+  * CONCACAF: 7
+  * CAF: 9
+  * AFC: 8
+  * OFC: 1
 
 ### Confederacion
 
 Enum con:
 
-- UEFA
-- CONMEBOL
-- CONCACAF
-- CAF
-- AFC
-- OFC
+* UEFA
+* CONMEBOL
+* CONCACAF
+* CAF
+* AFC
+* OFC
 
 ### Estadio
 
 Debe tener:
 
-- Nombre
-- Ciudad
-- Descripcion
-- Capacidad
+* Nombre
+* Ciudad
+* Descripcion
+* Capacidad
 
 Reglas:
 
-- Nombre obligatorio, 1 a 80 caracteres.
-- Ciudad obligatoria, 1 a 60 caracteres.
-- Descripción opcional, máximo 400 caracteres.
-- Capacidad mínima: 20000.
-- Nombre único a nivel del sistema.
+* Nombre obligatorio, 1 a 80 caracteres.
+* Ciudad obligatoria, 1 a 60 caracteres.
+* Descripción opcional, máximo 400 caracteres.
+* Capacidad mínima: 20000.
+* Nombre único a nivel del sistema.
 
 ### Grupo
 
 Debe tener:
 
-- Etiqueta
-- Equipos
-- Partidos
+* Etiqueta
+* Equipos
+* Partidos
 
 Reglas:
 
-- Etiqueta entre A y L.
-- Exactamente 4 equipos para ser válido.
-- Todos los equipos deben ser válidos.
-- UEFA puede repetirse como máximo 2 veces en un grupo.
-- Las demás confederaciones no pueden repetirse dentro de un grupo.
-- Cada grupo debe terminar con 6 partidos de fase de grupos.
+* Etiqueta entre A y L.
+* Exactamente 4 equipos para ser válido.
+* Todos los equipos deben ser válidos.
+* UEFA puede repetirse como máximo 2 veces en un grupo.
+* Las demás confederaciones no pueden repetirse dentro de un grupo.
+* Cada grupo debe terminar con 6 partidos de fase de grupos.
 
 ### Partido
 
 Debe tener:
 
-- Id
-- Fecha
-- Estadio
-- EquipoLocal
-- EquipoVisitante
-- Grupo
-- Fase
-- GolesLocal
-- GolesVisitante
-- Vencedor, que puede implementarse como propiedad almacenada o como resultado calculado, siempre que el sistema pueda consultar claramente el ganador cuando corresponda.
-  - En fase de grupos puede haber empate, por lo que `Vencedor` puede ser null o equivalente si el partido termina empatado.
-  - En fases eliminatorias debe existir un vencedor.
+* Id
+* Fecha
+* Estadio
+* EquipoLocal
+* EquipoVisitante
+* Grupo
+* Fase
+* GolesLocal
+* GolesVisitante
+* Vencedor, que puede implementarse como propiedad almacenada o como resultado calculado, siempre que el sistema pueda consultar claramente el ganador cuando corresponda.
+
+  * En fase de grupos puede haber empate, por lo que `Vencedor` puede ser null o equivalente si el partido termina empatado.
+  * En fases eliminatorias debe existir un vencedor.
 
 Reglas:
 
-- Id numérico incremental autogenerado.
-- Fecha obligatoria y válida.
-- Estadio obligatorio.
-- Equipo local obligatorio.
-- Equipo visitante obligatorio y distinto del local.
-- Grupo obligatorio para fase de grupos, con etiqueta A-L.
-- Debe poder cargarse resultado.
-- Una vez generados los cruces de segunda fase, no se deben poder editar partidos de fase anterior.
+* Id numérico incremental autogenerado.
+* Fecha obligatoria y válida.
+* Estadio obligatorio.
+* Equipo local obligatorio.
+* Equipo visitante obligatorio y distinto del local.
+* Grupo obligatorio para fase de grupos, con etiqueta A-L.
+* Debe poder cargarse resultado.
+* Una vez generados los cruces de segunda fase, no se deben poder editar partidos de fase anterior.
 
 ### Fixture
 
 Debe contener como mínimo:
 
-- Lista de grupos.
-- Eventualmente lista global de partidos para facilitar consultas por fecha, estadio, grupo y fase.
+* Lista de grupos.
+* Eventualmente lista global de partidos para facilitar consultas por fecha, estadio, grupo y fase.
+
+Recomendación de diseño:
+
+* Si se agrega una lista global de partidos, preferir una propiedad calculada a partir de los partidos de los grupos para evitar inconsistencias.
+* Ejemplo válido:
+
+  * `Partidos => Grupos.SelectMany(g => g.Partidos).ToList();`
 
 ### ConfiguracionTorneo
 
 Debe contener parámetros configurables para reproducibilidad:
 
-- SemillaFixture
-- SemillaCompletar
-- SemillaCrucesFase
-- SemillaSimulation
-- FechaInicioTorneo, por defecto 2026-06-01.
-- MaxPartidosPorDia, por defecto 3.
-- SeparacionEntreFechas, por defecto 3.
-- HoraInicioPartidos, por defecto 14:00.
-- SeparacionHorasEntrePartidos, por defecto 4.
-
+* SemillaFixture
+* SemillaCompletar
+* SemillaCrucesFase
+* SemillaSimulation
+* FechaInicioTorneo, por defecto 2026-06-01.
+* MaxPartidosPorDia, por defecto 3.
+* SeparacionEntreFechas, por defecto 3.
+* HoraInicioPartidos, por defecto 14:00.
+* SeparacionHorasEntrePartidos, por defecto 4.
 
 ## Reglas exactas de Generación de Fixture
 
 La generación de fixture debe cumplir:
 
 ### Validaciones previas
-- Para generar el fixture deben existir exactamente 48 equipos cargados.
-- Si hay menos de 48 equipos, no se debe generar directamente el fixture; primero debe ejecutarse la funcionalidad de completar automáticamente equipos faltantes, respetando cupos por confederación.
-- Si hay más de 48 equipos, el fixture tampoco debe generarse porque el formato esperado es exactamente 48 equipos.
-- Además, debe haber al menos 4 estadios.
+
+* Para generar el fixture deben existir exactamente 48 equipos cargados.
+* Si hay menos de 48 equipos, no se debe generar directamente el fixture; primero debe ejecutarse la funcionalidad de completar automáticamente equipos faltantes, respetando cupos por confederación.
+* Si hay más de 48 equipos, el fixture tampoco debe generarse porque el formato esperado es exactamente 48 equipos.
+* Además, debe haber al menos 4 estadios.
+* Los equipos recibidos deben ser válidos.
+* Los estadios recibidos deben ser válidos.
 
 ### Estructura de grupos
-- Se deben generar 12 grupos: A, B, C, D, E, F, G, H, I, J, K, L.
-- Cada grupo debe tener 4 equipos.
+
+* Se deben generar 12 grupos: A, B, C, D, E, F, G, H, I, J, K, L.
+* Cada grupo debe tener 4 equipos.
 
 ### Ordenamiento y distribución
-- Los equipos deben ordenarse por RankingFIFA descendente.
-- Si hay empates de ranking, se debe usar Fisher-Yates determinístico con SemillaFixture.
-- La distribución debe ser A→L en round-robin sobre la lista ordenada.
+
+* Los equipos deben ordenarse por RankingFIFA descendente.
+* Si hay empates de ranking, se debe usar Fisher-Yates determinístico con SemillaFixture.
+* La distribución debe ser A→L en round-robin sobre la lista ordenada.
 
 ### Restricciones de confederaciones
-- UEFA puede repetirse hasta 2 veces por grupo.
-- Las demás confederaciones no pueden repetirse.
+
+* UEFA puede repetirse hasta 2 veces por grupo.
+* Las demás confederaciones no pueden repetirse.
 
 ### Partidos por grupo
+
 Cada grupo debe tener 6 partidos:
-- Jornada 1: E1 vs E4, E2 vs E3.
-- Jornada 2: E1 vs E3, E2 vs E4.
-- Jornada 3: E1 vs E2, E3 vs E4.
+
+* Jornada 1: E1 vs E4, E2 vs E3.
+* Jornada 2: E1 vs E3, E2 vs E4.
+* Jornada 3: E1 vs E2, E3 vs E4.
+
+Cada equipo debe jugar exactamente 3 partidos en su grupo.
+
+No deben repetirse enfrentamientos dentro del mismo grupo.
 
 ### Asignación de fechas y horarios
-- Fecha de inicio por defecto: 2026-06-01.
-- Separación entre jornadas dentro de un grupo: 3 días.
-- Hora inicial: 14:00.
-- Separación entre partidos del mismo día: 4 horas.
-- La última jornada de cada grupo debe jugarse el mismo día y a la misma hora.
-- No se debe superar MaxPartidosPorDia, por defecto 3.
+
+* Fecha de inicio por defecto: 2026-06-01.
+* Separación entre jornadas dentro de un grupo: 3 días.
+* Hora inicial: 14:00.
+* Separación entre partidos del mismo día: 4 horas.
+* La última jornada de cada grupo debe jugarse el mismo día y a la misma hora.
+* No se debe superar MaxPartidosPorDia, por defecto 3.
 
 ### Asignación de estadios
-- Ordenar estadios por nombre normalizado ascendente.
-- Asignación circular: Partido #n → Estadio[(n-1) mod CantEstadios].
+
+* Ordenar estadios por nombre normalizado ascendente.
+* Asignación circular: Partido #n → Estadio[(n-1) mod CantEstadios].
 
 ### Ids de partidos
-- Cada partido generado debe tener Id incremental autogenerado:
-  - Primer partido: Id 1.
-  - Último partido de fase de grupos: Id 72.
+
+* Cada partido generado debe tener Id incremental autogenerado:
+
+  * Primer partido: Id 1.
+  * Último partido de fase de grupos: Id 72.
+
+### Estado actual de Generación de Fixture
+
+Actualmente `ServicioFixture` ya implementa:
+
+* validación de cantidad exacta de 48 equipos;
+* validación de mínimo 4 estadios;
+* validación de equipos inválidos;
+* validación de estadios inválidos;
+* creación de grupos A-L;
+* 4 equipos por grupo;
+* ordenamiento por ranking FIFA descendente;
+* Fisher-Yates determinístico con `SemillaFixture`;
+* distribución A-L respetando confederaciones;
+* generación de 6 partidos por grupo;
+* patrón de jornadas;
+* fechas y horarios;
+* simultaneidad de última jornada;
+* rotación de estadios por nombre normalizado;
+* Ids incrementales de partidos del 1 al 72.
+
+No reescribir masivamente `ServicioFixture` si no es necesario. Preferir TDD pequeños y refactors controlados.
 
 ## Normalización
 
@@ -234,45 +333,46 @@ Usar esta normalización para ordenar estadios por nombre normalizado.
 
 Al finalizar la fase de grupos, se debe determinar el orden de equipos usando:
 
-- Puntos.
-- Diferencia de goles.
-- Goles a favor.
-- Desempate determinístico usando SemillaCrucesFase.
+* Puntos.
+* Diferencia de goles.
+* Goles a favor.
+* Desempate determinístico usando SemillaCrucesFase.
 
 Luego:
 
-- se toman los 12 primeros;
-- los 12 segundos;
-- los 8 mejores terceros;
-- se generan 32 clasificados.
+* se toman los 12 primeros;
+* los 12 segundos;
+* los 8 mejores terceros;
+* se generan 32 clasificados.
 
 ### Estructura de cruces
 
-- Los 8 mejores primeros se cruzan con los 8 terceros: A1 a A8.
-- Los 4 primeros restantes se cruzan con los 4 segundos de menor puntaje: B1 a B4.
-- Los 8 segundos restantes se cruzan entre sí: B5 a B8.
-- Para cruces, usar Fisher-Yates con SemillaCrucesFase.
-- Evitar emparejar equipos del mismo grupo cuando sea posible.
-- Luego generar las siguientes fases eliminatorias en orden:
-  - Round of 32 / Primera ronda eliminatoria.
-  - Octavos de final.
-  - Cuartos de final.
-  - Semifinales.
-  - Partido por el tercer puesto.
-  - Final.
+* Los 8 mejores primeros se cruzan con los 8 terceros: A1 a A8.
+* Los 4 primeros restantes se cruzan con los 4 segundos de menor puntaje: B1 a B4.
+* Los 8 segundos restantes se cruzan entre sí: B5 a B8.
+* Para cruces, usar Fisher-Yates con SemillaCrucesFase.
+* Evitar emparejar equipos del mismo grupo cuando sea posible.
+* Luego generar las siguientes fases eliminatorias en orden:
+
+  * Round of 32 / Primera ronda eliminatoria.
+  * Octavos de final.
+  * Cuartos de final.
+  * Semifinales.
+  * Partido por el tercer puesto.
+  * Final.
 
 ## Auditoría
 
 Debe registrarse log con timestamp ISO-8601 y usuario para:
 
-- altas, ediciones y eliminaciones de usuarios;
-- altas, ediciones y eliminaciones de estadios;
-- altas, ediciones y eliminaciones de equipos;
-- generación automática de equipos;
-- generación de fixture;
-- modificación de partidos;
-- realización de sorteo para cruces;
-- importación de equipos, éxitos y errores.
+* altas, ediciones y eliminaciones de usuarios;
+* altas, ediciones y eliminaciones de estadios;
+* altas, ediciones y eliminaciones de equipos;
+* generación automática de equipos;
+* generación de fixture;
+* modificación de partidos;
+* realización de sorteo para cruces;
+* importación de equipos, éxitos y errores.
 
 Cada uso de una semilla debe quedar registrado para trazabilidad.
 
@@ -282,22 +382,25 @@ Si hay menos de 48 equipos cargados, el sistema debe permitir completar automát
 
 Reglas:
 
-- Se deben respetar los cupos globales por confederación:
-  - UEFA: 16
-  - CONMEBOL: 7
-  - CONCACAF: 7
-  - CAF: 9
-  - AFC: 8
-  - OFC: 1
-- Los equipos ficticios deben tener nombres determinísticos, por ejemplo:
-  - UEFA_01
-  - CONMEBOL_02
-  - etc.
-- El RankingFIFA de los equipos generados debe ser reproducible usando `SemillaCompletar`.
-- Se debe auditar:
-  - cantidad completada por confederación;
-  - semilla usada;
-  - rangos asignados.
+* Se deben respetar los cupos globales por confederación:
+
+  * UEFA: 16
+  * CONMEBOL: 7
+  * CONCACAF: 7
+  * CAF: 9
+  * AFC: 8
+  * OFC: 1
+* Los equipos ficticios deben tener nombres determinísticos, por ejemplo:
+
+  * UEFA_01
+  * CONMEBOL_02
+  * etc.
+* El RankingFIFA de los equipos generados debe ser reproducible usando `SemillaCompletar`.
+* Se debe auditar:
+
+  * cantidad completada por confederación;
+  * semilla usada;
+  * rangos asignados.
 
 ## Importación de equipos
 
@@ -305,17 +408,19 @@ El sistema debe permitir importar un CSV de equipos.
 
 Reglas:
 
-- El archivo debe tener exactamente los encabezados:
-  - Nombre
-  - Confederación
-  - RankingFIFA
-- Se debe validar:
-  - nombre único;
-  - confederación válida;
-  - RankingFIFA dentro del rango permitido;
-  - cupos por confederación.
-- La importación debe registrar casos de éxito y errores.
-- La importación debe quedar auditada.
+* El archivo debe tener exactamente los encabezados:
+
+  * Nombre
+  * Confederación
+  * RankingFIFA
+* Se debe validar:
+
+  * nombre único;
+  * confederación válida;
+  * RankingFIFA dentro del rango permitido;
+  * cupos por confederación.
+* La importación debe registrar casos de éxito y errores.
+* La importación debe quedar auditada.
 
 **Nota de diseño importante**: Para este requerimiento se deben generar con IA tres alternativas de implementación, cada una priorizando un criterio distinto:
 
@@ -329,14 +434,14 @@ Luego el equipo debe seleccionar una implementación, justificando claramente la
 
 La simulación de resultados debe:
 
-- aplicarse a partidos de fase de grupos y fases restantes;
-- usar `SemillaSimulation` para que sea reproducible;
-- basarse en el ranking actual de los equipos.
+* aplicarse a partidos de fase de grupos y fases restantes;
+* usar `SemillaSimulation` para que sea reproducible;
+* basarse en el ranking actual de los equipos.
 
 **Nota de diseño**: Si el dominio solo tiene `RankingFIFA`, el equipo debe decidir si:
 
-- se reutiliza `RankingFIFA` como ranking actual;
-- o se agrega una propiedad/mecanismo específico para `RankingActual`.
+* se reutiliza `RankingFIFA` como ranking actual;
+* o se agrega una propiedad/mecanismo específico para `RankingActual`.
 
 Esa decisión debe ser consistente, estar documentada y justificada en el código.
 
@@ -346,68 +451,98 @@ La aplicación debe incluir, como mínimo:
 
 1. **Login**: acceso seguro al sistema.
 2. **Usuarios ABM**: alta, baja, modificación, solo para usuarios con rol Administrador.
-3. **Equipos**: 
-   - listado, alta, edición y eliminación.
-   - incluye generador automático para completar los 48 requeridos.
-4. **Estadios**: listado, alta, edición y eliminación (solo para Administrador).
+3. **Equipos**:
+
+   * listado, alta, edición y eliminación.
+   * incluye generador automático para completar los 48 requeridos.
+4. **Estadios**: listado, alta, edición y eliminación, solo para Administrador.
 5. **Fixture y cruces**:
-   - generar fixture (botón, validaciones y confirmación);
-   - mostrar los 12 grupos y sus equipos;
-   - al acceder a un grupo, mostrar participantes, estadio y fecha de cada partido;
-   - permitir generar cruces de segunda fase una vez completada la primera fase;
-   - mostrar el avance del torneo (fase actual, equipos vivos, ganadores).
+
+   * generar fixture, con botón, validaciones y confirmación;
+   * mostrar los 12 grupos y sus equipos;
+   * al acceder a un grupo, mostrar participantes, estadio y fecha de cada partido;
+   * permitir generar cruces de segunda fase una vez completada la primera fase;
+   * mostrar el avance del torneo, fase actual, equipos vivos y ganadores.
 6. **Listado de partidos**:
-   - organizado por fecha;
-   - filtrable por fecha, estadio, grupo y fase.
+
+   * organizado por fecha;
+   * filtrable por fecha, estadio, grupo y fase.
 7. **Edición de partido**:
-   - modificar fecha;
-   - modificar estadio;
-   - cargar resultado (goles local, goles visitante).
-8. **Visualización de log**: acceso a la auditoría del sistema (solo para Administrador).
+
+   * modificar fecha;
+   * modificar estadio;
+   * cargar resultado, goles local y goles visitante.
+8. **Visualización de log**: acceso a la auditoría del sistema, solo para Administrador.
 9. **Importar equipos**: carga de CSV con validación y reporte de errores.
+
+## Estado actual de WebApp
+
+El proyecto `WorldCupPlanner.WebApp` existe, pero actualmente está prácticamente como plantilla Blazor Server.
+
+Contiene:
+
+* `WeatherForecast`
+* `WeatherForecastService`
+* `Error`
+* `Program.cs` con registro de Razor Pages, Server Side Blazor y `WeatherForecastService`.
+
+Todavía no está integrada la lógica real del dominio, servicios ni repositorios.
+
+Cuando se trabaje en Blazor:
+
+* no poner lógica de negocio en componentes;
+* registrar servicios y repositorios en `Program.cs`;
+* usar servicios para acceder a equipos, estadios, fixture, partidos y usuarios;
+* mantener la UI como capa de presentación;
+* no usar Entity Framework ni base de datos en esta entrega.
 
 ## Documentación obligatoria
 
-Además del código y tests, el equipo debe preparar documentación formal:
+Además del código y tests, el equipo debe preparar documentación formal.
 
 Debe incluir:
 
-- descripción general del sistema;
-- funcionalidades no implementadas o errores conocidos, si los hay;
-- **diagramas de paquetes**: mostrando WorldCupPlanner.Domain, Services, Tests, WebApp y sus dependencias;
-- **diagramas de clases del dominio**: Equipo, Confederación, Estadio, Grupo, Partido, Fixture, ConfiguracionTorneo;
-- **diagramas de clases de servicios**: ServicioEquipo, ServicioEstadio, ServicioFixture, ServicioAuditoria, etc.;
-- **tabla de responsabilidades por clase**: qué responsabilidad tiene cada clase, integrante responsable;
-- **explicación de mecanismos generales**:
-  - interacción UI/dominio (cómo Blazor invoca servicios);
-  - almacenamiento en memoria (estructura de colecciones, inicialización);
-  - manejo de errores y excepciones (qué excepciones lanza cada servicio);
-  - uso de polimorfismo, herencia o interfaces, si corresponde.
-- **análisis detallado de dependencias para Generación de Fixture**:
-  - clases involucradas (qué genera qué y en qué orden);
-  - dependencias explícitas e implícitas;
-  - evaluación de cohesión (¿cada clase hace una sola cosa bien?);
-  - evaluación de acoplamiento (¿hay acoplamiento innecesario?).
-- **explicación del algoritmo de generación de fixture**: pasos en pseudocódigo, justificación de decisiones, complejidad.
-- **reporte de cobertura con JetBrains dotCover**: a nivel de clase, mostrando líneas cubiertas y no cubiertas;
-  - si alguna funcionalidad no alcanza 90% de cobertura de líneas, justificar por qué (ej: manejo de excepciones raras, código defensivo, etc.).
+* descripción general del sistema;
+* funcionalidades no implementadas o errores conocidos, si los hay;
+* **diagramas de paquetes**: mostrando `WorldCupPlanner.Domain`, `WorldCupPlanner.Services`, `WorldCupPlanner.DataAccess`, `WorldCupPlanner.Tests`, `WorldCupPlanner.WebApp` y sus dependencias;
+* **diagramas de clases del dominio**: Equipo, Confederación, Estadio, Grupo, Partido, Fixture, ConfiguracionTorneo;
+* **diagramas de clases de servicios**: ServicioEquipo, ServicioEstadio, ServicioFixture, ServicioAuditoria, etc.;
+* **diagramas o descripción de repositorios en memoria**: RepositorioEquipoEnMemoria, RepositorioEstadioEnMemoria, RepositorioGrupoEnMemoria, RepositorioPartidoEnMemoria;
+* **tabla de responsabilidades por clase**: qué responsabilidad tiene cada clase, integrante responsable;
+* **explicación de mecanismos generales**:
+
+  * interacción UI/dominio, cómo Blazor invoca servicios;
+  * almacenamiento en memoria, estructura de colecciones, repositorios e inicialización;
+  * manejo de errores y excepciones, qué excepciones lanza cada servicio;
+  * uso de polimorfismo, herencia o interfaces, si corresponde.
+* **análisis detallado de dependencias para Generación de Fixture**:
+
+  * clases involucradas, qué genera qué y en qué orden;
+  * dependencias explícitas e implícitas;
+  * evaluación de cohesión, si cada clase hace una sola cosa bien;
+  * evaluación de acoplamiento, si hay acoplamiento innecesario.
+* **explicación del algoritmo de generación de fixture**: pasos en pseudocódigo, justificación de decisiones, complejidad.
+* **reporte de cobertura con JetBrains dotCover**: a nivel de clase, mostrando líneas cubiertas y no cubiertas;
+
+  * si alguna funcionalidad no alcanza 90% de cobertura de líneas, justificar por qué.
 
 ## Uso de IA Generativa
 
-El equipo puede usar IA como apoyo (GitHub Copilot, ChatGPT, Claude, etc.), pero todo el código generado debe ser **entendido, revisado y verificado** por los integrantes antes de comitear.
+El equipo puede usar IA como apoyo, por ejemplo GitHub Copilot, ChatGPT, Claude, etc., pero todo el código generado debe ser **entendido, revisado y verificado** por los integrantes antes de comitear.
 
 Se debe documentar:
 
-- **herramienta utilizada**: nombre y versión.
-- **contexto de uso**: qué parte del código se asistió con IA (ej: "implementación de algoritmo Fisher-Yates", "estructura de tests").
-- **qué partes fueron asistidas por IA**: ser específico y honesto.
-- **análisis crítico de la calidad del código generado**:
-  - ¿el código respeta Clean Code?
-  - ¿cumple con cohesión y bajo acoplamiento?
-  - ¿la lógica es correcta?
-  - ¿hay mejoras posibles?
-- **skills o archivos de instrucciones utilizados**: si se usaron custom instructions (como este agent.md), documentarlos.
-- **ejemplos concretos de uso**: mostrar fragmentos de código y el prompt que se usó.
+* **herramienta utilizada**: nombre y versión.
+* **contexto de uso**: qué parte del código se asistió con IA, por ejemplo "implementación de algoritmo Fisher-Yates" o "estructura de tests".
+* **qué partes fueron asistidas por IA**: ser específico y honesto.
+* **análisis crítico de la calidad del código generado**:
+
+  * ¿el código respeta Clean Code?
+  * ¿cumple con cohesión y bajo acoplamiento?
+  * ¿la lógica es correcta?
+  * ¿hay mejoras posibles?
+* **skills o archivos de instrucciones utilizados**: si se usaron custom instructions, como este `agent.md`, documentarlos.
+* **ejemplos concretos de uso**: mostrar fragmentos de código y el prompt que se usó.
 
 **El desconocimiento del código generado por IA puede penalizar al equipo.**
 
@@ -431,31 +566,32 @@ public void NombreDelMetodo_Escenario_ResultadoEsperado()
 
 Los tests deben ser:
 
-- simples;
-- legibles;
-- independientes;
-- repetibles;
-- autocontenidos;
-- con datos determinísticos.
+* simples;
+* legibles;
+* independientes;
+* repetibles;
+* autocontenidos;
+* con datos determinísticos.
 
 Evitar tests gigantes.
+
 Si una regla es compleja, dividirla en varios TDD pequeños.
 
 ## Clean Code
 
 Aplicar Clean Code:
 
-- nombres claros;
-- métodos cortos;
-- una responsabilidad por método;
-- constantes para números mágicos;
-- no dejar código muerto;
-- no dejar código comentado;
-- no agregar comentarios innecesarios;
-- no cambiar comportamiento durante refactor;
-- usar excepciones cuando corresponda;
-- evitar acoplamiento innecesario;
-- mantener alta cohesión.
+* nombres claros;
+* métodos cortos;
+* una responsabilidad por método;
+* constantes para números mágicos;
+* no dejar código muerto;
+* no dejar código comentado;
+* no agregar comentarios innecesarios;
+* no cambiar comportamiento durante refactor;
+* usar excepciones cuando corresponda;
+* evitar acoplamiento innecesario;
+* mantener alta cohesión.
 
 Si Rider marca un método privado como "is never used" y efectivamente no se usa, eliminarlo en etapa REFACTOR.
 
@@ -474,13 +610,15 @@ Antes de cambiar código:
 
 ## Restricciones importantes
 
-- No usar base de datos.
-- No usar Entity Framework todavía.
-- No agregar dependencias externas salvo que estén justificadas.
-- No meter lógica de negocio en Blazor.
-- No implementar funcionalidades fuera del alcance del TDD actual.
-- No reescribir masivamente clases que ya funcionan si no es necesario.
-- No usar herencia o interfaces "porque sí"; solo si simplifica diseño o reduce acoplamiento.
+* No usar base de datos.
+* No usar Entity Framework todavía.
+* No agregar dependencias externas salvo que estén justificadas.
+* No meter lógica de negocio en Blazor.
+* No implementar funcionalidades fuera del alcance del TDD actual.
+* No reescribir masivamente clases que ya funcionan si no es necesario.
+* No usar herencia o interfaces "porque sí"; solo si simplifica diseño o reduce acoplamiento.
+* No volver a listas internas en servicios si ya existe un repositorio en memoria correspondiente.
+* No mezclar responsabilidades entre dominio, servicios, data access y UI.
 
 ---
 
@@ -492,58 +630,63 @@ El trabajo está dividido entre tres integrantes. Copilot debe respetar esta div
 
 Seba trabaja principalmente en:
 
-- `Grupo`
-- `Fixture`
-- `ConfiguracionTorneo`
-- `ServicioFixture`
-- `GrupoTests`
-- `ConfiguracionTorneoTests`
-- `ServicioFixtureTests`
+* `Grupo`
+* `Fixture`
+* `ConfiguracionTorneo`
+* `ServicioFixture`
+* `GrupoTests`
+* `ConfiguracionTorneoTests`
+* `ServicioFixtureTests`
 
 Responsabilidades principales de Seba:
 
-- validación de grupos;
-- generación de grupos A-L;
-- distribución de equipos en grupos;
-- reglas de confederación dentro de grupos;
-- generación del fixture de fase de grupos;
-- generación de partidos de fase de grupos;
-- fechas, horarios y calendario de partidos;
-- asignación de estadios por rotación;
-- uso de `SemillaFixture`;
-- lógica relacionada con parámetros de configuración del torneo.
+* validación de grupos;
+* generación de grupos A-L;
+* distribución de equipos en grupos;
+* reglas de confederación dentro de grupos;
+* generación del fixture de fase de grupos;
+* generación de partidos de fase de grupos;
+* fechas, horarios y calendario de partidos;
+* asignación de estadios por rotación;
+* uso de `SemillaFixture`;
+* lógica relacionada con parámetros de configuración del torneo.
 
 Seba puede necesitar usar clases como `Equipo`, `Estadio` y `Partido`, pero no necesariamente es el responsable principal de implementarlas, salvo que sea necesario para integrar su parte.
+
+Seba puede necesitar usar o integrar `RepositorioGrupoEnMemoria` y `RepositorioPartidoEnMemoria` si la generación, consulta o listado de fixture empieza a persistir grupos o partidos en memoria.
 
 ### Nacho
 
 Nacho trabaja principalmente en:
 
-- `Equipo`
-- `Estadio`
-- `Partido`
-- `Normalizar` o `NormalizadorTexto`
-- `EquipoTests`
-- `EstadioTests`
-- `PartidoTests`
-- `NormalizarTests`
-- `ServicioEquipo`
-- `ServicioEstadio`
-- `ServicioEquipoTests`
-- `ServicioEstadioTests`
+* `Equipo`
+* `Estadio`
+* `Partido`
+* `Normalizar` o `NormalizadorTexto`
+* `EquipoTests`
+* `EstadioTests`
+* `PartidoTests`
+* `NormalizarTests`
+* `ServicioEquipo`
+* `ServicioEstadio`
+* `ServicioEquipoTests`
+* `ServicioEstadioTests`
+* `RepositorioEquipoEnMemoria`
+* `RepositorioEstadioEnMemoria`
 
 Responsabilidades principales de Nacho:
 
-- validaciones de equipos;
-- cupos y reglas propias de equipos;
-- validaciones de estadios;
-- alta, edición y eliminación de equipos;
-- alta, edición y eliminación de estadios;
-- normalización de texto;
-- datos y validaciones de partidos;
-- carga de resultados de partidos;
-- cálculo de ganador o empate;
-- restricciones propias de partido.
+* validaciones de equipos;
+* cupos y reglas propias de equipos;
+* validaciones de estadios;
+* alta, edición y eliminación de equipos;
+* alta, edición y eliminación de estadios;
+* normalización de texto;
+* datos y validaciones de partidos;
+* carga de resultados de partidos;
+* cálculo de ganador o empate;
+* restricciones propias de partido;
+* uso de repositorios en memoria para equipos y estadios.
 
 Las clases de Nacho pueden ser usadas por `ServicioFixture`, pero Copilot no debe modificar su lógica salvo que sea estrictamente necesario para integración o para cumplir una regla de la letra.
 
@@ -551,35 +694,47 @@ Las clases de Nacho pueden ser usadas por `ServicioFixture`, pero Copilot no deb
 
 Juan Manuel, también identificado como Ferre, trabaja principalmente en:
 
-- `Usuario`
-- `Rol`
-- `LoginAuditoria` o `AuditoriaLog`
-- `TipoAccion`
-- `ServicioUsuario`
-- `ServicioAuditoria`
-- pipeline de GitHub Actions
-- tests relacionados con usuarios, roles, auditoría y CI/CD
+* `Usuario`
+* `Rol`
+* `LoginAuditoria` o `AuditoriaLog`
+* `TipoAccion`
+* `ServicioUsuario`
+* `ServicioAuditoria`
+* pipeline de GitHub Actions
+* tests relacionados con usuarios, roles, auditoría y CI/CD
 
 Responsabilidades principales de Juan Manuel / Ferre:
 
-- gestión de usuarios;
-- validación de datos de usuario;
-- contraseñas seguras y cifradas;
-- roles no excluyentes;
-- auditoría de acciones del sistema;
-- registro de generación de fixture;
-- registro de uso de semillas;
-- registro de modificaciones de partidos;
-- configuración del pipeline de GitHub Actions;
-- automatización de tests en CI.
+* gestión de usuarios;
+* validación de datos de usuario;
+* contraseñas seguras y cifradas;
+* roles no excluyentes;
+* auditoría de acciones del sistema;
+* registro de generación de fixture;
+* registro de uso de semillas;
+* registro de modificaciones de partidos;
+* configuración del pipeline de GitHub Actions;
+* automatización de tests en CI.
 
 Copilot debe tener en cuenta que la generación de fixture deberá integrarse más adelante con auditoría, pero no debe implementar auditoría dentro de `ServicioFixture` si todavía no se está trabajando ese TDD.
 
 ---
 
+## Limpiezas técnicas pendientes conocidas
+
+Actualmente existen algunas limpiezas menores pendientes:
+
+* `Class1.cs` en `WorldCupPlanner.Domain` está vacío y debería eliminarse si no se usa.
+* El test `Equipo_SinConferacion_NoEsValido` está mal nombrado, porque actualmente asigna `Confederacion.UEFA` y espera `true`.
+* Algunos tests de `Normalizar` relacionados con espacios siguen dentro de `ServicioEquipoTests`; deberían moverse a `NormalizarTests`.
+* `NormalizarTest` puede tener un problema de encoding en el texto `"ParÃ­s"`; debería revisarse para que sea `"París"`.
+* `WorldCupPlanner.WebApp` todavía contiene código de plantilla (`WeatherForecast`) y no está integrado con los servicios reales.
+
+Estas limpiezas deben hacerse como refactors pequeños y controlados, sin cambiar comportamiento.
+
 ## Nota personal para el Agent
 
-Este archivo es tu brújula. Consúltalo en cada cambio de código. Cualquier duda sobre estructura, nombres, comportamiento esperado o restricciones, refúgiate aquí. Seba (o el usuario) contará con que conozcas estas reglas y las apliques consistentemente.
+Este archivo es tu brújula. Consúltalo en cada cambio de código. Cualquier duda sobre estructura, nombres, comportamiento esperado o restricciones, refúgiate aquí. Seba o el usuario contará con que conozcas estas reglas y las apliques consistentemente.
 
 **IMPORTANTE**: Respeta siempre la división de trabajo entre Seba, Nacho y Ferre. No modifiques código de otra persona sin una razón explícita que lo requiera. Si necesitas ajustar algo que no es de tu responsabilidad, consulta primero o hace el cambio mínimo necesario con justificación clara.
 
