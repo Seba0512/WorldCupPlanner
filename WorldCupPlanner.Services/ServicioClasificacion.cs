@@ -126,4 +126,35 @@ public class ServicioClasificacion
 
         return posiciones;
     }
+    
+    public ClasificadosFaseGrupos ObtenerClasificadosAFaseEliminatoria(
+        Fixture fixture,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        var primeros = new List<PosicionEquipo>();
+        var segundos = new List<PosicionEquipo>();
+        var terceros = new List<PosicionEquipo>();
+
+        foreach (var grupo in fixture.Grupos)
+        {
+            var tabla = CalcularTabla(grupo, configuracionTorneo);
+
+            primeros.Add(tabla[0]);
+            segundos.Add(tabla[1]);
+            terceros.Add(tabla[2]);
+        }
+
+        return new ClasificadosFaseGrupos
+        {
+            Primeros = primeros.Select(p => p.Equipo).ToList(),
+            Segundos = segundos.Select(p => p.Equipo).ToList(),
+            MejoresTerceros = terceros
+                .OrderByDescending(p => p.Puntos)
+                .ThenByDescending(p => p.DiferenciaGoles)
+                .ThenByDescending(p => p.GolesAFavor)
+                .Take(8)
+                .Select(p => p.Equipo)
+                .ToList()
+        };
+    }
 }

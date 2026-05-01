@@ -44,11 +44,16 @@ public class ServicioClasificacionTests
 
     private Equipo CrearEquipo(string nombre)
     {
+        return CrearEquipo(nombre, Confederacion.UEFA);
+    }
+
+    private Equipo CrearEquipo(string nombre, Confederacion confederacion)
+    {
         return new Equipo
         {
             Nombre = nombre,
             RankingFIFA = 1000,
-            Confederacion = Confederacion.UEFA
+            Confederacion = confederacion
         };
     }
 
@@ -281,5 +286,66 @@ private Grupo CrearGrupoConEmpateTotal()
     grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 0, 0));
 
     return grupo;
+}
+
+private Fixture CrearFixtureConDoceGruposResueltos()
+{
+    var fixture = new Fixture();
+
+    for (char etiqueta = 'A'; etiqueta <= 'L'; etiqueta++)
+    {
+        fixture.Grupos.Add(CrearGrupoResuelto(etiqueta.ToString()));
+    }
+
+    return fixture;
+}
+
+private Grupo CrearGrupoResuelto(string etiqueta)
+{
+    var equipo1 = CrearEquipo($"{etiqueta}1", Confederacion.UEFA);
+    var equipo2 = CrearEquipo($"{etiqueta}2", Confederacion.CONMEBOL);
+    var equipo3 = CrearEquipo($"{etiqueta}3", Confederacion.AFC);
+    var equipo4 = CrearEquipo($"{etiqueta}4", Confederacion.CAF);
+
+    var grupo = new Grupo(etiqueta, new List<Equipo>
+    {
+        equipo1,
+        equipo2,
+        equipo3,
+        equipo4
+    });
+
+    grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 3, 0));
+    grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 3, 0));
+    grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 3, 0));
+    grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 2, 0));
+    grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 2, 0));
+    grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 1, 0));
+
+    return grupo;
+}
+
+[TestMethod]
+public void ObtenerClasificadosAFaseEliminatoria_DebeTomarPrimerosSegundosYMejoresTerceros()
+{
+    // Arrange
+    var servicioClasificacion = new ServicioClasificacion();
+    var fixture = CrearFixtureConDoceGruposResueltos();
+    var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+    // Act
+    var clasificados = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
+        fixture,
+        configuracionTorneo
+    );
+
+    // Assert
+    Assert.AreEqual(12, clasificados.Primeros.Count);
+    Assert.AreEqual(12, clasificados.Segundos.Count);
+    Assert.AreEqual(8, clasificados.MejoresTerceros.Count);
+    Assert.AreEqual(32, clasificados.Todos.Count);
+
+    Assert.IsTrue(clasificados.Primeros.All(e => e.Nombre.EndsWith("1")));
+    Assert.IsTrue(clasificados.Segundos.All(e => e.Nombre.EndsWith("2")));
 }
 }
