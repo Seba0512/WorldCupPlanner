@@ -143,11 +143,16 @@ public class ServicioCrucesTests
             .Take(4)
             .ToList();
 
-        for (int i = 0; i < partidosPrimerosRestantesContraSegundos.Count; i++)
-        {
-            Assert.AreEqual(primerosRestantes[i], partidosPrimerosRestantesContraSegundos[i].EquipoLocal);
-            Assert.AreEqual(segundosDeMenorRendimiento[i], partidosPrimerosRestantesContraSegundos[i].EquipoVisitante);
-        }
+        var locales = partidosPrimerosRestantesContraSegundos
+            .Select(p => p.EquipoLocal)
+            .ToList();
+
+        var visitantes = partidosPrimerosRestantesContraSegundos
+            .Select(p => p.EquipoVisitante)
+            .ToList();
+
+        CollectionAssert.AreEquivalent(primerosRestantes, locales);
+        CollectionAssert.AreEquivalent(segundosDeMenorRendimiento, visitantes);
     }
     
     [TestMethod]
@@ -194,5 +199,86 @@ public class ServicioCrucesTests
             .ToList();
 
         CollectionAssert.AreEquivalent(segundosRestantes, equiposUsados);
+    }
+
+    [TestMethod]
+    public void GenerarPrimeraRondaEliminatoria_ConMismaSemilla_DebeGenerarMismosCruces()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var clasificados = CrearClasificadosCon32Equipos();
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo1 = new ConfiguracionTorneo { SemillaCrucesFase = 7 };
+        var configuracionTorneo2 = new ConfiguracionTorneo { SemillaCrucesFase = 7 };
+
+        // Act
+        var partidos1 = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            clasificados,
+            estadios,
+            configuracionTorneo1
+        );
+
+        var partidos2 = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            clasificados,
+            estadios,
+            configuracionTorneo2
+        );
+
+        // Assert
+        var cruces1 = ObtenerCruces(partidos1);
+        var cruces2 = ObtenerCruces(partidos2);
+
+        CollectionAssert.AreEqual(cruces1, cruces2);
+    }
+
+    [TestMethod]
+    public void GenerarPrimeraRondaEliminatoria_ConDistintasSemillas_DebePermitirCrucesDistintos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var clasificados = CrearClasificadosCon32Equipos();
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionReferencia = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+        // Act
+        var partidosReferencia = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            clasificados,
+            estadios,
+            configuracionReferencia
+        );
+
+        var crucesReferencia = ObtenerCruces(partidosReferencia);
+        var existeCruceDistinto = false;
+
+        for (int semilla = 2; semilla <= 20; semilla++)
+        {
+            var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = semilla };
+
+            var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
+                clasificados,
+                estadios,
+                configuracionTorneo
+            );
+
+            var cruces = ObtenerCruces(partidos);
+
+            if (!cruces.SequenceEqual(crucesReferencia))
+            {
+                existeCruceDistinto = true;
+                break;
+            }
+        }
+
+        // Assert
+        Assert.IsTrue(existeCruceDistinto);
+    }
+
+    private List<string> ObtenerCruces(List<Partido> partidos)
+    {
+        return partidos
+            .Select(p => $"{p.EquipoLocal.Nombre}-{p.EquipoVisitante.Nombre}")
+            .ToList();
     }
 }

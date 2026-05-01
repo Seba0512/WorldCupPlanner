@@ -10,26 +10,47 @@ public class ServicioCruces
         ConfiguracionTorneo configuracionTorneo)
     {
         var partidos = new List<Partido>();
+        var random = new Random(configuracionTorneo.SemillaCrucesFase);
+
+        var primerosParaTerceros = MezclarEquiposConFisherYates(
+            clasificados.Primeros.Take(8).ToList(),
+            random);
+
+        var terceros = MezclarEquiposConFisherYates(
+            clasificados.MejoresTerceros.ToList(),
+            random);
 
         AgregarCrucesPrimerosContraTerceros(
             partidos,
-            clasificados.Primeros.Take(8).ToList(),
-            clasificados.MejoresTerceros,
+            primerosParaTerceros,
+            terceros,
             estadios,
             configuracionTorneo
         );
+
+        var primerosRestantes = MezclarEquiposConFisherYates(
+            clasificados.Primeros.Skip(8).Take(4).ToList(),
+            random);
+
+        var segundosDeMenorRendimiento = MezclarEquiposConFisherYates(
+            clasificados.Segundos.Skip(8).Take(4).ToList(),
+            random);
 
         AgregarCrucesPrimerosRestantesContraSegundosDeMenorRendimiento(
             partidos,
-            clasificados.Primeros.Skip(8).Take(4).ToList(),
-            clasificados.Segundos.Skip(8).Take(4).ToList(),
+            primerosRestantes,
+            segundosDeMenorRendimiento,
             estadios,
             configuracionTorneo
         );
 
+        var segundosRestantes = MezclarEquiposConFisherYates(
+            clasificados.Segundos.Take(8).ToList(),
+            random);
+
         AgregarCrucesSegundosRestantesMinimos(
             partidos,
-            clasificados.Segundos.Take(8).ToList(),
+            segundosRestantes,
             estadios,
             configuracionTorneo
         );
@@ -106,5 +127,16 @@ public class ServicioCruces
             Fecha = configuracionTorneo.FechaInicioTorneo,
             Fase = FaseTorneo.PrimeraRondaEliminatoria
         };
+    }
+
+    private List<Equipo> MezclarEquiposConFisherYates(List<Equipo> equipos, Random random)
+    {
+        for (int i = equipos.Count - 1; i > 0; i--)
+        {
+            int j = random.Next(i + 1);
+            (equipos[i], equipos[j]) = (equipos[j], equipos[i]);
+        }
+
+        return equipos;
     }
 }
