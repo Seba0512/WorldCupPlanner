@@ -204,4 +204,82 @@ public class ServicioClasificacionTests
 
         CollectionAssert.AreEqual(ordenEsperado, ordenObtenido);
     }
+    
+    [TestMethod]
+public void CalcularTabla_ConEmpateTotalYMismaSemilla_DebeGenerarMismoDesempate()
+{
+    // Arrange
+    var servicioClasificacion = new ServicioClasificacion();
+    var grupo = CrearGrupoConEmpateTotal();
+
+    var configuracionTorneo1 = new ConfiguracionTorneo { SemillaCrucesFase = 7 };
+    var configuracionTorneo2 = new ConfiguracionTorneo { SemillaCrucesFase = 7 };
+
+    // Act
+    var tabla1 = servicioClasificacion.CalcularTabla(grupo, configuracionTorneo1);
+    var tabla2 = servicioClasificacion.CalcularTabla(grupo, configuracionTorneo2);
+
+    // Assert
+    var orden1 = tabla1.Select(p => p.Equipo.Nombre).ToList();
+    var orden2 = tabla2.Select(p => p.Equipo.Nombre).ToList();
+
+    CollectionAssert.AreEqual(orden1, orden2);
+}
+
+[TestMethod]
+public void CalcularTabla_ConEmpateTotalYDistintasSemillas_DebePermitirDesempateDistinto()
+{
+    // Arrange
+    var servicioClasificacion = new ServicioClasificacion();
+    var grupo = CrearGrupoConEmpateTotal();
+
+    var configuracionReferencia = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+    // Act
+    var tablaReferencia = servicioClasificacion.CalcularTabla(grupo, configuracionReferencia);
+    var ordenReferencia = tablaReferencia.Select(p => p.Equipo.Nombre).ToList();
+
+    var existeOrdenDistinto = false;
+
+    for (int semilla = 2; semilla <= 20; semilla++)
+    {
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = semilla };
+        var tabla = servicioClasificacion.CalcularTabla(grupo, configuracionTorneo);
+        var orden = tabla.Select(p => p.Equipo.Nombre).ToList();
+
+        if (!orden.SequenceEqual(ordenReferencia))
+        {
+            existeOrdenDistinto = true;
+            break;
+        }
+    }
+
+    // Assert
+    Assert.IsTrue(existeOrdenDistinto);
+}
+
+private Grupo CrearGrupoConEmpateTotal()
+{
+    var equipo1 = CrearEquipo("Equipo1");
+    var equipo2 = CrearEquipo("Equipo2");
+    var equipo3 = CrearEquipo("Equipo3");
+    var equipo4 = CrearEquipo("Equipo4");
+
+    var grupo = new Grupo("A", new List<Equipo>
+    {
+        equipo1,
+        equipo2,
+        equipo3,
+        equipo4
+    });
+
+    grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 0, 0));
+    grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 0, 0));
+    grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 0, 0));
+    grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 0, 0));
+    grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 0, 0));
+    grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 0, 0));
+
+    return grupo;
+}
 }

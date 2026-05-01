@@ -9,6 +9,11 @@ public class ServicioClasificacion
 
     public List<PosicionEquipo> CalcularTabla(Grupo grupo)
     {
+        return CalcularTabla(grupo, new ConfiguracionTorneo());
+    }
+
+    public List<PosicionEquipo> CalcularTabla(Grupo grupo, ConfiguracionTorneo configuracionTorneo)
+    {
         var posiciones = CrearPosicionesIniciales(grupo);
 
         foreach (var partido in grupo.Partidos)
@@ -19,11 +24,13 @@ public class ServicioClasificacion
             }
         }
 
-        return posiciones.Values
+        var tablaOrdenada = posiciones.Values
             .OrderByDescending(p => p.Puntos)
             .ThenByDescending(p => p.DiferenciaGoles)
             .ThenByDescending(p => p.GolesAFavor)
             .ToList();
+
+        return AplicarDesempateDeterministico(tablaOrdenada, configuracionTorneo.SemillaCrucesFase);
     }
 
     private Dictionary<Equipo, PosicionEquipo> CrearPosicionesIniciales(Grupo grupo)
@@ -77,5 +84,46 @@ public class ServicioClasificacion
             posicionLocal.Puntos += PuntosPorEmpate;
             posicionVisitante.Puntos += PuntosPorEmpate;
         }
+    }
+
+    private List<PosicionEquipo> AplicarDesempateDeterministico(
+        List<PosicionEquipo> tablaOrdenada,
+        int semillaCrucesFase)
+    {
+        var random = new Random(semillaCrucesFase);
+        var tablaFinal = new List<PosicionEquipo>();
+
+        var gruposEmpatados = tablaOrdenada
+            .GroupBy(p => new
+            {
+                p.Puntos,
+                p.DiferenciaGoles,
+                p.GolesAFavor
+            });
+
+        foreach (var grupoEmpatado in gruposEmpatados)
+        {
+            var posiciones = grupoEmpatado.ToList();
+
+            if (posiciones.Count > 1)
+            {
+                posiciones = MezclarConFisherYates(posiciones, random);
+            }
+
+            tablaFinal.AddRange(posiciones);
+        }
+
+        return tablaFinal;
+    }
+
+    private List<PosicionEquipo> MezclarConFisherYates(List<PosicionEquipo> posiciones, Random random)
+    {
+        for (int i = posiciones.Count - 1; i > 0; i--)
+        {
+            int j = random.Next(i + 1);
+            (posiciones[i], posiciones[j]) = (posiciones[j], posiciones[i]);
+        }
+
+        return posiciones;
     }
 }
