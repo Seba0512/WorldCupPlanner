@@ -24,13 +24,10 @@ public class ServicioClasificacion
             }
         }
 
-        var tablaOrdenada = posiciones.Values
-            .OrderByDescending(p => p.Puntos)
-            .ThenByDescending(p => p.DiferenciaGoles)
-            .ThenByDescending(p => p.GolesAFavor)
-            .ToList();
-
-        return AplicarDesempateDeterministico(tablaOrdenada, configuracionTorneo.SemillaCrucesFase);
+        return OrdenarPosicionesConDesempateDeterministico(
+            posiciones.Values.ToList(),
+            configuracionTorneo.SemillaCrucesFase
+        );
     }
 
     private Dictionary<Equipo, PosicionEquipo> CrearPosicionesIniciales(Grupo grupo)
@@ -148,13 +145,26 @@ public class ServicioClasificacion
         {
             Primeros = primeros.Select(p => p.Equipo).ToList(),
             Segundos = segundos.Select(p => p.Equipo).ToList(),
-            MejoresTerceros = terceros
-                .OrderByDescending(p => p.Puntos)
-                .ThenByDescending(p => p.DiferenciaGoles)
-                .ThenByDescending(p => p.GolesAFavor)
+            MejoresTerceros = OrdenarPosicionesConDesempateDeterministico(
+                    terceros,
+                    configuracionTorneo.SemillaCrucesFase
+                )
                 .Take(8)
                 .Select(p => p.Equipo)
                 .ToList()
         };
+    }
+    
+    private List<PosicionEquipo> OrdenarPosicionesConDesempateDeterministico(
+        List<PosicionEquipo> posiciones,
+        int semillaCrucesFase)
+    {
+        var posicionesOrdenadas = posiciones
+            .OrderByDescending(p => p.Puntos)
+            .ThenByDescending(p => p.DiferenciaGoles)
+            .ThenByDescending(p => p.GolesAFavor)
+            .ToList();
+
+        return AplicarDesempateDeterministico(posicionesOrdenadas, semillaCrucesFase);
     }
 }

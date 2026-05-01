@@ -348,4 +348,51 @@ public void ObtenerClasificadosAFaseEliminatoria_DebeTomarPrimerosSegundosYMejor
     Assert.IsTrue(clasificados.Primeros.All(e => e.Nombre.EndsWith("1")));
     Assert.IsTrue(clasificados.Segundos.All(e => e.Nombre.EndsWith("2")));
 }
+
+[TestMethod]
+public void ObtenerClasificadosAFaseEliminatoria_ConTercerosTotalmenteEmpatadosYDistintasSemillas_DebePermitirMejoresTercerosDistintos()
+{
+    // Arrange
+    var servicioClasificacion = new ServicioClasificacion();
+    var fixture = CrearFixtureConDoceGruposResueltos();
+
+    var configuracionReferencia = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+    // Act
+    var clasificadosReferencia = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
+        fixture,
+        configuracionReferencia
+    );
+
+    var mejoresTercerosReferencia = clasificadosReferencia.MejoresTerceros
+        .Select(e => e.Nombre)
+        .ToList();
+
+    var existeSeleccionDistinta = false;
+
+    for (int semilla = 2; semilla <= 20; semilla++)
+    {
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = semilla };
+
+        var clasificados = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
+            fixture,
+            configuracionTorneo
+        );
+
+        var mejoresTerceros = clasificados.MejoresTerceros
+            .Select(e => e.Nombre)
+            .ToList();
+
+        if (!mejoresTerceros.SequenceEqual(mejoresTercerosReferencia))
+        {
+            existeSeleccionDistinta = true;
+            break;
+        }
+    }
+
+    // Assert
+    Assert.IsTrue(existeSeleccionDistinta);
+}
+
+
 }
