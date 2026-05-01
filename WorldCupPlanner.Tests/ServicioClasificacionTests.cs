@@ -161,4 +161,47 @@ public class ServicioClasificacionTests
 
         CollectionAssert.AreEqual(ordenEsperado, ordenObtenido);
     }
+    
+    [TestMethod]
+    public void CalcularTabla_ConMismosPuntosYMismaDiferencia_OrdenaPorGolesAFavorDescendente()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+
+        var equipo1 = CrearEquipo("Equipo1");
+        var equipo2 = CrearEquipo("Equipo2");
+        var equipo3 = CrearEquipo("Equipo3");
+        var equipo4 = CrearEquipo("Equipo4");
+
+        var grupo = new Grupo("A", new List<Equipo>
+        {
+            equipo1,
+            equipo2,
+            equipo3,
+            equipo4
+        });
+
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 4, 3)); // Equipo1 gana
+        grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 6, 7)); // Equipo4 gana
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 2, 3)); // Equipo3 gana
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 5, 4)); // Equipo2 gana
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 0, 0)); // Empate
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 1, 1)); // Empate
+
+        // Act
+        var tabla = servicioClasificacion.CalcularTabla(grupo);
+
+        // Assert
+        var ordenEsperado = new List<Equipo>
+        {
+            equipo4, // 4 puntos, diferencia 0, 11 goles a favor
+            equipo3, // 4 puntos, diferencia 0, 10 goles a favor
+            equipo2, // 4 puntos, diferencia 0, 9 goles a favor
+            equipo1  // 4 puntos, diferencia 0, 6 goles a favor
+        };
+
+        var ordenObtenido = tabla.Select(p => p.Equipo).ToList();
+
+        CollectionAssert.AreEqual(ordenEsperado, ordenObtenido);
+    }
 }
