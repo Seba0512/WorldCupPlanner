@@ -160,13 +160,26 @@ End of WorldCupPlanner.DataAccess
 
 WorldCupPlanner.Domain:
 
-Class1.cs:
+ClasificadosFaseGrupos.cs:
 ```csharp
 namespace WorldCupPlanner.Domain;
 
-public class Class1
+public class ClasificadosFaseGrupos
 {
+    public List<Equipo> Primeros { get; set; } = new List<Equipo>();
+    public List<Equipo> Segundos { get; set; } = new List<Equipo>();
+    public List<Equipo> MejoresTerceros { get; set; } = new List<Equipo>();
 
+    public List<Equipo> Todos
+    {
+        get
+        {
+            return Primeros
+                .Concat(Segundos)
+                .Concat(MejoresTerceros)
+                .ToList();
+        }
+    }
 }
 ```
 
@@ -267,6 +280,7 @@ namespace WorldCupPlanner.Domain;
 public enum FaseTorneo
 {
     FaseDeGrupos,
+    PrimeraRondaEliminatoria,
     Octavos,
     Cuartos,
     Semifinal,
@@ -281,6 +295,16 @@ namespace WorldCupPlanner.Domain;
 public class Fixture
 {
     public List<Grupo> Grupos { get; set; } = new List<Grupo>();
+
+    public List<Partido> Partidos
+    {
+        get
+        {
+            return Grupos
+                .SelectMany(g => g.Partidos)
+                .ToList();
+        }
+    }
 }
 ```
 
@@ -439,6 +463,27 @@ namespace WorldCupPlanner.Domain
         public bool EsEmpate()
         {
             return EstaJugado() && GolesLocal == GolesVisitante;
+        }
+    }
+}
+```
+
+PosicionEquipo.cs:
+```csharp
+namespace WorldCupPlanner.Domain;
+
+public class PosicionEquipo
+{
+    public Equipo Equipo { get; set; } = null!;
+    public int Puntos { get; set; }
+    public int GolesAFavor { get; set; }
+    public int GolesEnContra { get; set; }
+
+    public int DiferenciaGoles
+    {
+        get
+        {
+            return GolesAFavor - GolesEnContra;
         }
     }
 }
@@ -627,6 +672,294 @@ public class Usuario
 End of WorldCupPlanner.Domain
 
 WorldCupPlanner.Services:
+
+ServicioClasificacion.cs:
+```csharp
+using WorldCupPlanner.Domain;
+
+namespace WorldCupPlanner.Services;
+
+public class ServicioClasificacion
+{
+    private const int PuntosPorVictoria = 3;
+    private const int PuntosPorEmpate = 1;
+
+    public List<PosicionEquipo> CalcularTabla(Grupo grupo)
+    {
+        return CalcularTabla(grupo, new ConfiguracionTorneo());
+    }
+
+    public List<PosicionEquipo> CalcularTabla(Grupo grupo, ConfiguracionTorneo configuracionTorneo)
+    {
+        var posiciones = CrearPosicionesIniciales(grupo);
+
+        foreach (var partido in grupo.Partidos)
+        {
+            if (partido.EstaJugado())
+            {
+                ActualizarPosicionesConPartido(posiciones, partido);
+            }
+        }
+
+        return OrdenarPosicionesConDesempateDeterministico(
+            posiciones.Values.ToList(),
+            configuracionTorneo.SemillaCrucesFase
+        );
+    }
+
+    private Dictionary<Equipo, PosicionEquipo> CrearPosicionesIniciales(Grupo grupo)
+    {
+        var posiciones = new Dictionary<Equipo, PosicionEquipo>();
+
+        foreach (var equipo in grupo.Equipos)
+        {
+            posiciones[equipo] = new PosicionEquipo
+            {
+                Equipo = equipo
+            };
+        }
+
+        return posiciones;
+    }
+
+    private void ActualizarPosicionesConPartido(Dictionary<Equipo, PosicionEquipo> posiciones, Partido partido)
+    {
+        var posicionLocal = posiciones[partido.EquipoLocal];
+        var posicionVisitante = posiciones[partido.EquipoVisitante];
+
+        int golesLocal = partido.GolesLocal!.Value;
+        int golesVisitante = partido.GolesVisitante!.Value;
+
+        posicionLocal.GolesAFavor += golesLocal;
+        posicionLocal.GolesEnContra += golesVisitante;
+
+        posicionVisitante.GolesAFavor += golesVisitante;
+        posicionVisitante.GolesEnContra += golesLocal;
+
+        ActualizarPuntos(posicionLocal, posicionVisitante, golesLocal, golesVisitante);
+    }
+
+    private void ActualizarPuntos(
+        PosicionEquipo posicionLocal,
+        PosicionEquipo posicionVisitante,
+        int golesLocal,
+        int golesVisitante)
+    {
+        if (golesLocal > golesVisitante)
+        {
+            posicionLocal.Puntos += PuntosPorVictoria;
+        }
+        else if (golesVisitante > golesLocal)
+        {
+            posicionVisitante.Puntos += PuntosPorVictoria;
+        }
+        else
+        {
+            posicionLocal.Puntos += PuntosPorEmpate;
+            posicionVisitante.Puntos += PuntosPorEmpate;
+        }
+    }
+
+    private List<PosicionEquipo> AplicarDesempateDeterministico(
+        List<PosicionEquipo> tablaOrdenada,
+        int semillaCrucesFase)
+    {
+        var random = new Random(semillaCrucesFase);
+        var tablaFinal = new List<PosicionEquipo>();
+
+        var gruposEmpatados = tablaOrdenada
+            .GroupBy(p => new
+            {
+                p.Puntos,
+                p.DiferenciaGoles,
+                p.GolesAFavor
+            });
+
+        foreach (var grupoEmpatado in gruposEmpatados)
+        {
+            var posiciones = grupoEmpatado.ToList();
+
+            if (posiciones.Count > 1)
+            {
+                posiciones = MezclarConFisherYates(posiciones, random);
+            }
+
+            tablaFinal.AddRange(posiciones);
+        }
+
+        return tablaFinal;
+    }
+
+    private List<PosicionEquipo> MezclarConFisherYates(List<PosicionEquipo> posiciones, Random random)
+    {
+        for (int i = posiciones.Count - 1; i > 0; i--)
+        {
+            int j = random.Next(i + 1);
+            (posiciones[i], posiciones[j]) = (posiciones[j], posiciones[i]);
+        }
+
+        return posiciones;
+    }
+    
+    public ClasificadosFaseGrupos ObtenerClasificadosAFaseEliminatoria(
+        Fixture fixture,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        var primeros = new List<PosicionEquipo>();
+        var segundos = new List<PosicionEquipo>();
+        var terceros = new List<PosicionEquipo>();
+
+        foreach (var grupo in fixture.Grupos)
+        {
+            var tabla = CalcularTabla(grupo, configuracionTorneo);
+
+            primeros.Add(tabla[0]);
+            segundos.Add(tabla[1]);
+            terceros.Add(tabla[2]);
+        }
+
+        return new ClasificadosFaseGrupos
+        {
+            Primeros = primeros.Select(p => p.Equipo).ToList(),
+            Segundos = segundos.Select(p => p.Equipo).ToList(),
+            MejoresTerceros = OrdenarPosicionesConDesempateDeterministico(
+                    terceros,
+                    configuracionTorneo.SemillaCrucesFase
+                )
+                .Take(8)
+                .Select(p => p.Equipo)
+                .ToList()
+        };
+    }
+    
+    private List<PosicionEquipo> OrdenarPosicionesConDesempateDeterministico(
+        List<PosicionEquipo> posiciones,
+        int semillaCrucesFase)
+    {
+        var posicionesOrdenadas = posiciones
+            .OrderByDescending(p => p.Puntos)
+            .ThenByDescending(p => p.DiferenciaGoles)
+            .ThenByDescending(p => p.GolesAFavor)
+            .ToList();
+
+        return AplicarDesempateDeterministico(posicionesOrdenadas, semillaCrucesFase);
+    }
+}
+```
+
+ServicioCruces.cs:
+```csharp
+using WorldCupPlanner.Domain;
+
+namespace WorldCupPlanner.Services;
+
+public class ServicioCruces
+{
+    public List<Partido> GenerarPrimeraRondaEliminatoria(
+        ClasificadosFaseGrupos clasificados,
+        List<Estadio> estadios,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        var partidos = new List<Partido>();
+
+        AgregarCrucesPrimerosContraTerceros(
+            partidos,
+            clasificados.Primeros.Take(8).ToList(),
+            clasificados.MejoresTerceros,
+            estadios,
+            configuracionTorneo
+        );
+
+        AgregarCrucesPrimerosRestantesContraSegundosDeMenorRendimiento(
+            partidos,
+            clasificados.Primeros.Skip(8).Take(4).ToList(),
+            clasificados.Segundos.Skip(8).Take(4).ToList(),
+            estadios,
+            configuracionTorneo
+        );
+
+        AgregarCrucesSegundosRestantesMinimos(
+            partidos,
+            clasificados.Segundos.Take(8).ToList(),
+            estadios,
+            configuracionTorneo
+        );
+
+        return partidos;
+    }
+
+    private void AgregarCrucesPrimerosContraTerceros(
+        List<Partido> partidos,
+        List<Equipo> primeros,
+        List<Equipo> terceros,
+        List<Estadio> estadios,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        for (int i = 0; i < primeros.Count; i++)
+        {
+            partidos.Add(CrearPartidoDePrimeraRonda(
+                partidos.Count + 1,
+                primeros[i],
+                terceros[i],
+                estadios[partidos.Count % estadios.Count],
+                configuracionTorneo));
+        }
+    }
+
+    private void AgregarCrucesPrimerosRestantesContraSegundosDeMenorRendimiento(
+        List<Partido> partidos,
+        List<Equipo> primerosRestantes,
+        List<Equipo> segundosDeMenorRendimiento,
+        List<Estadio> estadios,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        for (int i = 0; i < primerosRestantes.Count; i++)
+        {
+            partidos.Add(CrearPartidoDePrimeraRonda(
+                partidos.Count + 1,
+                primerosRestantes[i],
+                segundosDeMenorRendimiento[i],
+                estadios[partidos.Count % estadios.Count],
+                configuracionTorneo));
+        }
+    }
+
+    private void AgregarCrucesSegundosRestantesMinimos(
+        List<Partido> partidos,
+        List<Equipo> segundosRestantes,
+        List<Estadio> estadios,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        for (int i = 0; i < segundosRestantes.Count; i += 2)
+        {
+            partidos.Add(CrearPartidoDePrimeraRonda(
+                partidos.Count + 1,
+                segundosRestantes[i],
+                segundosRestantes[i + 1],
+                estadios[partidos.Count % estadios.Count],
+                configuracionTorneo));
+        }
+    }
+
+    private Partido CrearPartidoDePrimeraRonda(
+        int id,
+        Equipo equipoLocal,
+        Equipo equipoVisitante,
+        Estadio estadio,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        return new Partido
+        {
+            Id = id,
+            EquipoLocal = equipoLocal,
+            EquipoVisitante = equipoVisitante,
+            Estadio = estadio,
+            Fecha = configuracionTorneo.FechaInicioTorneo,
+            Fase = FaseTorneo.PrimeraRondaEliminatoria
+        };
+    }
+}
+```
 
 ServicioEquipo.cs:
 ```csharp
@@ -1294,6 +1627,72 @@ public class EstadioTests
 }
 ```
 
+FixtureTests.cs:
+```csharp
+using WorldCupPlanner.Domain;
+
+namespace WorldCupPlanner.Tests;
+
+[TestClass]
+public class FixtureTests
+{
+    [TestMethod]
+    public void Fixture_DebeExponerTodosLosPartidosDeSusGrupos()
+    {
+        // Arrange
+        var grupoA = new Grupo("A");
+        var grupoB = new Grupo("B");
+
+        grupoA.Partidos.Add(CrearPartido(1));
+        grupoA.Partidos.Add(CrearPartido(2));
+        grupoB.Partidos.Add(CrearPartido(3));
+
+        var fixture = new Fixture();
+        fixture.Grupos.Add(grupoA);
+        fixture.Grupos.Add(grupoB);
+
+        // Act
+        var partidos = fixture.Partidos;
+
+        // Assert
+        Assert.AreEqual(3, partidos.Count);
+
+        var idsObtenidos = partidos.Select(p => p.Id).ToList();
+        var idsEsperados = new List<int> { 1, 2, 3 };
+
+        CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
+    }
+
+    private Partido CrearPartido(int id)
+    {
+        return new Partido
+        {
+            Id = id,
+            Fecha = DateTime.Now,
+            Estadio = new Estadio
+            {
+                Nombre = $"Estadio{id}",
+                Ciudad = $"Ciudad{id}",
+                Capacidad = 30000
+            },
+            EquipoLocal = new Equipo
+            {
+                Nombre = $"Local{id}",
+                RankingFIFA = 1000,
+                Confederacion = Confederacion.UEFA
+            },
+            EquipoVisitante = new Equipo
+            {
+                Nombre = $"Visitante{id}",
+                RankingFIFA = 900,
+                Confederacion = Confederacion.CONMEBOL
+            },
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+    }
+}
+```
+
 GrupoTests.cs:
 ```csharp
 using WorldCupPlanner.Domain;
@@ -1935,6 +2334,564 @@ public class RepositoriosEnMemoriaTests
             Fase = FaseTorneo.FaseDeGrupos,
             Grupo = new Grupo("A")
         };
+    }
+}
+```
+
+ServicioClasificacionTests.cs:
+```csharp
+using WorldCupPlanner.Domain;
+using WorldCupPlanner.Services;
+
+namespace WorldCupPlanner.Tests;
+
+[TestClass]
+public class ServicioClasificacionTests
+{
+    [TestMethod]
+    public void CalcularTabla_ConResultadosDeGrupo_CalculaPuntosCorrectamente()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+
+        var equipo1 = CrearEquipo("Equipo1");
+        var equipo2 = CrearEquipo("Equipo2");
+        var equipo3 = CrearEquipo("Equipo3");
+        var equipo4 = CrearEquipo("Equipo4");
+
+        var grupo = new Grupo("A", new List<Equipo>
+        {
+            equipo1,
+            equipo2,
+            equipo3,
+            equipo4
+        });
+
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 2, 0)); // Equipo1 gana
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 1, 1)); // Empate
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 0, 0)); // Empate
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 3, 1)); // Equipo2 gana
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 1, 0)); // Equipo1 gana
+        grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 2, 1)); // Equipo3 gana
+
+        // Act
+        var tabla = servicioClasificacion.CalcularTabla(grupo);
+
+        // Assert
+        Assert.AreEqual(7, ObtenerPuntos(tabla, equipo1));
+        Assert.AreEqual(4, ObtenerPuntos(tabla, equipo2));
+        Assert.AreEqual(5, ObtenerPuntos(tabla, equipo3));
+        Assert.AreEqual(0, ObtenerPuntos(tabla, equipo4));
+    }
+
+    private Equipo CrearEquipo(string nombre)
+    {
+        return CrearEquipo(nombre, Confederacion.UEFA);
+    }
+
+    private Equipo CrearEquipo(string nombre, Confederacion confederacion)
+    {
+        return new Equipo
+        {
+            Nombre = nombre,
+            RankingFIFA = 1000,
+            Confederacion = confederacion
+        };
+    }
+
+    private Partido CrearPartido(Equipo local, Equipo visitante, int golesLocal, int golesVisitante)
+    {
+        return new Partido
+        {
+            EquipoLocal = local,
+            EquipoVisitante = visitante,
+            GolesLocal = golesLocal,
+            GolesVisitante = golesVisitante,
+            Fase = FaseTorneo.FaseDeGrupos,
+            Estadio = new Estadio
+            {
+                Nombre = "Estadio",
+                Ciudad = "Ciudad",
+                Capacidad = 30000
+            },
+            Fecha = DateTime.Now
+        };
+    }
+
+    private int ObtenerPuntos(List<PosicionEquipo> tabla, Equipo equipo)
+    {
+        return tabla.Single(p => p.Equipo == equipo).Puntos;
+    }
+    
+    [TestMethod]
+    public void CalcularTabla_ConResultadosDeGrupo_OrdenaPorPuntosDescendente()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+
+        var equipo1 = CrearEquipo("Equipo1");
+        var equipo2 = CrearEquipo("Equipo2");
+        var equipo3 = CrearEquipo("Equipo3");
+        var equipo4 = CrearEquipo("Equipo4");
+
+        var grupo = new Grupo("A", new List<Equipo>
+        {
+            equipo1,
+            equipo2,
+            equipo3,
+            equipo4
+        });
+
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 2, 0)); // Equipo1 gana: 3 pts
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 1, 1)); // Equipo2 y Equipo3: 1 pt
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 0, 0)); // Equipo1 y Equipo3: +1 pt
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 3, 1)); // Equipo2 gana: +3 pts
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 1, 0)); // Equipo1 gana: +3 pts
+        grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 2, 1)); // Equipo3 gana: +3 pts
+
+        // Act
+        var tabla = servicioClasificacion.CalcularTabla(grupo);
+
+        // Assert
+        var ordenEsperado = new List<Equipo>
+        {
+            equipo1, // 7 puntos
+            equipo3, // 5 puntos
+            equipo2, // 4 puntos
+            equipo4  // 0 puntos
+        };
+
+        var ordenObtenido = tabla.Select(p => p.Equipo).ToList();
+
+        CollectionAssert.AreEqual(ordenEsperado, ordenObtenido);
+    }
+    
+    [TestMethod]
+    public void CalcularTabla_ConMismosPuntos_OrdenaPorDiferenciaDeGolesDescendente()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+
+        var equipo1 = CrearEquipo("Equipo1");
+        var equipo2 = CrearEquipo("Equipo2");
+        var equipo3 = CrearEquipo("Equipo3");
+        var equipo4 = CrearEquipo("Equipo4");
+
+        var grupo = new Grupo("A", new List<Equipo>
+        {
+            equipo1,
+            equipo2,
+            equipo3,
+            equipo4
+        });
+
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 0, 3)); // Equipo2 gana por 3
+        grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 2, 0)); // Equipo3 gana por 2
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 1, 0)); // Equipo1 gana por 1
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 0, 1)); // Equipo4 gana por 1
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 0, 0)); // Empate
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 0, 0)); // Empate
+
+        // Act
+        var tabla = servicioClasificacion.CalcularTabla(grupo);
+
+        // Assert
+        var ordenEsperado = new List<Equipo>
+        {
+            equipo2, // 4 puntos, diferencia +2
+            equipo3, // 4 puntos, diferencia +1
+            equipo4, // 4 puntos, diferencia -1
+            equipo1  // 4 puntos, diferencia -2
+        };
+
+        var ordenObtenido = tabla.Select(p => p.Equipo).ToList();
+
+        CollectionAssert.AreEqual(ordenEsperado, ordenObtenido);
+    }
+    
+    [TestMethod]
+    public void CalcularTabla_ConMismosPuntosYMismaDiferencia_OrdenaPorGolesAFavorDescendente()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+
+        var equipo1 = CrearEquipo("Equipo1");
+        var equipo2 = CrearEquipo("Equipo2");
+        var equipo3 = CrearEquipo("Equipo3");
+        var equipo4 = CrearEquipo("Equipo4");
+
+        var grupo = new Grupo("A", new List<Equipo>
+        {
+            equipo1,
+            equipo2,
+            equipo3,
+            equipo4
+        });
+
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 4, 3)); // Equipo1 gana
+        grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 6, 7)); // Equipo4 gana
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 2, 3)); // Equipo3 gana
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 5, 4)); // Equipo2 gana
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 0, 0)); // Empate
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 1, 1)); // Empate
+
+        // Act
+        var tabla = servicioClasificacion.CalcularTabla(grupo);
+
+        // Assert
+        var ordenEsperado = new List<Equipo>
+        {
+            equipo4, // 4 puntos, diferencia 0, 11 goles a favor
+            equipo3, // 4 puntos, diferencia 0, 10 goles a favor
+            equipo2, // 4 puntos, diferencia 0, 9 goles a favor
+            equipo1  // 4 puntos, diferencia 0, 6 goles a favor
+        };
+
+        var ordenObtenido = tabla.Select(p => p.Equipo).ToList();
+
+        CollectionAssert.AreEqual(ordenEsperado, ordenObtenido);
+    }
+    
+    [TestMethod]
+public void CalcularTabla_ConEmpateTotalYMismaSemilla_DebeGenerarMismoDesempate()
+{
+    // Arrange
+    var servicioClasificacion = new ServicioClasificacion();
+    var grupo = CrearGrupoConEmpateTotal();
+
+    var configuracionTorneo1 = new ConfiguracionTorneo { SemillaCrucesFase = 7 };
+    var configuracionTorneo2 = new ConfiguracionTorneo { SemillaCrucesFase = 7 };
+
+    // Act
+    var tabla1 = servicioClasificacion.CalcularTabla(grupo, configuracionTorneo1);
+    var tabla2 = servicioClasificacion.CalcularTabla(grupo, configuracionTorneo2);
+
+    // Assert
+    var orden1 = tabla1.Select(p => p.Equipo.Nombre).ToList();
+    var orden2 = tabla2.Select(p => p.Equipo.Nombre).ToList();
+
+    CollectionAssert.AreEqual(orden1, orden2);
+}
+
+[TestMethod]
+public void CalcularTabla_ConEmpateTotalYDistintasSemillas_DebePermitirDesempateDistinto()
+{
+    // Arrange
+    var servicioClasificacion = new ServicioClasificacion();
+    var grupo = CrearGrupoConEmpateTotal();
+
+    var configuracionReferencia = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+    // Act
+    var tablaReferencia = servicioClasificacion.CalcularTabla(grupo, configuracionReferencia);
+    var ordenReferencia = tablaReferencia.Select(p => p.Equipo.Nombre).ToList();
+
+    var existeOrdenDistinto = false;
+
+    for (int semilla = 2; semilla <= 20; semilla++)
+    {
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = semilla };
+        var tabla = servicioClasificacion.CalcularTabla(grupo, configuracionTorneo);
+        var orden = tabla.Select(p => p.Equipo.Nombre).ToList();
+
+        if (!orden.SequenceEqual(ordenReferencia))
+        {
+            existeOrdenDistinto = true;
+            break;
+        }
+    }
+
+    // Assert
+    Assert.IsTrue(existeOrdenDistinto);
+}
+
+private Grupo CrearGrupoConEmpateTotal()
+{
+    var equipo1 = CrearEquipo("Equipo1");
+    var equipo2 = CrearEquipo("Equipo2");
+    var equipo3 = CrearEquipo("Equipo3");
+    var equipo4 = CrearEquipo("Equipo4");
+
+    var grupo = new Grupo("A", new List<Equipo>
+    {
+        equipo1,
+        equipo2,
+        equipo3,
+        equipo4
+    });
+
+    grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 0, 0));
+    grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 0, 0));
+    grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 0, 0));
+    grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 0, 0));
+    grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 0, 0));
+    grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 0, 0));
+
+    return grupo;
+}
+
+private Fixture CrearFixtureConDoceGruposResueltos()
+{
+    var fixture = new Fixture();
+
+    for (char etiqueta = 'A'; etiqueta <= 'L'; etiqueta++)
+    {
+        fixture.Grupos.Add(CrearGrupoResuelto(etiqueta.ToString()));
+    }
+
+    return fixture;
+}
+
+private Grupo CrearGrupoResuelto(string etiqueta)
+{
+    var equipo1 = CrearEquipo($"{etiqueta}1", Confederacion.UEFA);
+    var equipo2 = CrearEquipo($"{etiqueta}2", Confederacion.CONMEBOL);
+    var equipo3 = CrearEquipo($"{etiqueta}3", Confederacion.AFC);
+    var equipo4 = CrearEquipo($"{etiqueta}4", Confederacion.CAF);
+
+    var grupo = new Grupo(etiqueta, new List<Equipo>
+    {
+        equipo1,
+        equipo2,
+        equipo3,
+        equipo4
+    });
+
+    grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 3, 0));
+    grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 3, 0));
+    grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 3, 0));
+    grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 2, 0));
+    grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 2, 0));
+    grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 1, 0));
+
+    return grupo;
+}
+
+[TestMethod]
+public void ObtenerClasificadosAFaseEliminatoria_DebeTomarPrimerosSegundosYMejoresTerceros()
+{
+    // Arrange
+    var servicioClasificacion = new ServicioClasificacion();
+    var fixture = CrearFixtureConDoceGruposResueltos();
+    var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+    // Act
+    var clasificados = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
+        fixture,
+        configuracionTorneo
+    );
+
+    // Assert
+    Assert.AreEqual(12, clasificados.Primeros.Count);
+    Assert.AreEqual(12, clasificados.Segundos.Count);
+    Assert.AreEqual(8, clasificados.MejoresTerceros.Count);
+    Assert.AreEqual(32, clasificados.Todos.Count);
+
+    Assert.IsTrue(clasificados.Primeros.All(e => e.Nombre.EndsWith("1")));
+    Assert.IsTrue(clasificados.Segundos.All(e => e.Nombre.EndsWith("2")));
+}
+
+[TestMethod]
+public void ObtenerClasificadosAFaseEliminatoria_ConTercerosTotalmenteEmpatadosYDistintasSemillas_DebePermitirMejoresTercerosDistintos()
+{
+    // Arrange
+    var servicioClasificacion = new ServicioClasificacion();
+    var fixture = CrearFixtureConDoceGruposResueltos();
+
+    var configuracionReferencia = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+    // Act
+    var clasificadosReferencia = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
+        fixture,
+        configuracionReferencia
+    );
+
+    var mejoresTercerosReferencia = clasificadosReferencia.MejoresTerceros
+        .Select(e => e.Nombre)
+        .ToList();
+
+    var existeSeleccionDistinta = false;
+
+    for (int semilla = 2; semilla <= 20; semilla++)
+    {
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = semilla };
+
+        var clasificados = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
+            fixture,
+            configuracionTorneo
+        );
+
+        var mejoresTerceros = clasificados.MejoresTerceros
+            .Select(e => e.Nombre)
+            .ToList();
+
+        if (!mejoresTerceros.SequenceEqual(mejoresTercerosReferencia))
+        {
+            existeSeleccionDistinta = true;
+            break;
+        }
+    }
+
+    // Assert
+    Assert.IsTrue(existeSeleccionDistinta);
+}
+
+
+}
+```
+
+ServicioCrucesTests.cs:
+```csharp
+using WorldCupPlanner.Domain;
+using WorldCupPlanner.Services;
+
+namespace WorldCupPlanner.Tests;
+
+[TestClass]
+public class ServicioCrucesTests
+{
+    [TestMethod]
+    public void GenerarPrimeraRondaEliminatoria_Con32Clasificados_DebeGenerar16Partidos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var clasificados = CrearClasificadosCon32Equipos();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCrucesFase = 1
+        };
+
+        // Act
+        var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            clasificados,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(16, partidos.Count);
+        Assert.IsTrue(partidos.All(p => p.Fase == FaseTorneo.PrimeraRondaEliminatoria));
+    }
+
+    private ClasificadosFaseGrupos CrearClasificadosCon32Equipos()
+    {
+        return new ClasificadosFaseGrupos
+        {
+            Primeros = CrearEquipos("Primero", 12),
+            Segundos = CrearEquipos("Segundo", 12),
+            MejoresTerceros = CrearEquipos("Tercero", 8)
+        };
+    }
+
+    private List<Equipo> CrearEquipos(string prefijo, int cantidad)
+    {
+        var equipos = new List<Equipo>();
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            equipos.Add(new Equipo
+            {
+                Nombre = $"{prefijo}{i}",
+                RankingFIFA = 1000 + i,
+                Confederacion = Confederacion.UEFA
+            });
+        }
+
+        return equipos;
+    }
+
+    private List<Estadio> CrearEstadiosValidos(int cantidad)
+    {
+        var estadios = new List<Estadio>();
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            estadios.Add(new Estadio
+            {
+                Nombre = $"Estadio{i}",
+                Ciudad = $"Ciudad{i}",
+                Capacidad = 30000
+            });
+        }
+
+        return estadios;
+    }
+    
+    [TestMethod]
+    public void GenerarPrimeraRondaEliminatoria_DebeCruzarOchoPrimerosConOchoTerceros()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var clasificados = CrearClasificadosCon32Equipos();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCrucesFase = 1
+        };
+
+        // Act
+        var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            clasificados,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var primerosOchoPartidos = partidos.Take(8).ToList();
+
+        for (int i = 0; i < primerosOchoPartidos.Count; i++)
+        {
+            Assert.IsTrue(
+                clasificados.Primeros.Take(8).Contains(primerosOchoPartidos[i].EquipoLocal)
+            );
+
+            Assert.IsTrue(
+                clasificados.MejoresTerceros.Contains(primerosOchoPartidos[i].EquipoVisitante)
+            );
+        }
+    }
+    
+    [TestMethod]
+    public void GenerarPrimeraRondaEliminatoria_DebeCruzarPrimerosRestantesConSegundosDeMenorRendimiento()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var clasificados = CrearClasificadosCon32Equipos();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCrucesFase = 1
+        };
+
+        // Act
+        var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            clasificados,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var partidosPrimerosRestantesContraSegundos = partidos
+            .Skip(8)
+            .Take(4)
+            .ToList();
+
+        var primerosRestantes = clasificados.Primeros
+            .Skip(8)
+            .Take(4)
+            .ToList();
+
+        var segundosDeMenorRendimiento = clasificados.Segundos
+            .Skip(8)
+            .Take(4)
+            .ToList();
+
+        for (int i = 0; i < partidosPrimerosRestantesContraSegundos.Count; i++)
+        {
+            Assert.AreEqual(primerosRestantes[i], partidosPrimerosRestantesContraSegundos[i].EquipoLocal);
+            Assert.AreEqual(segundosDeMenorRendimiento[i], partidosPrimerosRestantesContraSegundos[i].EquipoVisitante);
+        }
     }
 }
 ```

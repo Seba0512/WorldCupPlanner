@@ -149,4 +149,50 @@ public class ServicioCrucesTests
             Assert.AreEqual(segundosDeMenorRendimiento[i], partidosPrimerosRestantesContraSegundos[i].EquipoVisitante);
         }
     }
+    
+    [TestMethod]
+    public void GenerarPrimeraRondaEliminatoria_DebeCruzarSegundosRestantesEntreSi()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var clasificados = CrearClasificadosCon32Equipos();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCrucesFase = 1
+        };
+
+        // Act
+        var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            clasificados,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var partidosSegundosRestantes = partidos
+            .Skip(12)
+            .Take(4)
+            .ToList();
+
+        var segundosRestantes = clasificados.Segundos
+            .Take(8)
+            .ToList();
+
+        for (int i = 0; i < partidosSegundosRestantes.Count; i++)
+        {
+            Assert.IsTrue(segundosRestantes.Contains(partidosSegundosRestantes[i].EquipoLocal));
+            Assert.IsTrue(segundosRestantes.Contains(partidosSegundosRestantes[i].EquipoVisitante));
+            Assert.AreNotEqual(
+                partidosSegundosRestantes[i].EquipoLocal,
+                partidosSegundosRestantes[i].EquipoVisitante
+            );
+        }
+
+        var equiposUsados = partidosSegundosRestantes
+            .SelectMany(p => new[] { p.EquipoLocal, p.EquipoVisitante })
+            .ToList();
+
+        CollectionAssert.AreEquivalent(segundosRestantes, equiposUsados);
+    }
 }
