@@ -107,4 +107,46 @@ public class ServicioCrucesTests
             );
         }
     }
+    
+    [TestMethod]
+    public void GenerarPrimeraRondaEliminatoria_DebeCruzarPrimerosRestantesConSegundosDeMenorRendimiento()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var clasificados = CrearClasificadosCon32Equipos();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCrucesFase = 1
+        };
+
+        // Act
+        var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            clasificados,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var partidosPrimerosRestantesContraSegundos = partidos
+            .Skip(8)
+            .Take(4)
+            .ToList();
+
+        var primerosRestantes = clasificados.Primeros
+            .Skip(8)
+            .Take(4)
+            .ToList();
+
+        var segundosDeMenorRendimiento = clasificados.Segundos
+            .Skip(8)
+            .Take(4)
+            .ToList();
+
+        for (int i = 0; i < partidosPrimerosRestantesContraSegundos.Count; i++)
+        {
+            Assert.AreEqual(primerosRestantes[i], partidosPrimerosRestantesContraSegundos[i].EquipoLocal);
+            Assert.AreEqual(segundosDeMenorRendimiento[i], partidosPrimerosRestantesContraSegundos[i].EquipoVisitante);
+        }
+    }
 }
