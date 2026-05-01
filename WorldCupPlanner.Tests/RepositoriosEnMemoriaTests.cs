@@ -1,5 +1,5 @@
-using WorldCupPlanner.DataAccess.Repositorios;
-using WorldCupPlanner.Domain;
+using WorldCupPlanner.AccesoADatos.Repositorios;
+using WorldCupPlanner.Dominio;
 
 namespace WorldCupPlanner.Tests;
 

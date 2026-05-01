@@ -1,6 +1,6 @@
 ﻿namespace WorldCupPlanner.Tests;
 
-using WorldCupPlanner.Domain;
+using Dominio;
 
 [TestClass]
 public class UsuarioTests

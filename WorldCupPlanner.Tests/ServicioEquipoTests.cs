@@ -1,5 +1,5 @@
-using WorldCupPlanner.Domain;
-using WorldCupPlanner.Services;
+using WorldCupPlanner.Dominio;
+using WorldCupPlanner.Servicios;
 
 [TestClass]
 public class ServicioEquipoTests

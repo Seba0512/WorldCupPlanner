@@ -1,4 +1,4 @@
-using WorldCupPlanner.Domain;
+using WorldCupPlanner.Dominio;
 
 namespace WorldCupPlanner.Tests;
 
