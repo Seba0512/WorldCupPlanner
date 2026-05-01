@@ -19,7 +19,9 @@ public class ServicioClasificacion
             }
         }
 
-        return posiciones.Values.ToList();
+        return posiciones.Values
+            .OrderByDescending(p => p.Puntos)
+            .ToList();
     }
 
     private Dictionary<Equipo, PosicionEquipo> CrearPosicionesIniciales(Grupo grupo)

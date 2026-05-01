@@ -75,4 +75,47 @@ public class ServicioClasificacionTests
     {
         return tabla.Single(p => p.Equipo == equipo).Puntos;
     }
+    
+    [TestMethod]
+    public void CalcularTabla_ConResultadosDeGrupo_OrdenaPorPuntosDescendente()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+
+        var equipo1 = CrearEquipo("Equipo1");
+        var equipo2 = CrearEquipo("Equipo2");
+        var equipo3 = CrearEquipo("Equipo3");
+        var equipo4 = CrearEquipo("Equipo4");
+
+        var grupo = new Grupo("A", new List<Equipo>
+        {
+            equipo1,
+            equipo2,
+            equipo3,
+            equipo4
+        });
+
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 2, 0)); // Equipo1 gana: 3 pts
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 1, 1)); // Equipo2 y Equipo3: 1 pt
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 0, 0)); // Equipo1 y Equipo3: +1 pt
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 3, 1)); // Equipo2 gana: +3 pts
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 1, 0)); // Equipo1 gana: +3 pts
+        grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 2, 1)); // Equipo3 gana: +3 pts
+
+        // Act
+        var tabla = servicioClasificacion.CalcularTabla(grupo);
+
+        // Assert
+        var ordenEsperado = new List<Equipo>
+        {
+            equipo1, // 7 puntos
+            equipo3, // 5 puntos
+            equipo2, // 4 puntos
+            equipo4  // 0 puntos
+        };
+
+        var ordenObtenido = tabla.Select(p => p.Equipo).ToList();
+
+        CollectionAssert.AreEqual(ordenEsperado, ordenObtenido);
+    }
 }
