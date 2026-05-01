@@ -21,6 +21,7 @@ public class ServicioClasificacion
 
         return posiciones.Values
             .OrderByDescending(p => p.Puntos)
+            .ThenByDescending(p => p.DiferenciaGoles)
             .ToList();
     }
 
