@@ -73,4 +73,38 @@ public class ServicioCrucesTests
 
         return estadios;
     }
+    
+    [TestMethod]
+    public void GenerarPrimeraRondaEliminatoria_DebeCruzarOchoPrimerosConOchoTerceros()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var clasificados = CrearClasificadosCon32Equipos();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCrucesFase = 1
+        };
+
+        // Act
+        var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            clasificados,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var primerosOchoPartidos = partidos.Take(8).ToList();
+
+        for (int i = 0; i < primerosOchoPartidos.Count; i++)
+        {
+            Assert.IsTrue(
+                clasificados.Primeros.Take(8).Contains(primerosOchoPartidos[i].EquipoLocal)
+            );
+
+            Assert.IsTrue(
+                clasificados.MejoresTerceros.Contains(primerosOchoPartidos[i].EquipoVisitante)
+            );
+        }
+    }
 }
