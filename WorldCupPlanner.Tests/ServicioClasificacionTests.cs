@@ -138,10 +138,10 @@ public class ServicioClasificacionTests
             equipo4
         });
 
-        grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 3, 0)); // Equipo1 +3, Equipo2 -3
-        grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 1, 0)); // Equipo3 +1, Equipo4 -1
-        grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 0, 1)); // Equipo3 +1, Equipo1 -1
-        grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 2, 0)); // Equipo2 +2, Equipo4 -2
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 0, 3)); // Equipo2 gana por 3
+        grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 2, 0)); // Equipo3 gana por 2
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 1, 0)); // Equipo1 gana por 1
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 0, 1)); // Equipo4 gana por 1
         grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 0, 0)); // Empate
         grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 0, 0)); // Empate
 
@@ -151,10 +151,10 @@ public class ServicioClasificacionTests
         // Assert
         var ordenEsperado = new List<Equipo>
         {
-            equipo3, // 7 puntos, diferencia +2
-            equipo1, // 4 puntos, diferencia +2
-            equipo2, // 4 puntos, diferencia -1
-            equipo4  // 1 punto, diferencia -3
+            equipo2, // 4 puntos, diferencia +2
+            equipo3, // 4 puntos, diferencia +1
+            equipo4, // 4 puntos, diferencia -1
+            equipo1  // 4 puntos, diferencia -2
         };
 
         var ordenObtenido = tabla.Select(p => p.Equipo).ToList();
