@@ -6,10 +6,10 @@ namespace WorldCupPlanner.Dominio.Entidades
     {
         public int Id { get; set; }
         public DateTime Fecha { get; set; }
-        public required Estadio Estadio { get; set; }
-        public required Equipo EquipoLocal { get; set; }
-        public required Equipo EquipoVisitante { get; set; }
-        public required FaseTorneo Fase { get; set; }
+        public Estadio? Estadio { get; set; }
+        public Equipo? EquipoLocal { get; set; }
+        public Equipo? EquipoVisitante { get; set; }
+        public FaseTorneo Fase { get; set; }
         public int? GolesLocal { get; set; }
         public int? GolesVisitante { get; set; }
         public Grupo? Grupo { get; set; }
