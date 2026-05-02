@@ -1,6 +1,11 @@
-﻿namespace WorldCupPlanner.AccesoADatos.Interfaces;
+using WorldCupPlanner.Dominio.Entidades;
 
-public class IRepositorioEquipo
+namespace WorldCupPlanner.AccesoADatos.Interfaces;
+
+public interface IRepositorioEquipo
 {
-    
+    void Agregar(Equipo equipo);
+    void Actualizar(Equipo equipo);
+    void Eliminar(Equipo equipo);
+    List<Equipo> ObtenerTodos();
 }
