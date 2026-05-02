@@ -31,6 +31,6 @@ public class RepositorioEquipoEnMemoria : IRepositorioEquipo
 
     public List<Equipo> ObtenerTodos()
     {
-        return _equipos;
+        return _equipos.ToList();
     }
 }
