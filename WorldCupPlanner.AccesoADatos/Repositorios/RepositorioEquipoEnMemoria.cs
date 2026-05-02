@@ -1,8 +1,9 @@
-using WorldCupPlanner.Dominio;
+using WorldCupPlanner.AccesoADatos.Interfaces;
+using WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
-public class RepositorioEquipoEnMemoria
+public class RepositorioEquipoEnMemoria : IRepositorioEquipo
 {
     private readonly List<Equipo> _equipos = new();
 
