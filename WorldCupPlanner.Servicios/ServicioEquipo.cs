@@ -1,5 +1,5 @@
 using WorldCupPlanner.AccesoADatos.Repositorios;
-using WorldCupPlanner.Dominio;
+using  WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.Servicios
 {

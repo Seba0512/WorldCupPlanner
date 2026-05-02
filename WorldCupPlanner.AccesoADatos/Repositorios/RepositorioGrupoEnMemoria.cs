@@ -1,4 +1,4 @@
-using WorldCupPlanner.Dominio;
+using  WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
