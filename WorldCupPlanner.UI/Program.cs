@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using WorldCupPlanner.UI.Data;
+using WorldCupPlanner.AccesoADatos.Interfaces;
+using WorldCupPlanner.AccesoADatos.Repositorios;
+using WorldCupPlanner.Servicios;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddSingleton<IAuditoria, RepositorioAuditoriaEnMemoria>();
+builder.Services.AddSingleton<ServicioAuditoria>();
 
 var app = builder.Build();
 
