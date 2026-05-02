@@ -30,6 +30,6 @@ public class RepositorioEstadioEnMemoria
 
     public List<Estadio> ObtenerTodos()
     {
-        return _estadios;
+        return _estadios.ToList();
     }
 }

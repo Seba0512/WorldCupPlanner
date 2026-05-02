@@ -1,18 +1,19 @@
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.AccesoADatos.Repositorios;
-using  WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.Servicios
 {
     public class ServicioEquipo
     {
-        private readonly RepositorioEquipoEnMemoria _repositorioEquipo;
+        private readonly IRepositorioEquipo _repositorioEquipo;
 
         public ServicioEquipo()
         {
             _repositorioEquipo = new RepositorioEquipoEnMemoria();
         }
 
-        public ServicioEquipo(RepositorioEquipoEnMemoria repositorioEquipo)
+        public ServicioEquipo(IRepositorioEquipo repositorioEquipo)
         {
             _repositorioEquipo = repositorioEquipo;
         }

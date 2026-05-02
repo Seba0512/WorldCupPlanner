@@ -50,7 +50,7 @@ public class RepositorioEquipoEnMemoria : IRepositorioEquipo
 
     public List<Equipo> ObtenerTodos()
     {
-        return _equipos;
+        return _equipos.ToList();
     }
 }
 ```
@@ -691,9 +691,7 @@ WorldCupPlanner.DominioTest:
 EquipoTests.cs:
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using WorldCupPlanner.Dominio;
-using  WorldCupPlanner.Dominio.Entidades;
-using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.DominioTests;
 
@@ -759,19 +757,19 @@ public class EquipoTests
     }
     
     [TestMethod]
-    public void Equipo_SinConferacion_NoEsValido()
+    public void Equipo_SinConfederacion_NoEsValido()
     {
         // Arrange
         var equipo = new Equipo();
         equipo.Nombre = "Barcelona";
         equipo.RankingFIFA = 500;
-        equipo.Confederacion = Confederacion.UEFA;
+        equipo.Confederacion = null;
 
         // Act
         var resultado = equipo.EsValido();
 
         // Assert
-        Assert.IsTrue(resultado);
+        Assert.IsFalse(resultado);
     }
 }
 ```
@@ -888,8 +886,7 @@ public class EstadioTests
 FixtureTests.cs:
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using WorldCupPlanner.Dominio;
-using  WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 
 namespace WorldCupPlanner.DominioTests;
@@ -1809,21 +1806,22 @@ public class ServicioCruces
 
 ServicioEquipo.cs:
 ```csharp
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.AccesoADatos.Repositorios;
-using  WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.Servicios
 {
     public class ServicioEquipo
     {
-        private readonly RepositorioEquipoEnMemoria _repositorioEquipo;
+        private readonly IRepositorioEquipo _repositorioEquipo;
 
         public ServicioEquipo()
         {
             _repositorioEquipo = new RepositorioEquipoEnMemoria();
         }
 
-        public ServicioEquipo(RepositorioEquipoEnMemoria repositorioEquipo)
+        public ServicioEquipo(IRepositorioEquipo repositorioEquipo)
         {
             _repositorioEquipo = repositorioEquipo;
         }
@@ -2308,7 +2306,7 @@ public class NormalizarTests
         // Assert
         Assert.AreEqual("uruguay", resultado);
     }
-    
+
     [TestMethod]
     public void Normalizar_TextoConTildes_EliminaTildes()
     {
@@ -2321,6 +2319,7 @@ public class NormalizarTests
         // Assert
         Assert.AreEqual("paris", resultado);
     }
+
     [TestMethod]
     public void Normalizar_TextoConCaracteresEspeciales_ReemplazaPorEspacio()
     {
@@ -2332,6 +2331,32 @@ public class NormalizarTests
 
         // Assert
         Assert.AreEqual("estadio central", resultado);
+    }
+
+    [TestMethod]
+    public void Normalizar_TextoConEspaciosMultiples_ColapsaEspacios()
+    {
+        // Arrange
+        var texto = "estadio   central";
+
+        // Act
+        var resultado = Normalizar.NormalizarTexto(texto);
+
+        // Assert
+        Assert.AreEqual("estadio central", resultado);
+    }
+
+    [TestMethod]
+    public void Normalizar_TextoConEspaciosAlRededor_EliminaEspacios()
+    {
+        // Arrange
+        var texto = "  uruguay  ";
+
+        // Act
+        var resultado = Normalizar.NormalizarTexto(texto);
+
+        // Assert
+        Assert.AreEqual("uruguay", resultado);
     }
 }
 ```
@@ -3145,7 +3170,7 @@ public class ServicioCrucesTests
 ServicioEquipoTests.cs:
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using  WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
 
@@ -3282,33 +3307,6 @@ public class ServicioEquipoTests
         // Assert
         Assert.ThrowsException<Exception>(() => _servicio.EditarEquipo(equipo2));
     }
-    [TestMethod]
-    public void Normalizar_TextoConEspaciosMultiples_ColapsaEspacios()
-    {
-        // Arrange
-        var texto = "estadio   central";
-
-        // Act
-        var resultado = Normalizar.NormalizarTexto(texto);
-
-        // Assert
-        Assert.AreEqual("estadio central", resultado);
-    }
-    
-    [TestMethod]
-    public void Normalizar_TextoConEspaciosAlRededor_EliminaEspacios()
-    {
-        // Arrange
-        var texto = "  uruguay  ";
-
-        // Act
-        var resultado = Normalizar.NormalizarTexto(texto);
-
-        // Assert
-        Assert.AreEqual("uruguay", resultado);
-    }
-    
-    
 }
 ```
 

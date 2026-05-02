@@ -30,6 +30,6 @@ public class RepositorioGrupoEnMemoria
 
     public List<Grupo> ObtenerTodos()
     {
-        return _grupos;
+        return _grupos.ToList();
     }
 }

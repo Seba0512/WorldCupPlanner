@@ -18,7 +18,7 @@ public class NormalizarTests
         // Assert
         Assert.AreEqual("uruguay", resultado);
     }
-    
+
     [TestMethod]
     public void Normalizar_TextoConTildes_EliminaTildes()
     {
@@ -31,6 +31,7 @@ public class NormalizarTests
         // Assert
         Assert.AreEqual("paris", resultado);
     }
+
     [TestMethod]
     public void Normalizar_TextoConCaracteresEspeciales_ReemplazaPorEspacio()
     {
@@ -42,5 +43,31 @@ public class NormalizarTests
 
         // Assert
         Assert.AreEqual("estadio central", resultado);
+    }
+
+    [TestMethod]
+    public void Normalizar_TextoConEspaciosMultiples_ColapsaEspacios()
+    {
+        // Arrange
+        var texto = "estadio   central";
+
+        // Act
+        var resultado = Normalizar.NormalizarTexto(texto);
+
+        // Assert
+        Assert.AreEqual("estadio central", resultado);
+    }
+
+    [TestMethod]
+    public void Normalizar_TextoConEspaciosAlRededor_EliminaEspacios()
+    {
+        // Arrange
+        var texto = "  uruguay  ";
+
+        // Act
+        var resultado = Normalizar.NormalizarTexto(texto);
+
+        // Assert
+        Assert.AreEqual("uruguay", resultado);
     }
 }

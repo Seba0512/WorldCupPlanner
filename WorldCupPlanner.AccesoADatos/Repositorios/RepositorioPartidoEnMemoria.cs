@@ -31,6 +31,6 @@ public class RepositorioPartidoEnMemoria
 
     public List<Partido> ObtenerTodos()
     {
-        return _partidos;
+        return _partidos.ToList();
     }
 }

@@ -1,7 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using WorldCupPlanner.Dominio;
-using  WorldCupPlanner.Dominio.Entidades;
-using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.DominioTests;
 
@@ -67,18 +65,18 @@ public class EquipoTests
     }
     
     [TestMethod]
-    public void Equipo_SinConferacion_NoEsValido()
+    public void Equipo_SinConfederacion_NoEsValido()
     {
         // Arrange
         var equipo = new Equipo();
         equipo.Nombre = "Barcelona";
         equipo.RankingFIFA = 500;
-        equipo.Confederacion = Confederacion.UEFA;
+        equipo.Confederacion = null;
 
         // Act
         var resultado = equipo.EsValido();
 
         // Assert
-        Assert.IsTrue(resultado);
+        Assert.IsFalse(resultado);
     }
 }
