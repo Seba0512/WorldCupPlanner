@@ -1,8 +1,9 @@
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using  WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
-public class RepositorioEstadioEnMemoria
+public class RepositorioEstadioEnMemoria : IRepositorio<Estadio>
 {
     private readonly List<Estadio> _estadios = new();
 
@@ -27,9 +28,9 @@ public class RepositorioEstadioEnMemoria
     {
         _estadios.Remove(estadio);
     }
-
-    public List<Estadio> ObtenerTodos()
+    
+    public List<Estadio> Buscar(Func<Estadio, bool> predicado)
     {
-        return _estadios.ToList();
+        return _estadios.Where(predicado).ToList();
     }
 }

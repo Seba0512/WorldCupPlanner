@@ -395,5 +395,111 @@ public void ObtenerClasificadosAFaseEliminatoria_ConTercerosTotalmenteEmpatadosY
     Assert.IsTrue(existeSeleccionDistinta);
 }
 
+    [TestMethod]
+    public void ObtenerClasificadosAFaseEliminatoria_DebeOrdenarPrimerosPorRendimientoGlobal()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+        var fixture = CrearFixtureConPrimerGrupoDeMenorRendimiento();
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+        var primeroGrupoA = fixture.Grupos.Single(g => g.Etiqueta == "A").Equipos[0];
+        var primeroGrupoB = fixture.Grupos.Single(g => g.Etiqueta == "B").Equipos[0];
+
+        // Act
+        var clasificados = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
+            fixture,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.IsTrue(
+            clasificados.Primeros.IndexOf(primeroGrupoB) < clasificados.Primeros.IndexOf(primeroGrupoA)
+        );
+    }
+
+    [TestMethod]
+    public void ObtenerClasificadosAFaseEliminatoria_DebeOrdenarSegundosPorRendimientoGlobal()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+        var fixture = CrearFixtureConPrimerGrupoDeMenorRendimiento();
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+        var segundoGrupoA = fixture.Grupos.Single(g => g.Etiqueta == "A").Equipos[1];
+        var segundoGrupoB = fixture.Grupos.Single(g => g.Etiqueta == "B").Equipos[1];
+
+        // Act
+        var clasificados = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
+            fixture,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.IsTrue(
+            clasificados.Segundos.IndexOf(segundoGrupoB) < clasificados.Segundos.IndexOf(segundoGrupoA)
+        );
+    }
+
+    [TestMethod]
+    public void ObtenerClasificadosAFaseEliminatoria_DebeGuardarGrupoDeOrigenDeCadaClasificado()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+        var fixture = CrearFixtureConDoceGruposResueltos();
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+        var grupoA = fixture.Grupos.Single(g => g.Etiqueta == "A");
+        var primerClasificadoGrupoA = grupoA.Equipos[0];
+        var segundoClasificadoGrupoA = grupoA.Equipos[1];
+
+        // Act
+        var clasificados = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
+            fixture,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreSame(grupoA, clasificados.ObtenerGrupoDeOrigen(primerClasificadoGrupoA));
+        Assert.AreSame(grupoA, clasificados.ObtenerGrupoDeOrigen(segundoClasificadoGrupoA));
+    }
+
+    private Fixture CrearFixtureConPrimerGrupoDeMenorRendimiento()
+    {
+        var fixture = new Fixture();
+        fixture.Grupos.Add(CrearGrupoConPrimerYSegundoDeMenorRendimiento("A"));
+
+        for (char etiqueta = 'B'; etiqueta <= 'L'; etiqueta++)
+        {
+            fixture.Grupos.Add(CrearGrupoResuelto(etiqueta.ToString()));
+        }
+
+        return fixture;
+    }
+
+    private Grupo CrearGrupoConPrimerYSegundoDeMenorRendimiento(string etiqueta)
+    {
+        var equipo1 = CrearEquipo($"{etiqueta}1", Confederacion.UEFA);
+        var equipo2 = CrearEquipo($"{etiqueta}2", Confederacion.CONMEBOL);
+        var equipo3 = CrearEquipo($"{etiqueta}3", Confederacion.AFC);
+        var equipo4 = CrearEquipo($"{etiqueta}4", Confederacion.CAF);
+
+        var grupo = new Grupo(etiqueta, new List<Equipo>
+        {
+            equipo1,
+            equipo2,
+            equipo3,
+            equipo4
+        });
+
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 1, 1));
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 2, 0));
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 2, 0));
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 1, 0));
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 0, 0));
+        grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 1, 0));
+
+        return grupo;
+    }
 
 }
