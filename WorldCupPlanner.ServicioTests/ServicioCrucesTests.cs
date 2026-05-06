@@ -527,4 +527,28 @@ public class ServicioCrucesTests
 
         CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
     }
+
+    [TestMethod]
+    public void GenerarOctavos_DebeAsignarEstadiosPorRotacion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var partidosPrimeraRonda = CrearPartidosPrimeraRondaJugados(16);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var octavos = servicioCruces.GenerarOctavos(
+            partidosPrimeraRonda,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(estadios[0], octavos[0].Estadio);
+        Assert.AreEqual(estadios[1], octavos[1].Estadio);
+        Assert.AreEqual(estadios[2], octavos[2].Estadio);
+        Assert.AreEqual(estadios[3], octavos[3].Estadio);
+        Assert.AreEqual(estadios[0], octavos[4].Estadio);
+    }
 }
