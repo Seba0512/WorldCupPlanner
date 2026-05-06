@@ -484,4 +484,24 @@ public class ServicioCrucesTests
 
         CollectionAssert.AreEquivalent(ganadoresPrimeraRonda, equiposEnOctavos);
     }
+    
+    [TestMethod]
+    public void GenerarOctavos_DebeCrearPartidosConFaseOctavos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var partidosPrimeraRonda = CrearPartidosPrimeraRondaJugados();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var octavos = servicioCruces.GenerarOctavos(
+            partidosPrimeraRonda,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.IsTrue(octavos.All(p => p.Fase == FaseTorneo.Octavos));
+    }
 }
