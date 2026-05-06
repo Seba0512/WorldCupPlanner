@@ -3,7 +3,7 @@ using WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
-public class LogRepositoryMemoria : IAuditoria
+public class RepositorioAuditoriaEnMemoria : IAuditoria
 {
     private readonly List<Auditoria> _logs = new();
     private int _contador = 0;
