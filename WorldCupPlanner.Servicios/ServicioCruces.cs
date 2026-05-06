@@ -284,4 +284,31 @@ public class ServicioCruces
 
         return grupo1 != null && ReferenceEquals(grupo1, grupo2);
     }
+    
+    public List<Partido> GenerarOctavos(
+        List<Partido> partidosPrimeraRonda,
+        List<Estadio> estadios,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        var ganadores = partidosPrimeraRonda
+            .Select(p => p.Ganador())
+            .ToList();
+
+        var partidos = new List<Partido>();
+
+        for (int i = 0; i < ganadores.Count; i += 2)
+        {
+            partidos.Add(new Partido
+            {
+                Id = partidos.Count + 1,
+                EquipoLocal = ganadores[i],
+                EquipoVisitante = ganadores[i + 1],
+                Estadio = estadios[partidos.Count % estadios.Count],
+                Fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas),
+                Fase = FaseTorneo.Octavos
+            });
+        }
+
+        return partidos;
+    }
 }
