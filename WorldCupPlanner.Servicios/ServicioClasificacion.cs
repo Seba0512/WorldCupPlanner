@@ -41,7 +41,8 @@ public class ServicioClasificacion
         {
             posiciones[equipo] = new PosicionEquipo
             {
-                Equipo = equipo
+                Equipo = equipo,
+                Grupo = grupo
             };
         }
 
@@ -144,18 +145,36 @@ public class ServicioClasificacion
             terceros.Add(tabla[2]);
         }
 
-        return new ClasificadosFaseGrupos
+        var primerosOrdenados = OrdenarPosicionesConDesempateDeterministico(
+            primeros,
+            configuracionTorneo.SemillaCrucesFase
+        );
+
+        var segundosOrdenados = OrdenarPosicionesConDesempateDeterministico(
+            segundos,
+            configuracionTorneo.SemillaCrucesFase
+        );
+
+        var mejoresTerceros = OrdenarPosicionesConDesempateDeterministico(
+                terceros,
+                configuracionTorneo.SemillaCrucesFase
+            )
+            .Take(8)
+            .ToList();
+
+        var clasificados = new ClasificadosFaseGrupos
         {
-            Primeros = primeros.Select(p => p.Equipo).ToList(),
-            Segundos = segundos.Select(p => p.Equipo).ToList(),
-            MejoresTerceros = OrdenarPosicionesConDesempateDeterministico(
-                    terceros,
-                    configuracionTorneo.SemillaCrucesFase
-                )
-                .Take(8)
-                .Select(p => p.Equipo)
-                .ToList()
+            Primeros = primerosOrdenados.Select(p => p.Equipo).ToList(),
+            Segundos = segundosOrdenados.Select(p => p.Equipo).ToList(),
+            MejoresTerceros = mejoresTerceros.Select(p => p.Equipo).ToList()
         };
+
+        foreach (var posicion in primerosOrdenados.Concat(segundosOrdenados).Concat(mejoresTerceros))
+        {
+            clasificados.GruposDeOrigen[posicion.Equipo] = posicion.Grupo;
+        }
+
+        return clasificados;
     }
     
     private List<PosicionEquipo> OrdenarPosicionesConDesempateDeterministico(

@@ -28,6 +28,7 @@ public class ServicioCruces
             partidos,
             primerosParaTerceros,
             terceros,
+            clasificados,
             estadios,
             configuracionTorneo
         );
@@ -44,6 +45,7 @@ public class ServicioCruces
             partidos,
             primerosRestantes,
             segundosDeMenorRendimiento,
+            clasificados,
             estadios,
             configuracionTorneo
         );
@@ -55,6 +57,7 @@ public class ServicioCruces
         AgregarCrucesSegundosRestantesMinimos(
             partidos,
             segundosRestantes,
+            clasificados,
             estadios,
             configuracionTorneo
         );
@@ -66,9 +69,12 @@ public class ServicioCruces
         List<Partido> partidos,
         List<Equipo> primeros,
         List<Equipo> terceros,
+        ClasificadosFaseGrupos clasificados,
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
+        ReordenarVisitantesParaEvitarMismoGrupo(primeros, terceros, clasificados);
+
         for (int i = 0; i < primeros.Count; i++)
         {
             partidos.Add(CrearPartidoDePrimeraRonda(
@@ -84,9 +90,15 @@ public class ServicioCruces
         List<Partido> partidos,
         List<Equipo> primerosRestantes,
         List<Equipo> segundosDeMenorRendimiento,
+        ClasificadosFaseGrupos clasificados,
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
+        ReordenarVisitantesParaEvitarMismoGrupo(
+            primerosRestantes,
+            segundosDeMenorRendimiento,
+            clasificados);
+
         for (int i = 0; i < primerosRestantes.Count; i++)
         {
             partidos.Add(CrearPartidoDePrimeraRonda(
@@ -101,9 +113,12 @@ public class ServicioCruces
     private void AgregarCrucesSegundosRestantesMinimos(
         List<Partido> partidos,
         List<Equipo> segundosRestantes,
+        ClasificadosFaseGrupos clasificados,
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
+        ReordenarEquiposParaEvitarCrucesInternosDelMismoGrupo(segundosRestantes, clasificados);
+
         for (int i = 0; i < segundosRestantes.Count; i += 2)
         {
             partidos.Add(CrearPartidoDePrimeraRonda(
@@ -142,5 +157,131 @@ public class ServicioCruces
         }
 
         return equipos;
+    }
+
+    private void ReordenarVisitantesParaEvitarMismoGrupo(
+        List<Equipo> locales,
+        List<Equipo> visitantes,
+        ClasificadosFaseGrupos clasificados)
+    {
+        for (int i = 0; i < locales.Count; i++)
+        {
+            if (!PertenecenAlMismoGrupo(locales[i], visitantes[i], clasificados))
+            {
+                continue;
+            }
+
+            var indiceAlternativo = BuscarVisitanteAlternativo(locales, visitantes, clasificados, i);
+
+            if (indiceAlternativo.HasValue)
+            {
+                (visitantes[i], visitantes[indiceAlternativo.Value]) =
+                    (visitantes[indiceAlternativo.Value], visitantes[i]);
+            }
+        }
+    }
+
+    private int? BuscarVisitanteAlternativo(
+        List<Equipo> locales,
+        List<Equipo> visitantes,
+        ClasificadosFaseGrupos clasificados,
+        int indiceActual)
+    {
+        for (int i = 0; i < visitantes.Count; i++)
+        {
+            if (i == indiceActual)
+            {
+                continue;
+            }
+
+            var evitaCruceActual = !PertenecenAlMismoGrupo(
+                locales[indiceActual],
+                visitantes[i],
+                clasificados);
+
+            var noRompeCruceFuturo = !PertenecenAlMismoGrupo(
+                locales[i],
+                visitantes[indiceActual],
+                clasificados);
+
+            if (evitaCruceActual && noRompeCruceFuturo)
+            {
+                return i;
+            }
+        }
+
+        return null;
+    }
+
+    private void ReordenarEquiposParaEvitarCrucesInternosDelMismoGrupo(
+        List<Equipo> equipos,
+        ClasificadosFaseGrupos clasificados)
+    {
+        for (int i = 0; i < equipos.Count; i += 2)
+        {
+            if (!PertenecenAlMismoGrupo(equipos[i], equipos[i + 1], clasificados))
+            {
+                continue;
+            }
+
+            var indiceAlternativo = BuscarRivalAlternativo(equipos, clasificados, i);
+
+            if (indiceAlternativo.HasValue)
+            {
+                (equipos[i + 1], equipos[indiceAlternativo.Value]) =
+                    (equipos[indiceAlternativo.Value], equipos[i + 1]);
+            }
+        }
+    }
+
+    private int? BuscarRivalAlternativo(
+        List<Equipo> equipos,
+        ClasificadosFaseGrupos clasificados,
+        int indiceLocal)
+    {
+        var indiceVisitante = indiceLocal + 1;
+
+        for (int i = 0; i < equipos.Count; i++)
+        {
+            if (i == indiceLocal || i == indiceVisitante)
+            {
+                continue;
+            }
+
+            var indiceCompanero = ObtenerIndiceCompaneroDeCruce(i);
+
+            var evitaCruceActual = !PertenecenAlMismoGrupo(
+                equipos[indiceLocal],
+                equipos[i],
+                clasificados);
+
+            var noRompeCruceAlternativo = !PertenecenAlMismoGrupo(
+                equipos[indiceCompanero],
+                equipos[indiceVisitante],
+                clasificados);
+
+            if (evitaCruceActual && noRompeCruceAlternativo)
+            {
+                return i;
+            }
+        }
+
+        return null;
+    }
+
+    private int ObtenerIndiceCompaneroDeCruce(int indice)
+    {
+        return indice % 2 == 0 ? indice + 1 : indice - 1;
+    }
+
+    private bool PertenecenAlMismoGrupo(
+        Equipo equipo1,
+        Equipo equipo2,
+        ClasificadosFaseGrupos clasificados)
+    {
+        var grupo1 = clasificados.ObtenerGrupoDeOrigen(equipo1);
+        var grupo2 = clasificados.ObtenerGrupoDeOrigen(equipo2);
+
+        return grupo1 != null && ReferenceEquals(grupo1, grupo2);
     }
 }

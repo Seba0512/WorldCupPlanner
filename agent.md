@@ -734,6 +734,12 @@ Actualmente existen algunas limpiezas menores pendientes:
 
 Estas limpiezas deben hacerse como refactors pequeños y controlados, sin cambiar comportamiento.
 
+## Seguimiento temporal de faltantes
+
+El archivo `FaltantesObligatorio.md` es una lista operativa temporal para coordinar trabajo pendiente. No forma parte de la entrega final.
+
+Cuando todos los puntos de `FaltantesObligatorio.md` estén completados, eliminar ese archivo del repositorio antes de entregar o commitear la versión final.
+
 ## Nota personal para el Agent
 
 Este archivo es tu brújula. Consúltalo en cada cambio de código. Cualquier duda sobre estructura, nombres, comportamiento esperado o restricciones, refúgiate aquí. Seba o el usuario contará con que conozcas estas reglas y las apliques consistentemente.

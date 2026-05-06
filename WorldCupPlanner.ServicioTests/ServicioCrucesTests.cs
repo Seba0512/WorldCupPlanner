@@ -280,10 +280,76 @@ public class ServicioCrucesTests
         Assert.IsTrue(existeCruceDistinto);
     }
 
+    [TestMethod]
+    public void GenerarPrimeraRondaEliminatoria_DebeEvitarCrucesDelMismoGrupoCuandoSeaPosible()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var clasificados = CrearClasificadosConGruposDeOrigen();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+        // Act
+        var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            clasificados,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        foreach (var partido in partidos)
+        {
+            var grupoLocal = clasificados.ObtenerGrupoDeOrigen(partido.EquipoLocal!);
+            var grupoVisitante = clasificados.ObtenerGrupoDeOrigen(partido.EquipoVisitante!);
+
+            Assert.AreNotSame(grupoLocal, grupoVisitante);
+        }
+    }
+
     private List<string> ObtenerCruces(List<Partido> partidos)
     {
         return partidos
             .Select(p => $"{p.EquipoLocal.Nombre}-{p.EquipoVisitante.Nombre}")
             .ToList();
+    }
+
+    private ClasificadosFaseGrupos CrearClasificadosConGruposDeOrigen()
+    {
+        var clasificados = new ClasificadosFaseGrupos();
+        var grupos = CrearGruposDeOrigen();
+
+        clasificados.Primeros = CrearEquiposConOrigen("Primero", 12, grupos, clasificados);
+        clasificados.Segundos = CrearEquiposConOrigen("Segundo", 12, grupos, clasificados);
+        clasificados.MejoresTerceros = CrearEquiposConOrigen("Tercero", 8, grupos, clasificados);
+
+        return clasificados;
+    }
+
+    private List<Grupo> CrearGruposDeOrigen()
+    {
+        var grupos = new List<Grupo>();
+
+        for (char etiqueta = 'A'; etiqueta <= 'L'; etiqueta++)
+        {
+            grupos.Add(new Grupo(etiqueta.ToString()));
+        }
+
+        return grupos;
+    }
+
+    private List<Equipo> CrearEquiposConOrigen(
+        string prefijo,
+        int cantidad,
+        List<Grupo> grupos,
+        ClasificadosFaseGrupos clasificados)
+    {
+        var equipos = CrearEquipos(prefijo, cantidad);
+
+        for (int i = 0; i < equipos.Count; i++)
+        {
+            clasificados.GruposDeOrigen[equipos[i]] = grupos[i];
+        }
+
+        return equipos;
     }
 }
