@@ -415,4 +415,73 @@ public class ServicioCrucesTests
         Assert.AreEqual(8, octavos.Count);
         Assert.IsTrue(octavos.All(p => p.Fase == FaseTorneo.Octavos));
     }
+    
+    private List<Partido> CrearPartidosPrimeraRondaJugados()
+    {
+        var partidos = new List<Partido>();
+
+        for (int i = 1; i <= 16; i++)
+        {
+            var equipoLocal = new Equipo
+            {
+                Nombre = $"Ganador{i}",
+                RankingFIFA = 1000 + i,
+                Confederacion = Confederacion.UEFA
+            };
+
+            var equipoVisitante = new Equipo
+            {
+                Nombre = $"Perdedor{i}",
+                RankingFIFA = 800 + i,
+                Confederacion = Confederacion.CONMEBOL
+            };
+
+            partidos.Add(new Partido
+            {
+                Id = i,
+                EquipoLocal = equipoLocal,
+                EquipoVisitante = equipoVisitante,
+                GolesLocal = 2,
+                GolesVisitante = 0,
+                Estadio = new Estadio
+                {
+                    Nombre = $"Estadio{i}",
+                    Ciudad = $"Ciudad{i}",
+                    Capacidad = 30000
+                },
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.PrimeraRondaEliminatoria
+            });
+        }
+
+        return partidos;
+    }
+    
+    [TestMethod]
+    public void GenerarOctavos_DebeUsarGanadoresDePrimeraRonda()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var partidosPrimeraRonda = CrearPartidosPrimeraRondaJugados();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var octavos = servicioCruces.GenerarOctavos(
+            partidosPrimeraRonda,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var ganadoresPrimeraRonda = partidosPrimeraRonda
+            .Select(p => p.Ganador())
+            .ToList();
+
+        var equiposEnOctavos = octavos
+            .SelectMany(p => new[] { p.EquipoLocal, p.EquipoVisitante })
+            .ToList();
+
+        CollectionAssert.AreEquivalent(ganadoresPrimeraRonda, equiposEnOctavos);
+    }
 }
