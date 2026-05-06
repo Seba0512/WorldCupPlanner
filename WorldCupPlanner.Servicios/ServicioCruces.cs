@@ -290,6 +290,11 @@ public class ServicioCruces
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
+        if (partidosPrimeraRonda.Any(p => !p.EstaJugado()))
+        {
+            throw new InvalidOperationException("No se pueden generar octavos si hay partidos de primera ronda sin jugar.");
+        }
+
         var ganadores = partidosPrimeraRonda
             .Select(p => p.Ganador())
             .ToList();

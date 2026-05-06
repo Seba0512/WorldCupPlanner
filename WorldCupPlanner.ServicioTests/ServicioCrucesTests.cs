@@ -551,4 +551,26 @@ public class ServicioCrucesTests
         Assert.AreEqual(estadios[3], octavos[3].Estadio);
         Assert.AreEqual(estadios[0], octavos[4].Estadio);
     }
+    
+    [TestMethod]
+    public void GenerarOctavos_ConPartidoPrimeraRondaNoJugado_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var partidosPrimeraRonda = CrearPartidosPrimeraRondaJugados(16);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        partidosPrimeraRonda[0].GolesLocal = null;
+        partidosPrimeraRonda[0].GolesVisitante = null;
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            servicioCruces.GenerarOctavos(
+                partidosPrimeraRonda,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
 }
