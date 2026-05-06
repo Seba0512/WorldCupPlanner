@@ -5,9 +5,9 @@ namespace WorldCupPlanner.Servicios;
 
 public class ServicioAuditoria
 {
-    private readonly IAuditoria _repo;
+    private readonly IRepositorioConId<Auditoria> _repo;
 
-    public ServicioAuditoria(IAuditoria repo)
+    public ServicioAuditoria(IRepositorioConId<Auditoria> repo)
     {
         _repo = repo;
     }

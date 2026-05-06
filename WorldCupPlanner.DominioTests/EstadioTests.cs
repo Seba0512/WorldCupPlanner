@@ -1,4 +1,3 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using  WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.DominioTests;

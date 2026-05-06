@@ -1,7 +1,5 @@
-﻿using WorldCupPlanner.AccesoADatos.Interfaces;
-using WorldCupPlanner.Dominio.Entidades;
-
-namespace WorldCupPlanner.AccesoADatos.Repositorios;
+﻿
+namespace WorldCupPlanner.AccesoADatos.Interfaces;
 
 public interface IRepositorioConId<T> : IRepositorio<T>
 {

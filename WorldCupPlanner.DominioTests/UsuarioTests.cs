@@ -3,11 +3,9 @@ using WorldCupPlanner.Dominio.Enumeraciones;
 
 namespace WorldCupPlanner.DominioTests;
 
-
 [TestClass]
 public class UsuarioTests
 {
-    
     [TestMethod]
     public void CrearUsuario_ConDatosValidos_DebeCrearExitosamente()
     {

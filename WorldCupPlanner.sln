@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.UI", "World
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.AccesoADatos", "WorldCupPlanner.AccesoADatos\WorldCupPlanner.AccesoADatos.csproj", "{4CC3514E-4318-44D5-9EB8-0E6CC3A657AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.DominioTest", "WorldCupPlanner.DominioTest\WorldCupPlanner.DominioTest.csproj", "{05E029D4-D400-4105-95A1-5FB07702683B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.DominioTests", "WorldCupPlanner.DominioTests\WorldCupPlanner.DominioTests.csproj", "{05E029D4-D400-4105-95A1-5FB07702683B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.AccesoADatosTest", "WorldCupPlanner.AccesoADatosTest\WorldCupPlanner.AccesoADatosTest.csproj", "{F8EB7123-449A-4623-B65E-8A8632C459A1}"
 EndProject

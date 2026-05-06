@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata;
-
+﻿
 namespace WorldCupPlanner.AccesoADatos.Interfaces;
 
 public interface IRepositorio<T>

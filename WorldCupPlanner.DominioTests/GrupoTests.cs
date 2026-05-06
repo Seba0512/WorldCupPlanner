@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using  WorldCupPlanner.Dominio.Entidades;
+﻿using  WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 
 namespace WorldCupPlanner.DominioTests;
@@ -7,7 +6,6 @@ namespace WorldCupPlanner.DominioTests;
 [TestClass]
 public class GrupoTests
 {
-
     [TestMethod]
     public void Grupo_ConEtiquetaVacia_DebeLanzarExcepcion()
     {

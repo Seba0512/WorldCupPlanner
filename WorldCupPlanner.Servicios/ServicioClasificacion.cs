@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using  WorldCupPlanner.Dominio.Entidades;
+﻿using  WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -49,10 +46,15 @@ public class ServicioClasificacion
         return posiciones;
     }
 
+    private static bool PartidoTieneEquipos(Partido partido) =>
+        partido.EquipoLocal is not null && partido.EquipoVisitante is not null;
+
     private void ActualizarPosicionesConPartido(Dictionary<Equipo, PosicionEquipo> posiciones, Partido partido)
     {
-        var posicionLocal = posiciones[partido.EquipoLocal];
-        var posicionVisitante = posiciones[partido.EquipoVisitante];
+        if (!PartidoTieneEquipos(partido)) return;
+
+        var posicionLocal = posiciones[partido.EquipoLocal!];
+        var posicionVisitante = posiciones[partido.EquipoVisitante!];
 
         int golesLocal = partido.GolesLocal!.Value;
         int golesVisitante = partido.GolesVisitante!.Value;
