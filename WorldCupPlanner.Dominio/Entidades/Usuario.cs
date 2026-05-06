@@ -33,8 +33,6 @@ public class Usuario
         _roles = new HashSet<RolUsuario>();
     }
 
-    #region Validaciones
-
     private void ValidarNombre(string nombre)
     {
         if (string.IsNullOrWhiteSpace(nombre))
@@ -58,7 +56,6 @@ public class Usuario
             throw new ArgumentException("El email no puede estar vacío.", nameof(email));
         }
 
-        // Validar formato de email básico
         var patronEmail = @"^[^\s@]+@[^\s@]+\.[^\s@]+$";
         if (!Regex.IsMatch(email, patronEmail))
         {
@@ -73,11 +70,7 @@ public class Usuario
             throw new ArgumentException("La fecha de nacimiento no puede ser futura.", nameof(fechaNacimiento));
         }
     }
-
-    #endregion
-
-    #region Gestión de Contrasenia
-
+    
     public void EstablecerContrasenia(string contrasenia)
     {
         ValidarContrasenia(contrasenia);
@@ -137,10 +130,6 @@ public class Usuario
         return _contraseniaCifrada == contraseniaCifradaIngresada;
     }
 
-    #endregion
-
-    #region Gestión de Roles
-
     public void AgregarRol(RolUsuario rolUsuario)
     {
         _roles.Add(rolUsuario);
@@ -160,6 +149,29 @@ public class Usuario
     {
         return _roles.AsEnumerable();
     }
+    
+    public void ActualizarNombre(string nuevoNombre)
+    {
+        ValidarNombre(nuevoNombre);
+        Nombre = nuevoNombre;
+    }
 
-    #endregion
+    public void ActualizarApellido(string nuevoApellido)
+    {
+        ValidarApellido(nuevoApellido);
+        Apellido = nuevoApellido;
+    }
+    
+    public void ActualizarEmail(string nuevoEmail)
+    {
+        ValidarEmail(nuevoEmail);
+        Email = nuevoEmail;
+    }
+    
+    public void ActualizarFechaNacimiento(DateTime nuevaFecha)
+    {
+        ValidarFechaNacimiento(nuevaFecha);
+        FechaNacimiento = nuevaFecha;
+    }
+
 }

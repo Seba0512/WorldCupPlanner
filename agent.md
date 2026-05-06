@@ -61,27 +61,30 @@ Los commits de Generación de Fixture deben indicar claramente si corresponden a
 
 ## Arquitectura actual esperada
 
-El proyecto está organizado al menos en estos namespaces/proyectos:
+La solución actual está organizada en estos proyectos:
 
-* `WorldCupPlanner.Domain`: entidades, enums y lógica básica de dominio.
-* `WorldCupPlanner.Services`: servicios de aplicación y lógica de negocio.
-* `WorldCupPlanner.DataAccess`: repositorios en memoria para esta primera entrega.
-* `WorldCupPlanner.Tests`: tests unitarios con MSTest.
-* `WorldCupPlanner.WebApp`: interfaz Blazor Server.
+* `WorldCupPlanner.Dominio`: entidades, enumeraciones y lógica básica de dominio.
+* `WorldCupPlanner.Servicios`: servicios de aplicación y lógica de negocio.
+* `WorldCupPlanner.AccesoADatos`: repositorios en memoria para esta primera entrega.
+* `WorldCupPlanner.DominioTest`: tests unitarios de dominio con MSTest.
+* `WorldCupPlanner.ServicioTests`: tests unitarios de servicios y repositorios con MSTest.
+* `WorldCupPlanner.UI`: interfaz Blazor Server.
 
-La lógica de negocio debe ir en `Domain` y `Services`.
+La lógica de negocio debe ir en `WorldCupPlanner.Dominio` y `WorldCupPlanner.Servicios`.
 
-La persistencia en esta primera entrega debe ser en memoria, mediante repositorios simples en `WorldCupPlanner.DataAccess`.
+La persistencia en esta primera entrega debe ser en memoria, mediante repositorios simples en `WorldCupPlanner.AccesoADatos`.
 
-Los tests unitarios deben ir en `Tests`.
+Los tests unitarios deben ir en `WorldCupPlanner.DominioTest` o `WorldCupPlanner.ServicioTests`, según la capa que cubran.
 
 No poner lógica de negocio en la UI.
 
-## Persistencia en memoria / DataAccess
+Pueden existir carpetas viejas del proceso de reestructuración, como `WorldCupPlanner.Domain`, `WorldCupPlanner.Services`, `WorldCupPlanner.DataAccess`, `WorldCupPlanner.Tests` o `WorldCupPlanner.WebApp`. No crear archivos nuevos allí si esos proyectos no están cargados en `WorldCupPlanner.sln`. Tomar como fuente de verdad los proyectos referenciados por la solución actual.
+
+## Persistencia en memoria / AccesoADatos
 
 Para esta primera entrega no se debe usar base de datos.
 
-Actualmente existe un proyecto `WorldCupPlanner.DataAccess` con repositorios en memoria:
+Actualmente existe un proyecto `WorldCupPlanner.AccesoADatos` con repositorios en memoria:
 
 * `RepositorioEquipoEnMemoria`
 * `RepositorioEstadioEnMemoria`
@@ -99,12 +102,12 @@ Los servicios deben usar estos repositorios cuando corresponda, preferentemente 
 
 Ejemplos actuales:
 
-* `ServicioEquipo` usa `RepositorioEquipoEnMemoria`.
+* `ServicioEquipo` depende de `IRepositorioEquipo` y por defecto instancia `RepositorioEquipoEnMemoria`.
 * `ServicioEstadio` usa `RepositorioEstadioEnMemoria`.
 
 No volver a implementar listas internas en servicios si ya existe un repositorio en memoria para esa entidad.
 
-Los repositorios no deben tener reglas de negocio complejas. Las validaciones de negocio deben permanecer en `Domain` o `Services`.
+Los repositorios no deben tener reglas de negocio complejas. Las validaciones de negocio deben permanecer en `WorldCupPlanner.Dominio` o `WorldCupPlanner.Servicios`.
 
 ## Clases relevantes del dominio
 
@@ -475,9 +478,9 @@ La aplicación debe incluir, como mínimo:
 8. **Visualización de log**: acceso a la auditoría del sistema, solo para Administrador.
 9. **Importar equipos**: carga de CSV con validación y reporte de errores.
 
-## Estado actual de WebApp
+## Estado actual de UI
 
-El proyecto `WorldCupPlanner.WebApp` existe, pero actualmente está prácticamente como plantilla Blazor Server.
+El proyecto activo de interfaz es `WorldCupPlanner.UI`, pero actualmente está prácticamente como plantilla Blazor Server.
 
 Contiene:
 
@@ -486,7 +489,7 @@ Contiene:
 * `Error`
 * `Program.cs` con registro de Razor Pages, Server Side Blazor y `WeatherForecastService`.
 
-Todavía no está integrada la lógica real del dominio, servicios ni repositorios.
+Todavía no está integrada la lógica real de `WorldCupPlanner.Dominio`, `WorldCupPlanner.Servicios` ni `WorldCupPlanner.AccesoADatos`.
 
 Cuando se trabaje en Blazor:
 
@@ -504,7 +507,7 @@ Debe incluir:
 
 * descripción general del sistema;
 * funcionalidades no implementadas o errores conocidos, si los hay;
-* **diagramas de paquetes**: mostrando `WorldCupPlanner.Domain`, `WorldCupPlanner.Services`, `WorldCupPlanner.DataAccess`, `WorldCupPlanner.Tests`, `WorldCupPlanner.WebApp` y sus dependencias;
+* **diagramas de paquetes**: mostrando `WorldCupPlanner.Dominio`, `WorldCupPlanner.Servicios`, `WorldCupPlanner.AccesoADatos`, `WorldCupPlanner.DominioTest`, `WorldCupPlanner.ServicioTests`, `WorldCupPlanner.UI` y sus dependencias;
 * **diagramas de clases del dominio**: Equipo, Confederación, Estadio, Grupo, Partido, Fixture, ConfiguracionTorneo;
 * **diagramas de clases de servicios**: ServicioEquipo, ServicioEstadio, ServicioFixture, ServicioAuditoria, etc.;
 * **diagramas o descripción de repositorios en memoria**: RepositorioEquipoEnMemoria, RepositorioEstadioEnMemoria, RepositorioGrupoEnMemoria, RepositorioPartidoEnMemoria;
@@ -724,11 +727,10 @@ Copilot debe tener en cuenta que la generación de fixture deberá integrarse m�
 
 Actualmente existen algunas limpiezas menores pendientes:
 
-* `Class1.cs` en `WorldCupPlanner.Domain` está vacío y debería eliminarse si no se usa.
-* El test `Equipo_SinConferacion_NoEsValido` está mal nombrado, porque actualmente asigna `Confederacion.UEFA` y espera `true`.
-* Algunos tests de `Normalizar` relacionados con espacios siguen dentro de `ServicioEquipoTests`; deberían moverse a `NormalizarTests`.
-* `NormalizarTest` puede tener un problema de encoding en el texto `"ParÃ­s"`; debería revisarse para que sea `"París"`.
-* `WorldCupPlanner.WebApp` todavía contiene código de plantilla (`WeatherForecast`) y no está integrado con los servicios reales.
+* `WorldCupPlanner.UI` todavía contiene código de plantilla Blazor (`WeatherForecast`, `WeatherForecastService`, `Counter`, `FetchData`, `SurveyPrompt`) y no está integrado con los servicios reales.
+* `Auditoria` existe en `WorldCupPlanner.Dominio.Entidades`, pero todavía está vacía. Mantenerla solo si se va a implementar auditoría mediante TDD próximamente.
+* Existen carpetas viejas de la estructura anterior que no forman parte de `WorldCupPlanner.sln`; evitar modificarlas o usarlas como destino de archivos nuevos.
+* Mantener los tests de normalización en `WorldCupPlanner.ServicioTests/NormalizarTest.cs` y no volver a mezclarlos dentro de `ServicioEquipoTests`.
 
 Estas limpiezas deben hacerse como refactors pequeños y controlados, sin cambiar comportamiento.
 

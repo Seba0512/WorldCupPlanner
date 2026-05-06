@@ -7,7 +7,6 @@ namespace WorldCupPlanner.ServicioTests;
 [TestClass]
 public class UsuarioTests
 {
-    #region Información del Usuario - Tests Básicos
     
     [TestMethod]
     public void CrearUsuario_ConDatosValidos_DebeCrearExitosamente()
@@ -101,9 +100,7 @@ public class UsuarioTests
         );
     }
 
-    #endregion
 
-    #region Contrasenia - Tests de Validación
 
     [TestMethod]
     public void EstablecerContrasenia_ConContrasesiaValida_DebeEstablecerseExitosamente()
@@ -280,9 +277,7 @@ public class UsuarioTests
         }
     }
 
-    #endregion
 
-    #region Roles - Tests de Gestión de Roles
 
     [TestMethod]
     public void AgregarRol_ConRolAdministrador_DebeAgregarse()
@@ -399,9 +394,7 @@ public class UsuarioTests
         Assert.IsFalse(usuario.TieneRol(RolUsuario.Editor));
     }
 
-    #endregion
 
-    #region Métodos Helper
 
     private Usuario CrearUsuarioValido()
     {
@@ -413,5 +406,4 @@ public class UsuarioTests
         );
     }
 
-    #endregion
 }
