@@ -1,6 +1,11 @@
-﻿WorldCupPlanner.AccesoADatos:
+﻿# Codigo completo por proyecto
 
-Interfaces\IRepositorioEquipo.cs:
+Incluye archivos C# de los proyectos activos de WorldCupPlanner.sln, excluyendo bin/obj y carpetas viejas de la reestructuracion.
+
+## WorldCupPlanner.AccesoADatos
+
+### Interfaces\IRepositorioEquipo.cs
+
 ```csharp
 using WorldCupPlanner.Dominio.Entidades;
 
@@ -15,7 +20,8 @@ public interface IRepositorioEquipo
 }
 ```
 
-Repositorios\RepositorioEquipoEnMemoria.cs:
+### Repositorios\RepositorioEquipoEnMemoria.cs
+
 ```csharp
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
@@ -55,7 +61,8 @@ public class RepositorioEquipoEnMemoria : IRepositorioEquipo
 }
 ```
 
-Repositorios\RepositorioEstadioEnMemoria.cs:
+### Repositorios\RepositorioEstadioEnMemoria.cs
+
 ```csharp
 using  WorldCupPlanner.Dominio.Entidades;
 
@@ -89,12 +96,13 @@ public class RepositorioEstadioEnMemoria
 
     public List<Estadio> ObtenerTodos()
     {
-        return _estadios;
+        return _estadios.ToList();
     }
 }
 ```
 
-Repositorios\RepositorioGrupoEnMemoria.cs:
+### Repositorios\RepositorioGrupoEnMemoria.cs
+
 ```csharp
 using  WorldCupPlanner.Dominio.Entidades;
 
@@ -128,12 +136,13 @@ public class RepositorioGrupoEnMemoria
 
     public List<Grupo> ObtenerTodos()
     {
-        return _grupos;
+        return _grupos.ToList();
     }
 }
 ```
 
-Repositorios\RepositorioPartidoEnMemoria.cs:
+### Repositorios\RepositorioPartidoEnMemoria.cs
+
 ```csharp
 using  WorldCupPlanner.Dominio.Entidades;
 
@@ -168,16 +177,63 @@ public class RepositorioPartidoEnMemoria
 
     public List<Partido> ObtenerTodos()
     {
-        return _partidos;
+        return _partidos.ToList();
     }
 }
 ```
 
+### Repositorios\RepositorioUsuarioEnMemoria.cs
+
+```csharp
+using WorldCupPlanner.Dominio.Entidades;
+
+namespace WorldCupPlanner.AccesoADatos.Repositorios;
+
+public class RepositorioUsuarioEnMemoria
+{
+    private readonly List<Usuario> _usuarios = new();
+
+    public void Agregar(Usuario usuario)
+    {
+        _usuarios.Add(usuario);
+    }
+
+    public void Actualizar(Usuario usuario)
+    {
+        var indice = _usuarios.FindIndex(u => ReferenceEquals(u, usuario));
+
+        if (indice == -1)
+        {
+            throw new InvalidOperationException("El usuario no existe.");
+        }
+
+        _usuarios[indice] = usuario;
+    }
+
+    public void Eliminar(Usuario usuario)
+    {
+        _usuarios.Remove(usuario);
+    }
+
+    public List<Usuario> ObtenerTodos()
+    {
+        return _usuarios.ToList();
+    }
+
+    public Usuario? ObtenerPorEmail(string email)
+    {
+        return _usuarios.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+    }
+}
+
+```
+
 End of WorldCupPlanner.AccesoADatos
 
-WorldCupPlanner.Dominio:
+## WorldCupPlanner.Dominio
 
-Entidades\Auditoria.cs:
+### Entidades\Auditoria.cs
+
 ```csharp
 namespace WorldCupPlanner.Dominio.Entidades;
 
@@ -186,7 +242,8 @@ public class Auditoria
 }
 ```
 
-Entidades\ClasificadosFaseGrupos.cs:
+### Entidades\ClasificadosFaseGrupos.cs
+
 ```csharp
 using System.Linq;
 
@@ -211,7 +268,8 @@ public class ClasificadosFaseGrupos
 }
 ```
 
-Entidades\ConfiguracionTorneo.cs:
+### Entidades\ConfiguracionTorneo.cs
+
 ```csharp
 namespace WorldCupPlanner.Dominio.Entidades;
 
@@ -246,7 +304,8 @@ public class ConfiguracionTorneo
 
 ```
 
-Entidades\Equipo.cs:
+### Entidades\Equipo.cs
+
 ```csharp
 using WorldCupPlanner.Dominio.Enumeraciones;
 
@@ -274,7 +333,8 @@ namespace WorldCupPlanner.Dominio.Entidades
 
 ```
 
-Entidades\Estadio.cs:
+### Entidades\Estadio.cs
+
 ```csharp
 namespace WorldCupPlanner.Dominio.Entidades
 {
@@ -294,7 +354,8 @@ public class Estadio
 }
 ```
 
-Entidades\Fixture.cs:
+### Entidades\Fixture.cs
+
 ```csharp
 using System.Linq;
 
@@ -316,7 +377,8 @@ public class Fixture
 }
 ```
 
-Entidades\Grupo.cs:
+### Entidades\Grupo.cs
+
 ```csharp
 using System.Linq;
 using WorldCupPlanner.Dominio.Enumeraciones;
@@ -413,7 +475,8 @@ public class Grupo
 }
 ```
 
-Entidades\Partido.cs:
+### Entidades\Partido.cs
+
 ```csharp
 using WorldCupPlanner.Dominio.Enumeraciones;
 
@@ -457,7 +520,8 @@ namespace WorldCupPlanner.Dominio.Entidades
 }
 ```
 
-Entidades\PosicionEquipo.cs:
+### Entidades\PosicionEquipo.cs
+
 ```csharp
 namespace WorldCupPlanner.Dominio.Entidades;
 
@@ -478,7 +542,8 @@ public class PosicionEquipo
 }
 ```
 
-Entidades\Usuario.cs:
+### Entidades\Usuario.cs
+
 ```csharp
 using System;
 using System.Collections.Generic;
@@ -515,8 +580,6 @@ public class Usuario
         _roles = new HashSet<RolUsuario>();
     }
 
-    #region Validaciones
-
     private void ValidarNombre(string nombre)
     {
         if (string.IsNullOrWhiteSpace(nombre))
@@ -540,7 +603,6 @@ public class Usuario
             throw new ArgumentException("El email no puede estar vacío.", nameof(email));
         }
 
-        // Validar formato de email básico
         var patronEmail = @"^[^\s@]+@[^\s@]+\.[^\s@]+$";
         if (!Regex.IsMatch(email, patronEmail))
         {
@@ -555,11 +617,7 @@ public class Usuario
             throw new ArgumentException("La fecha de nacimiento no puede ser futura.", nameof(fechaNacimiento));
         }
     }
-
-    #endregion
-
-    #region Gestión de Contrasenia
-
+    
     public void EstablecerContrasenia(string contrasenia)
     {
         ValidarContrasenia(contrasenia);
@@ -619,10 +677,6 @@ public class Usuario
         return _contraseniaCifrada == contraseniaCifradaIngresada;
     }
 
-    #endregion
-
-    #region Gestión de Roles
-
     public void AgregarRol(RolUsuario rolUsuario)
     {
         _roles.Add(rolUsuario);
@@ -642,12 +696,36 @@ public class Usuario
     {
         return _roles.AsEnumerable();
     }
+    
+    public void ActualizarNombre(string nuevoNombre)
+    {
+        ValidarNombre(nuevoNombre);
+        Nombre = nuevoNombre;
+    }
 
-    #endregion
+    public void ActualizarApellido(string nuevoApellido)
+    {
+        ValidarApellido(nuevoApellido);
+        Apellido = nuevoApellido;
+    }
+    
+    public void ActualizarEmail(string nuevoEmail)
+    {
+        ValidarEmail(nuevoEmail);
+        Email = nuevoEmail;
+    }
+    
+    public void ActualizarFechaNacimiento(DateTime nuevaFecha)
+    {
+        ValidarFechaNacimiento(nuevaFecha);
+        FechaNacimiento = nuevaFecha;
+    }
+
 }
 ```
 
-Enumeraciones\Confederacion.cs:
+### Enumeraciones\Confederacion.cs
+
 ```csharp
 namespace WorldCupPlanner.Dominio.Enumeraciones;
 
@@ -657,7 +735,8 @@ public enum Confederacion
 }
 ```
 
-Enumeraciones\FaseTorneo.cs:
+### Enumeraciones\FaseTorneo.cs
+
 ```csharp
 namespace WorldCupPlanner.Dominio.Enumeraciones;
 
@@ -672,7 +751,8 @@ public enum FaseTorneo
 }
 ```
 
-Enumeraciones\RolUsuario.cs:
+### Enumeraciones\RolUsuario.cs
+
 ```csharp
 namespace WorldCupPlanner.Dominio.Enumeraciones;
 
@@ -686,9 +766,10 @@ public enum RolUsuario
 
 End of WorldCupPlanner.Dominio
 
-WorldCupPlanner.DominioTest:
+## WorldCupPlanner.DominioTest
 
-EquipoTests.cs:
+### EquipoTests.cs
+
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WorldCupPlanner.Dominio.Entidades;
@@ -774,7 +855,8 @@ public class EquipoTests
 }
 ```
 
-EstadioTests.cs:
+### EstadioTests.cs
+
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using  WorldCupPlanner.Dominio.Entidades;
@@ -883,7 +965,8 @@ public class EstadioTests
 }
 ```
 
-FixtureTests.cs:
+### FixtureTests.cs
+
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WorldCupPlanner.Dominio.Entidades;
@@ -951,7 +1034,8 @@ public class FixtureTests
 }
 ```
 
-GrupoTests.cs:
+### GrupoTests.cs
+
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using  WorldCupPlanner.Dominio.Entidades;
@@ -962,7 +1046,6 @@ namespace WorldCupPlanner.DominioTests;
 [TestClass]
 public class GrupoTests
 {
-    #region Constructor - Validación de Etiqueta
 
     [TestMethod]
     public void Grupo_ConEtiquetaVacia_DebeLanzarExcepcion()
@@ -1000,9 +1083,7 @@ public class GrupoTests
         );
     }
 
-    #endregion
 
-    #region Constructor - Validación de Equipos
 
     [TestMethod]
     public void Grupo_ConMasDeCuatroEquipos_DebeLanzarExcepcion()
@@ -1023,9 +1104,7 @@ public class GrupoTests
         );
     }
 
-    #endregion
 
-    #region Validación - Equipos Válidos y Confederaciones
 
     [TestMethod]
     public void Grupo_ConEtiquetaValida_YCuatroEquiposValidos_EsValido()
@@ -1216,9 +1295,7 @@ public class GrupoTests
         Assert.IsFalse(resultado);
     }
 
-    #endregion
 
-    #region Métodos Helper
 
     private Grupo CrearGrupoValido(string etiqueta = "A")
     {
@@ -1238,11 +1315,11 @@ public class GrupoTests
         return new Equipo { Nombre = nombre, RankingFIFA = 500, Confederacion = confederacion };
     }
 
-    #endregion
 }
 ```
 
-PartidoTests.cs:
+### PartidoTests.cs
+
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using  WorldCupPlanner.Dominio.Entidades;
@@ -1448,11 +1525,509 @@ public class PartidoTests
 }
 ```
 
+### UsuarioTests.cs
+
+```csharp
+using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
+
+namespace WorldCupPlanner.DominioTests;
+
+
+[TestClass]
+public class UsuarioTests
+{
+    
+    [TestMethod]
+    public void CrearUsuario_ConDatosValidos_DebeCrearExitosamente()
+    {
+        // Arrange
+        var nombre = "Juan";
+        var apellido = "Pérez";
+        var email = "juan.perez@example.com";
+        var fechaNacimiento = new DateTime(1990, 5, 15);
+
+        // Act
+        var usuario = new Usuario(nombre, apellido, email, fechaNacimiento);
+
+        // Assert
+        Assert.AreEqual(nombre, usuario.Nombre);
+        Assert.AreEqual(apellido, usuario.Apellido);
+        Assert.AreEqual(email, usuario.Email);
+        Assert.AreEqual(fechaNacimiento, usuario.FechaNacimiento);
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConNombreVacio_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var apellido = "Pérez";
+        var email = "juan.perez@example.com";
+        var fechaNacimiento = new DateTime(1990, 5, 15);
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(string.Empty, apellido, email, fechaNacimiento)
+        );
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConApellidoVacio_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var nombre = "Juan";
+        var email = "juan.perez@example.com";
+        var fechaNacimiento = new DateTime(1990, 5, 15);
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(nombre, string.Empty, email, fechaNacimiento)
+        );
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConEmailInvalido_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var nombre = "Juan";
+        var apellido = "Pérez";
+        var email = "email-invalido";
+        var fechaNacimiento = new DateTime(1990, 5, 15);
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(nombre, apellido, email, fechaNacimiento)
+        );
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConEmailVacio_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var nombre = "Juan";
+        var apellido = "Pérez";
+        var email = string.Empty;
+        var fechaNacimiento = new DateTime(1990, 5, 15);
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(nombre, apellido, email, fechaNacimiento)
+        );
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConFechaNacimientoFutura_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var nombre = "Juan";
+        var apellido = "Pérez";
+        var email = "juan.perez@example.com";
+        var fechaNacimiento = DateTime.Now.AddDays(1);
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(nombre, apellido, email, fechaNacimiento)
+        );
+    }
+
+
+
+    [TestMethod]
+    public void EstablecerContrasenia_ConContrasesiaValida_DebeEstablecerseExitosamente()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "MyPassword123!";
+
+        // Act
+        usuario.EstablecerContrasenia(contrasenia);
+
+        // Assert
+        Assert.IsTrue(usuario.VerificarContrasenia(contrasenia));
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_ConMenosDe8Caracteres_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "Pass12!"; // 7 caracteres
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            usuario.EstablecerContrasenia(contrasenia)
+        );
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_SinMayúsculas_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "password123!"; // Sin mayúsculas
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            usuario.EstablecerContrasenia(contrasenia)
+        );
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_SinMinúsculas_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "PASSWORD123!"; // Sin minúsculas
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            usuario.EstablecerContrasenia(contrasenia)
+        );
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_SinNúmeros_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "PasswordAbc!"; // Sin números
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            usuario.EstablecerContrasenia(contrasenia)
+        );
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_SinCaracteresEspeciales_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "Password1234"; // Sin caracteres especiales
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            usuario.EstablecerContrasenia(contrasenia)
+        );
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_ConContrasesiaVacia_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            usuario.EstablecerContrasenia(string.Empty)
+        );
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_DebeAlmacenarCifrada_NoEnTextoPlano()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "MyPassword123!";
+
+        // Act
+        usuario.EstablecerContrasenia(contrasenia);
+
+        // Assert
+        Assert.IsFalse(usuario.ContraseniaCifrada == contrasenia,
+            "La contrasenia no debe almacenarse en texto plano");
+        Assert.IsNotNull(usuario.ContraseniaCifrada);
+        Assert.IsTrue(usuario.ContraseniaCifrada.Length > 0);
+    }
+
+    [TestMethod]
+    public void VerificarContrasenia_ConContrasesiaCorrecta_DebeRetornarVerdadero()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "MyPassword123!";
+        usuario.EstablecerContrasenia(contrasenia);
+
+        // Act
+        var resultado = usuario.VerificarContrasenia(contrasenia);
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void VerificarContrasenia_ConContrasesiaIncorrecta_DebeRetornarFalso()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "MyPassword123!";
+        usuario.EstablecerContrasenia(contrasenia);
+
+        // Act
+        var resultado = usuario.VerificarContrasenia("WrongPassword123!");
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void VerificarContrasenia_ConContrasesiaCasoDiferente_DebeRetornarFalso()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "MyPassword123!";
+        usuario.EstablecerContrasenia(contrasenia);
+
+        // Act - Intenta con caso diferente
+        var resultado = usuario.VerificarContrasenia("mypassword123!");
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_ConCaracteresEspecialesValidos_DebeAceptarlos()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenias = new[]
+        {
+            "Password123@",
+            "Password123#",
+            "Password123$",
+            "Password123."
+        };
+
+        // Act & Assert
+        foreach (var contrasenia in contrasenias)
+        {
+            usuario.EstablecerContrasenia(contrasenia);
+            Assert.IsTrue(usuario.VerificarContrasenia(contrasenia),
+                $"Debería aceptar contrasenia con carácter especial: {contrasenia}");
+        }
+    }
+
+
+
+    [TestMethod]
+    public void AgregarRol_ConRolAdministrador_DebeAgregarse()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+
+        // Assert
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
+    }
+
+    [TestMethod]
+    public void AgregarRol_ConRolEditor_DebeAgregarse()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.AgregarRol(RolUsuario.Editor);
+
+        // Assert
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void AgregarRol_ConRolesMultiples_DebePermitirRolesNoExcluyentes()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+        usuario.AgregarRol(RolUsuario.Editor);
+
+        // Assert
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void AgregarRol_MismoRolDosVeces_NoDebeAgregarseDuplicado()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+
+        // Act
+        var rolesAntes = usuario.ObtenerRoles().Count();
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+        var rolesDepues = usuario.ObtenerRoles().Count();
+
+        // Assert
+        Assert.AreEqual(rolesAntes, rolesDepues);
+    }
+
+    [TestMethod]
+    public void RemoverRol_ConRolExistente_DebeRemoverse()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+
+        // Act
+        usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
+
+        // Assert
+        Assert.IsFalse(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
+    }
+
+    [TestMethod]
+    public void RemoverRol_NoAfectaOtrosRoles()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+        usuario.AgregarRol(RolUsuario.Editor);
+
+        // Act
+        usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
+
+        // Assert
+        Assert.IsFalse(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void ObtenerRoles_ConRolesAsignados_DebeRetornarTodos()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+        usuario.AgregarRol(RolUsuario.Editor);
+
+        // Act
+        var roles = usuario.ObtenerRoles();
+
+        // Assert
+        Assert.AreEqual(2, roles.Count());
+        Assert.IsTrue(roles.Contains(RolUsuario.AdministradorDelSistema));
+        Assert.IsTrue(roles.Contains(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void TieneRol_UsuarioSinRoles_DebeRetornarFalso()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.IsFalse(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
+        Assert.IsFalse(usuario.TieneRol(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void ActualizarNombre_ConNombreValido_ActualizaElNombre()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.ActualizarNombre("Carlos");
+
+        // Assert
+        Assert.AreEqual("Carlos", usuario.Nombre);
+    }
+
+    [TestMethod]
+    public void ActualizarNombre_ConNombreVacio_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarNombre(string.Empty));
+    }
+
+    [TestMethod]
+    public void ActualizarApellido_ConApellidoValido_ActualizaElApellido()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.ActualizarApellido("García");
+
+        // Assert
+        Assert.AreEqual("García", usuario.Apellido);
+    }
+
+    [TestMethod]
+    public void ActualizarEmail_ConEmailValido_ActualizaElEmail()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.ActualizarEmail("newemail@example.com");
+
+        // Assert
+        Assert.AreEqual("newemail@example.com", usuario.Email);
+    }
+
+    [TestMethod]
+    public void ActualizarEmail_ConEmailInvalido_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarEmail("email_invalido"));
+    }
+
+    [TestMethod]
+    public void ActualizarFechaNacimiento_ConFechaValida_ActualizaLaFecha()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var nuevaFecha = new DateTime(1995, 5, 15);
+
+        // Act
+        usuario.ActualizarFechaNacimiento(nuevaFecha);
+
+        // Assert
+        Assert.AreEqual(nuevaFecha, usuario.FechaNacimiento);
+    }
+
+    [TestMethod]
+    public void ActualizarFechaNacimiento_ConFechaFutura_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var fechaFutura = DateTime.Now.AddYears(1);
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarFechaNacimiento(fechaFutura));
+    }
+
+
+    private Usuario CrearUsuarioValido()
+    {
+        return new Usuario(
+            "Juan",
+            "Pérez",
+            "juan.perez@example.com",
+            new DateTime(1990, 5, 15)
+        );
+    }
+
+}
+```
+
 End of WorldCupPlanner.DominioTest
 
-WorldCupPlanner.Servicios:
+## WorldCupPlanner.Servicios
 
-Normalizar.cs:
+### Normalizar.cs
+
 ```csharp
 using System;
 using System.Globalization;
@@ -1477,7 +2052,8 @@ public class Normalizar
 }
 ```
 
-ServicioClasificacion.cs:
+### ServicioClasificacion.cs
+
 ```csharp
 using System;
 using System.Collections.Generic;
@@ -1654,7 +2230,8 @@ public class ServicioClasificacion
 }
 ```
 
-ServicioCruces.cs:
+### ServicioCruces.cs
+
 ```csharp
 using System;
 using System.Collections.Generic;
@@ -1804,7 +2381,8 @@ public class ServicioCruces
 }
 ```
 
-ServicioEquipo.cs:
+### ServicioEquipo.cs
+
 ```csharp
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.AccesoADatos.Repositorios;
@@ -1860,7 +2438,8 @@ namespace WorldCupPlanner.Servicios
 }
 ```
 
-ServicioEstadio.cs:
+### ServicioEstadio.cs
+
 ```csharp
 using System;
 using System.Linq;
@@ -1912,7 +2491,8 @@ public class ServicioEstadio
 }
 ```
 
-ServicioFixture.cs:
+### ServicioFixture.cs
+
 ```csharp
 using System;
 using System.Collections.Generic;
@@ -2254,11 +2834,140 @@ public class ServicioFixture
 }
 ```
 
+### ServicioUsuario.cs
+
+```csharp
+using WorldCupPlanner.AccesoADatos.Repositorios;
+using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
+
+namespace WorldCupPlanner.Servicios;
+
+public class ServicioUsuario
+{
+    private readonly RepositorioUsuarioEnMemoria _repositorio;
+
+    public ServicioUsuario(RepositorioUsuarioEnMemoria repositorio)
+    {
+        _repositorio = repositorio;
+    }
+
+    public void AgregarUsuario(Usuario usuario)
+    {
+        ValidarEmailUnico(usuario.Email);
+        _repositorio.Agregar(usuario);
+    }
+    
+    public void ActualizarUsuario(Usuario usuario, string? nombre = null, string? apellido = null, 
+        string? email = null, DateTime? fechaNacimiento = null)
+    {
+        var usuarioActual = _repositorio.ObtenerTodos()
+            .FirstOrDefault(u => ReferenceEquals(u, usuario));
+
+        if (usuarioActual == null)
+        {
+            throw new InvalidOperationException("El usuario no existe en el sistema.");
+        }
+
+        if (email != null && !email.Equals(usuarioActual.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            ValidarEmailUnico(email);
+            usuarioActual.ActualizarEmail(email);
+        }
+
+        if (nombre != null)
+        {
+            usuarioActual.ActualizarNombre(nombre);
+        }
+
+        if (apellido != null)
+        {
+            usuarioActual.ActualizarApellido(apellido);
+        }
+
+        if (fechaNacimiento.HasValue)
+        {
+            usuarioActual.ActualizarFechaNacimiento(fechaNacimiento.Value);
+        }
+
+        _repositorio.Actualizar(usuarioActual);
+    }
+
+    public void EliminarUsuario(Usuario usuario)
+    {
+        _repositorio.Eliminar(usuario);
+    }
+
+    public List<Usuario> ObtenerTodosLosUsuarios()
+    {
+        return _repositorio.ObtenerTodos();
+    }
+
+    public Usuario? ObtenerPorEmail(string email)
+    {
+        return _repositorio.ObtenerPorEmail(email);
+    }
+
+    private void ValidarEmailUnico(string email)
+    {
+        var usuarioExistente = _repositorio.ObtenerPorEmail(email);
+        if (usuarioExistente != null)
+        {
+            throw new InvalidOperationException($"El email '{email}' ya está registrado en el sistema.");
+        }
+    }
+
+    public void GenerarContraseniaDefecto(Usuario usuario, int seed = 0)
+    {
+        var contraseniaDefecto = $"TempPass@{2026 + seed}";
+        usuario.EstablecerContrasenia(contraseniaDefecto);
+    }
+
+    public void ReiniciarContrasenia(Usuario usuario, Usuario administrador)
+    {
+        if (!administrador.TieneRol(RolUsuario.AdministradorDelSistema))
+        {
+            throw new InvalidOperationException("Solo un administrador puede reiniciar contraseñas.");
+        }
+
+        GenerarContraseniaDefecto(usuario);
+    }
+
+    public void CambiarContrasenia(Usuario usuario, string contraseniaAnterior, string nuevaContrasenia)
+    {
+        if (!usuario.VerificarContrasenia(contraseniaAnterior))
+        {
+            throw new InvalidOperationException("La contraseña actual es incorrecta.");
+        }
+
+        usuario.EstablecerContrasenia(nuevaContrasenia);
+    }
+
+    public Usuario Login(string email, string contrasenia)
+    {
+        var usuario = _repositorio.ObtenerPorEmail(email);
+        if (usuario == null)
+        {
+            throw new InvalidOperationException("Email o contraseña incorrectos.");
+        }
+
+        if (!usuario.VerificarContrasenia(contrasenia))
+        {
+            throw new InvalidOperationException("Email o contraseña incorrectos.");
+        }
+
+        return usuario;
+    }
+}
+
+```
+
 End of WorldCupPlanner.Servicios
 
-WorldCupPlanner.ServicioTests:
+## WorldCupPlanner.ServicioTests
 
-ConfiguracionTorneoTests.cs:
+### ConfiguracionTorneoTests.cs
+
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using  WorldCupPlanner.Dominio.Entidades;
@@ -2284,7 +2993,8 @@ public class ConfiguracionTorneoTests
 }
 ```
 
-NormalizarTest.cs:
+### NormalizarTest.cs
+
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WorldCupPlanner.Servicios;
@@ -2361,7 +3071,8 @@ public class NormalizarTests
 }
 ```
 
-RepositoriosEnMemoriaTests.cs:
+### RepositoriosEnMemoriaTests.cs
+
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
@@ -2435,6 +3146,138 @@ public class RepositoriosEnMemoriaTests
         Assert.AreEqual(partido, repositorio.ObtenerTodos().First());
     }
 
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_AgregarUsuario_GuardaUsuario()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("juan@example.com");
+
+        repositorio.Agregar(usuario);
+
+        Assert.AreEqual(1, repositorio.ObtenerTodos().Count);
+        Assert.AreSame(usuario, repositorio.ObtenerTodos().First());
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_AgregarVariosUsuarios_GuardaTodos()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario1 = CrearUsuarioValido("juan@example.com");
+        var usuario2 = CrearUsuarioValido("maria@example.com");
+        var usuario3 = CrearUsuarioValido("pedro@example.com");
+
+        repositorio.Agregar(usuario1);
+        repositorio.Agregar(usuario2);
+        repositorio.Agregar(usuario3);
+
+        Assert.AreEqual(3, repositorio.ObtenerTodos().Count);
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_ActualizarUsuarioExistente_ModificaUsuario()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("juan@example.com");
+        repositorio.Agregar(usuario);
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+
+        repositorio.Actualizar(usuario);
+
+        Assert.IsTrue(repositorio.ObtenerTodos().First().TieneRol(RolUsuario.AdministradorDelSistema));
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_ActualizarUsuarioNoExistente_LanzaExcepcion()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("juan@example.com");
+
+        Assert.ThrowsException<InvalidOperationException>(() => repositorio.Actualizar(usuario));
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_EliminarUsuarioExistente_EliminaUsuario()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("juan@example.com");
+        repositorio.Agregar(usuario);
+
+        repositorio.Eliminar(usuario);
+
+        Assert.AreEqual(0, repositorio.ObtenerTodos().Count);
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_EliminarUsuarioNoExistente_NoLanzaExcepcion()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("juan@example.com");
+
+        repositorio.Eliminar(usuario);
+
+        Assert.AreEqual(0, repositorio.ObtenerTodos().Count);
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_ObtenerTodosSinUsuarios_DevuelveListaVacia()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+
+        var usuarios = repositorio.ObtenerTodos();
+
+        Assert.AreEqual(0, usuarios.Count);
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_ObtenerTodos_DevuelveCopia()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("juan@example.com");
+        repositorio.Agregar(usuario);
+
+        var usuarios1 = repositorio.ObtenerTodos();
+        var usuarios2 = repositorio.ObtenerTodos();
+
+        Assert.AreNotSame(usuarios1, usuarios2);
+        Assert.AreEqual(usuarios1.Count, usuarios2.Count);
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_ObtenerPorEmailExistente_DevuelveUsuario()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("juan@example.com");
+        repositorio.Agregar(usuario);
+
+        var usuarioEncontrado = repositorio.ObtenerPorEmail("juan@example.com");
+
+        Assert.IsNotNull(usuarioEncontrado);
+        Assert.AreSame(usuario, usuarioEncontrado);
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_ObtenerPorEmailNoExistente_DevuelveNull()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+
+        var usuarioEncontrado = repositorio.ObtenerPorEmail("noexiste@example.com");
+
+        Assert.IsNull(usuarioEncontrado);
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_ObtenerPorEmailNoDistingueMayusculas_DevuelveUsuario()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("Juan@Example.com");
+        repositorio.Agregar(usuario);
+
+        var usuarioEncontrado = repositorio.ObtenerPorEmail("juan@example.com");
+
+        Assert.IsNotNull(usuarioEncontrado);
+        Assert.AreSame(usuario, usuarioEncontrado);
+    }
+
     private Equipo CrearEquipoValido(string nombre)
     {
         return new Equipo
@@ -2468,10 +3311,16 @@ public class RepositoriosEnMemoriaTests
             Grupo = new Grupo("A")
         };
     }
+
+    private Usuario CrearUsuarioValido(string email)
+    {
+        return new Usuario("Juan", "PÃ©rez", email, new DateTime(1990, 1, 1));
+    }
 }
 ```
 
-ServicioClasificacionTests.cs:
+### ServicioClasificacionTests.cs
+
 ```csharp
 using  WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
@@ -2874,7 +3723,8 @@ public void ObtenerClasificadosAFaseEliminatoria_ConTercerosTotalmenteEmpatadosY
 }
 ```
 
-ServicioCrucesTests.cs:
+### ServicioCrucesTests.cs
+
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -3167,7 +4017,8 @@ public class ServicioCrucesTests
 }
 ```
 
-ServicioEquipoTests.cs:
+### ServicioEquipoTests.cs
+
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WorldCupPlanner.Dominio.Entidades;
@@ -3310,7 +4161,8 @@ public class ServicioEquipoTests
 }
 ```
 
-ServicioEstadioTests.cs:
+### ServicioEstadioTests.cs
+
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using  WorldCupPlanner.Dominio.Entidades;
@@ -3427,7 +4279,8 @@ public void EliminarEstadio_EstadioExistente_SeEliminaCorrectamente()
 }
 ```
 
-ServicioFixtureTests.cs:
+### ServicioFixtureTests.cs
+
 ```csharp
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -4174,462 +5027,497 @@ public class ServicioFixtureTests
 }
 ```
 
-UsuarioTests.cs:
+### ServicioUsuarioTests.cs
+
 ```csharp
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
 
-
 [TestClass]
-public class UsuarioTests
+public sealed class ServicioUsuarioTests
 {
-    #region Información del Usuario - Tests Básicos
-    
+    private RepositorioUsuarioEnMemoria _repositorio = null!;
+    private ServicioUsuario _servicio = null!;
+
+    public ServicioUsuarioTests()
+    {
+        _repositorio = new RepositorioUsuarioEnMemoria();
+        _servicio = new ServicioUsuario(_repositorio);
+    }
+
     [TestMethod]
-    public void CrearUsuario_ConDatosValidos_DebeCrearExitosamente()
+    public void AgregarUsuario_ConEmailValido_AgregarAlSistema()
     {
         // Arrange
-        var nombre = "Juan";
-        var apellido = "Pérez";
-        var email = "juan.perez@example.com";
-        var fechaNacimiento = new DateTime(1990, 5, 15);
+        var usuario = CrearUsuarioValido("juan@example.com");
 
         // Act
-        var usuario = new Usuario(nombre, apellido, email, fechaNacimiento);
+        _servicio.AgregarUsuario(usuario);
 
         // Assert
-        Assert.AreEqual(nombre, usuario.Nombre);
-        Assert.AreEqual(apellido, usuario.Apellido);
-        Assert.AreEqual(email, usuario.Email);
-        Assert.AreEqual(fechaNacimiento, usuario.FechaNacimiento);
+        var usuarios = _servicio.ObtenerTodosLosUsuarios();
+        Assert.AreEqual(1, usuarios.Count);
+        Assert.AreSame(usuario, usuarios[0]);
     }
 
     [TestMethod]
-    public void CrearUsuario_ConNombreVacio_DebeLanzarExcepcion()
+    public void AgregarUsuario_ConEmailDuplicado_LanzaExcepcion()
     {
         // Arrange
-        var apellido = "Pérez";
-        var email = "juan.perez@example.com";
-        var fechaNacimiento = new DateTime(1990, 5, 15);
+        var usuario1 = CrearUsuarioValido("juan@example.com");
+        var usuario2 = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario1);
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(string.Empty, apellido, email, fechaNacimiento)
-        );
+        Assert.ThrowsException<InvalidOperationException>(() => _servicio.AgregarUsuario(usuario2));
     }
 
     [TestMethod]
-    public void CrearUsuario_ConApellidoVacio_DebeLanzarExcepcion()
+    public void AgregarUsuario_ConEmailDuplicadoDistintasMinusculas_LanzaExcepcion()
     {
         // Arrange
-        var nombre = "Juan";
-        var email = "juan.perez@example.com";
-        var fechaNacimiento = new DateTime(1990, 5, 15);
+        var usuario1 = CrearUsuarioValido("Juan@Example.com");
+        var usuario2 = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario1);
 
         // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(nombre, string.Empty, email, fechaNacimiento)
-        );
+        Assert.ThrowsException<InvalidOperationException>(() => _servicio.AgregarUsuario(usuario2));
     }
 
     [TestMethod]
-    public void CrearUsuario_ConEmailInvalido_DebeLanzarExcepcion()
+    public void ActualizarUsuario_ConUsuarioExistente_ActualizaEnSistema()
     {
         // Arrange
-        var nombre = "Juan";
-        var apellido = "Pérez";
-        var email = "email-invalido";
-        var fechaNacimiento = new DateTime(1990, 5, 15);
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(nombre, apellido, email, fechaNacimiento)
-        );
-    }
-
-    [TestMethod]
-    public void CrearUsuario_ConEmailVacio_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var nombre = "Juan";
-        var apellido = "Pérez";
-        var email = string.Empty;
-        var fechaNacimiento = new DateTime(1990, 5, 15);
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(nombre, apellido, email, fechaNacimiento)
-        );
-    }
-
-    [TestMethod]
-    public void CrearUsuario_ConFechaNacimientoFutura_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var nombre = "Juan";
-        var apellido = "Pérez";
-        var email = "juan.perez@example.com";
-        var fechaNacimiento = DateTime.Now.AddDays(1);
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(nombre, apellido, email, fechaNacimiento)
-        );
-    }
-
-    #endregion
-
-    #region Contrasenia - Tests de Validación
-
-    [TestMethod]
-    public void EstablecerContrasenia_ConContrasesiaValida_DebeEstablecerseExitosamente()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "MyPassword123!";
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
 
         // Act
-        usuario.EstablecerContrasenia(contrasenia);
+        _servicio.ActualizarUsuario(usuario);
 
         // Assert
-        Assert.IsTrue(usuario.VerificarContrasenia(contrasenia));
+        var usuarios = _servicio.ObtenerTodosLosUsuarios();
+        Assert.IsTrue(usuarios[0].TieneRol(RolUsuario.AdministradorDelSistema));
     }
 
     [TestMethod]
-    public void EstablecerContrasenia_ConMenosDe8Caracteres_DebeLanzarExcepcion()
+    public void ActualizarUsuario_ConNombreNuevo_ActualizaNombre()
     {
         // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "Pass12!"; // 7 caracteres
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContrasenia(contrasenia)
-        );
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_SinMayúsculas_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "password123!"; // Sin mayúsculas
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContrasenia(contrasenia)
-        );
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_SinMinúsculas_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "PASSWORD123!"; // Sin minúsculas
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContrasenia(contrasenia)
-        );
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_SinNúmeros_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "PasswordAbc!"; // Sin números
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContrasenia(contrasenia)
-        );
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_SinCaracteresEspeciales_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "Password1234"; // Sin caracteres especiales
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContrasenia(contrasenia)
-        );
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_ConContrasesiaVacia_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContrasenia(string.Empty)
-        );
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_DebeAlmacenarCifrada_NoEnTextoPlano()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "MyPassword123!";
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
 
         // Act
-        usuario.EstablecerContrasenia(contrasenia);
+        _servicio.ActualizarUsuario(usuario, nombre: "Carlos");
 
         // Assert
-        Assert.IsFalse(usuario.ContraseniaCifrada == contrasenia,
-            "La contrasenia no debe almacenarse en texto plano");
+        var usuarioActualizado = _servicio.ObtenerTodosLosUsuarios()[0];
+        Assert.AreEqual("Carlos", usuarioActualizado.Nombre);
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConApellidoNuevo_ActualizaApellido()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act
+        _servicio.ActualizarUsuario(usuario, apellido: "García");
+
+        // Assert
+        var usuarioActualizado = _servicio.ObtenerTodosLosUsuarios()[0];
+        Assert.AreEqual("García", usuarioActualizado.Apellido);
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConEmailNuevo_ActualizaEmail()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act
+        _servicio.ActualizarUsuario(usuario, email: "newemail@example.com");
+
+        // Assert
+        var usuarioActualizado = _servicio.ObtenerTodosLosUsuarios()[0];
+        Assert.AreEqual("newemail@example.com", usuarioActualizado.Email);
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConEmailDuplicado_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario1 = CrearUsuarioValido("juan@example.com");
+        var usuario2 = CrearUsuarioValido("maria@example.com");
+        _servicio.AgregarUsuario(usuario1);
+        _servicio.AgregarUsuario(usuario2);
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            _servicio.ActualizarUsuario(usuario2, email: "juan@example.com")
+        );
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConEmailDuplicadoDistintasMinusculas_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario1 = CrearUsuarioValido("Juan@Example.com");
+        var usuario2 = CrearUsuarioValido("maria@example.com");
+        _servicio.AgregarUsuario(usuario1);
+        _servicio.AgregarUsuario(usuario2);
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            _servicio.ActualizarUsuario(usuario2, email: "juan@example.com")
+        );
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConFechaNacimientoNueva_ActualizaFecha()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+        var nuevaFecha = new DateTime(1995, 5, 15);
+
+        // Act
+        _servicio.ActualizarUsuario(usuario, fechaNacimiento: nuevaFecha);
+
+        // Assert
+        var usuarioActualizado = _servicio.ObtenerTodosLosUsuarios()[0];
+        Assert.AreEqual(nuevaFecha, usuarioActualizado.FechaNacimiento);
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConMultiplesCampos_ActualizaTodos()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+        var nuevaFecha = new DateTime(1995, 5, 15);
+
+        // Act
+        _servicio.ActualizarUsuario(usuario, nombre: "Carlos", apellido: "García", 
+            email: "carlos@example.com", fechaNacimiento: nuevaFecha);
+
+        // Assert
+        var usuarioActualizado = _servicio.ObtenerTodosLosUsuarios()[0];
+        Assert.AreEqual("Carlos", usuarioActualizado.Nombre);
+        Assert.AreEqual("García", usuarioActualizado.Apellido);
+        Assert.AreEqual("carlos@example.com", usuarioActualizado.Email);
+        Assert.AreEqual(nuevaFecha, usuarioActualizado.FechaNacimiento);
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConUsuarioNoExistente_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() => _servicio.ActualizarUsuario(usuario));
+    }
+
+    [TestMethod]
+    public void EliminarUsuario_ConUsuarioExistente_EliminaDelSistema()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act
+        _servicio.EliminarUsuario(usuario);
+
+        // Assert
+        var usuarios = _servicio.ObtenerTodosLosUsuarios();
+        Assert.AreEqual(0, usuarios.Count);
+    }
+
+    [TestMethod]
+    public void ObtenerTodosLosUsuarios_SinUsuarios_DevuelveListaVacia()
+    {
+        // Act
+        var usuarios = _servicio.ObtenerTodosLosUsuarios();
+
+        // Assert
+        Assert.AreEqual(0, usuarios.Count);
+    }
+
+    [TestMethod]
+    public void ObtenerTodosLosUsuarios_ConVariosUsuarios_DevuelveTodos()
+    {
+        // Arrange
+        var usuario1 = CrearUsuarioValido("juan@example.com");
+        var usuario2 = CrearUsuarioValido("maria@example.com");
+        var usuario3 = CrearUsuarioValido("pedro@example.com");
+        _servicio.AgregarUsuario(usuario1);
+        _servicio.AgregarUsuario(usuario2);
+        _servicio.AgregarUsuario(usuario3);
+
+        // Act
+        var usuarios = _servicio.ObtenerTodosLosUsuarios();
+
+        // Assert
+        Assert.AreEqual(3, usuarios.Count);
+    }
+
+    [TestMethod]
+    public void ObtenerPorEmail_ConEmailExistente_DevuelveUsuario()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act
+        var usuarioEncontrado = _servicio.ObtenerPorEmail("juan@example.com");
+
+        // Assert
+        Assert.IsNotNull(usuarioEncontrado);
+        Assert.AreSame(usuario, usuarioEncontrado);
+    }
+
+    [TestMethod]
+    public void ObtenerPorEmail_ConEmailNoExistente_DevuelveNull()
+    {
+        // Act
+        var usuarioEncontrado = _servicio.ObtenerPorEmail("noexiste@example.com");
+
+        // Assert
+        Assert.IsNull(usuarioEncontrado);
+    }
+
+    [TestMethod]
+    public void GenerarContraseniaDefecto_AsignaContraseniaAlUsuario()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+
+        // Act
+        _servicio.GenerarContraseniaDefecto(usuario);
+
+        // Assert
         Assert.IsNotNull(usuario.ContraseniaCifrada);
-        Assert.IsTrue(usuario.ContraseniaCifrada.Length > 0);
+        Assert.IsTrue(usuario.VerificarContrasenia("TempPass@2026"));
     }
 
     [TestMethod]
-    public void VerificarContrasenia_ConContrasesiaCorrecta_DebeRetornarVerdadero()
+    public void GenerarContraseniaDefecto_ConSeed_AsignaContraseniaConSeed()
     {
         // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "MyPassword123!";
-        usuario.EstablecerContrasenia(contrasenia);
+        var usuario = CrearUsuarioValido("juan@example.com");
 
         // Act
-        var resultado = usuario.VerificarContrasenia(contrasenia);
+        _servicio.GenerarContraseniaDefecto(usuario, seed: 42);
 
         // Assert
-        Assert.IsTrue(resultado);
+        Assert.IsNotNull(usuario.ContraseniaCifrada);
+        Assert.IsTrue(usuario.VerificarContrasenia("TempPass@2068"));
     }
 
     [TestMethod]
-    public void VerificarContrasenia_ConContrasesiaIncorrecta_DebeRetornarFalso()
+    public void ReiniciarContrasenia_ConAdministrador_ReiniciaContrasenia()
     {
         // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "MyPassword123!";
-        usuario.EstablecerContrasenia(contrasenia);
+        var usuario = CrearUsuarioValido("juan@example.com");
+        var administrador = CrearUsuarioValido("admin@example.com");
+        _servicio.AgregarUsuario(usuario);
+        _servicio.AgregarUsuario(administrador);
+        administrador.AgregarRol(RolUsuario.AdministradorDelSistema);
+
+        // Primer login - establecer contraseña
+        _servicio.GenerarContraseniaDefecto(usuario);
 
         // Act
-        var resultado = usuario.VerificarContrasenia("WrongPassword123!");
+        _servicio.ReiniciarContrasenia(usuario, administrador);
 
         // Assert
-        Assert.IsFalse(resultado);
+        Assert.IsTrue(usuario.VerificarContrasenia("TempPass@2026"));
     }
 
     [TestMethod]
-    public void VerificarContrasenia_ConContrasesiaCasoDiferente_DebeRetornarFalso()
+    public void ReiniciarContrasenia_ConNoAdministrador_LanzaExcepcion()
     {
         // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "MyPassword123!";
-        usuario.EstablecerContrasenia(contrasenia);
-
-        // Act - Intenta con caso diferente
-        var resultado = usuario.VerificarContrasenia("mypassword123!");
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_ConCaracteresEspecialesValidos_DebeAceptarlos()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenias = new[]
-        {
-            "Password123@",
-            "Password123#",
-            "Password123$",
-            "Password123."
-        };
+        var usuario = CrearUsuarioValido("juan@example.com");
+        var noAdmin = CrearUsuarioValido("noadmin@example.com");
+        _servicio.AgregarUsuario(usuario);
+        _servicio.AgregarUsuario(noAdmin);
+        noAdmin.AgregarRol(RolUsuario.Editor);
 
         // Act & Assert
-        foreach (var contrasenia in contrasenias)
-        {
-            usuario.EstablecerContrasenia(contrasenia);
-            Assert.IsTrue(usuario.VerificarContrasenia(contrasenia),
-                $"Debería aceptar contrasenia con carácter especial: {contrasenia}");
-        }
+        Assert.ThrowsException<InvalidOperationException>(() => _servicio.ReiniciarContrasenia(usuario, noAdmin));
     }
 
-    #endregion
-
-    #region Roles - Tests de Gestión de Roles
-
     [TestMethod]
-    public void AgregarRol_ConRolAdministrador_DebeAgregarse()
+    public void CambiarContrasenia_ConContraseniaActualCorrecta_CambiaLaContrasenia()
     {
         // Arrange
-        var usuario = CrearUsuarioValido();
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("ViejaPass@123");
 
         // Act
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.CambiarContrasenia(usuario, "ViejaPass@123", "NuevaPass@456");
 
         // Assert
-        Assert.IsTrue(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
+        Assert.IsTrue(usuario.VerificarContrasenia("NuevaPass@456"));
+        Assert.IsFalse(usuario.VerificarContrasenia("ViejaPass@123"));
     }
 
     [TestMethod]
-    public void AgregarRol_ConRolEditor_DebeAgregarse()
+    public void CambiarContrasenia_ConContraseniaActualIncorrecta_LanzaExcepcion()
     {
         // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act
-        usuario.AgregarRol(RolUsuario.Editor);
-
-        // Assert
-        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
-    }
-
-    [TestMethod]
-    public void AgregarRol_ConRolesMultiples_DebePermitirRolesNoExcluyentes()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-        usuario.AgregarRol(RolUsuario.Editor);
-
-        // Assert
-        Assert.IsTrue(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
-        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
-    }
-
-    [TestMethod]
-    public void AgregarRol_MismoRolDosVeces_NoDebeAgregarseDuplicado()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-
-        // Act
-        var rolesAntes = usuario.ObtenerRoles().Count();
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-        var rolesDepues = usuario.ObtenerRoles().Count();
-
-        // Assert
-        Assert.AreEqual(rolesAntes, rolesDepues);
-    }
-
-    [TestMethod]
-    public void RemoverRol_ConRolExistente_DebeRemoverse()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-
-        // Act
-        usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
-
-        // Assert
-        Assert.IsFalse(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
-    }
-
-    [TestMethod]
-    public void RemoverRol_NoAfectaOtrosRoles()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-        usuario.AgregarRol(RolUsuario.Editor);
-
-        // Act
-        usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
-
-        // Assert
-        Assert.IsFalse(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
-        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
-    }
-
-    [TestMethod]
-    public void ObtenerRoles_ConRolesAsignados_DebeRetornarTodos()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-        usuario.AgregarRol(RolUsuario.Editor);
-
-        // Act
-        var roles = usuario.ObtenerRoles();
-
-        // Assert
-        Assert.AreEqual(2, roles.Count());
-        Assert.IsTrue(roles.Contains(RolUsuario.AdministradorDelSistema));
-        Assert.IsTrue(roles.Contains(RolUsuario.Editor));
-    }
-
-    [TestMethod]
-    public void TieneRol_UsuarioSinRoles_DebeRetornarFalso()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("ViejaPass@123");
 
         // Act & Assert
-        Assert.IsFalse(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
-        Assert.IsFalse(usuario.TieneRol(RolUsuario.Editor));
-    }
-
-    #endregion
-
-    #region Métodos Helper
-
-    private Usuario CrearUsuarioValido()
-    {
-        return new Usuario(
-            "Juan",
-            "Pérez",
-            "juan.perez@example.com",
-            new DateTime(1990, 5, 15)
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            _servicio.CambiarContrasenia(usuario, "IncorrectPass@999", "NuevaPass@456")
         );
     }
 
-    #endregion
+    [TestMethod]
+    public void Login_ConEmailYContraseniaCorrectos_DevuelveUsuario()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("Pass@12345");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act
+        var usuarioAutenticado = _servicio.Login("juan@example.com", "Pass@12345");
+
+        // Assert
+        Assert.IsNotNull(usuarioAutenticado);
+        Assert.AreSame(usuario, usuarioAutenticado);
+    }
+
+    [TestMethod]
+    public void Login_ConEmailNoExistente_LanzaExcepcion()
+    {
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            _servicio.Login("noexiste@example.com", "Pass@12345")
+        );
+    }
+
+    [TestMethod]
+    public void Login_ConContraseniaIncorrecta_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("Pass@12345");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            _servicio.Login("juan@example.com", "IncorrectPass@999")
+        );
+    }
+
+    [TestMethod]
+    public void Login_CaseSensitiveEmail_NoDistingueMayusculas()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("Juan@Example.com");
+        usuario.EstablecerContrasenia("Pass@12345");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act
+        var usuarioAutenticado = _servicio.Login("juan@example.com", "Pass@12345");
+
+        // Assert
+        Assert.IsNotNull(usuarioAutenticado);
+        Assert.AreSame(usuario, usuarioAutenticado);
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConNombreVacio_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            _servicio.ActualizarUsuario(usuario, nombre: "")
+        );
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConApellidoVacio_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            _servicio.ActualizarUsuario(usuario, apellido: "")
+        );
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConEmailVacio_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            _servicio.ActualizarUsuario(usuario, email: "")
+        );
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConEmailInvalido_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            _servicio.ActualizarUsuario(usuario, email: "email_invalido")
+        );
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConEmailEspacios_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            _servicio.ActualizarUsuario(usuario, email: "   ")
+        );
+    }
+
+    private Usuario CrearUsuarioValido(string email)
+    {
+        return new Usuario("Juan", "Pérez", email, new DateTime(1990, 1, 1));
+    }
 }
+
 ```
 
 End of WorldCupPlanner.ServicioTests
 
-WorldCupPlanner.UI:
+## WorldCupPlanner.UI
 
-_Imports.razor:
-```razor
-@using System.Net.Http
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.AspNetCore.Components.Forms
-@using Microsoft.AspNetCore.Components.Routing
-@using Microsoft.AspNetCore.Components.Web
-@using Microsoft.AspNetCore.Components.Web.Virtualization
-@using Microsoft.JSInterop
-@using WorldCupPlanner.UI
-@using WorldCupPlanner.UI.Shared
-```
+### Data\WeatherForecast.cs
 
-App.razor:
-```razor
-<Router AppAssembly="@typeof(App).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <PageTitle>Not found</PageTitle>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
-        </LayoutView>
-    </NotFound>
-</Router>
-```
-
-Data\WeatherForecast.cs:
 ```csharp
 namespace WorldCupPlanner.UI.Data;
 
@@ -4645,7 +5533,8 @@ public class WeatherForecast
 }
 ```
 
-Data\WeatherForecastService.cs:
+### Data\WeatherForecastService.cs
+
 ```csharp
 namespace WorldCupPlanner.UI.Data;
 
@@ -4668,113 +5557,8 @@ public class WeatherForecastService
 }
 ```
 
-Pages\_Host.cshtml:
-```cshtml
-@page "/"
-@using Microsoft.AspNetCore.Components.Web
-@namespace WorldCupPlanner.UI.Pages
-@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+### Pages\Error.cshtml.cs
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <base href="~/" />
-    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-    <link href="css/site.css" rel="stylesheet" />
-    <link href="WorldCupPlanner.UI.styles.css" rel="stylesheet" />
-    <link rel="icon" type="image/png" href="favicon.png"/>
-    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
-</head>
-<body>
-    <component type="typeof(App)" render-mode="ServerPrerendered" />
-
-    <div id="blazor-error-ui">
-        <environment include="Staging,Production">
-            An error has occurred. This application may no longer respond until reloaded.
-        </environment>
-        <environment include="Development">
-            An unhandled exception has occurred. See browser dev tools for details.
-        </environment>
-        <a href="" class="reload">Reload</a>
-        <a class="dismiss">🗙</a>
-    </div>
-
-    <script src="_framework/blazor.server.js"></script>
-</body>
-</html>
-```
-
-Pages\Counter.razor:
-```razor
-@page "/counter"
-
-<PageTitle>Counter</PageTitle>
-
-<h1>Counter</h1>
-
-<p role="status">Current count: @currentCount</p>
-
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
-
-@code {
-    private int currentCount = 0;
-
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}
-```
-
-Pages\Error.cshtml:
-```cshtml
-@page
-@model WorldCupPlanner.UI.Pages.ErrorModel
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Error</title>
-    <link href="~/css/bootstrap/bootstrap.min.css" rel="stylesheet" />
-    <link href="~/css/site.css" rel="stylesheet" asp-append-version="true" />
-</head>
-
-<body>
-    <div class="main">
-        <div class="content px-4">
-            <h1 class="text-danger">Error.</h1>
-            <h2 class="text-danger">An error occurred while processing your request.</h2>
-
-            @if (Model.ShowRequestId)
-            {
-                <p>
-                    <strong>Request ID:</strong> <code>@Model.RequestId</code>
-                </p>
-            }
-
-            <h3>Development Mode</h3>
-            <p>
-                Swapping to the <strong>Development</strong> environment displays detailed information about the error that occurred.
-            </p>
-            <p>
-                <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-                It can result in displaying sensitive information from exceptions to end users.
-                For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-                and restarting the app.
-            </p>
-        </div>
-    </div>
-</body>
-
-</html>
-```
-
-Pages\Error.cshtml.cs:
 ```csharp
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -4804,71 +5588,8 @@ public class ErrorModel : PageModel
 }
 ```
 
-Pages\FetchData.razor:
-```razor
-@page "/fetchdata"
-@using WorldCupPlanner.UI.Data
-@inject WeatherForecastService ForecastService
+### Program.cs
 
-<PageTitle>Weather forecast</PageTitle>
-
-<h1>Weather forecast</h1>
-
-<p>This component demonstrates fetching data from a service.</p>
-
-@if (forecasts == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-
-@code {
-    private WeatherForecast[]? forecasts;
-
-    protected override async Task OnInitializedAsync()
-    {
-        forecasts = await ForecastService.GetForecastAsync(DateOnly.FromDateTime(DateTime.Now));
-    }
-}
-```
-
-Pages\Index.razor:
-```razor
-@page "/"
-
-<PageTitle>Index</PageTitle>
-
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
-<SurveyPrompt Title="How is Blazor working for you?" />
-```
-
-Program.cs:
 ```csharp
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -4901,92 +5622,6 @@ app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
 app.Run();
-```
-
-Shared\MainLayout.razor:
-```razor
-@inherits LayoutComponentBase
-
-<PageTitle>WorldCupPlanner.UI</PageTitle>
-
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
-```
-
-Shared\NavMenu.razor:
-```razor
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">WorldCupPlanner.UI</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</div>
-
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="oi oi-plus" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="fetchdata">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
-            </NavLink>
-        </div>
-    </nav>
-</div>
-
-@code {
-    private bool collapseNavMenu = true;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-}
-```
-
-Shared\SurveyPrompt.razor:
-```razor
-<div class="alert alert-secondary mt-4">
-    <span class="oi oi-pencil me-2" aria-hidden="true"></span>
-    <strong>@Title</strong>
-
-    <span class="text-nowrap">
-        Please take our
-        <a target="_blank" class="font-weight-bold link-dark" href="https://go.microsoft.com/fwlink/?linkid=2186158">brief survey</a>
-    </span>
-    and tell us what you think.
-</div>
-
-@code {
-    // Demonstrates how a parent component can supply parameters
-    [Parameter]
-    public string? Title { get; set; }
-}
 ```
 
 End of WorldCupPlanner.UI

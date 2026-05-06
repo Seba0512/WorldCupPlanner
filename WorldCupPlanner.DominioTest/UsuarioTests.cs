@@ -1,13 +1,12 @@
 ﻿using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 
-namespace WorldCupPlanner.ServicioTests;
+namespace WorldCupPlanner.DominioTests;
 
 
 [TestClass]
 public class UsuarioTests
 {
-    #region Información del Usuario - Tests Básicos
     
     [TestMethod]
     public void CrearUsuario_ConDatosValidos_DebeCrearExitosamente()
@@ -101,9 +100,7 @@ public class UsuarioTests
         );
     }
 
-    #endregion
 
-    #region Contrasenia - Tests de Validación
 
     [TestMethod]
     public void EstablecerContrasenia_ConContrasesiaValida_DebeEstablecerseExitosamente()
@@ -280,9 +277,7 @@ public class UsuarioTests
         }
     }
 
-    #endregion
 
-    #region Roles - Tests de Gestión de Roles
 
     [TestMethod]
     public void AgregarRol_ConRolAdministrador_DebeAgregarse()
@@ -399,9 +394,90 @@ public class UsuarioTests
         Assert.IsFalse(usuario.TieneRol(RolUsuario.Editor));
     }
 
-    #endregion
+    [TestMethod]
+    public void ActualizarNombre_ConNombreValido_ActualizaElNombre()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
 
-    #region Métodos Helper
+        // Act
+        usuario.ActualizarNombre("Carlos");
+
+        // Assert
+        Assert.AreEqual("Carlos", usuario.Nombre);
+    }
+
+    [TestMethod]
+    public void ActualizarNombre_ConNombreVacio_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarNombre(string.Empty));
+    }
+
+    [TestMethod]
+    public void ActualizarApellido_ConApellidoValido_ActualizaElApellido()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.ActualizarApellido("García");
+
+        // Assert
+        Assert.AreEqual("García", usuario.Apellido);
+    }
+
+    [TestMethod]
+    public void ActualizarEmail_ConEmailValido_ActualizaElEmail()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.ActualizarEmail("newemail@example.com");
+
+        // Assert
+        Assert.AreEqual("newemail@example.com", usuario.Email);
+    }
+
+    [TestMethod]
+    public void ActualizarEmail_ConEmailInvalido_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarEmail("email_invalido"));
+    }
+
+    [TestMethod]
+    public void ActualizarFechaNacimiento_ConFechaValida_ActualizaLaFecha()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var nuevaFecha = new DateTime(1995, 5, 15);
+
+        // Act
+        usuario.ActualizarFechaNacimiento(nuevaFecha);
+
+        // Assert
+        Assert.AreEqual(nuevaFecha, usuario.FechaNacimiento);
+    }
+
+    [TestMethod]
+    public void ActualizarFechaNacimiento_ConFechaFutura_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var fechaFutura = DateTime.Now.AddYears(1);
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarFechaNacimiento(fechaFutura));
+    }
+
 
     private Usuario CrearUsuarioValido()
     {
@@ -413,5 +489,4 @@ public class UsuarioTests
         );
     }
 
-    #endregion
 }

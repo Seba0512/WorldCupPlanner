@@ -7,7 +7,6 @@ namespace WorldCupPlanner.DominioTests;
 [TestClass]
 public class GrupoTests
 {
-    #region Constructor - Validación de Etiqueta
 
     [TestMethod]
     public void Grupo_ConEtiquetaVacia_DebeLanzarExcepcion()
@@ -45,9 +44,7 @@ public class GrupoTests
         );
     }
 
-    #endregion
 
-    #region Constructor - Validación de Equipos
 
     [TestMethod]
     public void Grupo_ConMasDeCuatroEquipos_DebeLanzarExcepcion()
@@ -68,9 +65,7 @@ public class GrupoTests
         );
     }
 
-    #endregion
 
-    #region Validación - Equipos Válidos y Confederaciones
 
     [TestMethod]
     public void Grupo_ConEtiquetaValida_YCuatroEquiposValidos_EsValido()
@@ -261,9 +256,7 @@ public class GrupoTests
         Assert.IsFalse(resultado);
     }
 
-    #endregion
 
-    #region Métodos Helper
 
     private Grupo CrearGrupoValido(string etiqueta = "A")
     {
@@ -283,5 +276,4 @@ public class GrupoTests
         return new Equipo { Nombre = nombre, RankingFIFA = 500, Confederacion = confederacion };
     }
 
-    #endregion
 }

@@ -1,20 +1,20 @@
-using System;
-using System.Linq;
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.AccesoADatos.Repositorios;
 using  WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
 public class ServicioEstadio
 {
-    private readonly RepositorioEstadioEnMemoria _repositorioEstadio;
+    private readonly IRepositorio<Estadio> _repositorioEstadio;
 
     public ServicioEstadio()
     {
         _repositorioEstadio = new RepositorioEstadioEnMemoria();
     }
 
-    public ServicioEstadio(RepositorioEstadioEnMemoria repositorioEstadio)
+    public ServicioEstadio(IRepositorio<Estadio> repositorioEstadio)
     {
         _repositorioEstadio = repositorioEstadio;
     }
@@ -22,17 +22,17 @@ public class ServicioEstadio
     public void AgregarEstadio(Estadio estadio)
     {
         if (!estadio.EsValido())
-            throw new Exception("El estadio no es valido.");
-        if (_repositorioEstadio.ObtenerTodos().Any(e => e.Nombre == estadio.Nombre))
-            throw new Exception("Ya existe un estadio con ese nombre.");
+            throw new EntidadInvalidaExcepcion("El estadio no es valido.");
+        if (_repositorioEstadio.Buscar(e => e.Nombre == estadio.Nombre).Count > 0)
+            throw new EntidadYaExistenteExcepcion("Ya existe un estadio con ese nombre.");
         _repositorioEstadio.Agregar(estadio);
     }
 
     public void EditarEstadio(Estadio estadio)
     {
-        var existente = _repositorioEstadio.ObtenerTodos().FirstOrDefault(e => e == estadio);
+        var existente = _repositorioEstadio.Buscar(e => e == estadio).FirstOrDefault();
         if (existente == null)
-            throw new Exception("El estadio no existe.");
+            throw new EntidadInvalidaExcepcion("El estadio no existe.");
         _repositorioEstadio.Actualizar(estadio);
     }
 
@@ -43,6 +43,6 @@ public class ServicioEstadio
 
     public List<Estadio> ObtenerEstadios()
     {
-        return _repositorioEstadio.ObtenerTodos();
+        return _repositorioEstadio.Buscar(_ => true);
     }
 }

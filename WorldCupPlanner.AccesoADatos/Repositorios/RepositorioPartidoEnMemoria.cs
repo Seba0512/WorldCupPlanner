@@ -1,9 +1,10 @@
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using  WorldCupPlanner.Dominio.Entidades;
 
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
-public class RepositorioPartidoEnMemoria
+public class RepositorioPartidoEnMemoria : IRepositorio<Partido>
 {
     private readonly List<Partido> _partidos = new();
 
@@ -29,8 +30,8 @@ public class RepositorioPartidoEnMemoria
         _partidos.Remove(partido);
     }
 
-    public List<Partido> ObtenerTodos()
+    public List<Partido> Buscar(Func<Partido, bool> predicado)
     {
-        return _partidos.ToList();
+        return _partidos.Where(predicado).ToList();
     }
 }
