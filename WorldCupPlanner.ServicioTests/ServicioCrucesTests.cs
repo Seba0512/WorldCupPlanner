@@ -504,4 +504,27 @@ public class ServicioCrucesTests
         // Assert
         Assert.IsTrue(octavos.All(p => p.Fase == FaseTorneo.Octavos));
     }
+    
+    [TestMethod]
+    public void GenerarOctavos_DebeAsignarIdsIncrementalesLuegoDePrimeraRonda()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var partidosPrimeraRonda = CrearPartidosPrimeraRondaJugados();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var octavos = servicioCruces.GenerarOctavos(
+            partidosPrimeraRonda,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var idsEsperados = Enumerable.Range(17, 8).ToList();
+        var idsObtenidos = octavos.Select(p => p.Id).ToList();
+
+        CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
+    }
 }
