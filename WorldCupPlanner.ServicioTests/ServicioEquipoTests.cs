@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
@@ -55,7 +56,7 @@ public class ServicioEquipoTests
         _servicio.AgregarEquipo(equipo1);
 
         // Assert
-        Assert.ThrowsException<Exception>(() => _servicio.AgregarEquipo(equipo2));
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.AgregarEquipo(equipo2));
     }
     
     [TestMethod]
@@ -70,7 +71,7 @@ public class ServicioEquipoTests
         };
 
         // Act y1 Assert
-        Assert.ThrowsException<Exception>(() => _servicio.AgregarEquipo(equipo));
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.AgregarEquipo(equipo));
     }
     
     [TestMethod]
@@ -108,7 +109,7 @@ public class ServicioEquipoTests
         equipo.Nombre = "";
 
         // Assert
-        Assert.ThrowsException<Exception>(() => _servicio.EditarEquipo(equipo));
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.EditarEquipo(equipo));
     }
     
     [TestMethod]
@@ -134,6 +135,6 @@ public class ServicioEquipoTests
         equipo2.Nombre = "Uruguay";
 
         // Assert
-        Assert.ThrowsException<Exception>(() => _servicio.EditarEquipo(equipo2));
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.EditarEquipo(equipo2));
     }
 }

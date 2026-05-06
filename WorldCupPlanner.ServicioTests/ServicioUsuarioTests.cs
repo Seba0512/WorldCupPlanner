@@ -2,6 +2,7 @@
 using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
@@ -191,7 +192,7 @@ public sealed class ServicioUsuarioTests
         var usuario = CrearUsuarioValido("juan@example.com");
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() => _servicio.ActualizarUsuario(usuario));
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.ActualizarUsuario(usuario));
     }
 
     [TestMethod]

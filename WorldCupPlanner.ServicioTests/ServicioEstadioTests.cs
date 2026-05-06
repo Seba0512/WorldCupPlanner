@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using  WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
@@ -54,7 +55,7 @@ public class ServicioEstadioTests
         _servicio.AgregarEstadio(estadio1);
 
         // Assert
-        Assert.ThrowsException<Exception>(() => _servicio.AgregarEstadio(estadio2));
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.AgregarEstadio(estadio2));
     }
     
     [TestMethod]
@@ -69,7 +70,7 @@ public class ServicioEstadioTests
         };
 
         // Act yAssert
-        Assert.ThrowsException<Exception>(() => _servicio.AgregarEstadio(estadio));
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.AgregarEstadio(estadio));
     }
     
     [TestMethod]

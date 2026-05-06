@@ -22,9 +22,9 @@ namespace WorldCupPlanner.Servicios
         public void AgregarEquipo(Equipo equipo)
         {
             if (!equipo.EsValido())
-                throw new Exception("El equipo no es valido.");
+                throw new EntidadInvalidaExcepcion("El equipo no es valido.");
             if (_repositorio.Buscar(e => e.Nombre == equipo.Nombre).Count > 0)
-                throw new Exception("Ya existe un equipo con ese nombre.");
+                throw new EntidadYaExistenteExcepcion("Ya existe un equipo con ese nombre.");
             _repositorio.Agregar(equipo);
         }
 
@@ -43,6 +43,11 @@ namespace WorldCupPlanner.Servicios
         public void EliminarEquipo(Equipo equipo)
         {
             _repositorio.Eliminar(equipo);
+        }
+
+        public List<Equipo> ObtenerEquipos()
+        {
+            return _repositorio.Buscar(_ => true);
         }
     }
 }

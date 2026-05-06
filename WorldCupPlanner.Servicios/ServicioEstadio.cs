@@ -40,4 +40,9 @@ public class ServicioEstadio
     {
         _repositorioEstadio.Eliminar(estadio);
     }
+
+    public List<Estadio> ObtenerEstadios()
+    {
+        return _repositorioEstadio.Buscar(_ => true);
+    }
 }

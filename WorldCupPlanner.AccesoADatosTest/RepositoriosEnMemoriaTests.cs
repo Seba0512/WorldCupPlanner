@@ -1,3 +1,7 @@
+using WorldCupPlanner.AccesoADatos.Repositorios;
+using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
+
 namespace WorldCupPlanner.AccesoADatosTest;
 
 [TestClass]
@@ -11,8 +15,8 @@ public class RepositoriosEnMemoriaTests
 
         repositorio.Agregar(equipo);
 
-        Assert.AreEqual(1, repositorio.ObtenerTodos().Count);
-        Assert.AreEqual(equipo, repositorio.ObtenerTodos().First());
+        Assert.AreEqual(1, repositorio.Buscar(_ => true).Count);
+        Assert.AreEqual(equipo, repositorio.Buscar(_ => true).First());
     }
 
     [TestMethod]
@@ -24,7 +28,7 @@ public class RepositoriosEnMemoriaTests
 
         repositorio.Eliminar(equipo);
 
-        Assert.AreEqual(0, repositorio.ObtenerTodos().Count);
+        Assert.AreEqual(0, repositorio.Buscar(_ => true).Count);
     }
 
     [TestMethod]
@@ -37,7 +41,7 @@ public class RepositoriosEnMemoriaTests
 
         repositorio.Actualizar(estadio);
 
-        Assert.AreEqual("Estadio Olimpico", repositorio.ObtenerTodos().First().Nombre);
+        Assert.AreEqual("Estadio Olimpico", repositorio.Buscar(_ => true).First().Nombre);
     }
 
     [TestMethod]
@@ -48,8 +52,8 @@ public class RepositoriosEnMemoriaTests
 
         repositorio.Agregar(grupo);
 
-        Assert.AreEqual(1, repositorio.ObtenerTodos().Count);
-        Assert.AreEqual(grupo, repositorio.ObtenerTodos().First());
+        Assert.AreEqual(1, repositorio.Buscar(_ => true).Count);
+        Assert.AreEqual(grupo, repositorio.Buscar(_ => true).First());
     }
 
     [TestMethod]
@@ -60,8 +64,8 @@ public class RepositoriosEnMemoriaTests
 
         repositorio.Agregar(partido);
 
-        Assert.AreEqual(1, repositorio.ObtenerTodos().Count);
-        Assert.AreEqual(partido, repositorio.ObtenerTodos().First());
+        Assert.AreEqual(1, repositorio.Buscar(_ => true).Count);
+        Assert.AreEqual(partido, repositorio.Buscar(_ => true).First());
     }
 
     [TestMethod]
@@ -72,8 +76,8 @@ public class RepositoriosEnMemoriaTests
 
         repositorio.Agregar(usuario);
 
-        Assert.AreEqual(1, repositorio.ObtenerTodos().Count);
-        Assert.AreSame(usuario, repositorio.ObtenerTodos().First());
+        Assert.AreEqual(1, repositorio.Buscar(_ => true).Count);
+        Assert.AreSame(usuario, repositorio.Buscar(_ => true).First());
     }
 
     [TestMethod]
@@ -88,7 +92,7 @@ public class RepositoriosEnMemoriaTests
         repositorio.Agregar(usuario2);
         repositorio.Agregar(usuario3);
 
-        Assert.AreEqual(3, repositorio.ObtenerTodos().Count);
+        Assert.AreEqual(3, repositorio.Buscar(_ => true).Count);
     }
 
     [TestMethod]
@@ -101,7 +105,7 @@ public class RepositoriosEnMemoriaTests
 
         repositorio.Actualizar(usuario);
 
-        Assert.IsTrue(repositorio.ObtenerTodos().First().TieneRol(RolUsuario.AdministradorDelSistema));
+        Assert.IsTrue(repositorio.Buscar(_ => true).First().TieneRol(RolUsuario.AdministradorDelSistema));
     }
 
     [TestMethod]
@@ -122,7 +126,7 @@ public class RepositoriosEnMemoriaTests
 
         repositorio.Eliminar(usuario);
 
-        Assert.AreEqual(0, repositorio.ObtenerTodos().Count);
+        Assert.AreEqual(0, repositorio.Buscar(_ => true).Count);
     }
 
     [TestMethod]
@@ -133,28 +137,28 @@ public class RepositoriosEnMemoriaTests
 
         repositorio.Eliminar(usuario);
 
-        Assert.AreEqual(0, repositorio.ObtenerTodos().Count);
+        Assert.AreEqual(0, repositorio.Buscar(_ => true).Count);
     }
 
     [TestMethod]
-    public void RepositorioUsuarioEnMemoria_ObtenerTodosSinUsuarios_DevuelveListaVacia()
+    public void RepositorioUsuarioEnMemoria_BuscarTodosSinUsuarios_DevuelveListaVacia()
     {
         var repositorio = new RepositorioUsuarioEnMemoria();
 
-        var usuarios = repositorio.ObtenerTodos();
+        var usuarios = repositorio.Buscar(_ => true);
 
         Assert.AreEqual(0, usuarios.Count);
     }
 
     [TestMethod]
-    public void RepositorioUsuarioEnMemoria_ObtenerTodos_DevuelveCopia()
+    public void RepositorioUsuarioEnMemoria_BuscarTodos_DevuelveCopia()
     {
         var repositorio = new RepositorioUsuarioEnMemoria();
         var usuario = CrearUsuarioValido("juan@example.com");
         repositorio.Agregar(usuario);
 
-        var usuarios1 = repositorio.ObtenerTodos();
-        var usuarios2 = repositorio.ObtenerTodos();
+        var usuarios1 = repositorio.Buscar(_ => true);
+        var usuarios2 = repositorio.Buscar(_ => true);
 
         Assert.AreNotSame(usuarios1, usuarios2);
         Assert.AreEqual(usuarios1.Count, usuarios2.Count);
