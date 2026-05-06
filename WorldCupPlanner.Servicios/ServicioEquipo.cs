@@ -1,52 +1,48 @@
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios
 {
     public class ServicioEquipo
     {
-        private readonly IRepositorioEquipo _repositorioEquipo;
+        private readonly IRepositorio<Equipo> _repositorio;
 
         public ServicioEquipo()
         {
-            _repositorioEquipo = new RepositorioEquipoEnMemoria();
+            _repositorio = new RepositorioEquipoEnMemoria();
         }
 
-        public ServicioEquipo(IRepositorioEquipo repositorioEquipo)
+        public ServicioEquipo(IRepositorio<Equipo> repositorio)
         {
-            _repositorioEquipo = repositorioEquipo;
+            _repositorio = repositorio;
         }
 
         public void AgregarEquipo(Equipo equipo)
         {
             if (!equipo.EsValido())
                 throw new Exception("El equipo no es valido.");
-            if (_repositorioEquipo.ObtenerTodos().Any(e => e.Nombre == equipo.Nombre))
+            if (_repositorio.Buscar(e => e.Nombre == equipo.Nombre).Count > 0)
                 throw new Exception("Ya existe un equipo con ese nombre.");
-            _repositorioEquipo.Agregar(equipo);
+            _repositorio.Agregar(equipo);
         }
 
         public void EditarEquipo(Equipo equipo)
         {
             if (!equipo.EsValido())
-                throw new Exception("El equipo no es valido.");
-            if (_repositorioEquipo.ObtenerTodos().Any(e => e.Nombre == equipo.Nombre && e != equipo))
-                throw new Exception("Ya existe un equipo con ese nombre.");
-            var existente = _repositorioEquipo.ObtenerTodos().FirstOrDefault(e => e == equipo);
+                throw new EntidadInvalidaExcepcion("El equipo no es valido.");
+            if (_repositorio.Buscar(e => e.Nombre == equipo.Nombre && e != equipo).Count > 0)
+                throw new EntidadYaExistenteExcepcion("Ya existe un equipo con ese nombre.");
+            var existente = _repositorio.Buscar(e => e == equipo).FirstOrDefault();
             if (existente == null)
-                throw new Exception("El equipo no existe.");
-            _repositorioEquipo.Actualizar(equipo);
+                throw new EntidadInvalidaExcepcion("El equipo no existe.");
+            _repositorio.Actualizar(equipo);
         }
 
         public void EliminarEquipo(Equipo equipo)
         {
-            _repositorioEquipo.Eliminar(equipo);
-        }
-
-        public List<Equipo> ObtenerEquipos()
-        {
-            return _repositorioEquipo.ObtenerTodos();
+            _repositorio.Eliminar(equipo);
         }
     }
 }

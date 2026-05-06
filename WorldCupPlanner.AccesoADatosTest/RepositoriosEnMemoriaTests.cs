@@ -1,10 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Linq;
-using WorldCupPlanner.AccesoADatos.Repositorios;
-using  WorldCupPlanner.Dominio.Entidades;
-using WorldCupPlanner.Dominio.Enumeraciones;
-
-namespace WorldCupPlanner.ServicioTests;
+namespace WorldCupPlanner.AccesoADatosTest;
 
 [TestClass]
 public class RepositoriosEnMemoriaTests

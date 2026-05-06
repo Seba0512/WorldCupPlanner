@@ -1,8 +1,9 @@
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using  WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
-public class RepositorioGrupoEnMemoria
+public class RepositorioGrupoEnMemoria : IRepositorio<Grupo>
 {
     private readonly List<Grupo> _grupos = new();
 
@@ -28,8 +29,8 @@ public class RepositorioGrupoEnMemoria
         _grupos.Remove(grupo);
     }
 
-    public List<Grupo> ObtenerTodos()
+    public List<Grupo> Buscar(Func<Grupo, bool> predicado)
     {
-        return _grupos.ToList();
+        return _grupos.Where(predicado).ToList();
     }
 }

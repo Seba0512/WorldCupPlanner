@@ -3,7 +3,7 @@ using WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
-public class RepositorioEquipoEnMemoria : IRepositorioEquipo
+public class RepositorioEquipoEnMemoria : IRepositorio<Equipo>
 {
     private readonly List<Equipo> _equipos = new();
 
@@ -29,8 +29,8 @@ public class RepositorioEquipoEnMemoria : IRepositorioEquipo
         _equipos.Remove(equipo);
     }
 
-    public List<Equipo> ObtenerTodos()
+    public List<Equipo> Buscar(Func<Equipo, bool> predicado)
     {
-        return _equipos.ToList();
+        return _equipos.Where(predicado).ToList();
     }
 }

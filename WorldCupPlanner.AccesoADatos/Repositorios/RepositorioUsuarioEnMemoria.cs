@@ -1,8 +1,9 @@
-﻿using WorldCupPlanner.Dominio.Entidades;
+﻿using WorldCupPlanner.AccesoADatos.Interfaces;
+using WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
-public class RepositorioUsuarioEnMemoria
+public class RepositorioUsuarioEnMemoria : IRepositorio<Usuario>
 {
     private readonly List<Usuario> _usuarios = new();
 
@@ -28,9 +29,9 @@ public class RepositorioUsuarioEnMemoria
         _usuarios.Remove(usuario);
     }
 
-    public List<Usuario> ObtenerTodos()
+    public List<Usuario> Buscar(Func<Usuario, bool> predicado)
     {
-        return _usuarios.ToList();
+        return _usuarios.Where(predicado).ToList();
     }
 
     public Usuario? ObtenerPorEmail(string email)
