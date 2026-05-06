@@ -1,6 +1,7 @@
 ﻿using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -22,12 +23,12 @@ public class ServicioUsuario
     public void ActualizarUsuario(Usuario usuario, string? nombre = null, string? apellido = null, 
         string? email = null, DateTime? fechaNacimiento = null)
     {
-        var usuarioActual = _repositorio.ObtenerTodos()
-            .FirstOrDefault(u => ReferenceEquals(u, usuario));
+        var usuarioActual = _repositorio.Buscar(u => ReferenceEquals(u, usuario))
+            .FirstOrDefault();
 
         if (usuarioActual == null)
         {
-            throw new InvalidOperationException("El usuario no existe en el sistema.");
+            throw new EntidadInvalidaExcepcion("El usuario no existe en el sistema.");
         }
 
         if (email != null && !email.Equals(usuarioActual.Email, StringComparison.OrdinalIgnoreCase))
@@ -61,7 +62,7 @@ public class ServicioUsuario
 
     public List<Usuario> ObtenerTodosLosUsuarios()
     {
-        return _repositorio.ObtenerTodos();
+        return _repositorio.Buscar(_ => true);
     }
 
     public Usuario? ObtenerPorEmail(string email)
