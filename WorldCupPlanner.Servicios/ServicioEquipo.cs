@@ -28,16 +28,19 @@ namespace WorldCupPlanner.Servicios
             _repositorio.Agregar(equipo);
         }
 
-        public void EditarEquipo(Equipo equipo)
+        public void EditarEquipo(Equipo equipo, string nombreOriginal)
         {
             if (!equipo.EsValido())
                 throw new EntidadInvalidaExcepcion("El equipo no es valido.");
-            if (_repositorio.Buscar(e => e.Nombre == equipo.Nombre && e != equipo).Count > 0)
+            if (_repositorio.Buscar(e => e.Nombre == equipo.Nombre && e.Nombre != nombreOriginal).Count > 0)
                 throw new EntidadYaExistenteExcepcion("Ya existe un equipo con ese nombre.");
-            var existente = _repositorio.Buscar(e => e == equipo).FirstOrDefault();
+            var existente = _repositorio.Buscar(e => e.Nombre == nombreOriginal).FirstOrDefault();
             if (existente == null)
                 throw new EntidadInvalidaExcepcion("El equipo no existe.");
-            _repositorio.Actualizar(equipo);
+            existente.Nombre = equipo.Nombre;
+            existente.Confederacion = equipo.Confederacion;
+            existente.RankingFIFA = equipo.RankingFIFA;
+            _repositorio.Actualizar(existente);
         }
 
         public void EliminarEquipo(Equipo equipo)

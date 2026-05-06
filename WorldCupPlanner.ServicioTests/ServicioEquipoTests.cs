@@ -109,7 +109,7 @@ public class ServicioEquipoTests
         equipo.Nombre = "";
 
         // Assert
-        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.EditarEquipo(equipo));
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.EditarEquipo(equipo, "Uruguay"));
     }
     
     [TestMethod]
@@ -135,6 +135,6 @@ public class ServicioEquipoTests
         equipo2.Nombre = "Uruguay";
 
         // Assert
-        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.EditarEquipo(equipo2));
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.EditarEquipo(equipo2, "Argentina"));
     }
 }

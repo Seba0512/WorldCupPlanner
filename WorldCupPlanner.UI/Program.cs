@@ -15,6 +15,7 @@ builder.Services.AddSingleton<IAuditoria, RepositorioAuditoriaEnMemoria>();
 builder.Services.AddSingleton<ServicioAuditoria>();
 builder.Services.AddSingleton<RepositorioEstadioEnMemoria>();
 builder.Services.AddSingleton<ServicioEstadio>();
+builder.Services.AddSingleton<ServicioEquipo>();
 
 var app = builder.Build();
 
