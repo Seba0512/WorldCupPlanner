@@ -352,4 +352,67 @@ public class ServicioCrucesTests
 
         return equipos;
     }
+    
+    private List<Partido> CrearPartidosPrimeraRondaJugados(int cantidad)
+    {
+        var partidos = new List<Partido>();
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio",
+            Ciudad = "Ciudad",
+            Capacidad = 30000
+        };
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = i,
+                EquipoLocal = new Equipo
+                {
+                    Nombre = $"Local{i}",
+                    RankingFIFA = 1000 + i,
+                    Confederacion = Confederacion.UEFA
+                },
+                EquipoVisitante = new Equipo
+                {
+                    Nombre = $"Visitante{i}",
+                    RankingFIFA = 900 + i,
+                    Confederacion = Confederacion.CONMEBOL
+                },
+                Estadio = estadio,
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.PrimeraRondaEliminatoria,
+                GolesLocal = 2,
+                GolesVisitante = 0
+            });
+        }
+
+        return partidos;
+    }
+    
+    [TestMethod]
+    public void GenerarOctavos_Con16PartidosDePrimeraRondaJugados_DebeGenerar8Partidos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var partidosPrimeraRonda = CrearPartidosPrimeraRondaJugados(16);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            FechaInicioTorneo = new DateTime(2026, 6, 1),
+            SeparacionEntreFechas = 3
+        };
+
+        // Act
+        var octavos = servicioCruces.GenerarOctavos(
+            partidosPrimeraRonda,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(8, octavos.Count);
+        Assert.IsTrue(octavos.All(p => p.Fase == FaseTorneo.Octavos));
+    }
 }
