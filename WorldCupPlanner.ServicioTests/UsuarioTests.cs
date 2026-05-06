@@ -394,6 +394,89 @@ public class UsuarioTests
         Assert.IsFalse(usuario.TieneRol(RolUsuario.Editor));
     }
 
+    [TestMethod]
+    public void ActualizarNombre_ConNombreValido_ActualizaElNombre()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.ActualizarNombre("Carlos");
+
+        // Assert
+        Assert.AreEqual("Carlos", usuario.Nombre);
+    }
+
+    [TestMethod]
+    public void ActualizarNombre_ConNombreVacio_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarNombre(string.Empty));
+    }
+
+    [TestMethod]
+    public void ActualizarApellido_ConApellidoValido_ActualizaElApellido()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.ActualizarApellido("García");
+
+        // Assert
+        Assert.AreEqual("García", usuario.Apellido);
+    }
+
+    [TestMethod]
+    public void ActualizarEmail_ConEmailValido_ActualizaElEmail()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.ActualizarEmail("newemail@example.com");
+
+        // Assert
+        Assert.AreEqual("newemail@example.com", usuario.Email);
+    }
+
+    [TestMethod]
+    public void ActualizarEmail_ConEmailInvalido_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarEmail("email_invalido"));
+    }
+
+    [TestMethod]
+    public void ActualizarFechaNacimiento_ConFechaValida_ActualizaLaFecha()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var nuevaFecha = new DateTime(1995, 5, 15);
+
+        // Act
+        usuario.ActualizarFechaNacimiento(nuevaFecha);
+
+        // Assert
+        Assert.AreEqual(nuevaFecha, usuario.FechaNacimiento);
+    }
+
+    [TestMethod]
+    public void ActualizarFechaNacimiento_ConFechaFutura_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var fechaFutura = DateTime.Now.AddYears(1);
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarFechaNacimiento(fechaFutura));
+    }
 
 
     private Usuario CrearUsuarioValido()
