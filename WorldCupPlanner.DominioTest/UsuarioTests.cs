@@ -1,7 +1,7 @@
 ﻿using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 
-namespace WorldCupPlanner.ServicioTests;
+namespace WorldCupPlanner.DominioTests;
 
 
 [TestClass]
