@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\WorldCupPlanner.AccesoADatos\WorldCupPlanner.AccesoADatos.csproj" />
     <ProjectReference Include="..\WorldCupPlanner.Servicios\WorldCupPlanner.Servicios.csproj" />
+    <ProjectReference Include="..\WorldCupPlanner.Dominio\WorldCupPlanner.Dominio.csproj" />
   </ItemGroup>
 
 </Project>

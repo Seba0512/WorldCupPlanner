@@ -28,12 +28,18 @@ public class ServicioEstadio
         _repositorioEstadio.Agregar(estadio);
     }
 
-    public void EditarEstadio(Estadio estadio)
+    public void EditarEstadio(string nombreOriginal, Estadio estadio)
     {
-        var existente = _repositorioEstadio.Buscar(e => e == estadio).FirstOrDefault();
+        if (!estadio.EsValido())
+            throw new EntidadInvalidaExcepcion("El estadio no es valido.");
+        var existente = _repositorioEstadio.Buscar(e => e.Nombre == nombreOriginal).FirstOrDefault();
         if (existente == null)
             throw new EntidadInvalidaExcepcion("El estadio no existe.");
-        _repositorioEstadio.Actualizar(estadio);
+        existente.Nombre = estadio.Nombre;
+        existente.Ciudad = estadio.Ciudad;
+        existente.Capacidad = estadio.Capacidad;
+        existente.Descripcion = estadio.Descripcion;
+        _repositorioEstadio.Actualizar(existente);
     }
 
     public void EliminarEstadio(Estadio estadio)

@@ -105,8 +105,9 @@ public void EliminarEstadio_EstadioExistente_SeEliminaCorrectamente()
         _servicio.AgregarEstadio(estadio);
 
         // Act
+        string nombreOriginal = estadio.Nombre;
         estadio.Nombre = "Estadio Olimpico";
-        _servicio.EditarEstadio(estadio);
+        _servicio.EditarEstadio(nombreOriginal, estadio);
 
         // Assert
         Assert.AreEqual("Estadio Olimpico", _servicio.ObtenerEstadios().First().Nombre);

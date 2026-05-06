@@ -1,0 +1,64 @@
+@page "/estadios/{Nombre}/editar"
+@using WorldCupPlanner.Servicios
+@using WorldCupPlanner.Dominio.Entidades
+@inject ServicioEstadio ServicioEstadio
+@inject NavigationManager NavigationManager
+
+<PageTitle>Editar Estadio</PageTitle>
+<h1>Editar Estadio</h1>
+
+@if (!string.IsNullOrEmpty(errorMensaje))
+{
+    <div class="alert alert-danger">@errorMensaje</div>
+}
+
+<div class="form-group">
+    <label>Nombre</label>
+    <input type="text" class="form-control" @bind="estadio.Nombre" />
+</div>
+<div class="form-group">
+    <label>Ciudad</label>
+    <input type="text" class="form-control" @bind="estadio.Ciudad" />
+</div>
+<div class="form-group">
+    <label>Capacidad</label>
+    <input type="number" class="form-control" @bind="estadio.Capacidad" />
+</div>
+<div class="form-group">
+    <label>Descripción (opcional)</label>
+    <input type="text" class="form-control" @bind="estadio.Descripcion" />
+</div>
+
+<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
+<a href="/estadios" class="btn btn-secondary mt-2">Cancelar</a>
+
+@code {
+    [Parameter] public string Nombre { get; set; } = string.Empty;
+    private Estadio estadio = new();
+    private string errorMensaje = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        var original = ServicioEstadio.ObtenerEstadios().First(e => e.Nombre == Nombre);
+        estadio = new Estadio
+        {
+            Nombre = original.Nombre,
+            Ciudad = original.Ciudad,
+            Capacidad = original.Capacidad,
+            Descripcion = original.Descripcion
+        };
+    }
+
+    private void Guardar()
+    {
+        try
+        {
+            ServicioEstadio.EditarEstadio(Nombre, estadio);
+            NavigationManager.NavigateTo("/estadios");
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = ex.Message;
+        }
+    }
+}

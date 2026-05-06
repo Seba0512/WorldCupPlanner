@@ -11,8 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
-builder.Services.AddSingleton<IAuditoria, LogRepositoryMemoria>();
+builder.Services.AddSingleton<IAuditoria, RepositorioAuditoriaEnMemoria>();
 builder.Services.AddSingleton<ServicioAuditoria>();
+builder.Services.AddSingleton<RepositorioEstadioEnMemoria>();
+builder.Services.AddSingleton<ServicioEstadio>();
 
 var app = builder.Build();
 
