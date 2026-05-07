@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using WorldCupPlanner.Dominio.Enumeraciones;
+﻿using WorldCupPlanner.Dominio.Enumeraciones;
 
 namespace WorldCupPlanner.Dominio.Entidades;
 

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace WorldCupPlanner.Dominio.Entidades;
+﻿namespace WorldCupPlanner.Dominio.Entidades;
 
 public class ClasificadosFaseGrupos
 {

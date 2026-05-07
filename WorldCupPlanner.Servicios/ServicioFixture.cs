@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using  WorldCupPlanner.Dominio.Entidades;
+﻿using  WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 
 namespace WorldCupPlanner.Servicios;
