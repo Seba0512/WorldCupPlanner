@@ -1,11 +1,12 @@
-﻿using WorldCupPlanner.AccesoADatos.Repositorios;
+﻿using WorldCupPlanner.AccesoADatos.Interfaces;
+using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
-public class ServicioUsuario
+public class ServicioUsuario : IRepositorio<Usuario>
 {
     private readonly RepositorioUsuarioEnMemoria _repositorio;
     private readonly ServicioAuditoria _auditoria;
@@ -135,5 +136,21 @@ public class ServicioUsuario
         _auditoria.Registrar(usuario.Email, "LOGIN_EXITOSO", $"Login exitoso: {email}");
         return usuario;
     }
+
+    public void Agregar(Usuario entidad) => AgregarUsuario(entidad);
+
+    public void Actualizar(Usuario entidad)
+    {
+        if (entidad == null)
+            throw new EntidadInvalidaExcepcion("El usuario no puede ser nulo.");
+        var existente = _repositorio.Buscar(u => ReferenceEquals(u, entidad)).FirstOrDefault();
+        if (existente == null)
+            throw new EntidadInexistenteExcepcion("El usuario no existe en el sistema.");
+        _repositorio.Actualizar(existente);
+    }
+
+    public void Eliminar(Usuario entidad) => EliminarUsuario(entidad);
+
+    public List<Usuario> Buscar(Func<Usuario, bool> predicado) => _repositorio.Buscar(predicado);
 }
 

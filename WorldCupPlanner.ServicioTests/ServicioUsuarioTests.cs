@@ -471,6 +471,109 @@ public sealed class ServicioUsuarioTests
         );
     }
 
+    // IRepositorio<Usuario>
+
+    [TestMethod]
+    public void Agregar_UsuarioValido_SeAgregaAlRepositorio()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+
+        // Act
+        _servicio.Agregar(usuario);
+
+        // Assert
+        Assert.AreEqual(1, _servicio.ObtenerTodosLosUsuarios().Count);
+    }
+
+    [TestMethod]
+    public void Agregar_EmailDuplicado_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario1 = CrearUsuarioValido("juan@example.com");
+        var usuario2 = CrearUsuarioValido("juan@example.com");
+        _servicio.Agregar(usuario1);
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() => _servicio.Agregar(usuario2));
+    }
+
+    [TestMethod]
+    public void Actualizar_UsuarioExistente_PersisteCambios()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+
+        // Act
+        _servicio.Actualizar(usuario);
+
+        // Assert
+        Assert.IsTrue(_servicio.Buscar(u => u.Email == "juan@example.com").First().TieneRol(RolUsuario.AdministradorDelSistema));
+    }
+
+    [TestMethod]
+    public void Actualizar_UsuarioNoExistente_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInexistenteExcepcion>(() => _servicio.Actualizar(usuario));
+    }
+
+    [TestMethod]
+    public void Actualizar_UsuarioNulo_LanzaExcepcion()
+    {
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.Actualizar(null!));
+    }
+
+    [TestMethod]
+    public void Eliminar_UsuarioExistente_SeEliminaDelRepositorio()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act
+        _servicio.Eliminar(usuario);
+
+        // Assert
+        Assert.AreEqual(0, _servicio.ObtenerTodosLosUsuarios().Count);
+    }
+
+    [TestMethod]
+    public void Buscar_ConPredicadoCoincidente_DevuelveUsuariosCorrespondientes()
+    {
+        // Arrange
+        var admin = CrearUsuarioValido("admin@example.com");
+        admin.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarUsuario(admin);
+        _servicio.AgregarUsuario(CrearUsuarioValido("editor@example.com"));
+
+        // Act
+        var resultado = _servicio.Buscar(u => u.TieneRol(RolUsuario.AdministradorDelSistema));
+
+        // Assert
+        Assert.AreEqual(1, resultado.Count);
+        Assert.AreSame(admin, resultado[0]);
+    }
+
+    [TestMethod]
+    public void Buscar_SinCoincidencias_DevuelveListaVacia()
+    {
+        // Arrange
+        _servicio.AgregarUsuario(CrearUsuarioValido("juan@example.com"));
+
+        // Act
+        var resultado = _servicio.Buscar(u => u.TieneRol(RolUsuario.AdministradorDelSistema));
+
+        // Assert
+        Assert.AreEqual(0, resultado.Count);
+    }
+
     private static Usuario CrearUsuarioValido(string email)
     {
         return new Usuario(new DatosUsuario
