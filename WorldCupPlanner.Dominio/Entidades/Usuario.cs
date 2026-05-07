@@ -53,9 +53,18 @@ public class Usuario
 
     private static void ValidarEmail(string email)
     {
+        ValidarEmailNoVacio(email);
+        ValidarFormatoEmail(email);
+    }
+
+    private static void ValidarEmailNoVacio(string email)
+    {
         if (string.IsNullOrWhiteSpace(email))
             throw new ArgumentException("El email no puede estar vacío.", nameof(email));
+    }
 
+    private static void ValidarFormatoEmail(string email)
+    {
         if (!Regex.IsMatch(email, PatronEmail))
             throw new ArgumentException("El email no es válido.", nameof(email));
     }
