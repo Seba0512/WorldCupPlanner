@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using WorldCupPlanner.UI.Data;
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.AccesoADatos.Repositorios;
+using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Servicios;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,9 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
-builder.Services.AddSingleton<IAuditoria, LogRepositoryMemoria>();
+builder.Services.AddSingleton<IRepositorioConId<Auditoria>, RepositorioAuditoriaEnMemoria>();
+builder.Services.AddSingleton<IRepositorio<Equipo>, RepositorioEquipoEnMemoria>();
+builder.Services.AddSingleton<IRepositorio<Estadio>, RepositorioEstadioEnMemoria>();
 builder.Services.AddSingleton<ServicioAuditoria>();
-builder.Services.AddSingleton<RepositorioEstadioEnMemoria>();
 builder.Services.AddSingleton<ServicioEstadio>();
 builder.Services.AddSingleton<ServicioEquipo>();
 
