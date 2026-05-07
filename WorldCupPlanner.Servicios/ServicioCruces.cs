@@ -323,6 +323,7 @@ public class ServicioCruces
         ConfiguracionTorneo configuracionTorneo)
     {
         ValidarCantidadOctavos(octavos);
+        ValidarFaseOctavos(octavos);
 
         var ganadores = octavos
             .Select(p => p.Ganador())
@@ -354,6 +355,14 @@ public class ServicioCruces
         if (octavos.Count != 8)
         {
             throw new EntidadInvalidaExcepcion("Para generar cuartos deben existir exactamente 8 partidos de octavos.");
+        }
+    }
+
+    private void ValidarFaseOctavos(List<Partido> octavos)
+    {
+        if (octavos.Any(p => p.Fase != FaseTorneo.Octavos))
+        {
+            throw new EntidadInvalidaExcepcion("Para generar cuartos todos los partidos deben ser de octavos.");
         }
     }
 
