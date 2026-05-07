@@ -1,4 +1,3 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using  WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
