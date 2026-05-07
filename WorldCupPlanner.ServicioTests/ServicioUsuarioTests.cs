@@ -15,7 +15,8 @@ public sealed class ServicioUsuarioTests
     public ServicioUsuarioTests()
     {
         _repositorio = new RepositorioUsuarioEnMemoria();
-        _servicio = new ServicioUsuario(_repositorio);
+        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaEnMemoria());
+        _servicio = new ServicioUsuario(_repositorio, auditoria);
     }
 
     [TestMethod]

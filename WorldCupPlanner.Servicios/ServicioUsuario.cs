@@ -8,20 +8,23 @@ namespace WorldCupPlanner.Servicios;
 public class ServicioUsuario
 {
     private readonly RepositorioUsuarioEnMemoria _repositorio;
+    private readonly ServicioAuditoria _auditoria;
 
-    public ServicioUsuario(RepositorioUsuarioEnMemoria repositorio)
+    public ServicioUsuario(RepositorioUsuarioEnMemoria repositorio, ServicioAuditoria auditoria)
     {
         _repositorio = repositorio;
+        _auditoria = auditoria;
     }
 
-    public void AgregarUsuario(Usuario usuario)
+    public void AgregarUsuario(Usuario usuario, string? ejecutadoPor = null)
     {
         ValidarEmailUnico(usuario.Email);
         _repositorio.Agregar(usuario);
+        _auditoria.Registrar(ejecutadoPor ?? "sistema", "ALTA_USUARIO", $"Usuario creado: {usuario.Email}");
     }
-    
+
     public void ActualizarUsuario(Usuario usuario, string? nombre = null, string? apellido = null,
-        string? email = null, string? fechaNacimiento = null)
+        string? email = null, string? fechaNacimiento = null, string? ejecutadoPor = null)
     {
         var usuarioActual = _repositorio.Buscar(u => ReferenceEquals(u, usuario))
             .FirstOrDefault();
@@ -31,33 +34,45 @@ public class ServicioUsuario
             throw new EntidadInvalidaExcepcion("El usuario no existe en el sistema.");
         }
 
+        var campos = new List<string>();
+
         if (email != null && !email.Equals(usuarioActual.Email, StringComparison.OrdinalIgnoreCase))
         {
             ValidarEmailUnico(email);
             usuarioActual.ActualizarEmail(email);
+            campos.Add($"email: {email}");
         }
 
         if (nombre != null)
         {
             usuarioActual.ActualizarNombre(nombre);
+            campos.Add($"nombre: {nombre}");
         }
 
         if (apellido != null)
         {
             usuarioActual.ActualizarApellido(apellido);
+            campos.Add($"apellido: {apellido}");
         }
 
         if (fechaNacimiento != null)
         {
             usuarioActual.ActualizarFechaNacimiento(fechaNacimiento);
+            campos.Add($"fechaNacimiento: {fechaNacimiento}");
         }
 
         _repositorio.Actualizar(usuarioActual);
+
+        var detalle = campos.Count > 0
+            ? $"Campos modificados en {usuarioActual.Email}: {string.Join(", ", campos)}"
+            : $"Sin cambios efectivos en {usuarioActual.Email}";
+        _auditoria.Registrar(ejecutadoPor ?? usuarioActual.Email, "EDICION_USUARIO", detalle);
     }
 
-    public void EliminarUsuario(Usuario usuario)
+    public void EliminarUsuario(Usuario usuario, string? ejecutadoPor = null)
     {
         _repositorio.Eliminar(usuario);
+        _auditoria.Registrar(ejecutadoPor ?? "sistema", "BAJA_USUARIO", $"Usuario eliminado: {usuario.Email}");
     }
 
     public List<Usuario> ObtenerTodosLosUsuarios()
@@ -93,6 +108,7 @@ public class ServicioUsuario
         }
 
         GenerarContraseniaDefecto(usuario);
+        _auditoria.Registrar(administrador.Email, "REINICIO_CONTRASENIA", $"Contraseña reiniciada para: {usuario.Email}");
     }
 
     public void CambiarContrasenia(Usuario usuario, string contraseniaAnterior, string nuevaContrasenia)
@@ -103,21 +119,20 @@ public class ServicioUsuario
         }
 
         usuario.EstablecerContrasenia(nuevaContrasenia);
+        _auditoria.Registrar(usuario.Email, "CAMBIO_CONTRASENIA", $"Contraseña cambiada para: {usuario.Email}");
     }
 
     public Usuario Login(string email, string contrasenia)
     {
         var usuario = _repositorio.ObtenerPorEmail(email);
-        if (usuario == null)
+
+        if (usuario == null || !usuario.VerificarContrasenia(contrasenia))
         {
+            _auditoria.Registrar(email, "LOGIN_FALLIDO", $"Intento fallido para: {email}");
             throw new InvalidOperationException("Email o contraseña incorrectos.");
         }
 
-        if (!usuario.VerificarContrasenia(contrasenia))
-        {
-            throw new InvalidOperationException("Email o contraseña incorrectos.");
-        }
-
+        _auditoria.Registrar(usuario.Email, "LOGIN_EXITOSO", $"Login exitoso: {email}");
         return usuario;
     }
 }
