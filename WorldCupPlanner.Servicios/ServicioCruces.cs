@@ -291,6 +291,7 @@ public class ServicioCruces
         ValidarCantidadPartidosPrimeraRonda(partidosPrimeraRonda);
         ValidarFasePrimeraRonda(partidosPrimeraRonda);
         ValidarPartidosPrimeraRondaJugados(partidosPrimeraRonda);
+        ValidarPartidosPrimeraRondaConGanador(partidosPrimeraRonda);
 
         var ganadores = partidosPrimeraRonda
             .Select(p => p.Ganador())
@@ -337,6 +338,14 @@ public class ServicioCruces
         if (partidosPrimeraRonda.Any(p => !p.EstaJugado()))
         {
             throw new EntidadInvalidaExcepcion("No se pueden generar octavos si hay partidos de primera ronda sin jugar.");
+        }
+    }
+
+    private void ValidarPartidosPrimeraRondaConGanador(List<Partido> partidosPrimeraRonda)
+    {
+        if (partidosPrimeraRonda.Any(p => p.Ganador() == null))
+        {
+            throw new EntidadInvalidaExcepcion("No se pueden generar octavos si hay partidos de primera ronda empatados.");
         }
     }
 }
