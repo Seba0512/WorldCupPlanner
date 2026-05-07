@@ -69,15 +69,24 @@ public class Usuario
             throw new ArgumentException("El email no es válido.", nameof(email));
     }
 
+    private static void ValidarFechaNacimientoNoVacia(string fechaNacimiento)
+    {
+        if (string.IsNullOrWhiteSpace(fechaNacimiento))
+            throw new ArgumentException("La fecha de nacimiento no puede estar vacía.", nameof(fechaNacimiento));
+    }
+
+    private static void ValidarFormatoFechaNacimiento(string fechaNacimiento)
+    {
+        if (!Regex.IsMatch(fechaNacimiento, PatronFormatoFecha))
+            throw new ArgumentException("La fecha de nacimiento debe tener el formato MM-DD-AAAA.", nameof(fechaNacimiento));
+    }
+
     private static DateTime ParsearFechaNacimiento(string fechaNacimiento)
     {
         const string formato = "MM-dd-yyyy";
 
-        if (string.IsNullOrWhiteSpace(fechaNacimiento))
-            throw new ArgumentException("La fecha de nacimiento no puede estar vacía.", nameof(fechaNacimiento));
-
-        if (!Regex.IsMatch(fechaNacimiento, PatronFormatoFecha))
-            throw new ArgumentException("La fecha de nacimiento debe tener el formato MM-DD-AAAA.", nameof(fechaNacimiento));
+        ValidarFechaNacimientoNoVacia(fechaNacimiento);
+        ValidarFormatoFechaNacimiento(fechaNacimiento);
 
         if (!DateTime.TryParseExact(fechaNacimiento, formato,
                 System.Globalization.CultureInfo.InvariantCulture,
