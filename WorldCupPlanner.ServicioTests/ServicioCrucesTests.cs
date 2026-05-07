@@ -1,5 +1,6 @@
-﻿using  WorldCupPlanner.Dominio.Entidades;
+using  WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
@@ -585,7 +586,26 @@ public class ServicioCrucesTests
         partidosPrimeraRonda[0].GolesVisitante = null;
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarOctavos(
+                partidosPrimeraRonda,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+
+    [TestMethod]
+    public void GenerarOctavos_ConCantidadDistintaA16Partidos_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var partidosPrimeraRonda = CrearPartidosPrimeraRondaJugados(15);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicioCruces.GenerarOctavos(
                 partidosPrimeraRonda,
                 estadios,

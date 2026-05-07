@@ -1,5 +1,6 @@
 ﻿using  WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -287,9 +288,14 @@ public class ServicioCruces
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
+        if (partidosPrimeraRonda.Count != 16)
+        {
+            throw new EntidadInvalidaExcepcion("Para generar octavos deben existir exactamente 16 partidos de primera ronda.");
+        }
+
         if (partidosPrimeraRonda.Any(p => !p.EstaJugado()))
         {
-            throw new InvalidOperationException("No se pueden generar octavos si hay partidos de primera ronda sin jugar.");
+            throw new EntidadInvalidaExcepcion("No se pueden generar octavos si hay partidos de primera ronda sin jugar.");
         }
 
         var ganadores = partidosPrimeraRonda
