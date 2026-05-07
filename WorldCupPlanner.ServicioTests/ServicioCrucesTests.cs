@@ -715,4 +715,23 @@ public class ServicioCrucesTests
         Assert.AreEqual(4, cuartos.Count);
         Assert.IsTrue(cuartos.All(p => p.Fase == FaseTorneo.Cuartos));
     }
+
+    [TestMethod]
+    public void GenerarCuartos_ConCantidadDistintaA8Octavos_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(7);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarCuartos(
+                octavos,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
 }

@@ -322,6 +322,8 @@ public class ServicioCruces
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
+        ValidarCantidadOctavos(octavos);
+
         var ganadores = octavos
             .Select(p => p.Ganador())
             .ToList();
@@ -345,6 +347,14 @@ public class ServicioCruces
         }
 
         return partidos;
+    }
+
+    private void ValidarCantidadOctavos(List<Partido> octavos)
+    {
+        if (octavos.Count != 8)
+        {
+            throw new EntidadInvalidaExcepcion("Para generar cuartos deben existir exactamente 8 partidos de octavos.");
+        }
     }
 
     private void ValidarCantidadPartidosPrimeraRonda(List<Partido> partidosPrimeraRonda)
