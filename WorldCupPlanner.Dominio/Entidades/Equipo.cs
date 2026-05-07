@@ -6,18 +6,14 @@ namespace WorldCupPlanner.Dominio.Entidades
 	{
 
 		public string Nombre { get; set; } = ""; //arranca vacio por defecto
-		public int RankingFIFA { get; set; } 
+		public int RankingFIFA { get; set; }
 		public Confederacion? Confederacion { get; set; } //puede ser nula
-	
-	public bool EsValido()
-	{
-		return !string.IsNullOrWhiteSpace(Nombre) && Nombre.Length <= 60 && RankingFIFA > 299 && RankingFIFA <2501 && Confederacion.HasValue;
 
-	}
-
-        public Equipo()
+		public bool EsValido()
 		{
-			
+			return !string.IsNullOrWhiteSpace(Nombre) && Nombre.Length <= 60 && RankingFIFA > 299 &&
+			       RankingFIFA < 2501 && Confederacion.HasValue;
+
 		}
 	}
 }
