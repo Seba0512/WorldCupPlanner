@@ -55,7 +55,8 @@
     {
         try
         {
-            var usuario = new Usuario(nombre, apellido, email, fechaNacimiento);
+            var datos = new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento.ToString("MM-dd-yyyy") };
+            var usuario = new Usuario(datos);
             ServicioUsuario.GenerarContraseniaDefecto(usuario);
             if (esAdmin) usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
             if (esEditor) usuario.AgregarRol(RolUsuario.Editor);

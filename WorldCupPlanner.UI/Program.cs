@@ -25,7 +25,7 @@ builder.Services.AddScoped<SesionServicio>();
 var app = builder.Build();
 
 var servicioUsuario = app.Services.GetRequiredService<ServicioUsuario>();
-var admin = new Usuario("Admin", "Admin", "a@a.com", new DateTime(1990, 1, 1));
+var admin = new Usuario(new DatosUsuario { Nombre = "Admin", Apellido = "Admin", Email = "a@a.com", FechaNacimiento = "01-01-1990" });
 admin.EstablecerContrasenia("Admin@2026");
 servicioUsuario.AgregarUsuario(admin);
 
