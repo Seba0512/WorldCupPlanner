@@ -1,4 +1,4 @@
-﻿using  WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -30,7 +30,47 @@ public class ServicioClasificacion
         );
     }
 
-    private Dictionary<Equipo, PosicionEquipo> CrearPosicionesIniciales(Grupo grupo)
+    public ClasificadosFaseGrupos ObtenerClasificadosAFaseEliminatoria(
+        Fixture fixture,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        var tablas = fixture.Grupos
+            .Select(g => CalcularTabla(g, configuracionTorneo))
+            .ToList();
+
+        var primerosOrdenados = OrdenarPosicionesConDesempateDeterministico(
+            tablas.Select(t => t[0]).ToList(),
+            configuracionTorneo.SemillaCrucesFase
+        );
+
+        var segundosOrdenados = OrdenarPosicionesConDesempateDeterministico(
+            tablas.Select(t => t[1]).ToList(),
+            configuracionTorneo.SemillaCrucesFase
+        );
+
+        var mejoresTerceros = OrdenarPosicionesConDesempateDeterministico(
+                tablas.Select(t => t[2]).ToList(),
+                configuracionTorneo.SemillaCrucesFase
+            )
+            .Take(8)
+            .ToList();
+
+        var clasificados = new ClasificadosFaseGrupos
+        {
+            Primeros = primerosOrdenados.Select(p => p.Equipo).ToList(),
+            Segundos = segundosOrdenados.Select(p => p.Equipo).ToList(),
+            MejoresTerceros = mejoresTerceros.Select(p => p.Equipo).ToList()
+        };
+
+        foreach (var posicion in primerosOrdenados.Concat(segundosOrdenados).Concat(mejoresTerceros))
+        {
+            clasificados.GruposDeOrigen[posicion.Equipo] = posicion.Grupo;
+        }
+
+        return clasificados;
+    }
+
+    private static Dictionary<Equipo, PosicionEquipo> CrearPosicionesIniciales(Grupo grupo)
     {
         var posiciones = new Dictionary<Equipo, PosicionEquipo>();
 
@@ -49,7 +89,7 @@ public class ServicioClasificacion
     private static bool PartidoTieneEquipos(Partido partido) =>
         partido.EquipoLocal is not null && partido.EquipoVisitante is not null;
 
-    private void ActualizarPosicionesConPartido(Dictionary<Equipo, PosicionEquipo> posiciones, Partido partido)
+    private static void ActualizarPosicionesConPartido(Dictionary<Equipo, PosicionEquipo> posiciones, Partido partido)
     {
         if (!PartidoTieneEquipos(partido)) return;
 
@@ -65,15 +105,17 @@ public class ServicioClasificacion
         posicionVisitante.GolesAFavor += golesVisitante;
         posicionVisitante.GolesEnContra += golesLocal;
 
-        ActualizarPuntos(posicionLocal, posicionVisitante, golesLocal, golesVisitante);
+        ActualizarPuntos(posicionLocal, posicionVisitante, partido);
     }
 
-    private void ActualizarPuntos(
+    private static void ActualizarPuntos(
         PosicionEquipo posicionLocal,
         PosicionEquipo posicionVisitante,
-        int golesLocal,
-        int golesVisitante)
+        Partido partido)
     {
+        int golesLocal = partido.GolesLocal!.Value;
+        int golesVisitante = partido.GolesVisitante!.Value;
+
         if (golesLocal > golesVisitante)
         {
             posicionLocal.Puntos += PuntosPorVictoria;
@@ -89,7 +131,7 @@ public class ServicioClasificacion
         }
     }
 
-    private List<PosicionEquipo> AplicarDesempateDeterministico(
+    private static List<PosicionEquipo> AplicarDesempateDeterministico(
         List<PosicionEquipo> tablaOrdenada,
         int semillaCrucesFase)
     {
@@ -110,7 +152,7 @@ public class ServicioClasificacion
 
             if (posiciones.Count > 1)
             {
-                posiciones = MezclarConFisherYates(posiciones, random);
+                MezclarConFisherYates(posiciones, random);
             }
 
             tablaFinal.AddRange(posiciones);
@@ -119,67 +161,16 @@ public class ServicioClasificacion
         return tablaFinal;
     }
 
-    private List<PosicionEquipo> MezclarConFisherYates(List<PosicionEquipo> posiciones, Random random)
+    private static void MezclarConFisherYates(List<PosicionEquipo> posiciones, Random random)
     {
         for (int i = posiciones.Count - 1; i > 0; i--)
         {
             int j = random.Next(i + 1);
             (posiciones[i], posiciones[j]) = (posiciones[j], posiciones[i]);
         }
-
-        return posiciones;
     }
-    
-    public ClasificadosFaseGrupos ObtenerClasificadosAFaseEliminatoria(
-        Fixture fixture,
-        ConfiguracionTorneo configuracionTorneo)
-    {
-        var primeros = new List<PosicionEquipo>();
-        var segundos = new List<PosicionEquipo>();
-        var terceros = new List<PosicionEquipo>();
 
-        foreach (var grupo in fixture.Grupos)
-        {
-            var tabla = CalcularTabla(grupo, configuracionTorneo);
-
-            primeros.Add(tabla[0]);
-            segundos.Add(tabla[1]);
-            terceros.Add(tabla[2]);
-        }
-
-        var primerosOrdenados = OrdenarPosicionesConDesempateDeterministico(
-            primeros,
-            configuracionTorneo.SemillaCrucesFase
-        );
-
-        var segundosOrdenados = OrdenarPosicionesConDesempateDeterministico(
-            segundos,
-            configuracionTorneo.SemillaCrucesFase
-        );
-
-        var mejoresTerceros = OrdenarPosicionesConDesempateDeterministico(
-                terceros,
-                configuracionTorneo.SemillaCrucesFase
-            )
-            .Take(8)
-            .ToList();
-
-        var clasificados = new ClasificadosFaseGrupos
-        {
-            Primeros = primerosOrdenados.Select(p => p.Equipo).ToList(),
-            Segundos = segundosOrdenados.Select(p => p.Equipo).ToList(),
-            MejoresTerceros = mejoresTerceros.Select(p => p.Equipo).ToList()
-        };
-
-        foreach (var posicion in primerosOrdenados.Concat(segundosOrdenados).Concat(mejoresTerceros))
-        {
-            clasificados.GruposDeOrigen[posicion.Equipo] = posicion.Grupo;
-        }
-
-        return clasificados;
-    }
-    
-    private List<PosicionEquipo> OrdenarPosicionesConDesempateDeterministico(
+    private static List<PosicionEquipo> OrdenarPosicionesConDesempateDeterministico(
         List<PosicionEquipo> posiciones,
         int semillaCrucesFase)
     {

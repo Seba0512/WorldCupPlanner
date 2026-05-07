@@ -32,7 +32,7 @@ public class ServicioEstadio
     {
         if (!estadio.EsValido())
             throw new EntidadInvalidaExcepcion("El estadio no es valido.");
-        var existente = _repositorioEstadio.Buscar(e => e.Nombre == nombreOriginal).FirstOrDefault();
+        var existente = _repositorioEstadio.Buscar(e => ReferenceEquals(e, estadio) || e.Nombre == nombreOriginal).FirstOrDefault();
         if (existente == null)
             throw new EntidadInvalidaExcepcion("El estadio no existe.");
         existente.Nombre = estadio.Nombre;

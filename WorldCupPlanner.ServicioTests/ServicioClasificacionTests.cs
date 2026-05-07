@@ -1,4 +1,4 @@
-﻿using  WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
 
@@ -81,7 +81,7 @@ public class ServicioClasificacionTests
     {
         return tabla.Single(p => p.Equipo == equipo).Puntos;
     }
-    
+
     [TestMethod]
     public void CalcularTabla_ConResultadosDeGrupo_OrdenaPorPuntosDescendente()
     {
@@ -124,7 +124,7 @@ public class ServicioClasificacionTests
 
         CollectionAssert.AreEqual(ordenEsperado, ordenObtenido);
     }
-    
+
     [TestMethod]
     public void CalcularTabla_ConMismosPuntos_OrdenaPorDiferenciaDeGolesDescendente()
     {
@@ -167,7 +167,7 @@ public class ServicioClasificacionTests
 
         CollectionAssert.AreEqual(ordenEsperado, ordenObtenido);
     }
-    
+
     [TestMethod]
     public void CalcularTabla_ConMismosPuntosYMismaDiferencia_OrdenaPorGolesAFavorDescendente()
     {
@@ -210,190 +210,190 @@ public class ServicioClasificacionTests
 
         CollectionAssert.AreEqual(ordenEsperado, ordenObtenido);
     }
-    
+
     [TestMethod]
-public void CalcularTabla_ConEmpateTotalYMismaSemilla_DebeGenerarMismoDesempate()
-{
-    // Arrange
-    var servicioClasificacion = new ServicioClasificacion();
-    var grupo = CrearGrupoConEmpateTotal();
-
-    var configuracionTorneo1 = new ConfiguracionTorneo { SemillaCrucesFase = 7 };
-    var configuracionTorneo2 = new ConfiguracionTorneo { SemillaCrucesFase = 7 };
-
-    // Act
-    var tabla1 = servicioClasificacion.CalcularTabla(grupo, configuracionTorneo1);
-    var tabla2 = servicioClasificacion.CalcularTabla(grupo, configuracionTorneo2);
-
-    // Assert
-    var orden1 = tabla1.Select(p => p.Equipo.Nombre).ToList();
-    var orden2 = tabla2.Select(p => p.Equipo.Nombre).ToList();
-
-    CollectionAssert.AreEqual(orden1, orden2);
-}
-
-[TestMethod]
-public void CalcularTabla_ConEmpateTotalYDistintasSemillas_DebePermitirDesempateDistinto()
-{
-    // Arrange
-    var servicioClasificacion = new ServicioClasificacion();
-    var grupo = CrearGrupoConEmpateTotal();
-
-    var configuracionReferencia = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
-
-    // Act
-    var tablaReferencia = servicioClasificacion.CalcularTabla(grupo, configuracionReferencia);
-    var ordenReferencia = tablaReferencia.Select(p => p.Equipo.Nombre).ToList();
-
-    var existeOrdenDistinto = false;
-
-    for (int semilla = 2; semilla <= 20; semilla++)
+    public void CalcularTabla_ConEmpateTotalYMismaSemilla_DebeGenerarMismoDesempate()
     {
-        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = semilla };
-        var tabla = servicioClasificacion.CalcularTabla(grupo, configuracionTorneo);
-        var orden = tabla.Select(p => p.Equipo.Nombre).ToList();
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+        var grupo = CrearGrupoConEmpateTotal();
 
-        if (!orden.SequenceEqual(ordenReferencia))
+        var configuracionTorneo1 = new ConfiguracionTorneo { SemillaCrucesFase = 7 };
+        var configuracionTorneo2 = new ConfiguracionTorneo { SemillaCrucesFase = 7 };
+
+        // Act
+        var tabla1 = servicioClasificacion.CalcularTabla(grupo, configuracionTorneo1);
+        var tabla2 = servicioClasificacion.CalcularTabla(grupo, configuracionTorneo2);
+
+        // Assert
+        var orden1 = tabla1.Select(p => p.Equipo.Nombre).ToList();
+        var orden2 = tabla2.Select(p => p.Equipo.Nombre).ToList();
+
+        CollectionAssert.AreEqual(orden1, orden2);
+    }
+
+    [TestMethod]
+    public void CalcularTabla_ConEmpateTotalYDistintasSemillas_DebePermitirDesempateDistinto()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+        var grupo = CrearGrupoConEmpateTotal();
+
+        var configuracionReferencia = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+        // Act
+        var tablaReferencia = servicioClasificacion.CalcularTabla(grupo, configuracionReferencia);
+        var ordenReferencia = tablaReferencia.Select(p => p.Equipo.Nombre).ToList();
+
+        var existeOrdenDistinto = false;
+
+        for (int semilla = 2; semilla <= 20; semilla++)
         {
-            existeOrdenDistinto = true;
-            break;
+            var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = semilla };
+            var tabla = servicioClasificacion.CalcularTabla(grupo, configuracionTorneo);
+            var orden = tabla.Select(p => p.Equipo.Nombre).ToList();
+
+            if (!orden.SequenceEqual(ordenReferencia))
+            {
+                existeOrdenDistinto = true;
+                break;
+            }
         }
+
+        // Assert
+        Assert.IsTrue(existeOrdenDistinto);
     }
 
-    // Assert
-    Assert.IsTrue(existeOrdenDistinto);
-}
-
-private Grupo CrearGrupoConEmpateTotal()
-{
-    var equipo1 = CrearEquipo("Equipo1");
-    var equipo2 = CrearEquipo("Equipo2");
-    var equipo3 = CrearEquipo("Equipo3");
-    var equipo4 = CrearEquipo("Equipo4");
-
-    var grupo = new Grupo("A", new List<Equipo>
+    private Grupo CrearGrupoConEmpateTotal()
     {
-        equipo1,
-        equipo2,
-        equipo3,
-        equipo4
-    });
+        var equipo1 = CrearEquipo("Equipo1");
+        var equipo2 = CrearEquipo("Equipo2");
+        var equipo3 = CrearEquipo("Equipo3");
+        var equipo4 = CrearEquipo("Equipo4");
 
-    grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 0, 0));
-    grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 0, 0));
-    grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 0, 0));
-    grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 0, 0));
-    grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 0, 0));
-    grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 0, 0));
+        var grupo = new Grupo("A", new List<Equipo>
+        {
+            equipo1,
+            equipo2,
+            equipo3,
+            equipo4
+        });
 
-    return grupo;
-}
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 0, 0));
+        grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 0, 0));
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 0, 0));
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 0, 0));
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 0, 0));
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 0, 0));
 
-private Fixture CrearFixtureConDoceGruposResueltos()
-{
-    var fixture = new Fixture();
-
-    for (char etiqueta = 'A'; etiqueta <= 'L'; etiqueta++)
-    {
-        fixture.Grupos.Add(CrearGrupoResuelto(etiqueta.ToString()));
+        return grupo;
     }
 
-    return fixture;
-}
-
-private Grupo CrearGrupoResuelto(string etiqueta)
-{
-    var equipo1 = CrearEquipo($"{etiqueta}1", Confederacion.UEFA);
-    var equipo2 = CrearEquipo($"{etiqueta}2", Confederacion.CONMEBOL);
-    var equipo3 = CrearEquipo($"{etiqueta}3", Confederacion.AFC);
-    var equipo4 = CrearEquipo($"{etiqueta}4", Confederacion.CAF);
-
-    var grupo = new Grupo(etiqueta, new List<Equipo>
+    private Fixture CrearFixtureConDoceGruposResueltos()
     {
-        equipo1,
-        equipo2,
-        equipo3,
-        equipo4
-    });
+        var fixture = new Fixture();
 
-    grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 3, 0));
-    grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 3, 0));
-    grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 3, 0));
-    grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 2, 0));
-    grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 2, 0));
-    grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 1, 0));
+        for (char etiqueta = 'A'; etiqueta <= 'L'; etiqueta++)
+        {
+            fixture.Grupos.Add(CrearGrupoResuelto(etiqueta.ToString()));
+        }
 
-    return grupo;
-}
+        return fixture;
+    }
 
-[TestMethod]
-public void ObtenerClasificadosAFaseEliminatoria_DebeTomarPrimerosSegundosYMejoresTerceros()
-{
-    // Arrange
-    var servicioClasificacion = new ServicioClasificacion();
-    var fixture = CrearFixtureConDoceGruposResueltos();
-    var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
-
-    // Act
-    var clasificados = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
-        fixture,
-        configuracionTorneo
-    );
-
-    // Assert
-    Assert.AreEqual(12, clasificados.Primeros.Count);
-    Assert.AreEqual(12, clasificados.Segundos.Count);
-    Assert.AreEqual(8, clasificados.MejoresTerceros.Count);
-    Assert.AreEqual(32, clasificados.Todos.Count);
-
-    Assert.IsTrue(clasificados.Primeros.All(e => e.Nombre.EndsWith("1")));
-    Assert.IsTrue(clasificados.Segundos.All(e => e.Nombre.EndsWith("2")));
-}
-
-[TestMethod]
-public void ObtenerClasificadosAFaseEliminatoria_ConTercerosTotalmenteEmpatadosYDistintasSemillas_DebePermitirMejoresTercerosDistintos()
-{
-    // Arrange
-    var servicioClasificacion = new ServicioClasificacion();
-    var fixture = CrearFixtureConDoceGruposResueltos();
-
-    var configuracionReferencia = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
-
-    // Act
-    var clasificadosReferencia = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
-        fixture,
-        configuracionReferencia
-    );
-
-    var mejoresTercerosReferencia = clasificadosReferencia.MejoresTerceros
-        .Select(e => e.Nombre)
-        .ToList();
-
-    var existeSeleccionDistinta = false;
-
-    for (int semilla = 2; semilla <= 20; semilla++)
+    private Grupo CrearGrupoResuelto(string etiqueta)
     {
-        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = semilla };
+        var equipo1 = CrearEquipo($"{etiqueta}1", Confederacion.UEFA);
+        var equipo2 = CrearEquipo($"{etiqueta}2", Confederacion.CONMEBOL);
+        var equipo3 = CrearEquipo($"{etiqueta}3", Confederacion.AFC);
+        var equipo4 = CrearEquipo($"{etiqueta}4", Confederacion.CAF);
 
+        var grupo = new Grupo(etiqueta, new List<Equipo>
+        {
+            equipo1,
+            equipo2,
+            equipo3,
+            equipo4
+        });
+
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 3, 0));
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 3, 0));
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 3, 0));
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 2, 0));
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 2, 0));
+        grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 1, 0));
+
+        return grupo;
+    }
+
+    [TestMethod]
+    public void ObtenerClasificadosAFaseEliminatoria_DebeTomarPrimerosSegundosYMejoresTerceros()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+        var fixture = CrearFixtureConDoceGruposResueltos();
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+        // Act
         var clasificados = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
             fixture,
             configuracionTorneo
         );
 
-        var mejoresTerceros = clasificados.MejoresTerceros
+        // Assert
+        Assert.AreEqual(12, clasificados.Primeros.Count);
+        Assert.AreEqual(12, clasificados.Segundos.Count);
+        Assert.AreEqual(8, clasificados.MejoresTerceros.Count);
+        Assert.AreEqual(32, clasificados.Todos.Count);
+
+        Assert.IsTrue(clasificados.Primeros.All(e => e.Nombre.EndsWith("1")));
+        Assert.IsTrue(clasificados.Segundos.All(e => e.Nombre.EndsWith("2")));
+    }
+
+    [TestMethod]
+    public void ObtenerClasificadosAFaseEliminatoria_ConTercerosTotalmenteEmpatadosYDistintasSemillas_DebePermitirMejoresTercerosDistintos()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+        var fixture = CrearFixtureConDoceGruposResueltos();
+
+        var configuracionReferencia = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+        // Act
+        var clasificadosReferencia = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
+            fixture,
+            configuracionReferencia
+        );
+
+        var mejoresTercerosReferencia = clasificadosReferencia.MejoresTerceros
             .Select(e => e.Nombre)
             .ToList();
 
-        if (!mejoresTerceros.SequenceEqual(mejoresTercerosReferencia))
-        {
-            existeSeleccionDistinta = true;
-            break;
-        }
-    }
+        var existeSeleccionDistinta = false;
 
-    // Assert
-    Assert.IsTrue(existeSeleccionDistinta);
-}
+        for (int semilla = 2; semilla <= 20; semilla++)
+        {
+            var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = semilla };
+
+            var clasificados = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
+                fixture,
+                configuracionTorneo
+            );
+
+            var mejoresTerceros = clasificados.MejoresTerceros
+                .Select(e => e.Nombre)
+                .ToList();
+
+            if (!mejoresTerceros.SequenceEqual(mejoresTercerosReferencia))
+            {
+                existeSeleccionDistinta = true;
+                break;
+            }
+        }
+
+        // Assert
+        Assert.IsTrue(existeSeleccionDistinta);
+    }
 
     [TestMethod]
     public void ObtenerClasificadosAFaseEliminatoria_DebeOrdenarPrimerosPorRendimientoGlobal()
@@ -501,5 +501,4 @@ public void ObtenerClasificadosAFaseEliminatoria_ConTercerosTotalmenteEmpatadosY
 
         return grupo;
     }
-
 }
