@@ -777,4 +777,26 @@ public class ServicioCrucesTests
             )
         );
     }
+
+    [TestMethod]
+    public void GenerarCuartos_ConOctavoEmpatado_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        octavos[0].GolesLocal = 1;
+        octavos[0].GolesVisitante = 1;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarCuartos(
+                octavos,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
 }

@@ -325,6 +325,7 @@ public class ServicioCruces
         ValidarCantidadOctavos(octavos);
         ValidarFaseOctavos(octavos);
         ValidarOctavosJugados(octavos);
+        ValidarOctavosConGanador(octavos);
 
         var ganadores = octavos
             .Select(p => p.Ganador())
@@ -372,6 +373,14 @@ public class ServicioCruces
         if (octavos.Any(p => !p.EstaJugado()))
         {
             throw new EntidadInvalidaExcepcion("No se pueden generar cuartos si hay partidos de octavos sin jugar.");
+        }
+    }
+
+    private void ValidarOctavosConGanador(List<Partido> octavos)
+    {
+        if (octavos.Any(p => p.Ganador() == null))
+        {
+            throw new EntidadInvalidaExcepcion("No se pueden generar cuartos si hay partidos de octavos empatados.");
         }
     }
 
