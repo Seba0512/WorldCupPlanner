@@ -313,7 +313,6 @@ public class ServicioCruces
 
             proximoId++;
         }
-
         return partidos;
     }
 
