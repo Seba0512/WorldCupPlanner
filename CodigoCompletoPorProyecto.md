@@ -1278,11 +1278,12 @@ Ruta: WorldCupPlanner.Servicios\ServicioEquipo.cs
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios
 {
-    public class ServicioEquipo
+    public class ServicioEquipo : IRepositorio<Equipo>
     {
         private readonly IRepositorio<Equipo> _repositorio;
 
@@ -1296,38 +1297,75 @@ namespace WorldCupPlanner.Servicios
             _repositorio = repositorio;
         }
 
+        private static readonly Dictionary<Confederacion, int> CuposPorConfederacion = new()
+        {
+            { Confederacion.UEFA,     16 },
+            { Confederacion.CONMEBOL,  7 },
+            { Confederacion.CONCACAF,  7 },
+            { Confederacion.CAF,       9 },
+            { Confederacion.AFC,       8 },
+            { Confederacion.OFC,       1 },
+        };
+
         public void AgregarEquipo(Equipo equipo)
         {
-            if (!equipo.EsValido())
-                throw new EntidadInvalidaExcepcion("El equipo no es valido.");
-            if (_repositorio.Buscar(e => e.Nombre == equipo.Nombre).Count > 0)
-                throw new EntidadYaExistenteExcepcion("Ya existe un equipo con ese nombre.");
+            ValidarEquipo(equipo);
+            ValidarNombreUnico(equipo.Nombre);
+
+            var cupo = CuposPorConfederacion[equipo.Confederacion!.Value];
+            var inscritos = _repositorio.Buscar(e => e.Confederacion == equipo.Confederacion).Count;
+            if (inscritos >= cupo)
+                throw new InvalidOperationException(
+                    $"La confederaciÃ³n {equipo.Confederacion!.Value} ya alcanzÃ³ su cupo mÃ¡ximo de {cupo} equipos.");
+
             _repositorio.Agregar(equipo);
         }
 
         public void EditarEquipo(Equipo equipo, string nombreOriginal)
         {
-            if (!equipo.EsValido())
-                throw new EntidadInvalidaExcepcion("El equipo no es valido.");
-            if (_repositorio.Buscar(e => e.Nombre == equipo.Nombre && e.Nombre != nombreOriginal).Count > 0)
-                throw new EntidadYaExistenteExcepcion("Ya existe un equipo con ese nombre.");
+            ValidarEquipo(equipo);
+            ValidarNombreUnico(equipo.Nombre, excluir: nombreOriginal);
+
             var existente = _repositorio.Buscar(e => e.Nombre == nombreOriginal).FirstOrDefault();
             if (existente == null)
                 throw new EntidadInvalidaExcepcion("El equipo no existe.");
+
             existente.Nombre = equipo.Nombre;
             existente.Confederacion = equipo.Confederacion;
             existente.RankingFIFA = equipo.RankingFIFA;
             _repositorio.Actualizar(existente);
         }
 
-        public void EliminarEquipo(Equipo equipo)
+        public void EliminarEquipo(Equipo equipo) => Eliminar(equipo);
+
+        public List<Equipo> ObtenerEquipos() => _repositorio.Buscar(_ => true);
+
+        public void Agregar(Equipo entidad) => AgregarEquipo(entidad);
+
+        public void Actualizar(Equipo entidad)
         {
-            _repositorio.Eliminar(equipo);
+            if (entidad == null)
+                throw new EntidadInvalidaExcepcion("El equipo no puede ser nulo.");
+            var existente = _repositorio.Buscar(e => ReferenceEquals(e, entidad)).FirstOrDefault();
+            if (existente == null)
+                throw new EntidadInexistenteExcepcion("El equipo no existe en el sistema.");
+            _repositorio.Actualizar(existente);
         }
 
-        public List<Equipo> ObtenerEquipos()
+        public void Eliminar(Equipo entidad) => _repositorio.Eliminar(entidad);
+
+        public List<Equipo> Buscar(Func<Equipo, bool> predicado) => _repositorio.Buscar(predicado);
+
+        private void ValidarEquipo(Equipo equipo)
         {
-            return _repositorio.Buscar(_ => true);
+            if (!equipo.EsValido())
+                throw new EntidadInvalidaExcepcion("El equipo no es valido.");
+        }
+
+        private void ValidarNombreUnico(string nombre, string? excluir = null)
+        {
+            if (_repositorio.Buscar(e => e.Nombre == nombre && e.Nombre != excluir).Count > 0)
+                throw new EntidadYaExistenteExcepcion("Ya existe un equipo con ese nombre.");
         }
     }
 }
@@ -1741,6 +1779,7 @@ public class ServicioFixture
 Ruta: WorldCupPlanner.Servicios\ServicioUsuario.cs
 
 ~~~csharp
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
@@ -1748,23 +1787,26 @@ using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
-public class ServicioUsuario
+public class ServicioUsuario : IRepositorio<Usuario>
 {
     private readonly RepositorioUsuarioEnMemoria _repositorio;
+    private readonly ServicioAuditoria _auditoria;
 
-    public ServicioUsuario(RepositorioUsuarioEnMemoria repositorio)
+    public ServicioUsuario(RepositorioUsuarioEnMemoria repositorio, ServicioAuditoria auditoria)
     {
         _repositorio = repositorio;
+        _auditoria = auditoria;
     }
 
-    public void AgregarUsuario(Usuario usuario)
+    public void AgregarUsuario(Usuario usuario, string? ejecutadoPor = null)
     {
         ValidarEmailUnico(usuario.Email);
         _repositorio.Agregar(usuario);
+        _auditoria.Registrar(ejecutadoPor ?? "sistema", "ALTA_USUARIO", $"Usuario creado: {usuario.Email}");
     }
-    
+
     public void ActualizarUsuario(Usuario usuario, string? nombre = null, string? apellido = null,
-        string? email = null, string? fechaNacimiento = null)
+        string? email = null, string? fechaNacimiento = null, string? ejecutadoPor = null)
     {
         var usuarioActual = _repositorio.Buscar(u => ReferenceEquals(u, usuario))
             .FirstOrDefault();
@@ -1774,33 +1816,45 @@ public class ServicioUsuario
             throw new EntidadInvalidaExcepcion("El usuario no existe en el sistema.");
         }
 
+        var campos = new List<string>();
+
         if (email != null && !email.Equals(usuarioActual.Email, StringComparison.OrdinalIgnoreCase))
         {
             ValidarEmailUnico(email);
             usuarioActual.ActualizarEmail(email);
+            campos.Add($"email: {email}");
         }
 
         if (nombre != null)
         {
             usuarioActual.ActualizarNombre(nombre);
+            campos.Add($"nombre: {nombre}");
         }
 
         if (apellido != null)
         {
             usuarioActual.ActualizarApellido(apellido);
+            campos.Add($"apellido: {apellido}");
         }
 
         if (fechaNacimiento != null)
         {
             usuarioActual.ActualizarFechaNacimiento(fechaNacimiento);
+            campos.Add($"fechaNacimiento: {fechaNacimiento}");
         }
 
         _repositorio.Actualizar(usuarioActual);
+
+        var detalle = campos.Count > 0
+            ? $"Campos modificados en {usuarioActual.Email}: {string.Join(", ", campos)}"
+            : $"Sin cambios efectivos en {usuarioActual.Email}";
+        _auditoria.Registrar(ejecutadoPor ?? usuarioActual.Email, "EDICION_USUARIO", detalle);
     }
 
-    public void EliminarUsuario(Usuario usuario)
+    public void EliminarUsuario(Usuario usuario, string? ejecutadoPor = null)
     {
         _repositorio.Eliminar(usuario);
+        _auditoria.Registrar(ejecutadoPor ?? "sistema", "BAJA_USUARIO", $"Usuario eliminado: {usuario.Email}");
     }
 
     public List<Usuario> ObtenerTodosLosUsuarios()
@@ -1836,6 +1890,7 @@ public class ServicioUsuario
         }
 
         GenerarContraseniaDefecto(usuario);
+        _auditoria.Registrar(administrador.Email, "REINICIO_CONTRASENIA", $"Contraseña reiniciada para: {usuario.Email}");
     }
 
     public void CambiarContrasenia(Usuario usuario, string contraseniaAnterior, string nuevaContrasenia)
@@ -1846,23 +1901,38 @@ public class ServicioUsuario
         }
 
         usuario.EstablecerContrasenia(nuevaContrasenia);
+        _auditoria.Registrar(usuario.Email, "CAMBIO_CONTRASENIA", $"Contraseña cambiada para: {usuario.Email}");
     }
 
     public Usuario Login(string email, string contrasenia)
     {
         var usuario = _repositorio.ObtenerPorEmail(email);
-        if (usuario == null)
+
+        if (usuario == null || !usuario.VerificarContrasenia(contrasenia))
         {
+            _auditoria.Registrar(email, "LOGIN_FALLIDO", $"Intento fallido para: {email}");
             throw new InvalidOperationException("Email o contraseña incorrectos.");
         }
 
-        if (!usuario.VerificarContrasenia(contrasenia))
-        {
-            throw new InvalidOperationException("Email o contraseña incorrectos.");
-        }
-
+        _auditoria.Registrar(usuario.Email, "LOGIN_EXITOSO", $"Login exitoso: {email}");
         return usuario;
     }
+
+    public void Agregar(Usuario entidad) => AgregarUsuario(entidad);
+
+    public void Actualizar(Usuario entidad)
+    {
+        if (entidad == null)
+            throw new EntidadInvalidaExcepcion("El usuario no puede ser nulo.");
+        var existente = _repositorio.Buscar(u => ReferenceEquals(u, entidad)).FirstOrDefault();
+        if (existente == null)
+            throw new EntidadInexistenteExcepcion("El usuario no existe en el sistema.");
+        _repositorio.Actualizar(existente);
+    }
+
+    public void Eliminar(Usuario entidad) => EliminarUsuario(entidad);
+
+    public List<Usuario> Buscar(Func<Usuario, bool> predicado) => _repositorio.Buscar(predicado);
 }
 
 ~~~
@@ -3237,6 +3307,171 @@ public class ServicioEquipoTests
         // Assert
         Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.EditarEquipo(equipo2, "Argentina"));
     }
+
+    [TestMethod]
+    public void AgregarEquipo_CupoLlenoOFC_LanzaExcepcion()
+    {
+        // Arrange - OFC tiene cupo 1
+        _servicio.AgregarEquipo(CrearEquipo("Nueva Zelanda", Confederacion.OFC));
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            _servicio.AgregarEquipo(CrearEquipo("Australia", Confederacion.OFC)));
+    }
+
+    [TestMethod]
+    public void AgregarEquipo_UltimoEquipoDentroDelCupo_SeAgregaCorrectamente()
+    {
+        // Arrange - llenar CONMEBOL hasta el lÃ­mite (7)
+        for (var i = 1; i <= 7; i++)
+            _servicio.AgregarEquipo(CrearEquipo($"Equipo CONMEBOL {i}", Confederacion.CONMEBOL));
+
+        // Assert
+        Assert.AreEqual(7, _servicio.ObtenerEquipos().Count);
+    }
+
+    [TestMethod]
+    public void AgregarEquipo_CupoLlenoCONMEBOL_LanzaExcepcion()
+    {
+        // Arrange - llenar CONMEBOL (cupo 7) y luego intentar agregar uno mÃ¡s
+        for (var i = 1; i <= 7; i++)
+            _servicio.AgregarEquipo(CrearEquipo($"Equipo CONMEBOL {i}", Confederacion.CONMEBOL));
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            _servicio.AgregarEquipo(CrearEquipo("Equipo CONMEBOL 8", Confederacion.CONMEBOL)));
+    }
+
+    [TestMethod]
+    public void AgregarEquipo_CupoLlenoEnUnaConfederacion_NoAfectaOtraConfederacion()
+    {
+        // Arrange - llenar OFC
+        _servicio.AgregarEquipo(CrearEquipo("Nueva Zelanda", Confederacion.OFC));
+
+        // Act - agregar en UEFA no debe verse afectado
+        _servicio.AgregarEquipo(CrearEquipo("EspaÃ±a", Confederacion.UEFA));
+
+        // Assert
+        Assert.AreEqual(2, _servicio.ObtenerEquipos().Count);
+    }
+
+    [TestMethod]
+    public void AgregarEquipo_CupoLlenoUEFA_LanzaExcepcion()
+    {
+        // Arrange - llenar UEFA (cupo 16)
+        for (var i = 1; i <= 16; i++)
+            _servicio.AgregarEquipo(CrearEquipo($"Equipo UEFA {i}", Confederacion.UEFA));
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            _servicio.AgregarEquipo(CrearEquipo("Equipo UEFA 17", Confederacion.UEFA)));
+    }
+
+    // IRepositorio<Equipo>
+
+    [TestMethod]
+    public void Agregar_EquipoValido_SeAgregaAlRepositorio()
+    {
+        // Arrange
+        var equipo = CrearEquipo("EspaÃ±a", Confederacion.UEFA);
+
+        // Act
+        _servicio.Agregar(equipo);
+
+        // Assert
+        Assert.AreEqual(1, _servicio.ObtenerEquipos().Count);
+    }
+
+    [TestMethod]
+    public void Agregar_EquipoInvalido_LanzaExcepcion()
+    {
+        // Arrange
+        var equipo = new Equipo { Nombre = "", RankingFIFA = 1000, Confederacion = Confederacion.UEFA };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.Agregar(equipo));
+    }
+
+    [TestMethod]
+    public void Actualizar_EquipoExistente_PersisteCambios()
+    {
+        // Arrange
+        var equipo = CrearEquipo("EspaÃ±a", Confederacion.UEFA);
+        _servicio.AgregarEquipo(equipo);
+        equipo.RankingFIFA = 500;
+
+        // Act
+        _servicio.Actualizar(equipo);
+
+        // Assert
+        Assert.AreEqual(500, _servicio.Buscar(e => e.Nombre == "EspaÃ±a").First().RankingFIFA);
+    }
+
+    [TestMethod]
+    public void Actualizar_EquipoNoExistente_LanzaExcepcion()
+    {
+        // Arrange
+        var equipo = CrearEquipo("EspaÃ±a", Confederacion.UEFA);
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInexistenteExcepcion>(() => _servicio.Actualizar(equipo));
+    }
+
+    [TestMethod]
+    public void Actualizar_EquipoNulo_LanzaExcepcion()
+    {
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.Actualizar(null!));
+    }
+
+    [TestMethod]
+    public void Eliminar_EquipoExistente_SeEliminaDelRepositorio()
+    {
+        // Arrange
+        var equipo = CrearEquipo("EspaÃ±a", Confederacion.UEFA);
+        _servicio.AgregarEquipo(equipo);
+
+        // Act
+        _servicio.Eliminar(equipo);
+
+        // Assert
+        Assert.AreEqual(0, _servicio.ObtenerEquipos().Count);
+    }
+
+    [TestMethod]
+    public void Buscar_ConPredicadoCoincidente_DevuelveEquiposCorrespondientes()
+    {
+        // Arrange
+        _servicio.AgregarEquipo(CrearEquipo("EspaÃ±a", Confederacion.UEFA));
+        _servicio.AgregarEquipo(CrearEquipo("Francia", Confederacion.UEFA));
+        _servicio.AgregarEquipo(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
+
+        // Act
+        var resultado = _servicio.Buscar(e => e.Confederacion == Confederacion.UEFA);
+
+        // Assert
+        Assert.AreEqual(2, resultado.Count);
+    }
+
+    [TestMethod]
+    public void Buscar_SinCoincidencias_DevuelveListaVacia()
+    {
+        // Arrange
+        _servicio.AgregarEquipo(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
+
+        // Act
+        var resultado = _servicio.Buscar(e => e.Confederacion == Confederacion.OFC);
+
+        // Assert
+        Assert.AreEqual(0, resultado.Count);
+    }
+
+    private static Equipo CrearEquipo(string nombre, Confederacion confederacion) => new()
+    {
+        Nombre = nombre,
+        RankingFIFA = 1000,
+        Confederacion = confederacion
+    };
 }
 ~~~
 
@@ -4129,7 +4364,8 @@ public sealed class ServicioUsuarioTests
     public ServicioUsuarioTests()
     {
         _repositorio = new RepositorioUsuarioEnMemoria();
-        _servicio = new ServicioUsuario(_repositorio);
+        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaEnMemoria());
+        _servicio = new ServicioUsuario(_repositorio, auditoria);
     }
 
     [TestMethod]
@@ -4584,6 +4820,109 @@ public sealed class ServicioUsuarioTests
         );
     }
 
+    // IRepositorio<Usuario>
+
+    [TestMethod]
+    public void Agregar_UsuarioValido_SeAgregaAlRepositorio()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+
+        // Act
+        _servicio.Agregar(usuario);
+
+        // Assert
+        Assert.AreEqual(1, _servicio.ObtenerTodosLosUsuarios().Count);
+    }
+
+    [TestMethod]
+    public void Agregar_EmailDuplicado_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario1 = CrearUsuarioValido("juan@example.com");
+        var usuario2 = CrearUsuarioValido("juan@example.com");
+        _servicio.Agregar(usuario1);
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() => _servicio.Agregar(usuario2));
+    }
+
+    [TestMethod]
+    public void Actualizar_UsuarioExistente_PersisteCambios()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+
+        // Act
+        _servicio.Actualizar(usuario);
+
+        // Assert
+        Assert.IsTrue(_servicio.Buscar(u => u.Email == "juan@example.com").First().TieneRol(RolUsuario.AdministradorDelSistema));
+    }
+
+    [TestMethod]
+    public void Actualizar_UsuarioNoExistente_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInexistenteExcepcion>(() => _servicio.Actualizar(usuario));
+    }
+
+    [TestMethod]
+    public void Actualizar_UsuarioNulo_LanzaExcepcion()
+    {
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.Actualizar(null!));
+    }
+
+    [TestMethod]
+    public void Eliminar_UsuarioExistente_SeEliminaDelRepositorio()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act
+        _servicio.Eliminar(usuario);
+
+        // Assert
+        Assert.AreEqual(0, _servicio.ObtenerTodosLosUsuarios().Count);
+    }
+
+    [TestMethod]
+    public void Buscar_ConPredicadoCoincidente_DevuelveUsuariosCorrespondientes()
+    {
+        // Arrange
+        var admin = CrearUsuarioValido("admin@example.com");
+        admin.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarUsuario(admin);
+        _servicio.AgregarUsuario(CrearUsuarioValido("editor@example.com"));
+
+        // Act
+        var resultado = _servicio.Buscar(u => u.TieneRol(RolUsuario.AdministradorDelSistema));
+
+        // Assert
+        Assert.AreEqual(1, resultado.Count);
+        Assert.AreSame(admin, resultado[0]);
+    }
+
+    [TestMethod]
+    public void Buscar_SinCoincidencias_DevuelveListaVacia()
+    {
+        // Arrange
+        _servicio.AgregarUsuario(CrearUsuarioValido("juan@example.com"));
+
+        // Act
+        var resultado = _servicio.Buscar(u => u.TieneRol(RolUsuario.AdministradorDelSistema));
+
+        // Assert
+        Assert.AreEqual(0, resultado.Count);
+    }
+
     private static Usuario CrearUsuarioValido(string email)
     {
         return new Usuario(new DatosUsuario
@@ -4653,6 +4992,7 @@ Ruta: WorldCupPlanner.UI\_Imports.razor
 @using Microsoft.JSInterop
 @using WorldCupPlanner.UI
 @using WorldCupPlanner.UI.Shared
+@using WorldCupPlanner.UI.Data
 ~~~
 
 ### App.razor
@@ -4703,6 +5043,34 @@ Ruta: WorldCupPlanner.UI\appsettings.json
     }
   },
   "AllowedHosts": "*"
+}
+~~~
+
+### SesionServicio.cs
+
+Ruta: WorldCupPlanner.UI\Data\SesionServicio.cs
+
+~~~csharp
+using WorldCupPlanner.Dominio.Entidades;
+
+namespace WorldCupPlanner.UI.Data
+{
+    public class SesionServicio
+    {
+        public Usuario? UsuarioActual { get; private set; }
+
+        public bool HaySesion => UsuarioActual != null;
+
+        public void IniciarSesion(Usuario usuario)
+        {
+            UsuarioActual = usuario;
+        }
+
+        public void CerrarSesion()
+        {
+            UsuarioActual = null;
+        }
+    }
 }
 ~~~
 
@@ -4819,6 +5187,7 @@ Ruta: WorldCupPlanner.UI\Pages\CrearEquipo.razor
 <div class="form-group">
     <label>ConfederaciÃ³n</label>
     <select class="form-control" @bind="equipo.Confederacion">
+        <option value="">-- Seleccione una confederaciÃ³n --</option>
         @foreach (var conf in Enum.GetValues<Confederacion>())
         {
             <option value="@conf">@conf</option>
@@ -4826,8 +5195,8 @@ Ruta: WorldCupPlanner.UI\Pages\CrearEquipo.razor
     </select>
 </div>
 <div class="form-group">
-    <label>Ranking FIFA</label>
-    <input type="number" class="form-control" @bind="equipo.RankingFIFA" />
+    <label>Puntos FIFA <small class="text-muted">(300 â€“ 2500)</small></label>
+    <input type="number" class="form-control" @bind="equipo.RankingFIFA" min="300" max="2500" placeholder="Ej: 1500" />
 </div>
 
 <button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
@@ -4910,6 +5279,84 @@ Ruta: WorldCupPlanner.UI\Pages\CrearEstadio.razor
 }
 ~~~
 
+### CrearUsuario.razor
+
+Ruta: WorldCupPlanner.UI\Pages\CrearUsuario.razor
+
+~~~razor
+@page "/usuarios/crear"
+@using WorldCupPlanner.Servicios
+@using WorldCupPlanner.Dominio.Entidades
+@using WorldCupPlanner.Dominio.Enumeraciones
+@inject ServicioUsuario ServicioUsuario
+@inject NavigationManager NavigationManager
+
+<PageTitle>Crear Usuario</PageTitle>
+<h1>Crear Usuario</h1>
+
+@if (!string.IsNullOrEmpty(errorMensaje))
+{
+    <div class="alert alert-danger">@errorMensaje</div>
+}
+
+<div class="form-group mb-2">
+    <label>Nombre</label>
+    <input type="text" class="form-control" @bind="nombre" />
+</div>
+<div class="form-group mb-2">
+    <label>Apellido</label>
+    <input type="text" class="form-control" @bind="apellido" />
+</div>
+<div class="form-group mb-2">
+    <label>Email</label>
+    <input type="email" class="form-control" @bind="email" />
+</div>
+<div class="form-group mb-2">
+    <label>Fecha de Nacimiento</label>
+    <input type="date" class="form-control" @bind="fechaNacimiento" />
+</div>
+<div class="form-group mb-2">
+    <label>Roles</label>
+    <div>
+        <input type="checkbox" @bind="esAdmin" /> Administrador del Sistema
+    </div>
+    <div>
+        <input type="checkbox" @bind="esEditor" /> Editor
+    </div>
+</div>
+
+<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
+<a href="/usuarios" class="btn btn-secondary mt-2">Cancelar</a>
+
+@code {
+    private string nombre = string.Empty;
+    private string apellido = string.Empty;
+    private string email = string.Empty;
+    private DateTime fechaNacimiento = DateTime.Now.AddYears(-18);
+    private bool esAdmin = false;
+    private bool esEditor = false;
+    private string errorMensaje = string.Empty;
+
+    private void Guardar()
+    {
+        try
+        {
+            var datos = new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento.ToString("MM-dd-yyyy") };
+            var usuario = new Usuario(datos);
+            ServicioUsuario.GenerarContraseniaDefecto(usuario);
+            if (esAdmin) usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+            if (esEditor) usuario.AgregarRol(RolUsuario.Editor);
+            ServicioUsuario.AgregarUsuario(usuario);
+            NavigationManager.NavigateTo("/usuarios");
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = ex.Message;
+        }
+    }
+}
+~~~
+
 ### EditarEquipo.razor
 
 Ruta: WorldCupPlanner.UI\Pages\EditarEquipo.razor
@@ -4937,6 +5384,7 @@ Ruta: WorldCupPlanner.UI\Pages\EditarEquipo.razor
 <div class="form-group">
     <label>ConfederaciÃ³n</label>
     <select class="form-control" @bind="equipo.Confederacion">
+        <option value="">-- Seleccione una confederaciÃ³n --</option>
         @foreach (var conf in Enum.GetValues<Confederacion>())
         {
             <option value="@conf">@conf</option>
@@ -4944,8 +5392,8 @@ Ruta: WorldCupPlanner.UI\Pages\EditarEquipo.razor
     </select>
 </div>
 <div class="form-group">
-    <label>Ranking FIFA</label>
-    <input type="number" class="form-control" @bind="equipo.RankingFIFA" />
+    <label>Puntos FIFA <small class="text-muted">(300 â€“ 2500)</small></label>
+    <input type="number" class="form-control" @bind="equipo.RankingFIFA" min="300" max="2500" placeholder="Ej: 1500" />
 </div>
 
 <button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
@@ -5044,6 +5492,100 @@ Ruta: WorldCupPlanner.UI\Pages\EditarEstadio.razor
         {
             ServicioEstadio.EditarEstadio(Nombre, estadio);
             NavigationManager.NavigateTo("/estadios");
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = ex.Message;
+        }
+    }
+}
+~~~
+
+### EditarUsuario.razor
+
+Ruta: WorldCupPlanner.UI\Pages\EditarUsuario.razor
+
+~~~razor
+@page "/usuarios/{Email}/editar"
+@using WorldCupPlanner.Servicios
+@using WorldCupPlanner.Dominio.Entidades
+@using WorldCupPlanner.Dominio.Enumeraciones
+@inject ServicioUsuario ServicioUsuario
+@inject NavigationManager NavigationManager
+
+<PageTitle>Editar Usuario</PageTitle>
+<h1>Editar Usuario</h1>
+
+@if (!string.IsNullOrEmpty(errorMensaje))
+{
+    <div class="alert alert-danger">@errorMensaje</div>
+}
+
+<div class="form-group mb-2">
+    <label>Nombre</label>
+    <input type="text" class="form-control" @bind="nombre" />
+</div>
+<div class="form-group mb-2">
+    <label>Apellido</label>
+    <input type="text" class="form-control" @bind="apellido" />
+</div>
+<div class="form-group mb-2">
+    <label>Email</label>
+    <input type="email" class="form-control" @bind="email" />
+</div>
+<div class="form-group mb-2">
+    <label>Fecha de Nacimiento</label>
+    <input type="date" class="form-control" @bind="fechaNacimiento" />
+</div>
+<div class="form-group mb-2">
+    <label>Roles</label>
+    <div>
+        <input type="checkbox" @bind="esAdmin" /> Administrador del Sistema
+    </div>
+    <div>
+        <input type="checkbox" @bind="esEditor" /> Editor
+    </div>
+</div>
+
+<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
+<a href="/usuarios" class="btn btn-secondary mt-2">Cancelar</a>
+
+@code {
+    [Parameter] public string Email { get; set; } = string.Empty;
+    private Usuario? usuario;
+    private string nombre = string.Empty;
+    private string apellido = string.Empty;
+    private string email = string.Empty;
+    private DateTime fechaNacimiento = DateTime.Now.AddYears(-18);
+    private bool esAdmin = false;
+    private bool esEditor = false;
+    private string errorMensaje = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        usuario = ServicioUsuario.ObtenerPorEmail(Email);
+        if (usuario != null)
+        {
+            nombre = usuario.Nombre;
+            apellido = usuario.Apellido;
+            email = usuario.Email;
+            fechaNacimiento = usuario.FechaNacimiento;
+            esAdmin = usuario.TieneRol(RolUsuario.AdministradorDelSistema);
+            esEditor = usuario.TieneRol(RolUsuario.Editor);
+        }
+    }
+
+    private void Guardar()
+    {
+        try
+        {
+            if (usuario == null) return;
+            ServicioUsuario.ActualizarUsuario(usuario, nombre, apellido, email, fechaNacimiento.ToString("MM-dd-yyyy"));
+            if (esAdmin) usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+            else usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
+            if (esEditor) usuario.AgregarRol(RolUsuario.Editor);
+            else usuario.RemoverRol(RolUsuario.Editor);
+            NavigationManager.NavigateTo("/usuarios");
         }
         catch (Exception ex)
         {
@@ -5257,14 +5799,138 @@ Ruta: WorldCupPlanner.UI\Pages\Index.razor
 
 ~~~razor
 @page "/"
+@using WorldCupPlanner.UI.Data
+@inject SesionServicio SesionServicio
+@inject NavigationManager NavigationManager
 
-<PageTitle>Index</PageTitle>
+<PageTitle>WorldCupPlanner</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Bienvenido, @SesionServicio.UsuarioActual?.Nombre</h1>
 
-Welcome to your new app.
+@code {
+    protected override void OnInitialized()
+    {
+        if (!SesionServicio.HaySesion)
+            NavigationManager.NavigateTo("/login");
+    }
+}
+~~~
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+### Login.razor
+
+Ruta: WorldCupPlanner.UI\Pages\Login.razor
+
+~~~razor
+@page "/login"
+@using WorldCupPlanner.Servicios
+@using WorldCupPlanner.Dominio.Entidades
+@using WorldCupPlanner.UI.Data
+@inject ServicioUsuario ServicioUsuario
+@inject SesionServicio SesionServicio
+@inject NavigationManager NavigationManager
+
+<PageTitle>Login</PageTitle>
+
+<div style="max-width: 400px; margin: 100px auto;">
+    <h1>WorldCupPlanner</h1>
+
+    @if (!string.IsNullOrEmpty(errorMensaje))
+    {
+        <div class="alert alert-danger">@errorMensaje</div>
+    }
+
+    <div class="form-group mb-2">
+        <label>Email</label>
+        <input type="email" class="form-control" @bind="email" />
+    </div>
+    <div class="form-group mb-2">
+        <label>ContraseÃ±a</label>
+        <input type="password" class="form-control" @bind="contrasenia" />
+    </div>
+
+    <button type="button" class="btn btn-primary mt-2" @onclick="IniciarSesion">Ingresar</button>
+</div>
+
+@code {
+    private string email = string.Empty;
+    private string contrasenia = string.Empty;
+    private string errorMensaje = string.Empty;
+
+    private void IniciarSesion()
+    {
+        try
+        {
+            var usuario = ServicioUsuario.Login(email, contrasenia);
+            SesionServicio.IniciarSesion(usuario);
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = ex.Message;
+        }
+    }
+}
+~~~
+
+### Usuarios.razor
+
+Ruta: WorldCupPlanner.UI\Pages\Usuarios.razor
+
+~~~razor
+@page "/usuarios"
+@using WorldCupPlanner.Servicios
+@using WorldCupPlanner.Dominio.Entidades
+@using WorldCupPlanner.Dominio.Enumeraciones
+@inject ServicioUsuario ServicioUsuario
+
+<PageTitle>Usuarios</PageTitle>
+
+<h1>
+    Usuarios
+    <a href="/usuarios/crear" class="btn btn-success btn-sm" style="float: right; margin-right: 40px;">Agregar +</a>
+</h1>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Nombre</th>
+        <th>Apellido</th>
+        <th>Email</th>
+        <th>Roles</th>
+        <th>Acciones</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var usuario in usuarios)
+    {
+        <tr>
+            <td>@usuario.Nombre</td>
+            <td>@usuario.Apellido</td>
+            <td>@usuario.Email</td>
+            <td>@string.Join(", ", usuario.ObtenerRoles())</td>
+            <td>
+                <a href="/usuarios/@usuario.Email/editar" class="btn btn-success btn-sm">Editar</a>
+                <button class="btn btn-danger btn-sm" @onclick="(() => Eliminar(usuario))">Eliminar</button>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private List<Usuario> usuarios = new();
+
+    protected override void OnInitialized()
+    {
+        usuarios = ServicioUsuario.ObtenerTodosLosUsuarios();
+    }
+
+    private void Eliminar(Usuario usuario)
+    {
+        ServicioUsuario.EliminarUsuario(usuario);
+        usuarios = ServicioUsuario.ObtenerTodosLosUsuarios();
+    }
+}
 ~~~
 
 ### Program.cs
@@ -5292,8 +5958,16 @@ builder.Services.AddSingleton<IRepositorio<Estadio>, RepositorioEstadioEnMemoria
 builder.Services.AddSingleton<ServicioAuditoria>();
 builder.Services.AddSingleton<ServicioEstadio>();
 builder.Services.AddSingleton<ServicioEquipo>();
+builder.Services.AddSingleton<RepositorioUsuarioEnMemoria>();
+builder.Services.AddSingleton<ServicioUsuario>();
+builder.Services.AddScoped<SesionServicio>();
 
 var app = builder.Build();
+
+var servicioUsuario = app.Services.GetRequiredService<ServicioUsuario>();
+var admin = new Usuario(new DatosUsuario { Nombre = "Admin", Apellido = "Admin", Email = "a@a.com", FechaNacimiento = "01-01-1990" });
+admin.EstablecerContrasenia("Admin@2026");
+servicioUsuario.AgregarUsuario(admin);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -5301,9 +5975,8 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
-
-app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
@@ -5491,6 +6164,16 @@ Ruta: WorldCupPlanner.UI\Shared\NavMenu.razor
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="equipos">
                 <span class="oi oi-people" aria-hidden="true"></span> Equipos
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="usuarios">
+                <span class="oi oi-person" aria-hidden="true"></span> Usuarios
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="login">
+                <span class="oi oi-account-login" aria-hidden="true"></span> Login
             </NavLink>
         </div>
     </nav>
