@@ -288,15 +288,9 @@ public class ServicioCruces
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
-        if (partidosPrimeraRonda.Count != 16)
-        {
-            throw new EntidadInvalidaExcepcion("Para generar octavos deben existir exactamente 16 partidos de primera ronda.");
-        }
-
-        if (partidosPrimeraRonda.Any(p => !p.EstaJugado()))
-        {
-            throw new EntidadInvalidaExcepcion("No se pueden generar octavos si hay partidos de primera ronda sin jugar.");
-        }
+        ValidarCantidadPartidosPrimeraRonda(partidosPrimeraRonda);
+        ValidarFasePrimeraRonda(partidosPrimeraRonda);
+        ValidarPartidosPrimeraRondaJugados(partidosPrimeraRonda);
 
         var ganadores = partidosPrimeraRonda
             .Select(p => p.Ganador())
@@ -321,5 +315,29 @@ public class ServicioCruces
         }
 
         return partidos;
+    }
+
+    private void ValidarCantidadPartidosPrimeraRonda(List<Partido> partidosPrimeraRonda)
+    {
+        if (partidosPrimeraRonda.Count != 16)
+        {
+            throw new EntidadInvalidaExcepcion("Para generar octavos deben existir exactamente 16 partidos de primera ronda.");
+        }
+    }
+
+    private void ValidarFasePrimeraRonda(List<Partido> partidosPrimeraRonda)
+    {
+        if (partidosPrimeraRonda.Any(p => p.Fase != FaseTorneo.PrimeraRondaEliminatoria))
+        {
+            throw new EntidadInvalidaExcepcion("Para generar octavos todos los partidos deben ser de primera ronda eliminatoria.");
+        }
+    }
+
+    private void ValidarPartidosPrimeraRondaJugados(List<Partido> partidosPrimeraRonda)
+    {
+        if (partidosPrimeraRonda.Any(p => !p.EstaJugado()))
+        {
+            throw new EntidadInvalidaExcepcion("No se pueden generar octavos si hay partidos de primera ronda sin jugar.");
+        }
     }
 }
