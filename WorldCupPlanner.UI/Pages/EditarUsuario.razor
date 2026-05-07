@@ -1,0 +1,87 @@
+@page "/usuarios/{Email}/editar"
+@using WorldCupPlanner.Servicios
+@using WorldCupPlanner.Dominio.Entidades
+@using WorldCupPlanner.Dominio.Enumeraciones
+@inject ServicioUsuario ServicioUsuario
+@inject NavigationManager NavigationManager
+
+<PageTitle>Editar Usuario</PageTitle>
+<h1>Editar Usuario</h1>
+
+@if (!string.IsNullOrEmpty(errorMensaje))
+{
+    <div class="alert alert-danger">@errorMensaje</div>
+}
+
+<div class="form-group mb-2">
+    <label>Nombre</label>
+    <input type="text" class="form-control" @bind="nombre" />
+</div>
+<div class="form-group mb-2">
+    <label>Apellido</label>
+    <input type="text" class="form-control" @bind="apellido" />
+</div>
+<div class="form-group mb-2">
+    <label>Email</label>
+    <input type="email" class="form-control" @bind="email" />
+</div>
+<div class="form-group mb-2">
+    <label>Fecha de Nacimiento</label>
+    <input type="date" class="form-control" @bind="fechaNacimiento" />
+</div>
+<div class="form-group mb-2">
+    <label>Roles</label>
+    <div>
+        <input type="checkbox" @bind="esAdmin" /> Administrador del Sistema
+    </div>
+    <div>
+        <input type="checkbox" @bind="esEditor" /> Editor
+    </div>
+</div>
+
+<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
+<a href="/usuarios" class="btn btn-secondary mt-2">Cancelar</a>
+
+@code {
+    [Parameter] public string Email { get; set; } = string.Empty;
+    private Usuario? usuario;
+    private string nombre = string.Empty;
+    private string apellido = string.Empty;
+    private string email = string.Empty;
+    private DateTime fechaNacimiento = DateTime.Now.AddYears(-18);
+    private bool esAdmin = false;
+    private bool esEditor = false;
+    private string errorMensaje = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        usuario = ServicioUsuario.ObtenerPorEmail(Email);
+        if (usuario != null)
+        {
+            nombre = usuario.Nombre;
+            apellido = usuario.Apellido;
+            email = usuario.Email;
+            fechaNacimiento = usuario.FechaNacimiento;
+            esAdmin = usuario.TieneRol(RolUsuario.AdministradorDelSistema);
+            esEditor = usuario.TieneRol(RolUsuario.Editor);
+        }
+    }
+
+    private void Guardar()
+    {
+        try
+        {
+            if (usuario == null) return;
+            ServicioUsuario.ActualizarUsuario(usuario, nombre, apellido, email, fechaNacimiento);
+            if (esAdmin) usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+            else usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
+            if (esEditor) usuario.AgregarRol(RolUsuario.Editor);
+            else usuario.RemoverRol(RolUsuario.Editor);
+            NavigationManager.NavigateTo("/usuarios");
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = ex.Message;
+        }
+    }
+}

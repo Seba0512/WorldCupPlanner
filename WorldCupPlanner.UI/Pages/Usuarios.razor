@@ -1,0 +1,54 @@
+@page "/usuarios"
+@using WorldCupPlanner.Servicios
+@using WorldCupPlanner.Dominio.Entidades
+@using WorldCupPlanner.Dominio.Enumeraciones
+@inject ServicioUsuario ServicioUsuario
+
+<PageTitle>Usuarios</PageTitle>
+
+<h1>
+    Usuarios
+    <a href="/usuarios/crear" class="btn btn-success btn-sm" style="float: right; margin-right: 40px;">Agregar +</a>
+</h1>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Nombre</th>
+        <th>Apellido</th>
+        <th>Email</th>
+        <th>Roles</th>
+        <th>Acciones</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var usuario in usuarios)
+    {
+        <tr>
+            <td>@usuario.Nombre</td>
+            <td>@usuario.Apellido</td>
+            <td>@usuario.Email</td>
+            <td>@string.Join(", ", usuario.ObtenerRoles())</td>
+            <td>
+                <a href="/usuarios/@usuario.Email/editar" class="btn btn-success btn-sm">Editar</a>
+                <button class="btn btn-danger btn-sm" @onclick="(() => Eliminar(usuario))">Eliminar</button>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private List<Usuario> usuarios = new();
+
+    protected override void OnInitialized()
+    {
+        usuarios = ServicioUsuario.ObtenerTodosLosUsuarios();
+    }
+
+    private void Eliminar(Usuario usuario)
+    {
+        ServicioUsuario.EliminarUsuario(usuario);
+        usuarios = ServicioUsuario.ObtenerTodosLosUsuarios();
+    }
+}

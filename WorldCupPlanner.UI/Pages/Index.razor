@@ -1,9 +1,16 @@
-﻿@page "/"
+@page "/"
+@using WorldCupPlanner.UI.Data
+@inject SesionServicio SesionServicio
+@inject NavigationManager NavigationManager
 
-<PageTitle>Index</PageTitle>
+<PageTitle>WorldCupPlanner</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Bienvenido, @SesionServicio.UsuarioActual?.Nombre</h1>
 
-Welcome to your new app.
-
-<SurveyPrompt Title="How is Blazor working for you?" />
+@code {
+    protected override void OnInitialized()
+    {
+        if (!SesionServicio.HaySesion)
+            NavigationManager.NavigateTo("/login");
+    }
+}

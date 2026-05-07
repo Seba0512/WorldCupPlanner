@@ -1,0 +1,48 @@
+@page "/login"
+@using WorldCupPlanner.Servicios
+@using WorldCupPlanner.Dominio.Entidades
+@inject ServicioUsuario ServicioUsuario
+@inject SesionServicio SesionServicio
+@inject NavigationManager NavigationManager
+
+<PageTitle>Login</PageTitle>
+
+<div style="max-width: 400px; margin: 100px auto;">
+    <h1>WorldCupPlanner</h1>
+
+    @if (!string.IsNullOrEmpty(errorMensaje))
+    {
+        <div class="alert alert-danger">@errorMensaje</div>
+    }
+
+    <div class="form-group mb-2">
+        <label>Email</label>
+        <input type="email" class="form-control" @bind="email" />
+    </div>
+    <div class="form-group mb-2">
+        <label>Contraseña</label>
+        <input type="password" class="form-control" @bind="contrasenia" />
+    </div>
+
+    <button type="button" class="btn btn-primary mt-2" @onclick="IniciarSesion">Ingresar</button>
+</div>
+
+@code {
+    private string email = string.Empty;
+    private string contrasenia = string.Empty;
+    private string errorMensaje = string.Empty;
+
+    private void IniciarSesion()
+    {
+        try
+        {
+            var usuario = ServicioUsuario.Login(email, contrasenia);
+            SesionServicio.IniciarSesion(usuario);
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = ex.Message;
+        }
+    }
+}
