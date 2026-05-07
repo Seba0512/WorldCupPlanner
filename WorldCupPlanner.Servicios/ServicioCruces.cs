@@ -299,13 +299,13 @@ public class ServicioCruces
         var partidos = new List<Partido>();
         var proximoId = partidosPrimeraRonda.Max(p => p.Id) + 1;
 
-        for (int i = 0; i < ganadores.Count; i += 2)
+        for (int i = 0; i < 8; i++)
         {
             partidos.Add(new Partido
             {
                 Id = proximoId,
                 EquipoLocal = ganadores[i],
-                EquipoVisitante = ganadores[i + 1],
+                EquipoVisitante = ganadores[i + 8],
                 Estadio = estadios[partidos.Count % estadios.Count],
                 Fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas),
                 Fase = FaseTorneo.Octavos

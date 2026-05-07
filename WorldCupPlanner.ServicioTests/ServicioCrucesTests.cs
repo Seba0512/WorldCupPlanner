@@ -480,6 +480,30 @@ public class ServicioCrucesTests
 
         CollectionAssert.AreEquivalent(ganadoresPrimeraRonda, equiposEnOctavos);
     }
+
+    [TestMethod]
+    public void GenerarOctavos_DebeCruzarGanadoresAContraGanadoresB()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var partidosPrimeraRonda = CrearPartidosPrimeraRondaJugados();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var octavos = servicioCruces.GenerarOctavos(
+            partidosPrimeraRonda,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        for (int i = 0; i < 8; i++)
+        {
+            Assert.AreEqual(partidosPrimeraRonda[i].Ganador(), octavos[i].EquipoLocal);
+            Assert.AreEqual(partidosPrimeraRonda[i + 8].Ganador(), octavos[i].EquipoVisitante);
+        }
+    }
     
     [TestMethod]
     public void GenerarOctavos_DebeCrearPartidosConFaseOctavos()
