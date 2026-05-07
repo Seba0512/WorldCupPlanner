@@ -1,0 +1,65 @@
+@page "/equipos/{Nombre}/editar"
+@using WorldCupPlanner.Servicios
+@using WorldCupPlanner.Dominio.Entidades
+@using WorldCupPlanner.Dominio.Enumeraciones
+@inject ServicioEquipo ServicioEquipo
+@inject NavigationManager NavigationManager
+
+<PageTitle>Editar Equipo</PageTitle>
+<h1>Editar Equipo</h1>
+
+@if (!string.IsNullOrEmpty(errorMensaje))
+{
+    <div class="alert alert-danger">@errorMensaje</div>
+}
+
+<div class="form-group">
+    <label>Nombre</label>
+    <input type="text" class="form-control" @bind="equipo.Nombre" />
+</div>
+<div class="form-group">
+    <label>Confederación</label>
+    <select class="form-control" @bind="equipo.Confederacion">
+        @foreach (var conf in Enum.GetValues<Confederacion>())
+        {
+            <option value="@conf">@conf</option>
+        }
+    </select>
+</div>
+<div class="form-group">
+    <label>Ranking FIFA</label>
+    <input type="number" class="form-control" @bind="equipo.RankingFIFA" />
+</div>
+
+<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
+<a href="/equipos" class="btn btn-secondary mt-2">Cancelar</a>
+
+@code {
+    [Parameter] public string Nombre { get; set; } = string.Empty;
+    private Equipo equipo = new();
+    private string errorMensaje = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        var original = ServicioEquipo.ObtenerEquipos().First(e => e.Nombre == Nombre);
+        equipo = new Equipo
+        {
+            Nombre = original.Nombre,
+            Confederacion = original.Confederacion,
+            RankingFIFA = original.RankingFIFA
+        };
+    }
+
+    private void Guardar()
+    {
+        try
+        {
+            ServicioEquipo.EditarEquipo(equipo, Nombre);
+            NavigationManager.NavigateTo("/equipos");
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = ex.Message;
+        }
+    }
+}

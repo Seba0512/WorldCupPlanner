@@ -3,11 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.Domain", "WorldCupPlanner.Domain\WorldCupPlanner.Domain.csproj", "{52A5C95A-3F0D-4F94-82DD-7465DA9B22EF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.Dominio", "WorldCupPlanner.Dominio\WorldCupPlanner.Dominio.csproj", "{52A5C95A-3F0D-4F94-82DD-7465DA9B22EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.Services", "WorldCupPlanner.Services\WorldCupPlanner.Services.csproj", "{AAFEB94C-8DFC-4D44-86CB-3F47A8624223}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.Servicios", "WorldCupPlanner.Servicios\WorldCupPlanner.Servicios.csproj", "{AAFEB94C-8DFC-4D44-86CB-3F47A8624223}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.Tests", "WorldCupPlanner.Tests\WorldCupPlanner.Tests.csproj", "{32B47E83-AD75-4917-9AB2-7E7E7694F01F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.ServicioTests", "WorldCupPlanner.ServicioTests\WorldCupPlanner.ServicioTests.csproj", "{32B47E83-AD75-4917-9AB2-7E7E7694F01F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.UI", "WorldCupPlanner.UI\WorldCupPlanner.UI.csproj", "{92544D5E-BD33-48CE-96C4-9B77365C259F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.AccesoADatos", "WorldCupPlanner.AccesoADatos\WorldCupPlanner.AccesoADatos.csproj", "{4CC3514E-4318-44D5-9EB8-0E6CC3A657AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.DominioTests", "WorldCupPlanner.DominioTests\WorldCupPlanner.DominioTests.csproj", "{05E029D4-D400-4105-95A1-5FB07702683B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.AccesoADatosTest", "WorldCupPlanner.AccesoADatosTest\WorldCupPlanner.AccesoADatosTest.csproj", "{F8EB7123-449A-4623-B65E-8A8632C459A1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,5 +38,21 @@ Global
 		{32B47E83-AD75-4917-9AB2-7E7E7694F01F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32B47E83-AD75-4917-9AB2-7E7E7694F01F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{32B47E83-AD75-4917-9AB2-7E7E7694F01F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92544D5E-BD33-48CE-96C4-9B77365C259F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92544D5E-BD33-48CE-96C4-9B77365C259F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92544D5E-BD33-48CE-96C4-9B77365C259F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92544D5E-BD33-48CE-96C4-9B77365C259F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CC3514E-4318-44D5-9EB8-0E6CC3A657AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CC3514E-4318-44D5-9EB8-0E6CC3A657AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CC3514E-4318-44D5-9EB8-0E6CC3A657AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CC3514E-4318-44D5-9EB8-0E6CC3A657AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05E029D4-D400-4105-95A1-5FB07702683B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05E029D4-D400-4105-95A1-5FB07702683B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05E029D4-D400-4105-95A1-5FB07702683B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05E029D4-D400-4105-95A1-5FB07702683B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8EB7123-449A-4623-B65E-8A8632C459A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8EB7123-449A-4623-B65E-8A8632C459A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8EB7123-449A-4623-B65E-8A8632C459A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8EB7123-449A-4623-B65E-8A8632C459A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,114 @@
+using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Excepciones;
+using WorldCupPlanner.Servicios;
+
+namespace WorldCupPlanner.ServicioTests;
+
+[TestClass]
+public class ServicioEstadioTests
+{
+    private ServicioEstadio _servicio;
+
+    [TestInitialize]
+    public void Setup()
+    {
+        _servicio = new ServicioEstadio();
+    }
+
+    [TestMethod]
+    public void AgregarEstadio_EstadioValido_SeAgregaCorrectamente()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "Montevideo",
+            Capacidad = 60000
+        };
+
+        // Act
+        _servicio.AgregarEstadio(estadio);
+
+        // Assert
+        Assert.AreEqual(1, _servicio.ObtenerEstadios().Count);
+    }
+    
+    [TestMethod]
+    public void AgregarEstadio_NombreDuplicado_LanzaExcepcion()
+    {
+        // Arrange
+        var estadio1 = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "Montevideo",
+            Capacidad = 60000
+        };
+        var estadio2 = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "Montevideo",
+            Capacidad = 40000
+        };
+
+        // Act
+        _servicio.AgregarEstadio(estadio1);
+
+        // Assert
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.AgregarEstadio(estadio2));
+    }
+    
+    [TestMethod]
+    public void AgregarEstadio_EstadioInvalido_LanzaExcepcion()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "",
+            Ciudad = "Montevideo",
+            Capacidad = 60000
+        };
+
+        // Act yAssert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.AgregarEstadio(estadio));
+    }
+    
+    [TestMethod]
+public void EliminarEstadio_EstadioExistente_SeEliminaCorrectamente()
+{
+    // Arrange
+    var estadio = new Estadio
+    {
+        Nombre = "Estadio Centenario",
+        Ciudad = "Montevideo",
+        Capacidad = 60000
+    };
+    _servicio.AgregarEstadio(estadio);
+
+    // Act
+    _servicio.EliminarEstadio(estadio);
+
+    // Assert
+    Assert.AreEqual(0, _servicio.ObtenerEstadios().Count);
+}
+
+    [TestMethod]
+    public void EditarEstadio_EstadioValido_SeEditaCorrectamente()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "Montevideo",
+            Capacidad = 60000
+        };
+        _servicio.AgregarEstadio(estadio);
+
+        // Act
+        string nombreOriginal = estadio.Nombre;
+        estadio.Nombre = "Estadio Olimpico";
+        _servicio.EditarEstadio(nombreOriginal, estadio);
+
+        // Assert
+        Assert.AreEqual("Estadio Olimpico", _servicio.ObtenerEstadios().First().Nombre);
+    }
+}

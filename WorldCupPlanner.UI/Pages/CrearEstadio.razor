@@ -1,0 +1,51 @@
+@page "/estadios/crear"
+@using WorldCupPlanner.Servicios
+@using WorldCupPlanner.Dominio.Entidades
+@inject ServicioEstadio ServicioEstadio
+@inject NavigationManager NavigationManager
+
+<PageTitle>Crear Estadio</PageTitle>
+<h1>Crear Estadio</h1>
+
+@if (!string.IsNullOrEmpty(errorMensaje))
+{
+    <div class="alert alert-danger">@errorMensaje</div>
+}
+
+<div class="form-group">
+    <label>Nombre</label>
+    <input type="text" class="form-control" @bind="estadio.Nombre" />
+</div>
+<div class="form-group">
+    <label>Ciudad</label>
+    <input type="text" class="form-control" @bind="estadio.Ciudad" />
+</div>
+<div class="form-group">
+    <label>Capacidad</label>
+    <input type="number" class="form-control" @bind="estadio.Capacidad" />
+</div>
+<div class="form-group">
+    <label>Descripción (opcional)</label>
+    <input type="text" class="form-control" @bind="estadio.Descripcion" />
+</div>
+
+<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
+<a href="/estadios" class="btn btn-secondary mt-2">Cancelar</a>
+
+@code {
+    private Estadio estadio = new();
+    private string errorMensaje = string.Empty;
+
+    private void Guardar()
+    {
+        try
+        {
+            ServicioEstadio.AgregarEstadio(estadio);
+            NavigationManager.NavigateTo("/estadios");
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = ex.Message;
+        }
+    }
+}

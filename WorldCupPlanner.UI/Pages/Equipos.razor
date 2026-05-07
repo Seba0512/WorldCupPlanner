@@ -1,0 +1,51 @@
+@page "/equipos"
+@using WorldCupPlanner.Servicios
+@using WorldCupPlanner.Dominio.Entidades
+@inject ServicioEquipo ServicioEquipo
+
+<PageTitle>Equipos</PageTitle>
+
+<h1>
+    Equipos
+    <a href="/equipos/crear" class="btn btn-success btn-sm" style="float: right; margin-right: 40px;">Agregar +</a>
+</h1>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Nombre</th>
+        <th>Confederación</th>
+        <th>Ranking FIFA</th>
+        <th>Acciones</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var equipo in equipos)
+    {
+        <tr>
+            <td>@equipo.Nombre</td>
+            <td>@equipo.Confederacion</td>
+            <td>@equipo.RankingFIFA</td>
+            <td>
+                <a href="/equipos/@equipo.Nombre/editar" class="btn btn-success btn-sm">Editar</a>
+                <button class="btn btn-danger btn-sm" @onclick="(() => Eliminar(equipo))">Eliminar</button>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private List<Equipo> equipos = new();
+
+    protected override void OnInitialized()
+    {
+        equipos = ServicioEquipo.ObtenerEquipos();
+    }
+
+    private void Eliminar(Equipo equipo)
+    {
+        ServicioEquipo.EliminarEquipo(equipo);
+        equipos = ServicioEquipo.ObtenerEquipos();
+    }
+}
