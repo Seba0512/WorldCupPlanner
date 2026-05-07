@@ -154,14 +154,13 @@ public sealed class ServicioUsuarioTests
         // Arrange
         var usuario = CrearUsuarioValido("juan@example.com");
         _servicio.AgregarUsuario(usuario);
-        var nuevaFecha = new DateTime(1995, 5, 15);
 
         // Act
-        _servicio.ActualizarUsuario(usuario, fechaNacimiento: nuevaFecha);
+        _servicio.ActualizarUsuario(usuario, fechaNacimiento: "05-15-1995");
 
         // Assert
         var usuarioActualizado = _servicio.ObtenerTodosLosUsuarios()[0];
-        Assert.AreEqual(nuevaFecha, usuarioActualizado.FechaNacimiento);
+        Assert.AreEqual(new DateTime(1995, 5, 15), usuarioActualizado.FechaNacimiento);
     }
 
     [TestMethod]
@@ -170,18 +169,17 @@ public sealed class ServicioUsuarioTests
         // Arrange
         var usuario = CrearUsuarioValido("juan@example.com");
         _servicio.AgregarUsuario(usuario);
-        var nuevaFecha = new DateTime(1995, 5, 15);
 
         // Act
-        _servicio.ActualizarUsuario(usuario, nombre: "Carlos", apellido: "García", 
-            email: "carlos@example.com", fechaNacimiento: nuevaFecha);
+        _servicio.ActualizarUsuario(usuario, nombre: "Carlos", apellido: "García",
+            email: "carlos@example.com", fechaNacimiento: "05-15-1995");
 
         // Assert
         var usuarioActualizado = _servicio.ObtenerTodosLosUsuarios()[0];
         Assert.AreEqual("Carlos", usuarioActualizado.Nombre);
         Assert.AreEqual("García", usuarioActualizado.Apellido);
         Assert.AreEqual("carlos@example.com", usuarioActualizado.Email);
-        Assert.AreEqual(nuevaFecha, usuarioActualizado.FechaNacimiento);
+        Assert.AreEqual(new DateTime(1995, 5, 15), usuarioActualizado.FechaNacimiento);
     }
 
     [TestMethod]
@@ -472,9 +470,15 @@ public sealed class ServicioUsuarioTests
         );
     }
 
-    private Usuario CrearUsuarioValido(string email)
+    private static Usuario CrearUsuarioValido(string email)
     {
-        return new Usuario("Juan", "Pérez", email, new DateTime(1990, 1, 1));
+        return new Usuario(new DatosUsuario
+        {
+            Nombre = "Juan",
+            Apellido = "Pérez",
+            Email = email,
+            FechaNacimiento = "01-01-1990"
+        });
     }
 }
 

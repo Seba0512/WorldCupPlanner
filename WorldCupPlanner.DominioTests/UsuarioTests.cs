@@ -1,4 +1,4 @@
-﻿using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 
 namespace WorldCupPlanner.DominioTests;
@@ -13,16 +13,22 @@ public class UsuarioTests
         var nombre = "Juan";
         var apellido = "Pérez";
         var email = "juan.perez@example.com";
-        var fechaNacimiento = new DateTime(1990, 5, 15);
+        var fechaNacimiento = "05-15-1990";
 
         // Act
-        var usuario = new Usuario(nombre, apellido, email, fechaNacimiento);
+        var usuario = new Usuario(new DatosUsuario
+        {
+            Nombre = nombre,
+            Apellido = apellido,
+            Email = email,
+            FechaNacimiento = fechaNacimiento
+        });
 
         // Assert
         Assert.AreEqual(nombre, usuario.Nombre);
         Assert.AreEqual(apellido, usuario.Apellido);
         Assert.AreEqual(email, usuario.Email);
-        Assert.AreEqual(fechaNacimiento, usuario.FechaNacimiento);
+        Assert.AreEqual(new DateTime(1990, 5, 15), usuario.FechaNacimiento);
     }
 
     [TestMethod]
@@ -31,11 +37,11 @@ public class UsuarioTests
         // Arrange
         var apellido = "Pérez";
         var email = "juan.perez@example.com";
-        var fechaNacimiento = new DateTime(1990, 5, 15);
+        var fechaNacimiento = "05-15-1990";
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(string.Empty, apellido, email, fechaNacimiento)
+            new Usuario(new DatosUsuario { Nombre = string.Empty, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento })
         );
     }
 
@@ -45,11 +51,11 @@ public class UsuarioTests
         // Arrange
         var nombre = "Juan";
         var email = "juan.perez@example.com";
-        var fechaNacimiento = new DateTime(1990, 5, 15);
+        var fechaNacimiento = "05-15-1990";
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(nombre, string.Empty, email, fechaNacimiento)
+            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = string.Empty, Email = email, FechaNacimiento = fechaNacimiento })
         );
     }
 
@@ -60,11 +66,11 @@ public class UsuarioTests
         var nombre = "Juan";
         var apellido = "Pérez";
         var email = "email-invalido";
-        var fechaNacimiento = new DateTime(1990, 5, 15);
+        var fechaNacimiento = "05-15-1990";
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(nombre, apellido, email, fechaNacimiento)
+            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento })
         );
     }
 
@@ -75,11 +81,11 @@ public class UsuarioTests
         var nombre = "Juan";
         var apellido = "Pérez";
         var email = string.Empty;
-        var fechaNacimiento = new DateTime(1990, 5, 15);
+        var fechaNacimiento = "05-15-1990";
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(nombre, apellido, email, fechaNacimiento)
+            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento })
         );
     }
 
@@ -90,11 +96,31 @@ public class UsuarioTests
         var nombre = "Juan";
         var apellido = "Pérez";
         var email = "juan.perez@example.com";
-        var fechaNacimiento = DateTime.Now.AddDays(1);
+        var fechaNacimiento = DateTime.Now.AddDays(1).ToString("MM-dd-yyyy");
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(nombre, apellido, email, fechaNacimiento)
+            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento })
+        );
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConFormatoFechaInvalido_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var nombre = "Juan";
+        var apellido = "Pérez";
+        var email = "juan.perez@example.com";
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = "1990-05-15" })
+        );
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = "15/05/1990" })
+        );
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = "05/15/1990" })
         );
     }
 
@@ -456,13 +482,12 @@ public class UsuarioTests
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var nuevaFecha = new DateTime(1995, 5, 15);
 
         // Act
-        usuario.ActualizarFechaNacimiento(nuevaFecha);
+        usuario.ActualizarFechaNacimiento("05-15-1995");
 
         // Assert
-        Assert.AreEqual(nuevaFecha, usuario.FechaNacimiento);
+        Assert.AreEqual(new DateTime(1995, 5, 15), usuario.FechaNacimiento);
     }
 
     [TestMethod]
@@ -470,21 +495,32 @@ public class UsuarioTests
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var fechaFutura = DateTime.Now.AddYears(1);
+        var fechaFutura = DateTime.Now.AddYears(1).ToString("MM-dd-yyyy");
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarFechaNacimiento(fechaFutura));
     }
 
-
-    private Usuario CrearUsuarioValido()
+    [TestMethod]
+    public void ActualizarFechaNacimiento_ConFormatoInvalido_LanzaExcepcion()
     {
-        return new Usuario(
-            "Juan",
-            "Pérez",
-            "juan.perez@example.com",
-            new DateTime(1990, 5, 15)
-        );
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarFechaNacimiento("1995-05-15"));
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarFechaNacimiento("15/05/1995"));
     }
 
+
+    private static Usuario CrearUsuarioValido()
+    {
+        return new Usuario(new DatosUsuario
+        {
+            Nombre = "Juan",
+            Apellido = "Pérez",
+            Email = "juan.perez@example.com",
+            FechaNacimiento = "05-15-1990"
+        });
+    }
 }

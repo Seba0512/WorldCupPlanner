@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using WorldCupPlanner.Dominio.Enumeraciones;
@@ -7,6 +7,13 @@ namespace WorldCupPlanner.Dominio.Entidades;
 
 public class Usuario
 {
+    private const string PatronEmail = @"^[^\s@]+@[^\s@]+\.[^\s@]+$";
+    private const string PatronFormatoFecha = @"^\d{2}-\d{2}-\d{4}$";
+    private const string PatronMayuscula = @"[A-Z]";
+    private const string PatronMinuscula = @"[a-z]";
+    private const string PatronNumero = @"[0-9]";
+    private const string PatronEspecial = @"[@#$\.\!\&\*\-_\+=\?]";
+
     private string? _contraseniaCifrada;
     private HashSet<RolUsuario> _roles;
 
@@ -16,112 +23,131 @@ public class Usuario
     public DateTime FechaNacimiento { get; private set; }
     public string? ContraseniaCifrada => _contraseniaCifrada;
 
-    public Usuario(string nombre, string apellido, string email, DateTime fechaNacimiento)
+    public Usuario(DatosUsuario datos)
     {
-        ValidarNombre(nombre);
-        ValidarApellido(apellido);
-        ValidarEmail(email);
-        ValidarFechaNacimiento(fechaNacimiento);
+        ValidarNombre(datos.Nombre);
+        ValidarApellido(datos.Apellido);
+        ValidarEmail(datos.Email);
 
-        Nombre = nombre;
-        Apellido = apellido;
-        Email = email;
-        FechaNacimiento = fechaNacimiento;
+        var fecha = ParsearFechaNacimiento(datos.FechaNacimiento);
+        ValidarFechaNacimiento(fecha);
+
+        Nombre = datos.Nombre;
+        Apellido = datos.Apellido;
+        Email = datos.Email;
+        FechaNacimiento = fecha;
         _roles = new HashSet<RolUsuario>();
     }
 
-    private void ValidarNombre(string nombre)
+    private static void ValidarNombre(string nombre)
     {
         if (string.IsNullOrWhiteSpace(nombre))
-        {
             throw new ArgumentException("El nombre no puede estar vacío.", nameof(nombre));
-        }
     }
 
-    private void ValidarApellido(string apellido)
+    private static void ValidarApellido(string apellido)
     {
         if (string.IsNullOrWhiteSpace(apellido))
-        {
             throw new ArgumentException("El apellido no puede estar vacío.", nameof(apellido));
-        }
     }
 
-    private void ValidarEmail(string email)
+    private static void ValidarEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
-        {
             throw new ArgumentException("El email no puede estar vacío.", nameof(email));
-        }
 
-        var patronEmail = @"^[^\s@]+@[^\s@]+\.[^\s@]+$";
-        if (!Regex.IsMatch(email, patronEmail))
-        {
+        if (!Regex.IsMatch(email, PatronEmail))
             throw new ArgumentException("El email no es válido.", nameof(email));
-        }
     }
 
-    private void ValidarFechaNacimiento(DateTime fechaNacimiento)
+    private static DateTime ParsearFechaNacimiento(string fechaNacimiento)
+    {
+        const string formato = "MM-dd-yyyy";
+
+        if (string.IsNullOrWhiteSpace(fechaNacimiento))
+            throw new ArgumentException("La fecha de nacimiento no puede estar vacía.", nameof(fechaNacimiento));
+
+        if (!Regex.IsMatch(fechaNacimiento, PatronFormatoFecha))
+            throw new ArgumentException("La fecha de nacimiento debe tener el formato MM-DD-AAAA.", nameof(fechaNacimiento));
+
+        if (!DateTime.TryParseExact(fechaNacimiento, formato,
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out var fecha))
+            throw new ArgumentException("La fecha de nacimiento no es una fecha válida.", nameof(fechaNacimiento));
+
+        return fecha;
+    }
+
+    private static void ValidarFechaNacimiento(DateTime fechaNacimiento)
     {
         if (fechaNacimiento > DateTime.Now)
-        {
             throw new ArgumentException("La fecha de nacimiento no puede ser futura.", nameof(fechaNacimiento));
-        }
     }
-    
+
     public void EstablecerContrasenia(string contrasenia)
     {
         ValidarContrasenia(contrasenia);
         _contraseniaCifrada = CifrarContrasenia(contrasenia);
     }
 
-    private void ValidarContrasenia(string contrasenia)
+    private static void ValidarContrasenia(string contrasenia)
     {
-        if (string.IsNullOrWhiteSpace(contrasenia))
-        {
-            throw new ArgumentException("La contrasenia no puede estar vacía.", nameof(contrasenia));
-        }
-
-        if (contrasenia.Length < 8)
-        {
-            throw new ArgumentException("La contrasenia debe tener al menos 8 caracteres.", nameof(contrasenia));
-        }
-
-        if (!Regex.IsMatch(contrasenia, @"[A-Z]"))
-        {
-            throw new ArgumentException("La contrasenia debe incluir al menos una letra mayúscula.", nameof(contrasenia));
-        }
-
-        if (!Regex.IsMatch(contrasenia, @"[a-z]"))
-        {
-            throw new ArgumentException("La contrasenia debe incluir al menos una letra minúscula.", nameof(contrasenia));
-        }
-
-        if (!Regex.IsMatch(contrasenia, @"[0-9]"))
-        {
-            throw new ArgumentException("La contrasenia debe incluir al menos un número.", nameof(contrasenia));
-        }
-
-        if (!Regex.IsMatch(contrasenia, @"[@#$\.\!\&\*\-_\+=\?]"))
-        {
-            throw new ArgumentException("La contrasenia debe incluir al menos un carácter especial (@, #, $, ., !, &, *, -, _, +, =, ?).", nameof(contrasenia));
-        }
+        ValidarContraseniaNoVacia(contrasenia);
+        ValidarLongitudMinima(contrasenia);
+        ValidarTieneMayuscula(contrasenia);
+        ValidarTieneMinuscula(contrasenia);
+        ValidarTieneNumero(contrasenia);
+        ValidarTieneCaracterEspecial(contrasenia);
     }
 
-    private string CifrarContrasenia(string contrasenia)
+    private static void ValidarContraseniaNoVacia(string contrasenia)
     {
-        using (var sha256 = SHA256.Create())
-        {
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(contrasenia));
-            return Convert.ToBase64String(hashedBytes);
-        }
+        if (string.IsNullOrWhiteSpace(contrasenia))
+            throw new ArgumentException("La contrasenia no puede estar vacía.", nameof(contrasenia));
+    }
+
+    private static void ValidarLongitudMinima(string contrasenia)
+    {
+        if (contrasenia.Length < 8)
+            throw new ArgumentException("La contrasenia debe tener al menos 8 caracteres.", nameof(contrasenia));
+    }
+
+    private static void ValidarTieneMayuscula(string contrasenia)
+    {
+        if (!Regex.IsMatch(contrasenia, PatronMayuscula))
+            throw new ArgumentException("La contrasenia debe incluir al menos una letra mayúscula.", nameof(contrasenia));
+    }
+
+    private static void ValidarTieneMinuscula(string contrasenia)
+    {
+        if (!Regex.IsMatch(contrasenia, PatronMinuscula))
+            throw new ArgumentException("La contrasenia debe incluir al menos una letra minúscula.", nameof(contrasenia));
+    }
+
+    private static void ValidarTieneNumero(string contrasenia)
+    {
+        if (!Regex.IsMatch(contrasenia, PatronNumero))
+            throw new ArgumentException("La contrasenia debe incluir al menos un número.", nameof(contrasenia));
+    }
+
+    private static void ValidarTieneCaracterEspecial(string contrasenia)
+    {
+        if (!Regex.IsMatch(contrasenia, PatronEspecial))
+            throw new ArgumentException("La contrasenia debe incluir al menos un carácter especial (@, #, $, ., !, &, *, -, _, +, =, ?).", nameof(contrasenia));
+    }
+
+    private static string CifrarContrasenia(string contrasenia)
+    {
+        using var sha256 = SHA256.Create();
+        var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(contrasenia));
+        return Convert.ToBase64String(hashedBytes);
     }
 
     public bool VerificarContrasenia(string contrasenia)
     {
         if (string.IsNullOrEmpty(_contraseniaCifrada))
-        {
             return false;
-        }
 
         var contraseniaCifradaIngresada = CifrarContrasenia(contrasenia);
         return _contraseniaCifrada == contraseniaCifradaIngresada;
@@ -146,7 +172,7 @@ public class Usuario
     {
         return _roles.AsEnumerable();
     }
-    
+
     public void ActualizarNombre(string nuevoNombre)
     {
         ValidarNombre(nuevoNombre);
@@ -158,17 +184,17 @@ public class Usuario
         ValidarApellido(nuevoApellido);
         Apellido = nuevoApellido;
     }
-    
+
     public void ActualizarEmail(string nuevoEmail)
     {
         ValidarEmail(nuevoEmail);
         Email = nuevoEmail;
     }
-    
-    public void ActualizarFechaNacimiento(DateTime nuevaFecha)
-    {
-        ValidarFechaNacimiento(nuevaFecha);
-        FechaNacimiento = nuevaFecha;
-    }
 
+    public void ActualizarFechaNacimiento(string nuevaFecha)
+    {
+        var fecha = ParsearFechaNacimiento(nuevaFecha);
+        ValidarFechaNacimiento(fecha);
+        FechaNacimiento = fecha;
+    }
 }

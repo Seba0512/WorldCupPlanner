@@ -234,8 +234,14 @@ public class RepositoriosEnMemoriaTests
         };
     }
 
-    private Usuario CrearUsuarioValido(string email)
+    private static Usuario CrearUsuarioValido(string email)
     {
-        return new Usuario("Juan", "Pérez", email, new DateTime(1990, 1, 1));
+        return new Usuario(new DatosUsuario
+        {
+            Nombre = "Juan",
+            Apellido = "Pérez",
+            Email = email,
+            FechaNacimiento = "01-01-1990"
+        });
     }
 }

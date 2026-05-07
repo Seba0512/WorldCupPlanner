@@ -20,8 +20,8 @@ public class ServicioUsuario
         _repositorio.Agregar(usuario);
     }
     
-    public void ActualizarUsuario(Usuario usuario, string? nombre = null, string? apellido = null, 
-        string? email = null, DateTime? fechaNacimiento = null)
+    public void ActualizarUsuario(Usuario usuario, string? nombre = null, string? apellido = null,
+        string? email = null, string? fechaNacimiento = null)
     {
         var usuarioActual = _repositorio.Buscar(u => ReferenceEquals(u, usuario))
             .FirstOrDefault();
@@ -47,9 +47,9 @@ public class ServicioUsuario
             usuarioActual.ActualizarApellido(apellido);
         }
 
-        if (fechaNacimiento.HasValue)
+        if (fechaNacimiento != null)
         {
-            usuarioActual.ActualizarFechaNacimiento(fechaNacimiento.Value);
+            usuarioActual.ActualizarFechaNacimiento(fechaNacimiento);
         }
 
         _repositorio.Actualizar(usuarioActual);
