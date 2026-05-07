@@ -317,6 +317,36 @@ public class ServicioCruces
         return partidos;
     }
 
+    public List<Partido> GenerarCuartos(
+        List<Partido> octavos,
+        List<Estadio> estadios,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        var ganadores = octavos
+            .Select(p => p.Ganador())
+            .ToList();
+
+        var partidos = new List<Partido>();
+        var proximoId = octavos.Max(p => p.Id) + 1;
+
+        for (int i = 0; i < 4; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = proximoId,
+                EquipoLocal = ganadores[i * 2],
+                EquipoVisitante = ganadores[i * 2 + 1],
+                Estadio = estadios[partidos.Count % estadios.Count],
+                Fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 2),
+                Fase = FaseTorneo.Cuartos
+            });
+
+            proximoId++;
+        }
+
+        return partidos;
+    }
+
     private void ValidarCantidadPartidosPrimeraRonda(List<Partido> partidosPrimeraRonda)
     {
         if (partidosPrimeraRonda.Count != 16)

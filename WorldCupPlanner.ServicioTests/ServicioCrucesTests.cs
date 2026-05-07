@@ -453,6 +453,44 @@ public class ServicioCrucesTests
 
         return partidos;
     }
+
+    private List<Partido> CrearPartidosOctavosJugados(int cantidad)
+    {
+        var partidos = new List<Partido>();
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio",
+            Ciudad = "Ciudad",
+            Capacidad = 30000
+        };
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = 16 + i,
+                EquipoLocal = new Equipo
+                {
+                    Nombre = $"LocalOctavos{i}",
+                    RankingFIFA = 1000 + i,
+                    Confederacion = Confederacion.UEFA
+                },
+                EquipoVisitante = new Equipo
+                {
+                    Nombre = $"VisitanteOctavos{i}",
+                    RankingFIFA = 900 + i,
+                    Confederacion = Confederacion.CONMEBOL
+                },
+                Estadio = estadio,
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.Octavos,
+                GolesLocal = 2,
+                GolesVisitante = 0
+            });
+        }
+
+        return partidos;
+    }
     
     [TestMethod]
     public void GenerarOctavos_DebeUsarGanadoresDePrimeraRonda()
@@ -655,5 +693,26 @@ public class ServicioCrucesTests
                 configuracionTorneo
             )
         );
+    }
+
+    [TestMethod]
+    public void GenerarCuartos_Con8OctavosJugados_DebeGenerar4Partidos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var cuartos = servicioCruces.GenerarCuartos(
+            octavos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(4, cuartos.Count);
+        Assert.IsTrue(cuartos.All(p => p.Fase == FaseTorneo.Cuartos));
     }
 }
