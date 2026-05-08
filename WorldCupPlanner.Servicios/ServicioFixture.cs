@@ -38,6 +38,11 @@ public class ServicioFixture
         List<Equipo> equipos,
         ConfiguracionTorneo configuracionTorneo)
     {
+        if (equipos.Count > CantidadExactaEquipos)
+        {
+            throw new EntidadInvalidaExcepcion("No se puede completar una lista con más de 48 equipos.");
+        }
+
         var equiposCompletos = new List<Equipo>(equipos);
         var random = new Random(configuracionTorneo.SemillaCompletar);
 

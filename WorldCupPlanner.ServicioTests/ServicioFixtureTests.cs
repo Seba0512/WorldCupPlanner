@@ -49,6 +49,35 @@ public class ServicioFixtureTests
     }
 
     [TestMethod]
+    public void CompletarEquipos_ConMasDe48Equipos_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+
+        equipos.Add(new Equipo
+        {
+            Nombre = "EquipoExtra",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL
+        });
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioFixture.CompletarEquipos(
+                equipos,
+                configuracionTorneo
+            )
+        );
+    }
+
+    [TestMethod]
     public void GenerarFixture_ConMenosDe4Estadios_DebeLanzarExcepcion()
     {
         // Arrange
