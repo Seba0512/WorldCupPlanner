@@ -574,6 +574,70 @@ public sealed class ServicioUsuarioTests
         Assert.AreEqual(0, resultado.Count);
     }
 
+    [TestMethod]
+    public void ActualizarUsuario_ConMismoEmail_NoLanzaExcepcionNiCambiaNada()
+    {
+        // Verifica la rama donde email != null pero es igual al actual
+        // (la condición !email.Equals(...) es false, se omite la validación)
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        _servicio.ActualizarUsuario(usuario, email: "juan@example.com");
+
+        Assert.AreEqual("juan@example.com", usuario.Email);
+    }
+
+    [TestMethod]
+    public void AgregarUsuario_ConEjecutadoPorExplicito_RegistraEjecutadoPorEnAuditoria()
+    {
+        // Cubre el branch ejecutadoPor != null en AgregarUsuario
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var servicio = new ServicioUsuario(repositorio, auditoria);
+
+        var usuario = CrearUsuarioValido("juan@example.com");
+        servicio.AgregarUsuario(usuario, ejecutadoPor: "admin@example.com");
+
+        Assert.AreEqual("admin@example.com", repoAuditoria.Entradas[0].Usuario);
+    }
+
+    [TestMethod]
+    public void EliminarUsuario_ConEjecutadoPorExplicito_RegistraEjecutadoPorEnAuditoria()
+    {
+        // Cubre el branch ejecutadoPor != null en EliminarUsuario
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var servicio = new ServicioUsuario(repositorio, auditoria);
+
+        var usuario = CrearUsuarioValido("juan@example.com");
+        servicio.AgregarUsuario(usuario);
+        repoAuditoria.Entradas.Clear();
+
+        servicio.EliminarUsuario(usuario, ejecutadoPor: "admin@example.com");
+
+        Assert.AreEqual("admin@example.com", repoAuditoria.Entradas[0].Usuario);
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConEjecutadoPorExplicito_RegistraEjecutadoPorEnAuditoria()
+    {
+        // Cubre el branch ejecutadoPor != null en ActualizarUsuario
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var servicio = new ServicioUsuario(repositorio, auditoria);
+
+        var usuario = CrearUsuarioValido("juan@example.com");
+        servicio.AgregarUsuario(usuario);
+        repoAuditoria.Entradas.Clear();
+
+        servicio.ActualizarUsuario(usuario, nombre: "Carlos", ejecutadoPor: "admin@example.com");
+
+        Assert.AreEqual("admin@example.com", repoAuditoria.Entradas[0].Usuario);
+    }
+
     private static Usuario CrearUsuarioValido(string email)
     {
         return new Usuario(new DatosUsuario

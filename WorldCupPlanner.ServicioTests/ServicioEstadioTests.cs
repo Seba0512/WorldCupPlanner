@@ -90,6 +90,35 @@ public class ServicioEstadioTests
         Assert.AreEqual("Estadio Olimpico", _servicio.ObtenerEstadios().First().Nombre);
     }
 
+    [TestMethod]
+    public void EditarEstadio_EstadioNoExistente_LanzaExcepcion()
+    {
+        var estadio = CrearEstadio();
+
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            _servicio.EditarEstadio("EstadioQueNoExiste", estadio));
+    }
+
+    [TestMethod]
+    public void EditarEstadio_ConNuevoObjetoYNombreOriginal_SeEditaCorrectamente()
+    {
+        // Cubre la rama del predicado donde ReferenceEquals es false
+        // pero e.Nombre == nombreOriginal es true (busca por nombre, no por referencia)
+        var estadio = CrearEstadio();
+        _servicio.AgregarEstadio(estadio);
+
+        var estadioActualizado = new Estadio
+        {
+            Nombre = "Estadio Olimpico",
+            Ciudad = "Buenos Aires",
+            Capacidad = 70000
+        };
+
+        _servicio.EditarEstadio("Estadio Centenario", estadioActualizado);
+
+        Assert.AreEqual("Estadio Olimpico", _servicio.ObtenerEstadios().First().Nombre);
+    }
+
     // --- Auditoría ---
 
     [TestMethod]

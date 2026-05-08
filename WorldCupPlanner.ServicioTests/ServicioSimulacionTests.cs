@@ -222,4 +222,22 @@ public class ServicioSimulacionTests
         Assert.IsTrue(partidos.All(p => !p.EsEmpate()));
         Assert.IsTrue(partidos.All(p => p.Ganador() != null));
     }
+
+    [TestMethod]
+    public void SimularResultados_ConMuchosPartidosEliminatorios_CubreDesempateCuandoGolesLocalEs5()
+    {
+        // Con 1000 partidos la probabilidad de que random genere (5,5) es prácticamente 1,
+        // garantizando la cobertura del else branch de DesempatarPartido (GolesLocal == 5)
+        // que decrementa GolesVisitante en lugar de incrementar GolesLocal.
+        var servicioSimulacion = new ServicioSimulacion();
+        var partidos = CrearPartidosEliminatoriosSinResultado(1000);
+
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaSimulation = 1 };
+
+        servicioSimulacion.SimularResultados(partidos, configuracionTorneo);
+
+        Assert.IsTrue(partidos.All(p => p.EstaJugado()));
+        Assert.IsTrue(partidos.All(p => !p.EsEmpate()));
+        Assert.IsTrue(partidos.All(p => p.Ganador() != null));
+    }
 }

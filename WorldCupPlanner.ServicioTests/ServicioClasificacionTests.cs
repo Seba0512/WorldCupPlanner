@@ -522,4 +522,41 @@ public class ServicioClasificacionTests
 
         return grupo;
     }
+
+    [TestMethod]
+    public void CalcularTabla_ConPartidoSinEquipos_NoModificaLasPosiciones()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+
+        var equipo1 = CrearEquipo("Equipo1");
+        var equipo2 = CrearEquipo("Equipo2");
+        var equipo3 = CrearEquipo("Equipo3");
+        var equipo4 = CrearEquipo("Equipo4");
+
+        var grupo = new Grupo("A", new List<Equipo> { equipo1, equipo2, equipo3, equipo4 });
+
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 2, 0));
+
+        // Partido jugado pero sin equipos asignados — debe ser ignorado al calcular posiciones
+        grupo.Partidos.Add(new Partido
+        {
+            EquipoLocal = null,
+            EquipoVisitante = null,
+            GolesLocal = 3,
+            GolesVisitante = 1,
+            Fase = FaseTorneo.FaseDeGrupos,
+            Estadio = new Estadio { Nombre = "Estadio", Ciudad = "Ciudad", Capacidad = 30000 },
+            Fecha = DateTime.Now
+        });
+
+        // Act
+        var tabla = servicioClasificacion.CalcularTabla(grupo);
+
+        // Assert — solo el partido válido debe contar
+        Assert.AreEqual(3, tabla.First(p => p.Equipo == equipo1).Puntos);
+        Assert.AreEqual(0, tabla.First(p => p.Equipo == equipo2).Puntos);
+        Assert.AreEqual(0, tabla.First(p => p.Equipo == equipo3).Puntos);
+        Assert.AreEqual(0, tabla.First(p => p.Equipo == equipo4).Puntos);
+    }
 }

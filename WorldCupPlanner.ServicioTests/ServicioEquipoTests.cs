@@ -116,6 +116,14 @@ public class ServicioEquipoTests
     }
 
     [TestMethod]
+    public void EditarEquipo_EquipoNoExistente_LanzaExcepcion()
+    {
+        var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+
+        Assert.ThrowsException<EntidadInexistenteExcepcion>(() => _servicio.EditarEquipo(equipo, "Uruguay"));
+    }
+
+    [TestMethod]
     public void EditarEquipo_NombreDuplicado_LanzaExcepcion()
     {
         var equipo1 = CrearEquipo("Uruguay", Confederacion.CONMEBOL);

@@ -1384,6 +1384,44 @@ public class ServicioCrucesTests
         Assert.AreEqual(perdedorSemifinal1, tercerPuesto.EquipoLocal);
         Assert.AreEqual(perdedorSemifinal2, tercerPuesto.EquipoVisitante);
     }
+
+    [TestMethod]
+    public void GenerarTercerPuesto_CuandoGanaElVisitante_UsaEquipoLocalComoPerdedor()
+    {
+        // Cubre la rama de ObtenerPerdedor donde el ganador es el visitante
+        // y el perdedor es el equipo local
+        var servicioCruces = new ServicioCruces();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+        var estadio = new Estadio { Nombre = "Estadio", Ciudad = "Ciudad", Capacidad = 30000 };
+
+        var localSemifinal1 = new Equipo { Nombre = "Local1", RankingFIFA = 1000, Confederacion = Confederacion.UEFA };
+        var visitanteSemifinal1 = new Equipo { Nombre = "Visitante1", RankingFIFA = 900, Confederacion = Confederacion.CONMEBOL };
+        var localSemifinal2 = new Equipo { Nombre = "Local2", RankingFIFA = 1000, Confederacion = Confederacion.UEFA };
+        var visitanteSemifinal2 = new Equipo { Nombre = "Visitante2", RankingFIFA = 900, Confederacion = Confederacion.CONMEBOL };
+
+        // El visitante gana → perdedor es el local
+        var semifinales = new List<Partido>
+        {
+            new Partido
+            {
+                Id = 101, EquipoLocal = localSemifinal1, EquipoVisitante = visitanteSemifinal1,
+                GolesLocal = 0, GolesVisitante = 2,
+                Estadio = estadio, Fecha = DateTime.Now, Fase = FaseTorneo.Semifinal
+            },
+            new Partido
+            {
+                Id = 102, EquipoLocal = localSemifinal2, EquipoVisitante = visitanteSemifinal2,
+                GolesLocal = 0, GolesVisitante = 1,
+                Estadio = estadio, Fecha = DateTime.Now, Fase = FaseTorneo.Semifinal
+            }
+        };
+
+        var tercerPuesto = servicioCruces.GenerarTercerPuesto(semifinales, estadios, configuracionTorneo);
+
+        Assert.AreEqual(localSemifinal1, tercerPuesto.EquipoLocal);
+        Assert.AreEqual(localSemifinal2, tercerPuesto.EquipoVisitante);
+    }
     
     [TestMethod]
     public void GenerarTercerPuesto_DebeAsignarIdLuegoDeSemifinales()
@@ -1654,7 +1692,156 @@ public class ServicioCrucesTests
             partido.GolesVisitante = 0;
         }
     }
-    
+
+    [TestMethod]
+    public void GenerarPrimeraRondaEliminatoria_CuandoTodosDelMismoGrupo_CompletaSinExcepcion()
+    {
+        // Arrange — todos los equipos del mismo grupo obliga a BuscarVisitanteAlternativo
+        // y BuscarRivalAlternativo a devolver null (fallback gracioso sin crash)
+        var servicioCruces = new ServicioCruces();
+        var grupoA = new Grupo("A");
+        var grupoB = new Grupo("B");
+        var grupoC = new Grupo("C");
+
+        var clasificados = new ClasificadosFaseGrupos();
+
+        // 8 primeros desde grupoA → se cruzarán contra terceros (todos grupoA)
+        for (int i = 1; i <= 8; i++)
+        {
+            var e = new Equipo { Nombre = $"Primero{i}", RankingFIFA = 1000 + i, Confederacion = Confederacion.UEFA };
+            clasificados.Primeros.Add(e);
+            clasificados.GruposDeOrigen[e] = grupoA;
+        }
+        // 4 primeros adicionales desde grupoB
+        for (int i = 9; i <= 12; i++)
+        {
+            var e = new Equipo { Nombre = $"Primero{i}", RankingFIFA = 1000 + i, Confederacion = Confederacion.UEFA };
+            clasificados.Primeros.Add(e);
+            clasificados.GruposDeOrigen[e] = grupoB;
+        }
+
+        // 8 segundos desde grupoA → segundosRestantes, todos del mismo grupo
+        // (fuerza BuscarRivalAlternativo a devolver null)
+        for (int i = 1; i <= 8; i++)
+        {
+            var e = new Equipo { Nombre = $"Segundo{i}", RankingFIFA = 900 + i, Confederacion = Confederacion.CONMEBOL };
+            clasificados.Segundos.Add(e);
+            clasificados.GruposDeOrigen[e] = grupoA;
+        }
+        // 4 segundos adicionales desde grupoC (segundosDeMenorRendimiento)
+        for (int i = 9; i <= 12; i++)
+        {
+            var e = new Equipo { Nombre = $"Segundo{i}", RankingFIFA = 900 + i, Confederacion = Confederacion.CONMEBOL };
+            clasificados.Segundos.Add(e);
+            clasificados.GruposDeOrigen[e] = grupoC;
+        }
+
+        // 8 terceros desde grupoA → cruces primeros vs terceros todos conflictan
+        // (fuerza BuscarVisitanteAlternativo a devolver null)
+        for (int i = 1; i <= 8; i++)
+        {
+            var e = new Equipo { Nombre = $"Tercero{i}", RankingFIFA = 800 + i, Confederacion = Confederacion.AFC };
+            clasificados.MejoresTerceros.Add(e);
+            clasificados.GruposDeOrigen[e] = grupoA;
+        }
+
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+        // Act — no debe lanzar excepción aunque no se puedan evitar cruces del mismo grupo
+        var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(clasificados, estadios, configuracionTorneo);
+
+        // Assert
+        Assert.AreEqual(16, partidos.Count);
+        Assert.IsTrue(partidos.All(p => p.Fase == FaseTorneo.PrimeraRondaEliminatoria));
+    }
+
+    private class RandomSiempreCero : Random
+    {
+        public override int Next(int maxValue) => 0;
+    }
+
+    [TestMethod]
+    public void GenerarPrimeraRondaEliminatoria_CuandoHayConflictosResolubles_ReordenaCorrectamente()
+    {
+        // Arrange
+        // Con RandomSiempreCero, Fisher-Yates rota los elementos una posición a la izquierda.
+        // primerosRestantes=[P9(C),P10(D),P11(E),P12(F)] → [P10(D),P11(E),P12(F),P9(C)]
+        // segundosDeMenorRendimiento=[SE1(C),SE2(D),SE3(E),SE4(F)] → [SE2(D),SE3(E),SE4(F),SE1(C)]
+        // → pares (D,D),(E,E),(F,F),(C,C): todos conflictos resolubles → cubre líneas 176-180
+        //
+        // segundosRestantes=[SA1..SA4(A),SB1..SB4(B)] → [SA2,SA3,SA4,SB1,SB2,SB3,SB4,SA1]
+        // → par (0,1)=(A,A): conflicto resoluble con SB2 en posición 4 → cubre líneas 229-233 y 264-265
+        var servicioCruces = new ServicioCruces();
+        var clasificados = new ClasificadosFaseGrupos();
+
+        var grupoA = new Grupo("A");
+        var grupoB = new Grupo("B");
+        var grupoC = new Grupo("C");
+        var grupoD = new Grupo("D");
+        var grupoE = new Grupo("E");
+        var grupoF = new Grupo("F");
+        var grupoG = new Grupo("G"); // primeros[0-7] → sin conflicto con terceros(H)
+        var grupoH = new Grupo("H"); // terceros[0-7]
+
+        // Primeros[0-7] → todos en grupoG (distinto de grupoH de terceros → sin conflictos en ese cruce)
+        for (int i = 0; i < 8; i++)
+        {
+            var e = new Equipo { Nombre = $"Primero{i + 1}", RankingFIFA = 1000 + i, Confederacion = Confederacion.UEFA };
+            clasificados.Primeros.Add(e);
+            clasificados.GruposDeOrigen[e] = grupoG;
+        }
+        // Primeros[8-11] → grupos C,D,E,F
+        var gruposExtra = new[] { grupoC, grupoD, grupoE, grupoF };
+        for (int i = 0; i < 4; i++)
+        {
+            var e = new Equipo { Nombre = $"Primero{i + 9}", RankingFIFA = 1100 + i, Confederacion = Confederacion.UEFA };
+            clasificados.Primeros.Add(e);
+            clasificados.GruposDeOrigen[e] = gruposExtra[i];
+        }
+
+        // Segundos[0-7] → 4 de grupoA, 4 de grupoB (para segundosRestantes con conflictos)
+        for (int i = 0; i < 4; i++)
+        {
+            var e = new Equipo { Nombre = $"SegundoA{i + 1}", RankingFIFA = 900 + i, Confederacion = Confederacion.CONMEBOL };
+            clasificados.Segundos.Add(e);
+            clasificados.GruposDeOrigen[e] = grupoA;
+        }
+        for (int i = 0; i < 4; i++)
+        {
+            var e = new Equipo { Nombre = $"SegundoB{i + 1}", RankingFIFA = 850 + i, Confederacion = Confederacion.CONMEBOL };
+            clasificados.Segundos.Add(e);
+            clasificados.GruposDeOrigen[e] = grupoB;
+        }
+        // Segundos[8-11] → grupos C,D,E,F (para segundosDeMenorRendimiento con conflictos)
+        for (int i = 0; i < 4; i++)
+        {
+            var e = new Equipo { Nombre = $"SegundoExtra{i + 1}", RankingFIFA = 800 + i, Confederacion = Confederacion.CONMEBOL };
+            clasificados.Segundos.Add(e);
+            clasificados.GruposDeOrigen[e] = gruposExtra[i];
+        }
+
+        // MejoresTerceros[0-7] → todos en grupoH (distinto de grupoG → sin conflictos al cruzar con primeros)
+        for (int i = 0; i < 8; i++)
+        {
+            var e = new Equipo { Nombre = $"Tercero{i + 1}", RankingFIFA = 700 + i, Confederacion = Confederacion.AFC };
+            clasificados.MejoresTerceros.Add(e);
+            clasificados.GruposDeOrigen[e] = grupoH;
+        }
+
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+        // Act — RandomSiempreCero produce shuffles predecibles que garantizan conflictos resolubles
+        var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            clasificados, estadios, configuracionTorneo, new RandomSiempreCero());
+
+        // Assert
+        Assert.AreEqual(16, partidos.Count);
+        Assert.IsTrue(partidos.All(p => p.Fase == FaseTorneo.PrimeraRondaEliminatoria));
+        Assert.IsTrue(partidos.All(p => p.EquipoLocal != p.EquipoVisitante));
+    }
+
     [TestMethod]
     public void GenerarFaseEliminatoria_CompletaDesdePrimeraRonda_DebeGenerarHastaFinal()
     {

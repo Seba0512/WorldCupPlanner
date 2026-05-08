@@ -1341,6 +1341,36 @@ public class ServicioFixtureTests
     }
     
     [TestMethod]
+    public void CompletarEquipos_CuandoSoloFaltaOfc_DebeAgregarEquipoOfc()
+    {
+        // Arrange — 47 equipos con todas las confederaciones al máximo excepto OFC (0/1).
+        // ObtenerConfederacionConCupoDisponible iterará UEFA→CONMEBOL→CONCACAF→CAF→AFC (todos llenos)
+        // y finalmente alcanzará OFC → cubre la rama Confederacion.OFC => CupoOfc.
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = new List<Equipo>();
+        for (int i = 0; i < 16; i++)
+            equipos.Add(new Equipo { Nombre = $"UEFA{i + 1}", RankingFIFA = 1000 + i, Confederacion = Confederacion.UEFA });
+        for (int i = 0; i < 7; i++)
+            equipos.Add(new Equipo { Nombre = $"CON{i + 1}", RankingFIFA = 900 + i, Confederacion = Confederacion.CONMEBOL });
+        for (int i = 0; i < 7; i++)
+            equipos.Add(new Equipo { Nombre = $"COCA{i + 1}", RankingFIFA = 800 + i, Confederacion = Confederacion.CONCACAF });
+        for (int i = 0; i < 9; i++)
+            equipos.Add(new Equipo { Nombre = $"CAF{i + 1}", RankingFIFA = 700 + i, Confederacion = Confederacion.CAF });
+        for (int i = 0; i < 8; i++)
+            equipos.Add(new Equipo { Nombre = $"AFC{i + 1}", RankingFIFA = 600 + i, Confederacion = Confederacion.AFC });
+
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCompletar = 1 };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(equipos, configuracionTorneo);
+
+        // Assert
+        Assert.AreEqual(48, equiposCompletos.Count);
+        Assert.AreEqual(1, equiposCompletos.Count(e => e.Confederacion == Confederacion.OFC));
+    }
+
+    [TestMethod]
     public void CompletarEquipos_NoDebeDuplicarNombreCuandoYaExisteNombreDeterministico()
     {
         // Arrange

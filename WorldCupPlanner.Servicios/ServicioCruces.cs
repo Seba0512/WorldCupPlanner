@@ -11,10 +11,11 @@ public class ServicioCruces
     public List<Partido> GenerarPrimeraRondaEliminatoria(
         ClasificadosFaseGrupos clasificados,
         List<Estadio> estadios,
-        ConfiguracionTorneo configuracionTorneo)
+        ConfiguracionTorneo configuracionTorneo,
+        Random? random = null)
     {
         var partidos = new List<Partido>();
-        var random = new Random(configuracionTorneo.SemillaCrucesFase);
+        random ??= new Random(configuracionTorneo.SemillaCrucesFase);
 
         var primerosParaTerceros = MezclarEquiposConFisherYates(
             new List<Equipo>(clasificados.Primeros.Take(8)),
