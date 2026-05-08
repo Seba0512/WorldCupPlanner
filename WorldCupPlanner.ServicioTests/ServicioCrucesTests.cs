@@ -1378,4 +1378,31 @@ public class ServicioCrucesTests
         // Assert
         Assert.AreEqual(31, tercerPuesto.Id);
     }
+    
+    [TestMethod]
+    public void GenerarTercerPuesto_DebeAsignarFechaSegunConfiguracion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            FechaInicioTorneo = new DateTime(2026, 6, 1),
+            SeparacionEntreFechas = 3
+        };
+
+        // Act
+        var tercerPuesto = servicioCruces.GenerarTercerPuesto(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var fechaEsperada = new DateTime(2026, 6, 13);
+
+        Assert.AreEqual(fechaEsperada, tercerPuesto.Fecha);
+    }
 }
