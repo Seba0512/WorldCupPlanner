@@ -491,6 +491,44 @@ public class ServicioCrucesTests
 
         return partidos;
     }
+
+    private List<Partido> CrearPartidosCuartosJugados(int cantidad)
+    {
+        var partidos = new List<Partido>();
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio",
+            Ciudad = "Ciudad",
+            Capacidad = 30000
+        };
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = 24 + i,
+                EquipoLocal = new Equipo
+                {
+                    Nombre = $"LocalCuartos{i}",
+                    RankingFIFA = 1000 + i,
+                    Confederacion = Confederacion.UEFA
+                },
+                EquipoVisitante = new Equipo
+                {
+                    Nombre = $"VisitanteCuartos{i}",
+                    RankingFIFA = 900 + i,
+                    Confederacion = Confederacion.CONMEBOL
+                },
+                Estadio = estadio,
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.Cuartos,
+                GolesLocal = 2,
+                GolesVisitante = 0
+            });
+        }
+
+        return partidos;
+    }
     
     [TestMethod]
     public void GenerarOctavos_DebeUsarGanadoresDePrimeraRonda()
@@ -923,5 +961,26 @@ public class ServicioCrucesTests
         var fechaEsperada = new DateTime(2026, 6, 7);
 
         Assert.IsTrue(cuartos.All(p => p.Fecha == fechaEsperada));
+    }
+
+    [TestMethod]
+    public void GenerarSemifinales_Con4CuartosJugados_DebeGenerar2Partidos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var semifinales = servicioCruces.GenerarSemifinales(
+            cuartos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(2, semifinales.Count);
+        Assert.IsTrue(semifinales.All(p => p.Fase == FaseTorneo.Semifinal));
     }
 }

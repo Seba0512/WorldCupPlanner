@@ -346,6 +346,37 @@ public class ServicioCruces
         return partidos;
     }
 
+    public List<Partido> GenerarSemifinales(
+        List<Partido> cuartos,
+        List<Estadio> estadios,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        ValidarPartidosDeFaseAnterior(
+            cuartos,
+            4,
+            FaseTorneo.Cuartos,
+            "semifinales",
+            "cuartos");
+
+        var ganadores = ObtenerGanadores(cuartos);
+        var partidos = new List<Partido>();
+        var proximoId = cuartos.Max(p => p.Id) + 1;
+        var fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 3);
+
+        for (int i = 0; i < 2; i++)
+        {
+            partidos.Add(CrearPartidoEliminatorio(
+                proximoId++,
+                ganadores[i * 2],
+                ganadores[i * 2 + 1],
+                estadios[partidos.Count % estadios.Count],
+                fecha,
+                FaseTorneo.Semifinal));
+        }
+
+        return partidos;
+    }
+
     private void ValidarPartidosDeFaseAnterior(
         List<Partido> partidos,
         int cantidadEsperada,
