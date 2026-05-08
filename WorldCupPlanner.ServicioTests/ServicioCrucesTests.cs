@@ -1045,4 +1045,26 @@ public class ServicioCrucesTests
             )
         );
     }
+
+    [TestMethod]
+    public void GenerarSemifinales_ConCuartoEmpatado_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        cuartos[0].GolesLocal = 1;
+        cuartos[0].GolesVisitante = 1;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarSemifinales(
+                cuartos,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
 }
