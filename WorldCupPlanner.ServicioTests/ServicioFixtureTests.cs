@@ -762,6 +762,36 @@ public class ServicioFixtureTests
             }
         }
     }
+    
+    [TestMethod]
+    public void CompletarEquipos_DebeCrearEquiposFicticiosValidos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        var equiposFicticios = equiposCompletos
+            .Where(e => e.Nombre.StartsWith("Equipo Ficticio"))
+            .ToList();
+
+        Assert.AreEqual(2, equiposFicticios.Count);
+        Assert.IsTrue(equiposFicticios.All(e => e.EsValido()));
+    }
 }
 
 
