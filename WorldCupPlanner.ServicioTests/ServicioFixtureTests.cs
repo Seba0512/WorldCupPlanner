@@ -1019,6 +1019,44 @@ public class ServicioFixtureTests
             )
         );
     }
+    
+    [TestMethod]
+    public void GenerarFixture_ConMenosDe48Equipos_DebeIncluirEquiposFicticiosEnGrupos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1,
+            SemillaFixture = 1
+        };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(
+            equipos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var equiposDelFixture = fixture.Grupos
+            .SelectMany(g => g.Equipos)
+            .ToList();
+
+        var equiposFicticios = equiposDelFixture
+            .Where(e => e.Nombre.StartsWith("Equipo Ficticio"))
+            .ToList();
+
+        Assert.AreEqual(2, equiposFicticios.Count);
+        Assert.IsTrue(equiposFicticios.All(e => e.EsValido()));
+    }
 }
 
 
