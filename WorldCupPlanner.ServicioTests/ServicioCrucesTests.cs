@@ -983,4 +983,23 @@ public class ServicioCrucesTests
         Assert.AreEqual(2, semifinales.Count);
         Assert.IsTrue(semifinales.All(p => p.Fase == FaseTorneo.Semifinal));
     }
+
+    [TestMethod]
+    public void GenerarSemifinales_ConCantidadDistintaA4Cuartos_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(3);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarSemifinales(
+                cuartos,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
 }
