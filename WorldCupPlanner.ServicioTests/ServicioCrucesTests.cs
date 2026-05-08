@@ -1334,4 +1334,28 @@ public class ServicioCrucesTests
             )
         );
     }
+    
+    [TestMethod]
+    public void GenerarTercerPuesto_DebeUsarPerdedoresDeSemifinales()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var tercerPuesto = servicioCruces.GenerarTercerPuesto(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var perdedorSemifinal1 = semifinales[0].EquipoVisitante;
+        var perdedorSemifinal2 = semifinales[1].EquipoVisitante;
+
+        Assert.AreEqual(perdedorSemifinal1, tercerPuesto.EquipoLocal);
+        Assert.AreEqual(perdedorSemifinal2, tercerPuesto.EquipoVisitante);
+    }
 }
