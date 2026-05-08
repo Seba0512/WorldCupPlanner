@@ -67,12 +67,40 @@ public class ServicioSimulacionTests
         return partidos;
     }
 
+    private List<Partido> CrearPartidosConRankingLocalYVisitante(
+        int cantidad,
+        int rankingLocal,
+        int rankingVisitante)
+    {
+        var partidos = new List<Partido>();
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = i,
+                EquipoLocal = CrearEquipo($"Local{i}", rankingLocal),
+                EquipoVisitante = CrearEquipo($"Visitante{i}", rankingVisitante),
+                Estadio = CrearEstadio(),
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.FaseDeGrupos
+            });
+        }
+
+        return partidos;
+    }
+
     private Equipo CrearEquipo(string nombre)
+    {
+        return CrearEquipo(nombre, 1000);
+    }
+
+    private Equipo CrearEquipo(string nombre, int rankingFifa)
     {
         return new Equipo
         {
             Nombre = nombre,
-            RankingFIFA = 1000,
+            RankingFIFA = rankingFifa,
             Confederacion = Confederacion.UEFA
         };
     }
@@ -221,5 +249,29 @@ public class ServicioSimulacionTests
         Assert.IsTrue(partidos.All(p => p.EstaJugado()));
         Assert.IsTrue(partidos.All(p => !p.EsEmpate()));
         Assert.IsTrue(partidos.All(p => p.Ganador() != null));
+    }
+
+    [TestMethod]
+    public void SimularResultados_DebeBasarseEnRankingFifaDeLosEquipos()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var partidosConLocalFuerte = CrearPartidosConRankingLocalYVisitante(30, 2500, 300);
+        var partidosConLocalDebil = CrearPartidosConRankingLocalYVisitante(30, 300, 2500);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 1
+        };
+
+        // Act
+        servicioSimulacion.SimularResultados(partidosConLocalFuerte, configuracionTorneo);
+        servicioSimulacion.SimularResultados(partidosConLocalDebil, configuracionTorneo);
+
+        // Assert
+        var golesLocalesFuertes = partidosConLocalFuerte.Sum(p => p.GolesLocal!.Value);
+        var golesLocalesDebiles = partidosConLocalDebil.Sum(p => p.GolesLocal!.Value);
+
+        Assert.IsTrue(golesLocalesFuertes > golesLocalesDebiles);
     }
 }
