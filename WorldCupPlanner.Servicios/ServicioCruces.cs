@@ -288,32 +288,30 @@ public class ServicioCruces
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
-        ValidarCantidadPartidosPrimeraRonda(partidosPrimeraRonda);
-        ValidarFasePrimeraRonda(partidosPrimeraRonda);
-        ValidarPartidosPrimeraRondaJugados(partidosPrimeraRonda);
-        ValidarPartidosPrimeraRondaConGanador(partidosPrimeraRonda);
+        ValidarPartidosDeFaseAnterior(
+            partidosPrimeraRonda,
+            16,
+            FaseTorneo.PrimeraRondaEliminatoria,
+            "octavos",
+            "primera ronda",
+            "primera ronda eliminatoria");
 
-        var ganadores = partidosPrimeraRonda
-            .Select(p => p.Ganador())
-            .ToList();
-
+        var ganadores = ObtenerGanadores(partidosPrimeraRonda);
         var partidos = new List<Partido>();
         var proximoId = partidosPrimeraRonda.Max(p => p.Id) + 1;
+        var fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas);
 
         for (int i = 0; i < 8; i++)
         {
-            partidos.Add(new Partido
-            {
-                Id = proximoId,
-                EquipoLocal = ganadores[i],
-                EquipoVisitante = ganadores[i + 8],
-                Estadio = estadios[partidos.Count % estadios.Count],
-                Fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas),
-                Fase = FaseTorneo.Octavos
-            });
-
-            proximoId++;
+            partidos.Add(CrearPartidoEliminatorio(
+                proximoId++,
+                ganadores[i],
+                ganadores[i + 8],
+                estadios[partidos.Count % estadios.Count],
+                fecha,
+                FaseTorneo.Octavos));
         }
+
         return partidos;
     }
 
@@ -322,97 +320,119 @@ public class ServicioCruces
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
-        ValidarCantidadOctavos(octavos);
-        ValidarFaseOctavos(octavos);
-        ValidarOctavosJugados(octavos);
-        ValidarOctavosConGanador(octavos);
+        ValidarPartidosDeFaseAnterior(
+            octavos,
+            8,
+            FaseTorneo.Octavos,
+            "cuartos",
+            "octavos");
 
-        var ganadores = octavos
-            .Select(p => p.Ganador())
-            .ToList();
-
+        var ganadores = ObtenerGanadores(octavos);
         var partidos = new List<Partido>();
         var proximoId = octavos.Max(p => p.Id) + 1;
+        var fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 2);
 
         for (int i = 0; i < 4; i++)
         {
-            partidos.Add(new Partido
-            {
-                Id = proximoId,
-                EquipoLocal = ganadores[i * 2],
-                EquipoVisitante = ganadores[i * 2 + 1],
-                Estadio = estadios[partidos.Count % estadios.Count],
-                Fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 2),
-                Fase = FaseTorneo.Cuartos
-            });
-
-            proximoId++;
+            partidos.Add(CrearPartidoEliminatorio(
+                proximoId++,
+                ganadores[i * 2],
+                ganadores[i * 2 + 1],
+                estadios[partidos.Count % estadios.Count],
+                fecha,
+                FaseTorneo.Cuartos));
         }
 
         return partidos;
     }
 
-    private void ValidarCantidadOctavos(List<Partido> octavos)
+    private void ValidarPartidosDeFaseAnterior(
+        List<Partido> partidos,
+        int cantidadEsperada,
+        FaseTorneo faseEsperada,
+        string faseAGenerar,
+        string faseAnterior,
+        string? faseAnteriorEsperada = null)
     {
-        if (octavos.Count != 8)
+        ValidarCantidadPartidos(partidos, cantidadEsperada, faseAGenerar, faseAnterior);
+        ValidarFasePartidos(partidos, faseEsperada, faseAGenerar, faseAnteriorEsperada ?? faseAnterior);
+        ValidarPartidosJugados(partidos, faseAGenerar, faseAnterior);
+        ValidarPartidosConGanador(partidos, faseAGenerar, faseAnterior);
+    }
+
+    private void ValidarCantidadPartidos(
+        List<Partido> partidos,
+        int cantidadEsperada,
+        string faseAGenerar,
+        string faseAnterior)
+    {
+        if (partidos.Count != cantidadEsperada)
         {
-            throw new EntidadInvalidaExcepcion("Para generar cuartos deben existir exactamente 8 partidos de octavos.");
+            throw new EntidadInvalidaExcepcion(
+                $"Para generar {faseAGenerar} deben existir exactamente {cantidadEsperada} partidos de {faseAnterior}.");
         }
     }
 
-    private void ValidarFaseOctavos(List<Partido> octavos)
+    private void ValidarFasePartidos(
+        List<Partido> partidos,
+        FaseTorneo faseEsperada,
+        string faseAGenerar,
+        string faseAnterior)
     {
-        if (octavos.Any(p => p.Fase != FaseTorneo.Octavos))
+        if (partidos.Any(p => p.Fase != faseEsperada))
         {
-            throw new EntidadInvalidaExcepcion("Para generar cuartos todos los partidos deben ser de octavos.");
+            throw new EntidadInvalidaExcepcion(
+                $"Para generar {faseAGenerar} todos los partidos deben ser de {faseAnterior}.");
         }
     }
 
-    private void ValidarOctavosJugados(List<Partido> octavos)
+    private void ValidarPartidosJugados(
+        List<Partido> partidos,
+        string faseAGenerar,
+        string faseAnterior)
     {
-        if (octavos.Any(p => !p.EstaJugado()))
+        if (partidos.Any(p => !p.EstaJugado()))
         {
-            throw new EntidadInvalidaExcepcion("No se pueden generar cuartos si hay partidos de octavos sin jugar.");
+            throw new EntidadInvalidaExcepcion(
+                $"No se pueden generar {faseAGenerar} si hay partidos de {faseAnterior} sin jugar.");
         }
     }
 
-    private void ValidarOctavosConGanador(List<Partido> octavos)
+    private void ValidarPartidosConGanador(
+        List<Partido> partidos,
+        string faseAGenerar,
+        string faseAnterior)
     {
-        if (octavos.Any(p => p.Ganador() == null))
+        if (partidos.Any(p => p.Ganador() == null))
         {
-            throw new EntidadInvalidaExcepcion("No se pueden generar cuartos si hay partidos de octavos empatados.");
+            throw new EntidadInvalidaExcepcion(
+                $"No se pueden generar {faseAGenerar} si hay partidos de {faseAnterior} empatados.");
         }
     }
 
-    private void ValidarCantidadPartidosPrimeraRonda(List<Partido> partidosPrimeraRonda)
+    private List<Equipo> ObtenerGanadores(List<Partido> partidos)
     {
-        if (partidosPrimeraRonda.Count != 16)
-        {
-            throw new EntidadInvalidaExcepcion("Para generar octavos deben existir exactamente 16 partidos de primera ronda.");
-        }
+        return partidos
+            .Select(p => p.Ganador()!)
+            .ToList();
     }
 
-    private void ValidarFasePrimeraRonda(List<Partido> partidosPrimeraRonda)
+    private Partido CrearPartidoEliminatorio(
+        int id,
+        Equipo equipoLocal,
+        Equipo equipoVisitante,
+        Estadio estadio,
+        DateTime fecha,
+        FaseTorneo fase)
     {
-        if (partidosPrimeraRonda.Any(p => p.Fase != FaseTorneo.PrimeraRondaEliminatoria))
+        return new Partido
         {
-            throw new EntidadInvalidaExcepcion("Para generar octavos todos los partidos deben ser de primera ronda eliminatoria.");
-        }
-    }
-
-    private void ValidarPartidosPrimeraRondaJugados(List<Partido> partidosPrimeraRonda)
-    {
-        if (partidosPrimeraRonda.Any(p => !p.EstaJugado()))
-        {
-            throw new EntidadInvalidaExcepcion("No se pueden generar octavos si hay partidos de primera ronda sin jugar.");
-        }
-    }
-
-    private void ValidarPartidosPrimeraRondaConGanador(List<Partido> partidosPrimeraRonda)
-    {
-        if (partidosPrimeraRonda.Any(p => p.Ganador() == null))
-        {
-            throw new EntidadInvalidaExcepcion("No se pueden generar octavos si hay partidos de primera ronda empatados.");
-        }
+            Id = id,
+            EquipoLocal = equipoLocal,
+            EquipoVisitante = equipoVisitante,
+            Estadio = estadio,
+            Fecha = fecha,
+            Fase = fase
+        };
     }
 }
