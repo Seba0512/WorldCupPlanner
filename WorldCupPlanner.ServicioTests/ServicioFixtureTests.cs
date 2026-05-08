@@ -971,6 +971,32 @@ public class ServicioFixtureTests
         Assert.AreEqual(48, equiposCompletos.Count);
         Assert.IsFalse(equiposCompletos.Any(e => e.Nombre.StartsWith("Equipo Ficticio")));
     }
+    
+    [TestMethod]
+    public void CompletarEquipos_ConEquipoOriginalInvalido_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(47)
+            .ToList();
+
+        equipos[0].Nombre = "";
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioFixture.CompletarEquipos(
+                equipos,
+                configuracionTorneo
+            )
+        );
+    }
 }
 
 

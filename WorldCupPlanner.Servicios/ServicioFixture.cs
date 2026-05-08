@@ -43,6 +43,8 @@ public class ServicioFixture
             throw new EntidadInvalidaExcepcion("No se puede completar una lista con más de 48 equipos.");
         }
 
+        ValidarTodosLosEquiposSonValidos(equipos);
+
         var equiposCompletos = new List<Equipo>(equipos);
         var random = new Random(configuracionTorneo.SemillaCompletar);
 
