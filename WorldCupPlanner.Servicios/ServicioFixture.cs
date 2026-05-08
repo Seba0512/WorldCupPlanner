@@ -58,29 +58,56 @@ public class ServicioFixture
         List<Equipo> equipos,
         ConfiguracionTorneo configuracionTorneo)
     {
+        ValidarEquiposParaCompletar(equipos);
+
+        var equiposCompletos = CopiarEquipos(equipos);
+        var random = new Random(configuracionTorneo.SemillaCompletar);
+
+        while (FaltanEquiposParaCompletar(equiposCompletos))
+        {
+            AgregarEquipoFicticio(equiposCompletos, random);
+        }
+
+        return equiposCompletos;
+    }
+
+    private void ValidarEquiposParaCompletar(List<Equipo> equipos)
+    {
         if (equipos.Count > CantidadExactaEquipos)
         {
             throw new EntidadInvalidaExcepcion("No se puede completar una lista con más de 48 equipos.");
         }
 
         ValidarTodosLosEquiposSonValidos(equipos);
+    }
 
-        var equiposCompletos = CopiarEquipos(equipos);
-        var random = new Random(configuracionTorneo.SemillaCompletar);
+    private bool FaltanEquiposParaCompletar(List<Equipo> equipos)
+    {
+        return equipos.Count < CantidadExactaEquipos;
+    }
 
-        while (equiposCompletos.Count < CantidadExactaEquipos)
+    private void AgregarEquipoFicticio(List<Equipo> equipos, Random random)
+    {
+        var confederacion = ObtenerConfederacionConCupoDisponible(equipos);
+        equipos.Add(CrearEquipoFicticio(equipos, confederacion, random));
+    }
+
+    private Equipo CrearEquipoFicticio(
+        List<Equipo> equipos,
+        Confederacion confederacion,
+        Random random)
+    {
+        return new Equipo
         {
-            var confederacion = ObtenerConfederacionConCupoDisponible(equiposCompletos);
+            Nombre = GenerarNombreEquipoFicticio(equipos, confederacion),
+            RankingFIFA = GenerarRankingEquipoFicticio(random),
+            Confederacion = confederacion
+        };
+    }
 
-            equiposCompletos.Add(new Equipo
-            {
-                Nombre = GenerarNombreEquipoFicticio(equiposCompletos, confederacion),
-                RankingFIFA = random.Next(RankingMinimoEquipoFicticio, RankingMaximoEquipoFicticioExclusivo),
-                Confederacion = confederacion
-            });
-        }
-
-        return equiposCompletos;
+    private int GenerarRankingEquipoFicticio(Random random)
+    {
+        return random.Next(RankingMinimoEquipoFicticio, RankingMaximoEquipoFicticioExclusivo);
     }
 
     private string GenerarNombreEquipoFicticio(List<Equipo> equipos, Confederacion confederacion)
