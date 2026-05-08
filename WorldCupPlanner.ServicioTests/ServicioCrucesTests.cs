@@ -827,4 +827,51 @@ public class ServicioCrucesTests
 
         CollectionAssert.AreEquivalent(ganadoresOctavos, equiposEnCuartos);
     }
+
+    [TestMethod]
+    public void GenerarCuartos_DebeCruzarGanadoresDeOctavosDeADos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var cuartos = servicioCruces.GenerarCuartos(
+            octavos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        for (int i = 0; i < 4; i++)
+        {
+            Assert.AreEqual(octavos[i * 2].Ganador(), cuartos[i].EquipoLocal);
+            Assert.AreEqual(octavos[i * 2 + 1].Ganador(), cuartos[i].EquipoVisitante);
+        }
+    }
+
+    [TestMethod]
+    public void GenerarCuartos_DebeAsignarIdsIncrementalesLuegoDeOctavos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var cuartos = servicioCruces.GenerarCuartos(
+            octavos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var idsEsperados = Enumerable.Range(25, 4).ToList();
+        var idsObtenidos = cuartos.Select(p => p.Id).ToList();
+
+        CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
+    }
 }
