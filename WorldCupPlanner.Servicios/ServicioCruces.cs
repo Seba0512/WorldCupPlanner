@@ -544,5 +544,23 @@ public class ServicioCruces
         return null;
     }
     
-    
+    public Partido GenerarFinal(
+        List<Partido> semifinales,
+        List<Estadio> estadios,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        var ganadores = semifinales
+            .Select(p => p.Ganador())
+            .ToList();
+
+        return new Partido
+        {
+            Id = semifinales.Max(p => p.Id) + 2,
+            EquipoLocal = ganadores[0],
+            EquipoVisitante = ganadores[1],
+            Estadio = estadios[0],
+            Fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 5),
+            Fase = FaseTorneo.Final
+        };
+    }
 }

@@ -1425,4 +1425,26 @@ public class ServicioCrucesTests
         // Assert
         Assert.AreEqual(estadios[0], tercerPuesto.Estadio);
     }
+    
+    [TestMethod]
+    public void GenerarFinal_Con2SemifinalesJugadas_DebeGenerar1Partido()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var final = servicioCruces.GenerarFinal(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(FaseTorneo.Final, final.Fase);
+        Assert.IsNotNull(final.EquipoLocal);
+        Assert.IsNotNull(final.EquipoVisitante);
+    }
 }
