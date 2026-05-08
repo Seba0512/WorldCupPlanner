@@ -67,12 +67,40 @@ public class ServicioSimulacionTests
         return partidos;
     }
 
+    private List<Partido> CrearPartidosConRankingLocalYVisitante(
+        int cantidad,
+        int rankingLocal,
+        int rankingVisitante)
+    {
+        var partidos = new List<Partido>();
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = i,
+                EquipoLocal = CrearEquipo($"Local{i}", rankingLocal),
+                EquipoVisitante = CrearEquipo($"Visitante{i}", rankingVisitante),
+                Estadio = CrearEstadio(),
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.FaseDeGrupos
+            });
+        }
+
+        return partidos;
+    }
+
     private Equipo CrearEquipo(string nombre)
+    {
+        return CrearEquipo(nombre, 1000);
+    }
+
+    private Equipo CrearEquipo(string nombre, int rankingFifa)
     {
         return new Equipo
         {
             Nombre = nombre,
-            RankingFIFA = 1000,
+            RankingFIFA = rankingFifa,
             Confederacion = Confederacion.UEFA
         };
     }
@@ -224,20 +252,26 @@ public class ServicioSimulacionTests
     }
 
     [TestMethod]
-    public void SimularResultados_ConMuchosPartidosEliminatorios_CubreDesempateCuandoGolesLocalEs5()
+    public void SimularResultados_DebeBasarseEnRankingFifaDeLosEquipos()
     {
-        // Con 1000 partidos la probabilidad de que random genere (5,5) es prácticamente 1,
-        // garantizando la cobertura del else branch de DesempatarPartido (GolesLocal == 5)
-        // que decrementa GolesVisitante en lugar de incrementar GolesLocal.
+        // Arrange
         var servicioSimulacion = new ServicioSimulacion();
-        var partidos = CrearPartidosEliminatoriosSinResultado(1000);
+        var partidosConLocalFuerte = CrearPartidosConRankingLocalYVisitante(30, 2500, 300);
+        var partidosConLocalDebil = CrearPartidosConRankingLocalYVisitante(30, 300, 2500);
 
-        var configuracionTorneo = new ConfiguracionTorneo { SemillaSimulation = 1 };
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 1
+        };
 
-        servicioSimulacion.SimularResultados(partidos, configuracionTorneo);
+        // Act
+        servicioSimulacion.SimularResultados(partidosConLocalFuerte, configuracionTorneo);
+        servicioSimulacion.SimularResultados(partidosConLocalDebil, configuracionTorneo);
 
-        Assert.IsTrue(partidos.All(p => p.EstaJugado()));
-        Assert.IsTrue(partidos.All(p => !p.EsEmpate()));
-        Assert.IsTrue(partidos.All(p => p.Ganador() != null));
+        // Assert
+        var golesLocalesFuertes = partidosConLocalFuerte.Sum(p => p.GolesLocal!.Value);
+        var golesLocalesDebiles = partidosConLocalDebil.Sum(p => p.GolesLocal!.Value);
+
+        Assert.IsTrue(golesLocalesFuertes > golesLocalesDebiles);
     }
 }

@@ -563,6 +563,58 @@ public class ServicioFixtureTests
     }
 
     [TestMethod]
+    public void GenerarFixture_ConMaxPartidosPorDiaMayor_DebeUsarMasCuposDelDia()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaFixture = 1,
+            FechaInicioTorneo = new DateTime(2026, 6, 1),
+            SeparacionEntreFechas = 3,
+            HoraInicioPartidos = new TimeSpan(14, 0, 0),
+            SeparacionHorasEntrePartidos = 4,
+            MaxPartidosPorDia = 4
+        };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        var cantidadPartidosPorDia = fixture.Grupos
+            .SelectMany(g => g.Partidos)
+            .GroupBy(p => p.Fecha.Date)
+            .Select(g => g.Count())
+            .ToList();
+
+        Assert.IsTrue(cantidadPartidosPorDia.Any(cantidad => cantidad == configuracionTorneo.MaxPartidosPorDia));
+        Assert.IsTrue(cantidadPartidosPorDia.All(cantidad => cantidad <= configuracionTorneo.MaxPartidosPorDia));
+    }
+
+    [TestMethod]
+    public void GenerarFixture_ConMaxPartidosPorDiaMenorAUnaJornada_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaFixture = 1,
+            MaxPartidosPorDia = 1
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
+        );
+    }
+
+    [TestMethod]
     public void GenerarFixture_DebeAsignarIdsIncrementalesALosPartidos()
     {
         // Arrange
