@@ -1163,4 +1163,31 @@ public class ServicioCrucesTests
         Assert.AreEqual(estadios[0], semifinales[0].Estadio);
         Assert.AreEqual(estadios[1], semifinales[1].Estadio);
     }
+    
+    [TestMethod]
+    public void GenerarSemifinales_DebeAsignarFechaSegunConfiguracion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            FechaInicioTorneo = new DateTime(2026, 6, 1),
+            SeparacionEntreFechas = 3
+        };
+
+        // Act
+        var semifinales = servicioCruces.GenerarSemifinales(
+            cuartos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var fechaEsperada = new DateTime(2026, 6, 10);
+
+        Assert.IsTrue(semifinales.All(p => p.Fecha == fechaEsperada));
+    }
 }
