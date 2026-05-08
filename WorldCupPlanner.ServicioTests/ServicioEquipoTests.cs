@@ -172,6 +172,129 @@ public class ServicioEquipoTests
         Assert.AreEqual(0, resultado.Count);
     }
 
+    [TestMethod]
+    public void CompletarEquipos_RepositorioVacio_Genera48Equipos()
+    {
+        var generados = _servicio.CompletarEquipos(42);
+
+        Assert.AreEqual(48, _servicio.Buscar(_ => true).Count);
+        Assert.AreEqual(48, generados.Count);
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_RepositorioLleno_RetornaListaVacia()
+    {
+        _servicio.CompletarEquipos(42);
+
+        var generados = _servicio.CompletarEquipos(42);
+
+        Assert.AreEqual(0, generados.Count);
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_ConEquiposExistentes_ComplementaHasta48()
+    {
+        _servicio.Agregar(CrearEquipo("España", Confederacion.UEFA));
+        _servicio.Agregar(CrearEquipo("Argentina", Confederacion.CONMEBOL));
+
+        _servicio.CompletarEquipos(42);
+
+        Assert.AreEqual(48, _servicio.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_MismaSemilla_GeneraMismosEquipos()
+    {
+        var servicio2 = new ServicioEquipo();
+
+        var generados1 = _servicio.CompletarEquipos(42);
+        var generados2 = servicio2.CompletarEquipos(42);
+
+        var nombres1 = generados1.Select(e => e.Nombre).ToList();
+        var nombres2 = generados2.Select(e => e.Nombre).ToList();
+        var rankings1 = generados1.Select(e => e.RankingFIFA).ToList();
+        var rankings2 = generados2.Select(e => e.RankingFIFA).ToList();
+
+        CollectionAssert.AreEqual(nombres1, nombres2);
+        CollectionAssert.AreEqual(rankings1, rankings2);
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_DistintaSemilla_GeneraDistintosRankings()
+    {
+        var servicio2 = new ServicioEquipo();
+
+        var generados1 = _servicio.CompletarEquipos(1);
+        var generados2 = servicio2.CompletarEquipos(2);
+
+        var rankings1 = generados1.Select(e => e.RankingFIFA).ToList();
+        var rankings2 = generados2.Select(e => e.RankingFIFA).ToList();
+
+        Assert.IsFalse(rankings1.SequenceEqual(rankings2));
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_RespetaCuposPorConfederacion()
+    {
+        _servicio.CompletarEquipos(42);
+
+        Assert.AreEqual(16, _servicio.Buscar(e => e.Confederacion == Confederacion.UEFA).Count);
+        Assert.AreEqual(7,  _servicio.Buscar(e => e.Confederacion == Confederacion.CONMEBOL).Count);
+        Assert.AreEqual(7,  _servicio.Buscar(e => e.Confederacion == Confederacion.CONCACAF).Count);
+        Assert.AreEqual(9,  _servicio.Buscar(e => e.Confederacion == Confederacion.CAF).Count);
+        Assert.AreEqual(8,  _servicio.Buscar(e => e.Confederacion == Confederacion.AFC).Count);
+        Assert.AreEqual(1,  _servicio.Buscar(e => e.Confederacion == Confederacion.OFC).Count);
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_NombresEnFormatoCorrecto()
+    {
+        var generados = _servicio.CompletarEquipos(42);
+
+        foreach (var equipo in generados)
+        {
+            var partes = equipo.Nombre.Split('_');
+            Assert.AreEqual(2, partes.Length, $"Formato inválido: {equipo.Nombre}");
+            Assert.IsTrue(int.TryParse(partes[1], out var numero), $"Número no válido en: {equipo.Nombre}");
+            Assert.IsTrue(numero >= 1, $"Número menor a 1 en: {equipo.Nombre}");
+        }
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_ContinuaNumeracionExistente()
+    {
+        _servicio.Agregar(CrearEquipo("UEFA_01", Confederacion.UEFA));
+
+        _servicio.CompletarEquipos(42);
+
+        var nombresUefa = _servicio.Buscar(e => e.Confederacion == Confederacion.UEFA)
+            .Select(e => e.Nombre)
+            .ToList();
+
+        Assert.AreEqual(16, nombresUefa.Count);
+        Assert.IsTrue(nombresUefa.Contains("UEFA_01"));
+        Assert.IsTrue(nombresUefa.Contains("UEFA_02"));
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_EvitaNombresDuplicados()
+    {
+        var generados = _servicio.CompletarEquipos(42);
+
+        var nombres = generados.Select(e => e.Nombre).ToList();
+        var nombresUnicos = nombres.Distinct().ToList();
+
+        Assert.AreEqual(nombres.Count, nombresUnicos.Count);
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_TodosLosEquiposGeneradosSonValidos()
+    {
+        var generados = _servicio.CompletarEquipos(42);
+
+        Assert.IsTrue(generados.All(e => e.EsValido()));
+    }
+
     private static Equipo CrearEquipo(string nombre, Confederacion confederacion) => new()
     {
         Nombre = nombre,

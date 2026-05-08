@@ -42,7 +42,7 @@
 
     protected override void OnInitialized()
     {
-        var original = ServicioEquipo.ObtenerEquipos().First(e => e.Nombre == Nombre);
+        var original = ServicioEquipo.Buscar(e => e.Nombre == Nombre).First();
         equipo = new Equipo
         {
             Nombre = original.Nombre,

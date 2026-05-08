@@ -18,6 +18,7 @@ builder.Services.AddSingleton<IRepositorio<Estadio>, RepositorioEstadioEnMemoria
 builder.Services.AddSingleton<ServicioAuditoria>();
 builder.Services.AddSingleton<ServicioEstadio>();
 builder.Services.AddSingleton<ServicioEquipo>();
+builder.Services.AddSingleton<ConfiguracionTorneo>();
 builder.Services.AddSingleton<RepositorioUsuarioEnMemoria>();
 builder.Services.AddSingleton<ServicioUsuario>();
 builder.Services.AddScoped<SesionServicio>();

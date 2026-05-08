@@ -2,6 +2,7 @@
 @using WorldCupPlanner.Servicios
 @using WorldCupPlanner.Dominio.Entidades
 @inject ServicioEquipo ServicioEquipo
+@inject ConfiguracionTorneo ConfiguracionTorneo
 
 <PageTitle>Equipos</PageTitle>
 
@@ -35,17 +36,45 @@
     </tbody>
 </table>
 
+<div class="card mt-3" style="max-width: 400px;">
+    <div class="card-body">
+        <h5 class="card-title">Completar equipos</h5>
+        <p class="text-muted">Equipos registrados: @equipos.Count / 48</p>
+        <div class="form-group mb-2">
+            <label>Semilla</label>
+            <input type="number" class="form-control" @bind="ConfiguracionTorneo.SemillaCompletar" />
+        </div>
+        <button class="btn btn-warning" @onclick="Completar" disabled="@(equipos.Count >= 48)">
+            Completar hasta 48
+        </button>
+        @if (!string.IsNullOrEmpty(mensajeCompletar))
+        {
+            <div class="alert alert-info mt-2 mb-0">@mensajeCompletar</div>
+        }
+    </div>
+</div>
+
 @code {
     private List<Equipo> equipos = new();
+    private string mensajeCompletar = string.Empty;
 
     protected override void OnInitialized()
     {
-        equipos = ServicioEquipo.ObtenerEquipos();
+        equipos = ServicioEquipo.Buscar(_ => true);
     }
 
     private void Eliminar(Equipo equipo)
     {
-        ServicioEquipo.EliminarEquipo(equipo);
-        equipos = ServicioEquipo.ObtenerEquipos();
+        ServicioEquipo.Eliminar(equipo);
+        equipos = ServicioEquipo.Buscar(_ => true);
+    }
+
+    private void Completar()
+    {
+        var generados = ServicioEquipo.CompletarEquipos(ConfiguracionTorneo.SemillaCompletar);
+        equipos = ServicioEquipo.Buscar(_ => true);
+        mensajeCompletar = generados.Count > 0
+            ? $"Se generaron {generados.Count} equipos ficticios."
+            : "Ya hay 48 equipos registrados.";
     }
 }

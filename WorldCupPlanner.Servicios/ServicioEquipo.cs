@@ -30,6 +30,10 @@ namespace WorldCupPlanner.Servicios
             { Confederacion.OFC,       1 },
         };
 
+        private const int MaximoEquipos = 48;
+        private const int RankingMinimoFicticio = 300;
+        private const int RankingMaximoFicticioExclusivo = 501;
+
         public void Agregar(Equipo equipo)
         {
             ValidarEquipo(equipo);
@@ -59,6 +63,34 @@ namespace WorldCupPlanner.Servicios
             EditarEquipo(equipo, equipo.Nombre);
         }
 
+        public List<Equipo> CompletarEquipos(int semilla)
+        {
+            var existentes = _repositorio.Buscar(_ => true);
+            if (existentes.Count >= MaximoEquipos)
+                return [];
+
+            var rng = new Random(semilla);
+            var generados = new List<Equipo>();
+
+            foreach (var (confederacion, cupo) in CuposPorConfederacion)
+            {
+                var inscritos = existentes.Count(e => e.Confederacion == confederacion);
+                for (var i = inscritos; i < cupo; i++)
+                {
+                    var equipo = new Equipo
+                    {
+                        Nombre = GenerarNombre(confederacion),
+                        RankingFIFA = rng.Next(RankingMinimoFicticio, RankingMaximoFicticioExclusivo),
+                        Confederacion = confederacion
+                    };
+                    Agregar(equipo);
+                    generados.Add(equipo);
+                }
+            }
+
+            return generados;
+        }
+
         public void Eliminar(Equipo equipo) => _repositorio.Eliminar(equipo);
 
         public List<Equipo> Buscar(Func<Equipo, bool> predicado) => _repositorio.Buscar(predicado);
@@ -73,6 +105,18 @@ namespace WorldCupPlanner.Servicios
         {
             if (_repositorio.Buscar(e => e.Nombre == nombre && e.Nombre != excluir).Count > 0)
                 throw new EntidadYaExistenteExcepcion("Ya existe un equipo con ese nombre.");
+        }
+
+        private string GenerarNombre(Confederacion confederacion)
+        {
+            var numero = 1;
+            var nombre = $"{confederacion}_{numero:00}";
+            while (_repositorio.Buscar(e => e.Nombre == nombre).Count > 0)
+            {
+                numero++;
+                nombre = $"{confederacion}_{numero:00}";
+            }
+            return nombre;
         }
 
         private void ValidarCupoConfederacion(Equipo equipo)
