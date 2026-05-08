@@ -677,24 +677,6 @@ public class EntidadYaExistenteExcepcion : Exception
 }
 ~~~
 
-### WorldCupPlanner.Dominio.csproj
-
-Ruta: WorldCupPlanner.Dominio\WorldCupPlanner.Dominio.csproj
-
-~~~xml
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-</Project>
-
-
-~~~
-
 End of WorldCupPlanner.Dominio
 
 ## WorldCupPlanner.Servicios
@@ -759,6 +741,7 @@ Ruta: WorldCupPlanner.Servicios\ServicioClasificacion.cs
 
 ~~~csharp
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -794,6 +777,8 @@ public class ServicioClasificacion
         Fixture fixture,
         ConfiguracionTorneo configuracionTorneo)
     {
+        ValidarFaseDeGruposCompleta(fixture);
+
         var tablas = fixture.Grupos
             .Select(g => CalcularTabla(g, configuracionTorneo))
             .ToList();
@@ -828,6 +813,15 @@ public class ServicioClasificacion
         }
 
         return clasificados;
+    }
+
+    private static void ValidarFaseDeGruposCompleta(Fixture fixture)
+    {
+        if (fixture.Grupos.Any(g => g.Partidos.Any(p => !p.EstaJugado())))
+        {
+            throw new EntidadInvalidaExcepcion(
+                "No se pueden obtener clasificados si hay partidos de fase de grupos sin resultado.");
+        }
     }
 
     private static Dictionary<Equipo, PosicionEquipo> CrearPosicionesIniciales(Grupo grupo)
@@ -958,6 +952,8 @@ namespace WorldCupPlanner.Servicios;
 
 public class ServicioCruces
 {
+    private const int PrimerIdPrimeraRondaEliminatoria = 73;
+
     public List<Partido> GenerarPrimeraRondaEliminatoria(
         ClasificadosFaseGrupos clasificados,
         List<Estadio> estadios,
@@ -1028,7 +1024,7 @@ public class ServicioCruces
         for (int i = 0; i < primeros.Count; i++)
         {
             partidos.Add(CrearPartidoDePrimeraRonda(
-                partidos.Count + 1,
+                PrimerIdPrimeraRondaEliminatoria + partidos.Count,
                 primeros[i],
                 terceros[i],
                 estadios[partidos.Count % estadios.Count],
@@ -1052,7 +1048,7 @@ public class ServicioCruces
         for (int i = 0; i < primerosRestantes.Count; i++)
         {
             partidos.Add(CrearPartidoDePrimeraRonda(
-                partidos.Count + 1,
+                PrimerIdPrimeraRondaEliminatoria + partidos.Count,
                 primerosRestantes[i],
                 segundosDeMenorRendimiento[i],
                 estadios[partidos.Count % estadios.Count],
@@ -1072,7 +1068,7 @@ public class ServicioCruces
         for (int i = 0; i < segundosRestantes.Count; i += 2)
         {
             partidos.Add(CrearPartidoDePrimeraRonda(
-                partidos.Count + 1,
+                PrimerIdPrimeraRondaEliminatoria + partidos.Count,
                 segundosRestantes[i],
                 segundosRestantes[i + 1],
                 estadios[partidos.Count % estadios.Count],
@@ -1489,7 +1485,6 @@ public class ServicioCruces
             FaseTorneo.Final);
     }
 }
-
 ~~~
 
 ### ServicioEquipo.cs
@@ -1661,6 +1656,7 @@ Ruta: WorldCupPlanner.Servicios\ServicioFixture.cs
 ~~~csharp
 using  WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -1704,12 +1700,12 @@ public class ServicioFixture
     {
         if (equipos.Count < CantidadExactaEquipos)
         {
-            throw new InvalidOperationException("No se puede generar el fixture con menos de 48 equipos.");
+            throw new EntidadInvalidaExcepcion("No se puede generar el fixture con menos de 48 equipos.");
         }
 
         if (equipos.Count > CantidadExactaEquipos)
         {
-            throw new InvalidOperationException("No se puede generar el fixture con más de 48 equipos.");
+            throw new EntidadInvalidaExcepcion("No se puede generar el fixture con más de 48 equipos.");
         }
     }
 
@@ -1717,7 +1713,7 @@ public class ServicioFixture
     {
         if (equipos.Any(e => !e.EsValido()))
         {
-            throw new InvalidOperationException("No se puede generar el fixture con equipos inválidos.");
+            throw new EntidadInvalidaExcepcion("No se puede generar el fixture con equipos inválidos.");
         }
     }
 
@@ -1731,7 +1727,7 @@ public class ServicioFixture
     {
         if (estadios.Count < CantidadMinimaEstadios)
         {
-            throw new InvalidOperationException("No se puede generar el fixture con menos de 4 estadios.");
+            throw new EntidadInvalidaExcepcion("No se puede generar el fixture con menos de 4 estadios.");
         }
     }
 
@@ -1739,7 +1735,7 @@ public class ServicioFixture
     {
         if (estadios.Any(e => !e.EsValido()))
         {
-            throw new InvalidOperationException("No se puede generar el fixture con estadios inválidos.");
+            throw new EntidadInvalidaExcepcion("No se puede generar el fixture con estadios inválidos.");
         }
     }
 
@@ -1818,7 +1814,7 @@ public class ServicioFixture
             }
         }
 
-        throw new InvalidOperationException(
+        throw new EntidadInvalidaExcepcion(
             "No se pudo asignar el equipo a ningún grupo respetando las restricciones de confederación.");
     }
 
@@ -2159,32 +2155,6 @@ public class ServicioUsuario : IRepositorio<Usuario>
 
 ~~~
 
-### WorldCupPlanner.Servicios.csproj
-
-Ruta: WorldCupPlanner.Servicios\WorldCupPlanner.Servicios.csproj
-
-~~~xml
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <ItemGroup>
-    <ProjectReference Include="..\WorldCupPlanner.Dominio\WorldCupPlanner.Dominio.csproj" />
-    <ProjectReference Include="..\WorldCupPlanner.AccesoADatos\WorldCupPlanner.AccesoADatos.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Implementaciones\" />
-    <Folder Include="Interfaces\" />
-  </ItemGroup>
-
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-</Project>
-~~~
-
 End of WorldCupPlanner.Servicios
 
 ## WorldCupPlanner.ServicioTests
@@ -2303,6 +2273,7 @@ Ruta: WorldCupPlanner.ServicioTests\ServicioClasificacionTests.cs
 ~~~csharp
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
@@ -2767,6 +2738,26 @@ public class ServicioClasificacionTests
         Assert.AreSame(grupoA, clasificados.ObtenerGrupoDeOrigen(segundoClasificadoGrupoA));
     }
 
+    [TestMethod]
+    public void ObtenerClasificadosAFaseEliminatoria_ConPartidoDeGrupoSinResultado_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+        var fixture = CrearFixtureConDoceGruposResueltos();
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+        fixture.Grupos[0].Partidos[0].GolesLocal = null;
+        fixture.Grupos[0].Partidos[0].GolesVisitante = null;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
+                fixture,
+                configuracionTorneo
+            )
+        );
+    }
+
     private Fixture CrearFixtureConPrimerGrupoDeMenorRendimiento()
     {
         var fixture = new Fixture();
@@ -2844,6 +2835,32 @@ public class ServicioCrucesTests
         // Assert
         Assert.AreEqual(16, partidos.Count);
         Assert.IsTrue(partidos.All(p => p.Fase == FaseTorneo.PrimeraRondaEliminatoria));
+    }
+
+    [TestMethod]
+    public void GenerarPrimeraRondaEliminatoria_DebeAsignarIdsIncrementalesLuegoDeFaseDeGrupos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var clasificados = CrearClasificadosCon32Equipos();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCrucesFase = 1
+        };
+
+        // Act
+        var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            clasificados,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var idsEsperados = Enumerable.Range(73, 16).ToList();
+        var idsObtenidos = partidos.Select(p => p.Id).ToList();
+
+        CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
     }
 
     private ClasificadosFaseGrupos CrearClasificadosCon32Equipos()
@@ -3178,7 +3195,7 @@ public class ServicioCrucesTests
         {
             partidos.Add(new Partido
             {
-                Id = i,
+                Id = 72 + i,
                 EquipoLocal = new Equipo
                 {
                     Nombre = $"Local{i}",
@@ -3249,7 +3266,7 @@ public class ServicioCrucesTests
 
             partidos.Add(new Partido
             {
-                Id = i,
+                Id = 72 + i,
                 EquipoLocal = equipoLocal,
                 EquipoVisitante = equipoVisitante,
                 GolesLocal = 2,
@@ -3282,7 +3299,7 @@ public class ServicioCrucesTests
         {
             partidos.Add(new Partido
             {
-                Id = 16 + i,
+                Id = 88 + i,
                 EquipoLocal = new Equipo
                 {
                     Nombre = $"LocalOctavos{i}",
@@ -3320,7 +3337,7 @@ public class ServicioCrucesTests
         {
             partidos.Add(new Partido
             {
-                Id = 24 + i,
+                Id = 96 + i,
                 EquipoLocal = new Equipo
                 {
                     Nombre = $"LocalCuartos{i}",
@@ -3433,7 +3450,7 @@ public class ServicioCrucesTests
         );
 
         // Assert
-        var idsEsperados = Enumerable.Range(17, 8).ToList();
+        var idsEsperados = Enumerable.Range(89, 8).ToList();
         var idsObtenidos = octavos.Select(p => p.Id).ToList();
 
         CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
@@ -3721,7 +3738,7 @@ public class ServicioCrucesTests
         );
 
         // Assert
-        var idsEsperados = Enumerable.Range(25, 4).ToList();
+        var idsEsperados = Enumerable.Range(97, 4).ToList();
         var idsObtenidos = cuartos.Select(p => p.Id).ToList();
 
         CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
@@ -3951,7 +3968,7 @@ public class ServicioCrucesTests
         );
 
         // Assert
-        var idsEsperados = Enumerable.Range(29, 2).ToList();
+        var idsEsperados = Enumerable.Range(101, 2).ToList();
         var idsObtenidos = semifinales.Select(p => p.Id).ToList();
 
         CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
@@ -4019,7 +4036,7 @@ public class ServicioCrucesTests
         {
             partidos.Add(new Partido
             {
-                Id = 28 + i,
+                Id = 100 + i,
                 EquipoLocal = new Equipo
                 {
                     Nombre = $"LocalSemifinal{i}",
@@ -4190,7 +4207,7 @@ public class ServicioCrucesTests
         );
 
         // Assert
-        Assert.AreEqual(31, tercerPuesto.Id);
+        Assert.AreEqual(103, tercerPuesto.Id);
     }
     
     [TestMethod]
@@ -4384,7 +4401,7 @@ public class ServicioCrucesTests
         );
 
         // Assert
-        Assert.AreEqual(32, final.Id);
+        Assert.AreEqual(104, final.Id);
     }
     
     [TestMethod]
@@ -4502,11 +4519,10 @@ public class ServicioCrucesTests
         Assert.AreEqual(FaseTorneo.TercerPuesto, tercerPuesto.Fase);
         Assert.AreEqual(FaseTorneo.Final, final.Fase);
 
-        Assert.AreEqual(31, tercerPuesto.Id);
-        Assert.AreEqual(32, final.Id);
+        Assert.AreEqual(103, tercerPuesto.Id);
+        Assert.AreEqual(104, final.Id);
     }
 }
-
 ~~~
 
 ### ServicioEquipoTests.cs
@@ -4948,6 +4964,7 @@ Ruta: WorldCupPlanner.ServicioTests\ServicioFixtureTests.cs
 ~~~csharp
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
@@ -4965,7 +4982,7 @@ public class ServicioFixtureTests
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
         );
     }
@@ -4980,7 +4997,7 @@ public class ServicioFixtureTests
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
         );
     }
@@ -5467,7 +5484,7 @@ public class ServicioFixtureTests
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
         );
     }
@@ -5478,7 +5495,7 @@ public class ServicioFixtureTests
         // Arrange
         var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidos(47);
-        // Agregar un equipo inválido (sin confederación)
+        // Agregar un equipo invalido (sin confederacion)
         equipos.Add(new Equipo
         {
             Nombre = "EquipoInvalido",
@@ -5489,7 +5506,7 @@ public class ServicioFixtureTests
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
         );
     }
@@ -5501,7 +5518,7 @@ public class ServicioFixtureTests
         var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidos(48);
         var estadios = CrearEstadiosValidos(3);
-        // Agregar un estadio inválido (capacidad menor a 20000)
+        // Agregar un estadio invalido (capacidad menor a 20000)
         estadios.Add(new Estadio
         {
             Nombre = "EstadioInvalido",
@@ -5511,7 +5528,7 @@ public class ServicioFixtureTests
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
         );
     }
@@ -5537,7 +5554,7 @@ public class ServicioFixtureTests
         var equiposUnicos = new HashSet<string>(todosLosEquiposEnFixture.Select(e => e.Nombre));
         Assert.AreEqual(48, equiposUnicos.Count);
 
-        // Assert - Todos los originales están en el fixture
+        // Assert - Todos los originales estan en el fixture
         var equiposEnFixtureSet = new HashSet<string>(todosLosEquiposEnFixture.Select(e => e.Nombre));
         CollectionAssert.AreEquivalent(equiposSet.ToList(), equiposEnFixtureSet.ToList());
     }
@@ -5680,11 +5697,13 @@ public class ServicioFixtureTests
                     $"El estadio {partido.Estadio.Nombre} debe ser uno de los estadios disponibles");
                 
                 Assert.IsTrue(partido.Estadio.EsValido(),
-                    $"El estadio {partido.Estadio.Nombre} asignado debe ser válido");
+                    $"El estadio {partido.Estadio.Nombre} asignado debe ser valido");
             }
         }
     }
 }
+
+
 ~~~
 
 ### ServicioUsuarioTests.cs
@@ -6282,114 +6301,9 @@ public sealed class ServicioUsuarioTests
 
 ~~~
 
-### WorldCupPlanner.ServicioTests.csproj
-
-Ruta: WorldCupPlanner.ServicioTests\WorldCupPlanner.ServicioTests.csproj
-
-~~~xml
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-
-    <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="6.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
-    <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\WorldCupPlanner.Dominio\WorldCupPlanner.Dominio.csproj" />
-    <ProjectReference Include="..\WorldCupPlanner.Servicios\WorldCupPlanner.Servicios.csproj" />
-    <ProjectReference Include="..\WorldCupPlanner.AccesoADatos\WorldCupPlanner.AccesoADatos.csproj" />
-  </ItemGroup>
-
-</Project>
-~~~
-
 End of WorldCupPlanner.ServicioTests
 
 ## WorldCupPlanner.UI
-
-### _Imports.razor
-
-Ruta: WorldCupPlanner.UI\_Imports.razor
-
-~~~razor
-@using System.Net.Http
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.AspNetCore.Components.Forms
-@using Microsoft.AspNetCore.Components.Routing
-@using Microsoft.AspNetCore.Components.Web
-@using Microsoft.AspNetCore.Components.Web.Virtualization
-@using Microsoft.JSInterop
-@using WorldCupPlanner.UI
-@using WorldCupPlanner.UI.Shared
-@using WorldCupPlanner.UI.Data
-~~~
-
-### App.razor
-
-Ruta: WorldCupPlanner.UI\App.razor
-
-~~~razor
-<Router AppAssembly="@typeof(App).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <PageTitle>Not found</PageTitle>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
-        </LayoutView>
-    </NotFound>
-</Router>
-~~~
-
-### appsettings.Development.json
-
-Ruta: WorldCupPlanner.UI\appsettings.Development.json
-
-~~~json
-{
-  "DetailedErrors": true,
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  }
-}
-~~~
-
-### appsettings.json
-
-Ruta: WorldCupPlanner.UI\appsettings.json
-
-~~~json
-{
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "AllowedHosts": "*"
-}
-~~~
 
 ### SesionServicio.cs
 
@@ -6464,589 +6378,6 @@ public class WeatherForecastService
 }
 ~~~
 
-### _Host.cshtml
-
-Ruta: WorldCupPlanner.UI\Pages\_Host.cshtml
-
-~~~cshtml
-@page "/"
-@using Microsoft.AspNetCore.Components.Web
-@namespace WorldCupPlanner.UI.Pages
-@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <base href="~/" />
-    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-    <link href="css/site.css" rel="stylesheet" />
-    <link href="WorldCupPlanner.UI.styles.css" rel="stylesheet" />
-    <link rel="icon" type="image/png" href="favicon.png"/>
-    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
-</head>
-<body>
-    <component type="typeof(App)" render-mode="ServerPrerendered" />
-
-    <div id="blazor-error-ui">
-        <environment include="Staging,Production">
-            An error has occurred. This application may no longer respond until reloaded.
-        </environment>
-        <environment include="Development">
-            An unhandled exception has occurred. See browser dev tools for details.
-        </environment>
-        <a href="" class="reload">Reload</a>
-        <a class="dismiss">🗙</a>
-    </div>
-
-    <script src="_framework/blazor.server.js"></script>
-</body>
-</html>
-~~~
-
-### CrearEquipo.razor
-
-Ruta: WorldCupPlanner.UI\Pages\CrearEquipo.razor
-
-~~~razor
-@page "/equipos/crear"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@using WorldCupPlanner.Dominio.Enumeraciones
-@inject ServicioEquipo ServicioEquipo
-@inject NavigationManager NavigationManager
-
-<PageTitle>Crear Equipo</PageTitle>
-<h1>Crear Equipo</h1>
-
-@if (!string.IsNullOrEmpty(errorMensaje))
-{
-    <div class="alert alert-danger">@errorMensaje</div>
-}
-
-<div class="form-group">
-    <label>Nombre</label>
-    <input type="text" class="form-control" @bind="equipo.Nombre" />
-</div>
-<div class="form-group">
-    <label>ConfederaciÃ³n</label>
-    <select class="form-control" @bind="equipo.Confederacion">
-        <option value="">-- Seleccione una confederaciÃ³n --</option>
-        @foreach (var conf in Enum.GetValues<Confederacion>())
-        {
-            <option value="@conf">@conf</option>
-        }
-    </select>
-</div>
-<div class="form-group">
-    <label>Puntos FIFA <small class="text-muted">(300 â€“ 2500)</small></label>
-    <input type="number" class="form-control" @bind="equipo.RankingFIFA" min="300" max="2500" placeholder="Ej: 1500" />
-</div>
-
-<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
-<a href="/equipos" class="btn btn-secondary mt-2">Cancelar</a>
-
-@code {
-    private Equipo equipo = new();
-    private string errorMensaje = string.Empty;
-
-    private void Guardar()
-    {
-        try
-        {
-            ServicioEquipo.AgregarEquipo(equipo);
-            NavigationManager.NavigateTo("/equipos");
-        }
-        catch (Exception ex)
-        {
-            errorMensaje = ex.Message;
-        }
-    }
-}
-~~~
-
-### CrearEstadio.razor
-
-Ruta: WorldCupPlanner.UI\Pages\CrearEstadio.razor
-
-~~~razor
-@page "/estadios/crear"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@inject ServicioEstadio ServicioEstadio
-@inject NavigationManager NavigationManager
-
-<PageTitle>Crear Estadio</PageTitle>
-<h1>Crear Estadio</h1>
-
-@if (!string.IsNullOrEmpty(errorMensaje))
-{
-    <div class="alert alert-danger">@errorMensaje</div>
-}
-
-<div class="form-group">
-    <label>Nombre</label>
-    <input type="text" class="form-control" @bind="estadio.Nombre" />
-</div>
-<div class="form-group">
-    <label>Ciudad</label>
-    <input type="text" class="form-control" @bind="estadio.Ciudad" />
-</div>
-<div class="form-group">
-    <label>Capacidad</label>
-    <input type="number" class="form-control" @bind="estadio.Capacidad" />
-</div>
-<div class="form-group">
-    <label>DescripciÃ³n (opcional)</label>
-    <input type="text" class="form-control" @bind="estadio.Descripcion" />
-</div>
-
-<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
-<a href="/estadios" class="btn btn-secondary mt-2">Cancelar</a>
-
-@code {
-    private Estadio estadio = new();
-    private string errorMensaje = string.Empty;
-
-    private void Guardar()
-    {
-        try
-        {
-            ServicioEstadio.AgregarEstadio(estadio);
-            NavigationManager.NavigateTo("/estadios");
-        }
-        catch (Exception ex)
-        {
-            errorMensaje = ex.Message;
-        }
-    }
-}
-~~~
-
-### CrearUsuario.razor
-
-Ruta: WorldCupPlanner.UI\Pages\CrearUsuario.razor
-
-~~~razor
-@page "/usuarios/crear"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@using WorldCupPlanner.Dominio.Enumeraciones
-@inject ServicioUsuario ServicioUsuario
-@inject NavigationManager NavigationManager
-
-<PageTitle>Crear Usuario</PageTitle>
-<h1>Crear Usuario</h1>
-
-@if (!string.IsNullOrEmpty(errorMensaje))
-{
-    <div class="alert alert-danger">@errorMensaje</div>
-}
-
-<div class="form-group mb-2">
-    <label>Nombre</label>
-    <input type="text" class="form-control" @bind="nombre" />
-</div>
-<div class="form-group mb-2">
-    <label>Apellido</label>
-    <input type="text" class="form-control" @bind="apellido" />
-</div>
-<div class="form-group mb-2">
-    <label>Email</label>
-    <input type="email" class="form-control" @bind="email" />
-</div>
-<div class="form-group mb-2">
-    <label>Fecha de Nacimiento</label>
-    <input type="date" class="form-control" @bind="fechaNacimiento" />
-</div>
-<div class="form-group mb-2">
-    <label>Roles</label>
-    <div>
-        <input type="checkbox" @bind="esAdmin" /> Administrador del Sistema
-    </div>
-    <div>
-        <input type="checkbox" @bind="esEditor" /> Editor
-    </div>
-</div>
-
-<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
-<a href="/usuarios" class="btn btn-secondary mt-2">Cancelar</a>
-
-@code {
-    private string nombre = string.Empty;
-    private string apellido = string.Empty;
-    private string email = string.Empty;
-    private DateTime fechaNacimiento = DateTime.Now.AddYears(-18);
-    private bool esAdmin = false;
-    private bool esEditor = false;
-    private string errorMensaje = string.Empty;
-
-    private void Guardar()
-    {
-        try
-        {
-            var datos = new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento.ToString("MM-dd-yyyy") };
-            var usuario = new Usuario(datos);
-            ServicioUsuario.GenerarContraseniaDefecto(usuario);
-            if (esAdmin) usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-            if (esEditor) usuario.AgregarRol(RolUsuario.Editor);
-            ServicioUsuario.AgregarUsuario(usuario);
-            NavigationManager.NavigateTo("/usuarios");
-        }
-        catch (Exception ex)
-        {
-            errorMensaje = ex.Message;
-        }
-    }
-}
-~~~
-
-### EditarEquipo.razor
-
-Ruta: WorldCupPlanner.UI\Pages\EditarEquipo.razor
-
-~~~razor
-@page "/equipos/{Nombre}/editar"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@using WorldCupPlanner.Dominio.Enumeraciones
-@inject ServicioEquipo ServicioEquipo
-@inject NavigationManager NavigationManager
-
-<PageTitle>Editar Equipo</PageTitle>
-<h1>Editar Equipo</h1>
-
-@if (!string.IsNullOrEmpty(errorMensaje))
-{
-    <div class="alert alert-danger">@errorMensaje</div>
-}
-
-<div class="form-group">
-    <label>Nombre</label>
-    <input type="text" class="form-control" @bind="equipo.Nombre" />
-</div>
-<div class="form-group">
-    <label>ConfederaciÃ³n</label>
-    <select class="form-control" @bind="equipo.Confederacion">
-        <option value="">-- Seleccione una confederaciÃ³n --</option>
-        @foreach (var conf in Enum.GetValues<Confederacion>())
-        {
-            <option value="@conf">@conf</option>
-        }
-    </select>
-</div>
-<div class="form-group">
-    <label>Puntos FIFA <small class="text-muted">(300 â€“ 2500)</small></label>
-    <input type="number" class="form-control" @bind="equipo.RankingFIFA" min="300" max="2500" placeholder="Ej: 1500" />
-</div>
-
-<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
-<a href="/equipos" class="btn btn-secondary mt-2">Cancelar</a>
-
-@code {
-    [Parameter] public string Nombre { get; set; } = string.Empty;
-    private Equipo equipo = new();
-    private string errorMensaje = string.Empty;
-
-    protected override void OnInitialized()
-    {
-        var original = ServicioEquipo.ObtenerEquipos().First(e => e.Nombre == Nombre);
-        equipo = new Equipo
-        {
-            Nombre = original.Nombre,
-            Confederacion = original.Confederacion,
-            RankingFIFA = original.RankingFIFA
-        };
-    }
-
-    private void Guardar()
-    {
-        try
-        {
-            ServicioEquipo.EditarEquipo(equipo, Nombre);
-            NavigationManager.NavigateTo("/equipos");
-        }
-        catch (Exception ex)
-        {
-            errorMensaje = ex.Message;
-        }
-    }
-}
-~~~
-
-### EditarEstadio.razor
-
-Ruta: WorldCupPlanner.UI\Pages\EditarEstadio.razor
-
-~~~razor
-@page "/estadios/{Nombre}/editar"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@inject ServicioEstadio ServicioEstadio
-@inject NavigationManager NavigationManager
-
-<PageTitle>Editar Estadio</PageTitle>
-<h1>Editar Estadio</h1>
-
-@if (!string.IsNullOrEmpty(errorMensaje))
-{
-    <div class="alert alert-danger">@errorMensaje</div>
-}
-
-<div class="form-group">
-    <label>Nombre</label>
-    <input type="text" class="form-control" @bind="estadio.Nombre" />
-</div>
-<div class="form-group">
-    <label>Ciudad</label>
-    <input type="text" class="form-control" @bind="estadio.Ciudad" />
-</div>
-<div class="form-group">
-    <label>Capacidad</label>
-    <input type="number" class="form-control" @bind="estadio.Capacidad" />
-</div>
-<div class="form-group">
-    <label>DescripciÃ³n (opcional)</label>
-    <input type="text" class="form-control" @bind="estadio.Descripcion" />
-</div>
-
-<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
-<a href="/estadios" class="btn btn-secondary mt-2">Cancelar</a>
-
-@code {
-    [Parameter] public string Nombre { get; set; } = string.Empty;
-    private Estadio estadio = new();
-    private string errorMensaje = string.Empty;
-
-    protected override void OnInitialized()
-    {
-        var original = ServicioEstadio.ObtenerEstadios().First(e => e.Nombre == Nombre);
-        estadio = new Estadio
-        {
-            Nombre = original.Nombre,
-            Ciudad = original.Ciudad,
-            Capacidad = original.Capacidad,
-            Descripcion = original.Descripcion
-        };
-    }
-
-    private void Guardar()
-    {
-        try
-        {
-            ServicioEstadio.EditarEstadio(Nombre, estadio);
-            NavigationManager.NavigateTo("/estadios");
-        }
-        catch (Exception ex)
-        {
-            errorMensaje = ex.Message;
-        }
-    }
-}
-~~~
-
-### EditarUsuario.razor
-
-Ruta: WorldCupPlanner.UI\Pages\EditarUsuario.razor
-
-~~~razor
-@page "/usuarios/{Email}/editar"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@using WorldCupPlanner.Dominio.Enumeraciones
-@inject ServicioUsuario ServicioUsuario
-@inject NavigationManager NavigationManager
-
-<PageTitle>Editar Usuario</PageTitle>
-<h1>Editar Usuario</h1>
-
-@if (!string.IsNullOrEmpty(errorMensaje))
-{
-    <div class="alert alert-danger">@errorMensaje</div>
-}
-
-<div class="form-group mb-2">
-    <label>Nombre</label>
-    <input type="text" class="form-control" @bind="nombre" />
-</div>
-<div class="form-group mb-2">
-    <label>Apellido</label>
-    <input type="text" class="form-control" @bind="apellido" />
-</div>
-<div class="form-group mb-2">
-    <label>Email</label>
-    <input type="email" class="form-control" @bind="email" />
-</div>
-<div class="form-group mb-2">
-    <label>Fecha de Nacimiento</label>
-    <input type="date" class="form-control" @bind="fechaNacimiento" />
-</div>
-<div class="form-group mb-2">
-    <label>Roles</label>
-    <div>
-        <input type="checkbox" @bind="esAdmin" /> Administrador del Sistema
-    </div>
-    <div>
-        <input type="checkbox" @bind="esEditor" /> Editor
-    </div>
-</div>
-
-<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
-<a href="/usuarios" class="btn btn-secondary mt-2">Cancelar</a>
-
-@code {
-    [Parameter] public string Email { get; set; } = string.Empty;
-    private Usuario? usuario;
-    private string nombre = string.Empty;
-    private string apellido = string.Empty;
-    private string email = string.Empty;
-    private DateTime fechaNacimiento = DateTime.Now.AddYears(-18);
-    private bool esAdmin = false;
-    private bool esEditor = false;
-    private string errorMensaje = string.Empty;
-
-    protected override void OnInitialized()
-    {
-        usuario = ServicioUsuario.ObtenerPorEmail(Email);
-        if (usuario != null)
-        {
-            nombre = usuario.Nombre;
-            apellido = usuario.Apellido;
-            email = usuario.Email;
-            fechaNacimiento = usuario.FechaNacimiento;
-            esAdmin = usuario.TieneRol(RolUsuario.AdministradorDelSistema);
-            esEditor = usuario.TieneRol(RolUsuario.Editor);
-        }
-    }
-
-    private void Guardar()
-    {
-        try
-        {
-            if (usuario == null) return;
-            ServicioUsuario.ActualizarUsuario(usuario, nombre, apellido, email, fechaNacimiento.ToString("MM-dd-yyyy"));
-            if (esAdmin) usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-            else usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
-            if (esEditor) usuario.AgregarRol(RolUsuario.Editor);
-            else usuario.RemoverRol(RolUsuario.Editor);
-            NavigationManager.NavigateTo("/usuarios");
-        }
-        catch (Exception ex)
-        {
-            errorMensaje = ex.Message;
-        }
-    }
-}
-~~~
-
-### Equipos.razor
-
-Ruta: WorldCupPlanner.UI\Pages\Equipos.razor
-
-~~~razor
-@page "/equipos"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@inject ServicioEquipo ServicioEquipo
-
-<PageTitle>Equipos</PageTitle>
-
-<h1>
-    Equipos
-    <a href="/equipos/crear" class="btn btn-success btn-sm" style="float: right; margin-right: 40px;">Agregar +</a>
-</h1>
-
-<table class="table">
-    <thead>
-    <tr>
-        <th>Nombre</th>
-        <th>ConfederaciÃ³n</th>
-        <th>Ranking FIFA</th>
-        <th>Acciones</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var equipo in equipos)
-    {
-        <tr>
-            <td>@equipo.Nombre</td>
-            <td>@equipo.Confederacion</td>
-            <td>@equipo.RankingFIFA</td>
-            <td>
-                <a href="/equipos/@equipo.Nombre/editar" class="btn btn-success btn-sm">Editar</a>
-                <button class="btn btn-danger btn-sm" @onclick="(() => Eliminar(equipo))">Eliminar</button>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
-
-@code {
-    private List<Equipo> equipos = new();
-
-    protected override void OnInitialized()
-    {
-        equipos = ServicioEquipo.ObtenerEquipos();
-    }
-
-    private void Eliminar(Equipo equipo)
-    {
-        ServicioEquipo.EliminarEquipo(equipo);
-        equipos = ServicioEquipo.ObtenerEquipos();
-    }
-}
-~~~
-
-### Error.cshtml
-
-Ruta: WorldCupPlanner.UI\Pages\Error.cshtml
-
-~~~cshtml
-@page
-@model WorldCupPlanner.UI.Pages.ErrorModel
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Error</title>
-    <link href="~/css/bootstrap/bootstrap.min.css" rel="stylesheet" />
-    <link href="~/css/site.css" rel="stylesheet" asp-append-version="true" />
-</head>
-
-<body>
-    <div class="main">
-        <div class="content px-4">
-            <h1 class="text-danger">Error.</h1>
-            <h2 class="text-danger">An error occurred while processing your request.</h2>
-
-            @if (Model.ShowRequestId)
-            {
-                <p>
-                    <strong>Request ID:</strong> <code>@Model.RequestId</code>
-                </p>
-            }
-
-            <h3>Development Mode</h3>
-            <p>
-                Swapping to the <strong>Development</strong> environment displays detailed information about the error that occurred.
-            </p>
-            <p>
-                <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-                It can result in displaying sensitive information from exceptions to end users.
-                For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-                and restarting the app.
-            </p>
-        </div>
-    </div>
-</body>
-
-</html>
-~~~
-
 ### Error.cshtml.cs
 
 Ruta: WorldCupPlanner.UI\Pages\Error.cshtml.cs
@@ -7076,204 +6407,6 @@ public class ErrorModel : PageModel
     public void OnGet()
     {
         RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
-    }
-}
-~~~
-
-### Estadios.razor
-
-Ruta: WorldCupPlanner.UI\Pages\Estadios.razor
-
-~~~razor
-@page "/estadios"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@inject ServicioEstadio ServicioEstadio
-
-<PageTitle>Estadios</PageTitle>
-
-<h1>
-    Estadios
-    <a href="/estadios/crear" class="btn btn-success btn-sm" style="float: right; margin-right: 40px;">Agregar +</a>
-</h1>
-
-<table class="table">
-    <thead>
-    <tr>
-        <th>Nombre</th>
-        <th>Ciudad</th>
-        <th>Capacidad</th>
-        <th>Acciones</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var estadio in estadios)
-    {
-        <tr>
-            <td>@estadio.Nombre</td>
-            <td>@estadio.Ciudad</td>
-            <td>@estadio.Capacidad</td>
-            <td>
-                <a href="/estadios/@estadio.Nombre/editar" class="btn btn-success btn-sm">Editar</a>
-                <button class="btn btn-danger btn-sm" @onclick="(() => Eliminar(estadio))">Eliminar</button>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
-
-@code {
-    private List<Estadio> estadios = new();
-
-    protected override void OnInitialized()
-    {
-        estadios = ServicioEstadio.ObtenerEstadios();
-    }
-
-    private void Eliminar(Estadio estadio)
-    {
-        ServicioEstadio.EliminarEstadio(estadio);
-        estadios = ServicioEstadio.ObtenerEstadios();
-    }
-}
-~~~
-
-### Index.razor
-
-Ruta: WorldCupPlanner.UI\Pages\Index.razor
-
-~~~razor
-@page "/"
-@using WorldCupPlanner.UI.Data
-@inject SesionServicio SesionServicio
-@inject NavigationManager NavigationManager
-
-<PageTitle>WorldCupPlanner</PageTitle>
-
-<h1>Bienvenido, @SesionServicio.UsuarioActual?.Nombre</h1>
-
-@code {
-    protected override void OnInitialized()
-    {
-        if (!SesionServicio.HaySesion)
-            NavigationManager.NavigateTo("/login");
-    }
-}
-~~~
-
-### Login.razor
-
-Ruta: WorldCupPlanner.UI\Pages\Login.razor
-
-~~~razor
-@page "/login"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@using WorldCupPlanner.UI.Data
-@inject ServicioUsuario ServicioUsuario
-@inject SesionServicio SesionServicio
-@inject NavigationManager NavigationManager
-
-<PageTitle>Login</PageTitle>
-
-<div style="max-width: 400px; margin: 100px auto;">
-    <h1>WorldCupPlanner</h1>
-
-    @if (!string.IsNullOrEmpty(errorMensaje))
-    {
-        <div class="alert alert-danger">@errorMensaje</div>
-    }
-
-    <div class="form-group mb-2">
-        <label>Email</label>
-        <input type="email" class="form-control" @bind="email" />
-    </div>
-    <div class="form-group mb-2">
-        <label>ContraseÃ±a</label>
-        <input type="password" class="form-control" @bind="contrasenia" />
-    </div>
-
-    <button type="button" class="btn btn-primary mt-2" @onclick="IniciarSesion">Ingresar</button>
-</div>
-
-@code {
-    private string email = string.Empty;
-    private string contrasenia = string.Empty;
-    private string errorMensaje = string.Empty;
-
-    private void IniciarSesion()
-    {
-        try
-        {
-            var usuario = ServicioUsuario.Login(email, contrasenia);
-            SesionServicio.IniciarSesion(usuario);
-            NavigationManager.NavigateTo("/");
-        }
-        catch (Exception ex)
-        {
-            errorMensaje = ex.Message;
-        }
-    }
-}
-~~~
-
-### Usuarios.razor
-
-Ruta: WorldCupPlanner.UI\Pages\Usuarios.razor
-
-~~~razor
-@page "/usuarios"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@using WorldCupPlanner.Dominio.Enumeraciones
-@inject ServicioUsuario ServicioUsuario
-
-<PageTitle>Usuarios</PageTitle>
-
-<h1>
-    Usuarios
-    <a href="/usuarios/crear" class="btn btn-success btn-sm" style="float: right; margin-right: 40px;">Agregar +</a>
-</h1>
-
-<table class="table">
-    <thead>
-    <tr>
-        <th>Nombre</th>
-        <th>Apellido</th>
-        <th>Email</th>
-        <th>Roles</th>
-        <th>Acciones</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var usuario in usuarios)
-    {
-        <tr>
-            <td>@usuario.Nombre</td>
-            <td>@usuario.Apellido</td>
-            <td>@usuario.Email</td>
-            <td>@string.Join(", ", usuario.ObtenerRoles())</td>
-            <td>
-                <a href="/usuarios/@usuario.Email/editar" class="btn btn-success btn-sm">Editar</a>
-                <button class="btn btn-danger btn-sm" @onclick="(() => Eliminar(usuario))">Eliminar</button>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
-
-@code {
-    private List<Usuario> usuarios = new();
-
-    protected override void OnInitialized()
-    {
-        usuarios = ServicioUsuario.ObtenerTodosLosUsuarios();
-    }
-
-    private void Eliminar(Usuario usuario)
-    {
-        ServicioUsuario.EliminarUsuario(usuario);
-        usuarios = ServicioUsuario.ObtenerTodosLosUsuarios();
     }
 }
 ~~~
@@ -7331,404 +6464,6 @@ app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
 app.Run();
-~~~
-
-### launchSettings.json
-
-Ruta: WorldCupPlanner.UI\Properties\launchSettings.json
-
-~~~json
-{
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:30895",
-      "sslPort": 44322
-    }
-  },
-  "profiles": {
-    "http": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": true,
-      "applicationUrl": "http://localhost:5076",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    "https": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": true,
-      "applicationUrl": "https://localhost:7129;http://localhost:5076",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    }
-  }
-}
-~~~
-
-### MainLayout.razor
-
-Ruta: WorldCupPlanner.UI\Shared\MainLayout.razor
-
-~~~razor
-@inherits LayoutComponentBase
-
-<PageTitle>WorldCupPlanner.UI</PageTitle>
-
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
-~~~
-
-### MainLayout.razor.css
-
-Ruta: WorldCupPlanner.UI\Shared\MainLayout.razor.css
-
-~~~css
-.page {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-
-main {
-    flex: 1;
-}
-
-.sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
-}
-
-.top-row {
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #d6d5d5;
-    justify-content: flex-end;
-    height: 3.5rem;
-    display: flex;
-    align-items: center;
-}
-
-    .top-row ::deep a, .top-row .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
-    }
-
-    .top-row a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-@media (max-width: 640.98px) {
-    .top-row:not(.auth) {
-        display: none;
-    }
-
-    .top-row.auth {
-        justify-content: space-between;
-    }
-
-    .top-row a, .top-row .btn-link {
-        margin-left: 0;
-    }
-}
-
-@media (min-width: 641px) {
-    .page {
-        flex-direction: row;
-    }
-
-    .sidebar {
-        width: 250px;
-        height: 100vh;
-        position: sticky;
-        top: 0;
-    }
-
-    .top-row {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-    }
-
-    .top-row, article {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
-    }
-}
-~~~
-
-### NavMenu.razor
-
-Ruta: WorldCupPlanner.UI\Shared\NavMenu.razor
-
-~~~razor
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">WorldCupPlanner.UI</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</div>
-
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="estadios">
-                <span class="oi oi-map-marker" aria-hidden="true"></span> Estadios
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="equipos">
-                <span class="oi oi-people" aria-hidden="true"></span> Equipos
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="usuarios">
-                <span class="oi oi-person" aria-hidden="true"></span> Usuarios
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="login">
-                <span class="oi oi-account-login" aria-hidden="true"></span> Login
-            </NavLink>
-        </div>
-    </nav>
-</div>
-
-@code {
-    private bool collapseNavMenu = true;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-}
-~~~
-
-### NavMenu.razor.css
-
-Ruta: WorldCupPlanner.UI\Shared\NavMenu.razor.css
-
-~~~css
-.navbar-toggler {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.top-row {
-    height: 3.5rem;
-    background-color: rgba(0,0,0,0.4);
-}
-
-.navbar-brand {
-    font-size: 1.1rem;
-}
-
-.oi {
-    width: 2rem;
-    font-size: 1.1rem;
-    vertical-align: text-top;
-    top: -2px;
-}
-
-.nav-item {
-    font-size: 0.9rem;
-    padding-bottom: 0.5rem;
-}
-
-    .nav-item:first-of-type {
-        padding-top: 1rem;
-    }
-
-    .nav-item:last-of-type {
-        padding-bottom: 1rem;
-    }
-
-    .nav-item ::deep a {
-        color: #d7d7d7;
-        border-radius: 4px;
-        height: 3rem;
-        display: flex;
-        align-items: center;
-        line-height: 3rem;
-    }
-
-.nav-item ::deep a.active {
-    background-color: rgba(255,255,255,0.25);
-    color: white;
-}
-
-.nav-item ::deep a:hover {
-    background-color: rgba(255,255,255,0.1);
-    color: white;
-}
-
-@media (min-width: 641px) {
-    .navbar-toggler {
-        display: none;
-    }
-
-    .collapse {
-        /* Never collapse the sidebar for wide screens */
-        display: block;
-    }
-    
-    .nav-scrollable {
-        /* Allow sidebar to scroll for tall menus */
-        height: calc(100vh - 3.5rem);
-        overflow-y: auto;
-    }
-}
-~~~
-
-### SurveyPrompt.razor
-
-Ruta: WorldCupPlanner.UI\Shared\SurveyPrompt.razor
-
-~~~razor
-<div class="alert alert-secondary mt-4">
-    <span class="oi oi-pencil me-2" aria-hidden="true"></span>
-    <strong>@Title</strong>
-
-    <span class="text-nowrap">
-        Please take our
-        <a target="_blank" class="font-weight-bold link-dark" href="https://go.microsoft.com/fwlink/?linkid=2186158">brief survey</a>
-    </span>
-    and tell us what you think.
-</div>
-
-@code {
-    // Demonstrates how a parent component can supply parameters
-    [Parameter]
-    public string? Title { get; set; }
-}
-~~~
-
-### WorldCupPlanner.UI.csproj
-
-Ruta: WorldCupPlanner.UI\WorldCupPlanner.UI.csproj
-
-~~~xml
-<Project Sdk="Microsoft.NET.Sdk.Web">
-
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\WorldCupPlanner.AccesoADatos\WorldCupPlanner.AccesoADatos.csproj" />
-    <ProjectReference Include="..\WorldCupPlanner.Servicios\WorldCupPlanner.Servicios.csproj" />
-    <ProjectReference Include="..\WorldCupPlanner.Dominio\WorldCupPlanner.Dominio.csproj" />
-  </ItemGroup>
-
-</Project>
-~~~
-
-### site.css
-
-Ruta: WorldCupPlanner.UI\wwwroot\css\site.css
-
-~~~css
-@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
-
-html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-}
-
-h1:focus {
-    outline: none;
-}
-
-a, .btn-link {
-    color: #0071c1;
-}
-
-.btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-.content {
-    padding-top: 1.1rem;
-}
-
-.valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
-}
-
-.invalid {
-    outline: 1px solid red;
-}
-
-.validation-message {
-    color: red;
-}
-
-#blazor-error-ui {
-    background: lightyellow;
-    bottom: 0;
-    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
-    display: none;
-    left: 0;
-    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
-    position: fixed;
-    width: 100%;
-    z-index: 1000;
-}
-
-    #blazor-error-ui .dismiss {
-        cursor: pointer;
-        position: absolute;
-        right: 0.75rem;
-        top: 0.5rem;
-    }
-
-.blazor-error-boundary {
-    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, #b32121;
-    padding: 1rem 1rem 1rem 3.7rem;
-    color: white;
-}
-
-    .blazor-error-boundary::after {
-        content: "An error has occurred."
-    }
 ~~~
 
 End of WorldCupPlanner.UI
@@ -8033,26 +6768,6 @@ public class RepositorioUsuarioEnMemoria : IRepositorio<Usuario>
     }
 }
 
-~~~
-
-### WorldCupPlanner.AccesoADatos.csproj
-
-Ruta: WorldCupPlanner.AccesoADatos\WorldCupPlanner.AccesoADatos.csproj
-
-~~~xml
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <ItemGroup>
-    <ProjectReference Include="..\WorldCupPlanner.Dominio\WorldCupPlanner.Dominio.csproj" />
-  </ItemGroup>
-
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-</Project>
 ~~~
 
 End of WorldCupPlanner.AccesoADatos
@@ -9353,39 +8068,6 @@ public class UsuarioTests
 }
 ~~~
 
-### WorldCupPlanner.DominioTests.csproj
-
-Ruta: WorldCupPlanner.DominioTests\WorldCupPlanner.DominioTests.csproj
-
-~~~xml
-<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <IsPackable>false</IsPackable>
-        <IsTestProject>true</IsTestProject>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="coverlet.collector" Version="6.0.0" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-        <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
-        <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\WorldCupPlanner.Dominio\WorldCupPlanner.Dominio.csproj" />
-    </ItemGroup>
-
-</Project>
-~~~
-
 End of WorldCupPlanner.DominioTests
 
 ## WorldCupPlanner.AccesoADatosTest
@@ -9644,39 +8326,4 @@ public class RepositoriosEnMemoriaTests
 }
 ~~~
 
-### WorldCupPlanner.AccesoADatosTest.csproj
-
-Ruta: WorldCupPlanner.AccesoADatosTest\WorldCupPlanner.AccesoADatosTest.csproj
-
-~~~xml
-<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <IsPackable>false</IsPackable>
-        <IsTestProject>true</IsTestProject>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="coverlet.collector" Version="6.0.0" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-        <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
-        <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\WorldCupPlanner.Dominio\WorldCupPlanner.Dominio.csproj" />
-        <ProjectReference Include="..\WorldCupPlanner.AccesoADatos\WorldCupPlanner.AccesoADatos.csproj" />
-    </ItemGroup>
-
-</Project>
-~~~
-
 End of WorldCupPlanner.AccesoADatosTest
-
