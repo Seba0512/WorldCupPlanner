@@ -1067,4 +1067,32 @@ public class ServicioCrucesTests
             )
         );
     }
+
+    [TestMethod]
+    public void GenerarSemifinales_DebeUsarGanadoresDeCuartos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var semifinales = servicioCruces.GenerarSemifinales(
+            cuartos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var ganadoresCuartos = cuartos
+            .Select(p => p.Ganador())
+            .ToList();
+
+        var equiposEnSemifinales = semifinales
+            .SelectMany(p => new[] { p.EquipoLocal, p.EquipoVisitante })
+            .ToList();
+
+        CollectionAssert.AreEquivalent(ganadoresCuartos, equiposEnSemifinales);
+    }
 }
