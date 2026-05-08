@@ -1119,4 +1119,27 @@ public class ServicioCrucesTests
             Assert.AreEqual(cuartos[i * 2 + 1].Ganador(), semifinales[i].EquipoVisitante);
         }
     }
+    
+    [TestMethod]
+    public void GenerarSemifinales_DebeAsignarIdsIncrementalesLuegoDeCuartos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var semifinales = servicioCruces.GenerarSemifinales(
+            cuartos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var idsEsperados = Enumerable.Range(29, 2).ToList();
+        var idsObtenidos = semifinales.Select(p => p.Id).ToList();
+
+        CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
+    }
 }
