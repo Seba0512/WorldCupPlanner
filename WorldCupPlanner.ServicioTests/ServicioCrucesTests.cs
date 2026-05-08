@@ -1405,4 +1405,24 @@ public class ServicioCrucesTests
 
         Assert.AreEqual(fechaEsperada, tercerPuesto.Fecha);
     }
+    
+    [TestMethod]
+    public void GenerarTercerPuesto_DebeAsignarPrimerEstadio()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var tercerPuesto = servicioCruces.GenerarTercerPuesto(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(estadios[0], tercerPuesto.Estadio);
+    }
 }
