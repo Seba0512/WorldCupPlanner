@@ -1339,6 +1339,41 @@ public class ServicioFixtureTests
             equiposDelFixture.Select(e => e.Nombre).Distinct().Count()
         );
     }
+    
+    [TestMethod]
+    public void CompletarEquipos_NoDebeDuplicarNombreCuandoYaExisteNombreDeterministico()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(24)
+            .ToList();
+
+        equipos[0].Nombre = "CONCACAF_01";
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        var nombres = equiposCompletos
+            .Select(e => e.Nombre)
+            .ToList();
+
+        Assert.AreEqual(48, nombres.Count);
+        Assert.AreEqual(48, nombres.Distinct().Count());
+
+        Assert.IsTrue(nombres.Contains("CONCACAF_01"));
+        Assert.IsTrue(nombres.Contains("CONCACAF_02"));
+    }
 }
 
 
