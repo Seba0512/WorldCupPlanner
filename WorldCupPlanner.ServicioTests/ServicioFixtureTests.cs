@@ -949,7 +949,7 @@ public class ServicioFixtureTests
         var servicioFixture = new ServicioFixture();
 
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
-            .Take(46)
+            .Take(24)
             .ToList();
 
         var cantidadOriginal = equipos.Count;
@@ -966,7 +966,8 @@ public class ServicioFixtureTests
         );
 
         // Assert
-        Assert.AreEqual(cantidadOriginal, equipos.Count);
+        Assert.AreEqual(24, cantidadOriginal);
+        Assert.AreEqual(24, equipos.Count);
         Assert.AreEqual(48, equiposCompletos.Count);
     }
     
@@ -1155,6 +1156,38 @@ public class ServicioFixtureTests
 
         Assert.AreEqual(48, equiposDelFixture.Count);
         Assert.AreEqual(24, equiposDelFixture.Count(e => e.Nombre.StartsWith("Equipo Ficticio")));
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_NoDebeGenerarNombresRepetidosParaEquiposFicticios()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        equipos[0].Nombre = "Equipo Ficticio 47";
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        var nombres = equiposCompletos
+            .Select(e => e.Nombre)
+            .ToList();
+
+        Assert.AreEqual(48, nombres.Count);
+        Assert.AreEqual(48, nombres.Distinct().Count());
     }
 }
 

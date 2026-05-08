@@ -74,13 +74,32 @@ public class ServicioFixture
 
             equiposCompletos.Add(new Equipo
             {
-                Nombre = $"Equipo Ficticio {equiposCompletos.Count + 1}",
+                Nombre = GenerarNombreEquipoFicticio(equiposCompletos),
                 RankingFIFA = random.Next(RankingMinimoEquipoFicticio, RankingMaximoEquipoFicticioExclusivo),
                 Confederacion = confederacion
             });
         }
 
         return equiposCompletos;
+    }
+
+    private string GenerarNombreEquipoFicticio(List<Equipo> equipos)
+    {
+        var numero = 1;
+        var nombre = $"Equipo Ficticio {numero}";
+
+        while (ExisteEquipoConNombre(equipos, nombre))
+        {
+            numero++;
+            nombre = $"Equipo Ficticio {numero}";
+        }
+
+        return nombre;
+    }
+
+    private bool ExisteEquipoConNombre(List<Equipo> equipos, string nombre)
+    {
+        return equipos.Any(e => e.Nombre == nombre);
     }
 
     private List<Equipo> CopiarEquipos(List<Equipo> equipos)
