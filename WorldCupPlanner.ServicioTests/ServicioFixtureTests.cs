@@ -1086,6 +1086,38 @@ public class ServicioFixtureTests
         // Assert
         Assert.IsTrue(fixture.Grupos.All(g => g.EsValido()));
     }
+
+    [TestMethod]
+    public void CompletarEquipos_ConMuchosEquiposFaltantes_DebeRespetarCuposPorConfederacion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(24)
+            .ToList();
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(48, equiposCompletos.Count);
+
+        Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.UEFA) <= 16);
+        Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.CONMEBOL) <= 7);
+        Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.CONCACAF) <= 7);
+        Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.CAF) <= 9);
+        Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.AFC) <= 8);
+        Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.OFC) <= 1);
+    }
 }
 
 
