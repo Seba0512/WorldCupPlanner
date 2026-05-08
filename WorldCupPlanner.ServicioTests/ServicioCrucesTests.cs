@@ -1095,4 +1095,28 @@ public class ServicioCrucesTests
 
         CollectionAssert.AreEquivalent(ganadoresCuartos, equiposEnSemifinales);
     }
+
+    [TestMethod]
+    public void GenerarSemifinales_DebeCruzarGanadoresDeCuartosDeADos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var semifinales = servicioCruces.GenerarSemifinales(
+            cuartos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        for (int i = 0; i < 2; i++)
+        {
+            Assert.AreEqual(cuartos[i * 2].Ganador(), semifinales[i].EquipoLocal);
+            Assert.AreEqual(cuartos[i * 2 + 1].Ganador(), semifinales[i].EquipoVisitante);
+        }
+    }
 }
