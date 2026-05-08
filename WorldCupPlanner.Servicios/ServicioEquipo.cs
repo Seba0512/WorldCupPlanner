@@ -9,15 +9,17 @@ namespace WorldCupPlanner.Servicios
     public class ServicioEquipo : IRepositorio<Equipo>
     {
         private readonly IRepositorio<Equipo> _repositorio;
+        private readonly ServicioAuditoria? _auditoria;
 
         public ServicioEquipo()
         {
             _repositorio = new RepositorioEquipoEnMemoria();
         }
 
-        public ServicioEquipo(IRepositorio<Equipo> repositorio)
+        public ServicioEquipo(IRepositorio<Equipo> repositorio, ServicioAuditoria? auditoria = null)
         {
             _repositorio = repositorio;
+            _auditoria = auditoria;
         }
 
         private static readonly Dictionary<Confederacion, int> CuposPorConfederacion = new()
@@ -40,6 +42,7 @@ namespace WorldCupPlanner.Servicios
             ValidarNombreUnico(equipo.Nombre);
             ValidarCupoConfederacion(equipo);
             _repositorio.Agregar(equipo);
+            _auditoria?.Registrar("Sistema", "Alta", $"Equipo: {equipo.Nombre}, Confederacion: {equipo.Confederacion}, Ranking: {equipo.RankingFIFA}");
         }
 
         public void EditarEquipo(Equipo equipo, string nombreOriginal)
@@ -54,6 +57,7 @@ namespace WorldCupPlanner.Servicios
             existente.Confederacion = equipo.Confederacion;
             existente.RankingFIFA = equipo.RankingFIFA;
             _repositorio.Actualizar(existente);
+            _auditoria?.Registrar("Sistema", "Edicion", $"Original: {nombreOriginal} -> Nuevo: {equipo.Nombre}, Confederacion: {equipo.Confederacion}, Ranking: {equipo.RankingFIFA}");
         }
 
         public void Actualizar(Equipo equipo)
@@ -91,7 +95,11 @@ namespace WorldCupPlanner.Servicios
             return generados;
         }
 
-        public void Eliminar(Equipo equipo) => _repositorio.Eliminar(equipo);
+        public void Eliminar(Equipo equipo)
+        {
+            _repositorio.Eliminar(equipo);
+            _auditoria?.Registrar("Sistema", "Baja", $"Equipo: {equipo.Nombre}, Confederacion: {equipo.Confederacion}");
+        }
 
         public List<Equipo> Buscar(Func<Equipo, bool> predicado) => _repositorio.Buscar(predicado);
 

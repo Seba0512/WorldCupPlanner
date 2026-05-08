@@ -1,9 +1,23 @@
+using WorldCupPlanner.AccesoADatos.Interfaces;
+using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
+
+file class RepositorioAuditoriaFake : IRepositorioConId<Auditoria>
+{
+    private int _nextId = 1;
+    public List<Auditoria> Entradas { get; } = [];
+
+    public int SiguienteId() => _nextId++;
+    public void Agregar(Auditoria entidad) => Entradas.Add(entidad);
+    public void Actualizar(Auditoria entidad) { }
+    public void Eliminar(Auditoria entidad) => Entradas.Remove(entidad);
+    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado) => Entradas.Where(predicado).ToList();
+}
 
 [TestClass]
 public class ServicioEquipoTests
@@ -293,6 +307,113 @@ public class ServicioEquipoTests
         var generados = _servicio.CompletarEquipos(42);
 
         Assert.IsTrue(generados.All(e => e.EsValido()));
+    }
+
+    // --- Auditoría ---
+
+    private static (ServicioEquipo servicio, RepositorioAuditoriaFake repoAuditoria) CrearServicioConAuditoria()
+    {
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var servicio = new ServicioEquipo(new RepositorioEquipoEnMemoria(), auditoria);
+        return (servicio, repoAuditoria);
+    }
+
+    [TestMethod]
+    public void Agregar_EquipoValido_RegistraEntradaDeAuditoria()
+    {
+        var (servicio, repoAuditoria) = CrearServicioConAuditoria();
+
+        servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
+
+        Assert.AreEqual(1, repoAuditoria.Entradas.Count);
+        Assert.AreEqual("Alta", repoAuditoria.Entradas[0].Accion);
+        StringAssert.Contains(repoAuditoria.Entradas[0].Detalle, "Uruguay");
+    }
+
+    [TestMethod]
+    public void Agregar_EquipoInvalido_NoRegistraAuditoria()
+    {
+        var (servicio, repoAuditoria) = CrearServicioConAuditoria();
+
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicio.Agregar(new Equipo { Nombre = "", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL }));
+
+        Assert.AreEqual(0, repoAuditoria.Entradas.Count);
+    }
+
+    [TestMethod]
+    public void EditarEquipo_EquipoValido_RegistraEntradaDeAuditoria()
+    {
+        var (servicio, repoAuditoria) = CrearServicioConAuditoria();
+        servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
+        repoAuditoria.Entradas.Clear();
+
+        servicio.EditarEquipo(CrearEquipo("Uruguay Editado", Confederacion.CONMEBOL), "Uruguay");
+
+        Assert.AreEqual(1, repoAuditoria.Entradas.Count);
+        Assert.AreEqual("Edicion", repoAuditoria.Entradas[0].Accion);
+        StringAssert.Contains(repoAuditoria.Entradas[0].Detalle, "Uruguay");
+        StringAssert.Contains(repoAuditoria.Entradas[0].Detalle, "Uruguay Editado");
+    }
+
+    [TestMethod]
+    public void EditarEquipo_EquipoInvalido_NoRegistraAuditoria()
+    {
+        var (servicio, repoAuditoria) = CrearServicioConAuditoria();
+        servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
+        repoAuditoria.Entradas.Clear();
+
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicio.EditarEquipo(new Equipo { Nombre = "", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL }, "Uruguay"));
+
+        Assert.AreEqual(0, repoAuditoria.Entradas.Count);
+    }
+
+    [TestMethod]
+    public void Eliminar_EquipoExistente_RegistraEntradaDeAuditoria()
+    {
+        var (servicio, repoAuditoria) = CrearServicioConAuditoria();
+        var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+        servicio.Agregar(equipo);
+        repoAuditoria.Entradas.Clear();
+
+        servicio.Eliminar(equipo);
+
+        Assert.AreEqual(1, repoAuditoria.Entradas.Count);
+        Assert.AreEqual("Baja", repoAuditoria.Entradas[0].Accion);
+        StringAssert.Contains(repoAuditoria.Entradas[0].Detalle, "Uruguay");
+    }
+
+    [TestMethod]
+    public void Agregar_SinAuditoria_NoLanzaExcepcion()
+    {
+        var servicio = new ServicioEquipo(new RepositorioEquipoEnMemoria());
+
+        servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
+
+        Assert.AreEqual(1, servicio.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
+    public void Auditoria_RegistraUsuarioSistema()
+    {
+        var (servicio, repoAuditoria) = CrearServicioConAuditoria();
+
+        servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
+
+        Assert.AreEqual("Sistema", repoAuditoria.Entradas[0].Usuario);
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_GeneraUnaEntradaPorEquipoGenerado()
+    {
+        var (servicio, repoAuditoria) = CrearServicioConAuditoria();
+
+        var generados = servicio.CompletarEquipos(42);
+
+        Assert.AreEqual(generados.Count, repoAuditoria.Entradas.Count);
+        Assert.IsTrue(repoAuditoria.Entradas.All(e => e.Accion == "Alta"));
     }
 
     private static Equipo CrearEquipo(string nombre, Confederacion confederacion) => new()
