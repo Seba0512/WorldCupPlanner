@@ -1358,4 +1358,24 @@ public class ServicioCrucesTests
         Assert.AreEqual(perdedorSemifinal1, tercerPuesto.EquipoLocal);
         Assert.AreEqual(perdedorSemifinal2, tercerPuesto.EquipoVisitante);
     }
+    
+    [TestMethod]
+    public void GenerarTercerPuesto_DebeAsignarIdLuegoDeSemifinales()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var tercerPuesto = servicioCruces.GenerarTercerPuesto(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(31, tercerPuesto.Id);
+    }
 }
