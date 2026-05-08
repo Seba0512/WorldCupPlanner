@@ -17,11 +17,11 @@ public class ServicioCruces
         var random = new Random(configuracionTorneo.SemillaCrucesFase);
 
         var primerosParaTerceros = MezclarEquiposConFisherYates(
-            clasificados.Primeros.Take(8).ToList(),
+            new List<Equipo>(clasificados.Primeros.Take(8)),
             random);
 
         var terceros = MezclarEquiposConFisherYates(
-            clasificados.MejoresTerceros.ToList(),
+            new List<Equipo>(clasificados.MejoresTerceros),
             random);
 
         AgregarCrucesPrimerosContraTerceros(
@@ -34,11 +34,11 @@ public class ServicioCruces
         );
 
         var primerosRestantes = MezclarEquiposConFisherYates(
-            clasificados.Primeros.Skip(8).Take(4).ToList(),
+            new List<Equipo>(clasificados.Primeros.Skip(8).Take(4)),
             random);
 
         var segundosDeMenorRendimiento = MezclarEquiposConFisherYates(
-            clasificados.Segundos.Skip(8).Take(4).ToList(),
+            new List<Equipo>(clasificados.Segundos.Skip(8).Take(4)),
             random);
 
         AgregarCrucesPrimerosRestantesContraSegundosDeMenorRendimiento(
@@ -51,7 +51,7 @@ public class ServicioCruces
         );
 
         var segundosRestantes = MezclarEquiposConFisherYates(
-            clasificados.Segundos.Take(8).ToList(),
+            new List<Equipo>(clasificados.Segundos.Take(8)),
             random);
 
         AgregarCrucesSegundosRestantesMinimos(
@@ -445,9 +445,8 @@ public class ServicioCruces
 
     private List<Equipo> ObtenerGanadores(List<Partido> partidos)
     {
-        return partidos
-            .Select(p => p.Ganador()!)
-            .ToList();
+        return new List<Equipo>(partidos
+            .Select(p => p.Ganador()!));
     }
 
     private Partido CrearPartidoEliminatorio(
@@ -494,9 +493,8 @@ public class ServicioCruces
     
     private List<Equipo> ObtenerPerdedores(List<Partido> partidos)
     {
-        return partidos
-            .Select(ObtenerPerdedor)
-            .ToList();
+        return new List<Equipo>(partidos
+            .Select(ObtenerPerdedor));
     }
 
     private Equipo ObtenerPerdedor(Partido partido)

@@ -35,6 +35,16 @@ public class RepositorioAuditoriaEnMemoria : IRepositorioConId<Auditoria>
 
     public List<Auditoria> Buscar(Func<Auditoria, bool> predicado)
     {
-        return _logs.Where(predicado).ToList();
+        var resultados = new List<Auditoria>();
+
+        foreach (var log in _logs)
+        {
+            if (predicado(log))
+            {
+                resultados.Add(log);
+            }
+        }
+
+        return resultados;
     }
 }

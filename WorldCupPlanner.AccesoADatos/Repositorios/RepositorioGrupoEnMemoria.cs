@@ -31,6 +31,16 @@ public class RepositorioGrupoEnMemoria : IRepositorio<Grupo>
 
     public List<Grupo> Buscar(Func<Grupo, bool> predicado)
     {
-        return _grupos.Where(predicado).ToList();
+        var resultados = new List<Grupo>();
+
+        foreach (var grupo in _grupos)
+        {
+            if (predicado(grupo))
+            {
+                resultados.Add(grupo);
+            }
+        }
+
+        return resultados;
     }
 }

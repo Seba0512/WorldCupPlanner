@@ -31,6 +31,16 @@ public class RepositorioEstadioEnMemoria : IRepositorio<Estadio>
     
     public List<Estadio> Buscar(Func<Estadio, bool> predicado)
     {
-        return _estadios.Where(predicado).ToList();
+        var resultados = new List<Estadio>();
+
+        foreach (var estadio in _estadios)
+        {
+            if (predicado(estadio))
+            {
+                resultados.Add(estadio);
+            }
+        }
+
+        return resultados;
     }
 }

@@ -11,10 +11,12 @@ public class ClasificadosFaseGrupos
     {
         get
         {
-            return Primeros
-                .Concat(Segundos)
-                .Concat(MejoresTerceros)
-                .ToList();
+            var todos = new List<Equipo>();
+            todos.AddRange(Primeros);
+            todos.AddRange(Segundos);
+            todos.AddRange(MejoresTerceros);
+
+            return todos;
         }
     }
 

@@ -26,7 +26,7 @@ public class ServicioClasificacion
         }
 
         return OrdenarPosicionesConDesempateDeterministico(
-            posiciones.Values.ToList(),
+            new List<PosicionEquipo>(posiciones.Values),
             configuracionTorneo.SemillaCrucesFase
         );
     }
@@ -37,32 +37,30 @@ public class ServicioClasificacion
     {
         ValidarFaseDeGruposCompleta(fixture);
 
-        var tablas = fixture.Grupos
-            .Select(g => CalcularTabla(g, configuracionTorneo))
-            .ToList();
+        var tablas = new List<List<PosicionEquipo>>(fixture.Grupos
+            .Select(g => CalcularTabla(g, configuracionTorneo)));
 
         var primerosOrdenados = OrdenarPosicionesConDesempateDeterministico(
-            tablas.Select(t => t[0]).ToList(),
+            new List<PosicionEquipo>(tablas.Select(t => t[0])),
             configuracionTorneo.SemillaCrucesFase
         );
 
         var segundosOrdenados = OrdenarPosicionesConDesempateDeterministico(
-            tablas.Select(t => t[1]).ToList(),
+            new List<PosicionEquipo>(tablas.Select(t => t[1])),
             configuracionTorneo.SemillaCrucesFase
         );
 
-        var mejoresTerceros = OrdenarPosicionesConDesempateDeterministico(
-                tablas.Select(t => t[2]).ToList(),
+        var mejoresTerceros = new List<PosicionEquipo>(OrdenarPosicionesConDesempateDeterministico(
+                new List<PosicionEquipo>(tablas.Select(t => t[2])),
                 configuracionTorneo.SemillaCrucesFase
             )
-            .Take(8)
-            .ToList();
+            .Take(8));
 
         var clasificados = new ClasificadosFaseGrupos
         {
-            Primeros = primerosOrdenados.Select(p => p.Equipo).ToList(),
-            Segundos = segundosOrdenados.Select(p => p.Equipo).ToList(),
-            MejoresTerceros = mejoresTerceros.Select(p => p.Equipo).ToList()
+            Primeros = new List<Equipo>(primerosOrdenados.Select(p => p.Equipo)),
+            Segundos = new List<Equipo>(segundosOrdenados.Select(p => p.Equipo)),
+            MejoresTerceros = new List<Equipo>(mejoresTerceros.Select(p => p.Equipo))
         };
 
         foreach (var posicion in primerosOrdenados.Concat(segundosOrdenados).Concat(mejoresTerceros))
@@ -160,7 +158,7 @@ public class ServicioClasificacion
 
         foreach (var grupoEmpatado in gruposEmpatados)
         {
-            var posiciones = grupoEmpatado.ToList();
+            var posiciones = new List<PosicionEquipo>(grupoEmpatado);
 
             if (posiciones.Count > 1)
             {
@@ -186,11 +184,10 @@ public class ServicioClasificacion
         List<PosicionEquipo> posiciones,
         int semillaCrucesFase)
     {
-        var posicionesOrdenadas = posiciones
+        var posicionesOrdenadas = new List<PosicionEquipo>(posiciones
             .OrderByDescending(p => p.Puntos)
             .ThenByDescending(p => p.DiferenciaGoles)
-            .ThenByDescending(p => p.GolesAFavor)
-            .ToList();
+            .ThenByDescending(p => p.GolesAFavor));
 
         return AplicarDesempateDeterministico(posicionesOrdenadas, semillaCrucesFase);
     }

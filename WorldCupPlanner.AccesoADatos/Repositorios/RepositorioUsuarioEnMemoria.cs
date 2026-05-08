@@ -31,7 +31,17 @@ public class RepositorioUsuarioEnMemoria : IRepositorio<Usuario>
 
     public List<Usuario> Buscar(Func<Usuario, bool> predicado)
     {
-        return _usuarios.Where(predicado).ToList();
+        var resultados = new List<Usuario>();
+
+        foreach (var usuario in _usuarios)
+        {
+            if (predicado(usuario))
+            {
+                resultados.Add(usuario);
+            }
+        }
+
+        return resultados;
     }
 
     public Usuario? ObtenerPorEmail(string email)

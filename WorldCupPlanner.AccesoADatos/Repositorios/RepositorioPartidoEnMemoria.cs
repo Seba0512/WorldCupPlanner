@@ -32,6 +32,16 @@ public class RepositorioPartidoEnMemoria : IRepositorio<Partido>
 
     public List<Partido> Buscar(Func<Partido, bool> predicado)
     {
-        return _partidos.Where(predicado).ToList();
+        var resultados = new List<Partido>();
+
+        foreach (var partido in _partidos)
+        {
+            if (predicado(partido))
+            {
+                resultados.Add(partido);
+            }
+        }
+
+        return resultados;
     }
 }

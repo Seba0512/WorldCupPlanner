@@ -8,9 +8,14 @@ public class Fixture
     {
         get
         {
-            return Grupos
-                .SelectMany(g => g.Partidos)
-                .ToList();
+            var partidos = new List<Partido>();
+
+            foreach (var grupo in Grupos)
+            {
+                partidos.AddRange(grupo.Partidos);
+            }
+
+            return partidos;
         }
     }
 }

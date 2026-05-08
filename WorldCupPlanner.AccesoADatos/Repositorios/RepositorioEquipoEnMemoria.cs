@@ -31,6 +31,16 @@ public class RepositorioEquipoEnMemoria : IRepositorio<Equipo>
 
     public List<Equipo> Buscar(Func<Equipo, bool> predicado)
     {
-        return _equipos.Where(predicado).ToList();
+        var resultados = new List<Equipo>();
+
+        foreach (var equipo in _equipos)
+        {
+            if (predicado(equipo))
+            {
+                resultados.Add(equipo);
+            }
+        }
+
+        return resultados;
     }
 }

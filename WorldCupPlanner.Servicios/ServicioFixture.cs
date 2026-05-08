@@ -38,7 +38,7 @@ public class ServicioFixture
         List<Equipo> equipos,
         ConfiguracionTorneo configuracionTorneo)
     {
-        var equiposCompletos = equipos.ToList();
+        var equiposCompletos = new List<Equipo>(equipos);
         var random = new Random(configuracionTorneo.SemillaCompletar);
 
         while (equiposCompletos.Count < CantidadExactaEquipos)
@@ -128,7 +128,7 @@ public class ServicioFixture
 
         foreach (var grupoDeRanking in ObtenerGruposPorRankingDescendente(equipos))
         {
-            var equiposMezclados = MezclarEquiposConFisherYates(grupoDeRanking.ToList(), random);
+            var equiposMezclados = MezclarEquiposConFisherYates(new List<Equipo>(grupoDeRanking), random);
             equiposOrdenados.AddRange(equiposMezclados);
         }
 
@@ -319,9 +319,9 @@ public class ServicioFixture
 
     private List<Estadio> OrdenarEstadiosPorNombreNormalizado(List<Estadio> estadios)
     {
-        return estadios
+        return new List<Estadio>(estadios
             .OrderBy(e => Normalizar.NormalizarTexto(e.Nombre))
-            .ToList();
+        );
     }
 
     private Estadio ObtenerEstadioParaPartido(List<Estadio> estadiosOrdenados, int indicePartidoGlobal)
