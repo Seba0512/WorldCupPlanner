@@ -74,7 +74,7 @@ public class ServicioFixture
 
             equiposCompletos.Add(new Equipo
             {
-                Nombre = GenerarNombreEquipoFicticio(equiposCompletos),
+                Nombre = GenerarNombreEquipoFicticio(equiposCompletos, confederacion),
                 RankingFIFA = random.Next(RankingMinimoEquipoFicticio, RankingMaximoEquipoFicticioExclusivo),
                 Confederacion = confederacion
             });
@@ -83,18 +83,23 @@ public class ServicioFixture
         return equiposCompletos;
     }
 
-    private string GenerarNombreEquipoFicticio(List<Equipo> equipos)
+    private string GenerarNombreEquipoFicticio(List<Equipo> equipos, Confederacion confederacion)
     {
         var numero = 1;
-        var nombre = $"Equipo Ficticio {numero}";
+        var nombre = CrearNombreEquipoFicticio(confederacion, numero);
 
         while (ExisteEquipoConNombre(equipos, nombre))
         {
             numero++;
-            nombre = $"Equipo Ficticio {numero}";
+            nombre = CrearNombreEquipoFicticio(confederacion, numero);
         }
 
         return nombre;
+    }
+
+    private string CrearNombreEquipoFicticio(Confederacion confederacion, int numero)
+    {
+        return $"{confederacion}_{numero:00}";
     }
 
     private bool ExisteEquipoConNombre(List<Equipo> equipos, string nombre)

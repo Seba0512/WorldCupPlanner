@@ -42,7 +42,7 @@ public class ServicioFixtureTests
             .ToList();
 
         Assert.AreEqual(48, todosLosEquipos.Count);
-        Assert.IsTrue(todosLosEquipos.Any(e => e.Nombre.StartsWith("Equipo Ficticio")));
+        Assert.IsTrue(todosLosEquipos.Any(e => !equipos.Contains(e)));
     }
 
     [TestMethod]
@@ -837,7 +837,7 @@ public class ServicioFixtureTests
 
         // Assert
         var equiposFicticios = equiposCompletos
-            .Where(e => e.Nombre.StartsWith("Equipo Ficticio"))
+            .Where(e => !equipos.Contains(e))
             .ToList();
 
         Assert.AreEqual(2, equiposFicticios.Count);
@@ -881,12 +881,12 @@ public class ServicioFixtureTests
 
         // Assert
         var rankingsFicticios1 = equiposCompletos1
-            .Where(e => e.Nombre.StartsWith("Equipo Ficticio"))
+            .Where(e => !equiposBase1.Contains(e))
             .Select(e => e.RankingFIFA)
             .ToList();
 
         var rankingsFicticios2 = equiposCompletos2
-            .Where(e => e.Nombre.StartsWith("Equipo Ficticio"))
+            .Where(e => !equiposBase2.Contains(e))
             .Select(e => e.RankingFIFA)
             .ToList();
 
@@ -930,12 +930,12 @@ public class ServicioFixtureTests
 
         // Assert
         var rankingsFicticios1 = equiposCompletos1
-            .Where(e => e.Nombre.StartsWith("Equipo Ficticio"))
+            .Where(e => !equiposBase1.Contains(e))
             .Select(e => e.RankingFIFA)
             .ToList();
 
         var rankingsFicticios2 = equiposCompletos2
-            .Where(e => e.Nombre.StartsWith("Equipo Ficticio"))
+            .Where(e => !equiposBase2.Contains(e))
             .Select(e => e.RankingFIFA)
             .ToList();
 
@@ -992,7 +992,7 @@ public class ServicioFixtureTests
 
         // Assert
         Assert.AreEqual(48, equiposCompletos.Count);
-        Assert.IsFalse(equiposCompletos.Any(e => e.Nombre.StartsWith("Equipo Ficticio")));
+        Assert.IsFalse(equiposCompletos.Any(e => !equipos.Contains(e)));
     }
     
     [TestMethod]
@@ -1052,7 +1052,7 @@ public class ServicioFixtureTests
             .ToList();
 
         var equiposFicticios = equiposDelFixture
-            .Where(e => e.Nombre.StartsWith("Equipo Ficticio"))
+            .Where(e => !equipos.Contains(e))
             .ToList();
 
         Assert.AreEqual(2, equiposFicticios.Count);
@@ -1155,7 +1155,7 @@ public class ServicioFixtureTests
             .ToList();
 
         Assert.AreEqual(48, equiposDelFixture.Count);
-        Assert.AreEqual(24, equiposDelFixture.Count(e => e.Nombre.StartsWith("Equipo Ficticio")));
+        Assert.AreEqual(24, equiposDelFixture.Count(e => !equipos.Contains(e)));
     }
 
     [TestMethod]
@@ -1168,7 +1168,7 @@ public class ServicioFixtureTests
             .Take(46)
             .ToList();
 
-        equipos[0].Nombre = "Equipo Ficticio 47";
+        equipos[0].Nombre = "AFC_01";
 
         var configuracionTorneo = new ConfiguracionTorneo
         {
@@ -1189,6 +1189,62 @@ public class ServicioFixtureTests
         Assert.AreEqual(48, nombres.Count);
         Assert.AreEqual(48, nombres.Distinct().Count());
     }
+
+    [TestMethod]
+    public void CompletarEquipos_DebeGenerarNombresDeterministicosPorConfederacion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(24)
+            .ToList();
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        var equiposAgregados = equiposCompletos
+            .Where(e => !equipos.Contains(e))
+            .ToList();
+
+        Assert.AreEqual(24, equiposAgregados.Count);
+
+        CollectionAssert.AreEqual(
+            new List<string>
+            {
+                "CONCACAF_01", "CONCACAF_02", "CONCACAF_03", "CONCACAF_04",
+                "CONCACAF_05", "CONCACAF_06", "CONCACAF_07"
+            },
+            ObtenerNombresPorConfederacion(equiposAgregados, Confederacion.CONCACAF)
+        );
+
+        CollectionAssert.AreEqual(
+            new List<string>
+            {
+                "CAF_01", "CAF_02", "CAF_03", "CAF_04", "CAF_05",
+                "CAF_06", "CAF_07", "CAF_08", "CAF_09"
+            },
+            ObtenerNombresPorConfederacion(equiposAgregados, Confederacion.CAF)
+        );
+
+        CollectionAssert.AreEqual(
+            new List<string>
+            {
+                "AFC_01", "AFC_02", "AFC_03", "AFC_04",
+                "AFC_05", "AFC_06", "AFC_07", "AFC_08"
+            },
+            ObtenerNombresPorConfederacion(equiposAgregados, Confederacion.AFC)
+        );
+    }
     
     [TestMethod]
     public void GenerarFixture_ConMenosDe48Equipos_NoDebeDuplicarNombresEnGrupos()
@@ -1200,7 +1256,7 @@ public class ServicioFixtureTests
             .Take(46)
             .ToList();
 
-        equipos[0].Nombre = "Equipo Ficticio 47";
+        equipos[0].Nombre = "AFC_01";
 
         var estadios = CrearEstadiosValidos(4);
 
@@ -1225,6 +1281,17 @@ public class ServicioFixtureTests
 
         Assert.AreEqual(48, nombresEquipos.Count);
         Assert.AreEqual(48, nombresEquipos.Distinct().Count());
+    }
+
+    private List<string> ObtenerNombresPorConfederacion(
+        List<Equipo> equipos,
+        Confederacion confederacion)
+    {
+        return equipos
+            .Where(e => e.Confederacion == confederacion)
+            .Select(e => e.Nombre)
+            .OrderBy(nombre => nombre)
+            .ToList();
     }
 }
 
