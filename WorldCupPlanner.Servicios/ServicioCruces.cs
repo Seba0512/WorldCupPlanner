@@ -474,6 +474,7 @@ public class ServicioCruces
     {
         ValidarCantidadSemifinales(semifinales);
         ValidarFaseSemifinales(semifinales);
+        ValidarSemifinalesJugadas(semifinales);
 
         var perdedores = semifinales
             .Select(ObtenerPerdedor)
@@ -488,6 +489,14 @@ public class ServicioCruces
             Fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 4),
             Fase = FaseTorneo.TercerPuesto
         };
+    }
+    
+    private void ValidarSemifinalesJugadas(List<Partido> semifinales)
+    {
+        if (semifinales.Any(p => !p.EstaJugado()))
+        {
+            throw new EntidadInvalidaExcepcion("No se puede generar tercer puesto si hay semifinales sin jugar.");
+        }
     }
     
     private void ValidarFaseSemifinales(List<Partido> semifinales)
