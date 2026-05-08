@@ -575,6 +575,28 @@ public class UsuarioTests
         Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarEmail(string.Empty));
     }
 
+    [TestMethod]
+    public void DatosUsuario_ExpresionWith_CreaCopiaConCampoModificado()
+    {
+        // Arrange
+        var original = new DatosUsuario
+        {
+            Nombre = "Juan",
+            Apellido = "Pérez",
+            Email = "juan.perez@example.com",
+            FechaNacimiento = "05-15-1990"
+        };
+
+        // Act — invoca el constructor de copia generado por el record
+        var copia = original with { Nombre = "Carlos" };
+
+        // Assert
+        Assert.AreEqual("Carlos", copia.Nombre);
+        Assert.AreEqual(original.Apellido, copia.Apellido);
+        Assert.AreEqual(original.Email, copia.Email);
+        Assert.AreEqual(original.FechaNacimiento, copia.FechaNacimiento);
+    }
+
     private static Usuario CrearUsuarioValido()
     {
         return new Usuario(new DatosUsuario
