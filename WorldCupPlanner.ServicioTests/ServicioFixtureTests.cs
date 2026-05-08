@@ -918,6 +918,30 @@ public class ServicioFixtureTests
         Assert.AreEqual(cantidadOriginal, equipos.Count);
         Assert.AreEqual(48, equiposCompletos.Count);
     }
+    
+    [TestMethod]
+    public void CompletarEquipos_Con48Equipos_NoDebeAgregarEquiposFicticios()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(48, equiposCompletos.Count);
+        Assert.IsFalse(equiposCompletos.Any(e => e.Nombre.StartsWith("Equipo Ficticio")));
+    }
 }
 
 
