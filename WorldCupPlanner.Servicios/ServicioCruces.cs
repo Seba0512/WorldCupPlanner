@@ -282,7 +282,7 @@ public class ServicioCruces
 
         return grupo1 != null && ReferenceEquals(grupo1, grupo2);
     }
-    
+
     public List<Partido> GenerarOctavos(
         List<Partido> partidosPrimeraRonda,
         List<Estadio> estadios,
@@ -466,82 +466,52 @@ public class ServicioCruces
             Fase = fase
         };
     }
-    
+
     public Partido GenerarTercerPuesto(
         List<Partido> semifinales,
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
-        ValidarCantidadSemifinales(semifinales);
-        ValidarFaseSemifinales(semifinales);
-        ValidarSemifinalesJugadas(semifinales);
-        ValidarSemifinalesConGanador(semifinales);
+        ValidarPartidosDeFaseAnterior(
+            semifinales,
+            2,
+            FaseTorneo.Semifinal,
+            "tercer puesto",
+            "semifinales");
 
-        var perdedores = semifinales
+        var perdedores = ObtenerPerdedores(semifinales);
+
+        return CrearPartidoEliminatorio(
+            semifinales.Max(p => p.Id) + 1,
+            perdedores[0],
+            perdedores[1],
+            estadios[0],
+            configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 4),
+            FaseTorneo.TercerPuesto);
+    }
+    
+    private List<Equipo> ObtenerPerdedores(List<Partido> partidos)
+    {
+        return partidos
             .Select(ObtenerPerdedor)
             .ToList();
-
-        return new Partido
-        {
-            Id = semifinales.Max(p => p.Id) + 1,
-            EquipoLocal = perdedores[0],
-            EquipoVisitante = perdedores[1],
-            Estadio = estadios[0],
-            Fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 4),
-            Fase = FaseTorneo.TercerPuesto
-        };
-    }
-    
-    private void ValidarSemifinalesConGanador(List<Partido> semifinales)
-    {
-        if (semifinales.Any(p => p.Ganador() == null))
-        {
-            throw new EntidadInvalidaExcepcion("No se puede generar tercer puesto si hay semifinales empatadas.");
-        }
-    }
-    
-    private void ValidarSemifinalesJugadas(List<Partido> semifinales)
-    {
-        if (semifinales.Any(p => !p.EstaJugado()))
-        {
-            throw new EntidadInvalidaExcepcion("No se puede generar tercer puesto si hay semifinales sin jugar.");
-        }
-    }
-    
-    private void ValidarFaseSemifinales(List<Partido> semifinales)
-    {
-        if (semifinales.Any(p => p.Fase != FaseTorneo.Semifinal))
-        {
-            throw new EntidadInvalidaExcepcion("Para generar tercer puesto todos los partidos deben ser semifinales.");
-        }
-    }
-    
-    private void ValidarCantidadSemifinales(List<Partido> semifinales)
-    {
-        if (semifinales.Count != 2)
-        {
-            throw new EntidadInvalidaExcepcion("Para generar tercer puesto deben existir exactamente 2 semifinales.");
-        }
     }
 
-    private Equipo? ObtenerPerdedor(Partido partido)
+    private Equipo ObtenerPerdedor(Partido partido)
     {
-        if (!partido.EstaJugado())
+        var ganador = partido.Ganador();
+
+        if (ganador == null)
         {
-            return null;
+            throw new EntidadInvalidaExcepcion("No se puede obtener perdedor de un partido sin ganador.");
         }
 
-        if (partido.GolesLocal < partido.GolesVisitante)
+        if (ReferenceEquals(ganador, partido.EquipoLocal))
         {
-            return partido.EquipoLocal;
+            return partido.EquipoVisitante!;
         }
 
-        if (partido.GolesVisitante < partido.GolesLocal)
-        {
-            return partido.EquipoVisitante;
-        }
-
-        return null;
+        return partido.EquipoLocal!;
     }
     
     public Partido GenerarFinal(
@@ -549,54 +519,21 @@ public class ServicioCruces
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
-        ValidarCantidadSemifinalesParaFinal(semifinales);
-        ValidarFaseSemifinalesParaFinal(semifinales);
-        ValidarSemifinalesJugadasParaFinal(semifinales);
-        ValidarSemifinalesConGanadorParaFinal(semifinales);
+        ValidarPartidosDeFaseAnterior(
+            semifinales,
+            2,
+            FaseTorneo.Semifinal,
+            "la final",
+            "semifinales");
 
-        var ganadores = semifinales
-            .Select(p => p.Ganador())
-            .ToList();
+        var ganadores = ObtenerGanadores(semifinales);
 
-        return new Partido
-        {
-            Id = semifinales.Max(p => p.Id) + 2,
-            EquipoLocal = ganadores[0],
-            EquipoVisitante = ganadores[1],
-            Estadio = estadios[0],
-            Fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 5),
-            Fase = FaseTorneo.Final
-        };
-    }
-    private void ValidarCantidadSemifinalesParaFinal(List<Partido> semifinales)
-    {
-        if (semifinales.Count != 2)
-        {
-            throw new EntidadInvalidaExcepcion("Para generar la final deben existir exactamente 2 semifinales.");
-        }
-    }
-    
-    private void ValidarFaseSemifinalesParaFinal(List<Partido> semifinales)
-    {
-        if (semifinales.Any(p => p.Fase != FaseTorneo.Semifinal))
-        {
-            throw new EntidadInvalidaExcepcion("Para generar la final todos los partidos deben ser semifinales.");
-        }
-    }
-    
-    private void ValidarSemifinalesJugadasParaFinal(List<Partido> semifinales)
-    {
-        if (semifinales.Any(p => !p.EstaJugado()))
-        {
-            throw new EntidadInvalidaExcepcion("No se puede generar la final si hay semifinales sin jugar.");
-        }
-    }
-    
-    private void ValidarSemifinalesConGanadorParaFinal(List<Partido> semifinales)
-    {
-        if (semifinales.Any(p => p.Ganador() == null))
-        {
-            throw new EntidadInvalidaExcepcion("No se puede generar la final si hay semifinales empatadas.");
-        }
+        return CrearPartidoEliminatorio(
+            semifinales.Max(p => p.Id) + 2,
+            ganadores[0],
+            ganadores[1],
+            estadios[0],
+            configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 5),
+            FaseTorneo.Final);
     }
 }
