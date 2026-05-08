@@ -7,7 +7,7 @@ using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
 
-file class RepositorioAuditoriaFake : IRepositorioConId<Auditoria>
+internal class RepositorioAuditoriaFake : IRepositorioConId<Auditoria>
 {
     private int _nextId = 1;
     public List<Auditoria> Entradas { get; } = [];

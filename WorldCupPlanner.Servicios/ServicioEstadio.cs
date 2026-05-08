@@ -8,15 +8,17 @@ namespace WorldCupPlanner.Servicios;
 public class ServicioEstadio
 {
     private readonly IRepositorio<Estadio> _repositorioEstadio;
+    private readonly ServicioAuditoria? _auditoria;
 
     public ServicioEstadio()
     {
         _repositorioEstadio = new RepositorioEstadioEnMemoria();
     }
 
-    public ServicioEstadio(IRepositorio<Estadio> repositorioEstadio)
+    public ServicioEstadio(IRepositorio<Estadio> repositorioEstadio, ServicioAuditoria? auditoria = null)
     {
         _repositorioEstadio = repositorioEstadio;
+        _auditoria = auditoria;
     }
 
     public void AgregarEstadio(Estadio estadio)
@@ -26,6 +28,7 @@ public class ServicioEstadio
         if (_repositorioEstadio.Buscar(e => e.Nombre == estadio.Nombre).Count > 0)
             throw new EntidadYaExistenteExcepcion("Ya existe un estadio con ese nombre.");
         _repositorioEstadio.Agregar(estadio);
+        _auditoria?.Registrar("Sistema", "Alta", $"Estadio: {estadio.Nombre}, Ciudad: {estadio.Ciudad}, Capacidad: {estadio.Capacidad}");
     }
 
     public void EditarEstadio(string nombreOriginal, Estadio estadio)
@@ -40,11 +43,13 @@ public class ServicioEstadio
         existente.Capacidad = estadio.Capacidad;
         existente.Descripcion = estadio.Descripcion;
         _repositorioEstadio.Actualizar(existente);
+        _auditoria?.Registrar("Sistema", "Edicion", $"Original: {nombreOriginal} -> Nuevo: {estadio.Nombre}, Ciudad: {estadio.Ciudad}, Capacidad: {estadio.Capacidad}");
     }
 
     public void EliminarEstadio(Estadio estadio)
     {
         _repositorioEstadio.Eliminar(estadio);
+        _auditoria?.Registrar("Sistema", "Baja", $"Estadio: {estadio.Nombre}, Ciudad: {estadio.Ciudad}");
     }
 
     public List<Estadio> ObtenerEstadios()
