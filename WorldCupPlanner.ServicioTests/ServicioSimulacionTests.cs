@@ -153,4 +153,32 @@ public class ServicioSimulacionTests
         // Assert
         Assert.IsTrue(existeResultadoDistinto);
     }
+
+    [TestMethod]
+    public void SimularResultados_ConPartidoYaJugado_NoDebeSobrescribirResultado()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var partidos = CrearPartidosSinResultado(3);
+
+        partidos[0].GolesLocal = 4;
+        partidos[0].GolesVisitante = 2;
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 1
+        };
+
+        // Act
+        servicioSimulacion.SimularResultados(partidos, configuracionTorneo);
+
+        // Assert
+        Assert.AreEqual(4, partidos[0].GolesLocal);
+        Assert.AreEqual(2, partidos[0].GolesVisitante);
+
+        Assert.IsTrue(partidos[1].GolesLocal.HasValue);
+        Assert.IsTrue(partidos[1].GolesVisitante.HasValue);
+        Assert.IsTrue(partidos[2].GolesLocal.HasValue);
+        Assert.IsTrue(partidos[2].GolesVisitante.HasValue);
+    }
 }

@@ -15,6 +15,11 @@ public class ServicioSimulacion
 
         foreach (var partido in partidos)
         {
+            if (partido.EstaJugado())
+            {
+                continue;
+            }
+
             partido.GolesLocal = random.Next(GolesMinimos, GolesMaximosExclusivo);
             partido.GolesVisitante = random.Next(GolesMinimos, GolesMaximosExclusivo);
         }
