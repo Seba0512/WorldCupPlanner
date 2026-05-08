@@ -28,10 +28,12 @@ public class ServicioFixture
 
     public Fixture GenerarFixture(List<Equipo> equipos, List<Estadio> estadios, ConfiguracionTorneo configuracionTorneo)
     {
-        ValidarCantidadEquipos(equipos);
+        var equiposCompletos = CompletarEquipos(equipos, configuracionTorneo);
+
+        ValidarCantidadEquipos(equiposCompletos);
         ValidarCantidadEstadios(estadios);
 
-        return CrearFixtureConDistribucionRoundRobin(equipos, estadios, configuracionTorneo);
+        return CrearFixtureConDistribucionRoundRobin(equiposCompletos, estadios, configuracionTorneo);
     }
 
     public List<Equipo> CompletarEquipos(

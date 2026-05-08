@@ -9,18 +9,40 @@ namespace WorldCupPlanner.ServicioTests;
 public class ServicioFixtureTests
 {
     [TestMethod]
-    public void GenerarFixture_ConMenosDe48Equipos_DebeLanzarExcepcion()
+    public void GenerarFixture_ConMenosDe48Equipos_DebeCompletarEquiposYGenerarFixture()
     {
         // Arrange
         var servicioFixture = new ServicioFixture();
-        var equipos = new List<Equipo>();
-        var estadios = CrearEstadiosValidos(4);
-        var configuracionTorneo = new ConfiguracionTorneo();
 
-        // Act & Assert
-        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1,
+            SemillaFixture = 1
+        };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(
+            equipos,
+            estadios,
+            configuracionTorneo
         );
+
+        // Assert
+        Assert.AreEqual(12, fixture.Grupos.Count);
+        Assert.IsTrue(fixture.Grupos.All(g => g.Equipos.Count == 4));
+
+        var todosLosEquipos = fixture.Grupos
+            .SelectMany(g => g.Equipos)
+            .ToList();
+
+        Assert.AreEqual(48, todosLosEquipos.Count);
+        Assert.IsTrue(todosLosEquipos.Any(e => e.Nombre.StartsWith("Equipo Ficticio")));
     }
 
     [TestMethod]
