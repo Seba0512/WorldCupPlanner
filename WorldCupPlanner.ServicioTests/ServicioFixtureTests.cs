@@ -1293,6 +1293,52 @@ public class ServicioFixtureTests
             .OrderBy(nombre => nombre)
             .ToList();
     }
+    
+    [TestMethod]
+    public void GenerarFixture_ConMenosDe48Equipos_DebeIncluirFicticiosConNombresDeterministicosPorConfederacion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(24)
+            .ToList();
+
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1,
+            SemillaFixture = 1
+        };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(
+            equipos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var equiposDelFixture = fixture.Grupos
+            .SelectMany(g => g.Equipos)
+            .ToList();
+
+        var equiposAgregados = equiposDelFixture
+            .Where(e => !equipos.Contains(e))
+            .ToList();
+
+        Assert.AreEqual(24, equiposAgregados.Count);
+
+        Assert.IsTrue(equiposAgregados.Any(e => e.Nombre == "CONCACAF_01"));
+        Assert.IsTrue(equiposAgregados.Any(e => e.Nombre == "CAF_01"));
+        Assert.IsTrue(equiposAgregados.Any(e => e.Nombre == "AFC_01"));
+
+        Assert.AreEqual(
+            equiposDelFixture.Count,
+            equiposDelFixture.Select(e => e.Nombre).Distinct().Count()
+        );
+    }
 }
 
 
