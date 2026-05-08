@@ -1189,6 +1189,43 @@ public class ServicioFixtureTests
         Assert.AreEqual(48, nombres.Count);
         Assert.AreEqual(48, nombres.Distinct().Count());
     }
+    
+    [TestMethod]
+    public void GenerarFixture_ConMenosDe48Equipos_NoDebeDuplicarNombresEnGrupos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        equipos[0].Nombre = "Equipo Ficticio 47";
+
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1,
+            SemillaFixture = 1
+        };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(
+            equipos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var nombresEquipos = fixture.Grupos
+            .SelectMany(g => g.Equipos)
+            .Select(e => e.Nombre)
+            .ToList();
+
+        Assert.AreEqual(48, nombresEquipos.Count);
+        Assert.AreEqual(48, nombresEquipos.Distinct().Count());
+    }
 }
 
 
