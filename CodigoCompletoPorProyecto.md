@@ -2,6 +2,628 @@
 
 Generado desde los proyectos incluidos actualmente en WorldCupPlanner.sln.
 
+## WorldCupPlanner.AccesoADatos
+
+### IRepositorio.cs
+
+Ruta: WorldCupPlanner.AccesoADatos\Interfaces\IRepositorio.cs
+
+~~~csharp
+
+namespace WorldCupPlanner.AccesoADatos.Interfaces;
+
+public interface IRepositorio<T>
+{
+    void Agregar(T entidad);
+    void Actualizar(T entidad);
+    void Eliminar(T entidad);
+    List<T> Buscar(Func<T,bool> predicado);
+}
+~~~
+
+### IRepositorioConId.cs
+
+Ruta: WorldCupPlanner.AccesoADatos\Interfaces\IRepositorioConId.cs
+
+~~~csharp
+
+namespace WorldCupPlanner.AccesoADatos.Interfaces;
+
+public interface IRepositorioConId<T> : IRepositorio<T>
+{
+    int SiguienteId();
+}
+~~~
+
+### RepositorioAuditoriaEnMemoria.cs
+
+Ruta: WorldCupPlanner.AccesoADatos\Repositorios\RepositorioAuditoriaEnMemoria.cs
+
+~~~csharp
+using WorldCupPlanner.AccesoADatos.Interfaces;
+using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Excepciones;
+
+namespace WorldCupPlanner.AccesoADatos.Repositorios;
+
+public class RepositorioAuditoriaEnMemoria : IRepositorioConId<Auditoria>
+{
+    private readonly List<Auditoria> _logs = new();
+    private int _contador;
+
+    public int SiguienteId() => ++_contador;
+    
+    public void Agregar(Auditoria entidad)
+    {
+        _logs.Add(entidad);
+    }
+
+    public void Actualizar(Auditoria entidad)
+    {
+        var indice = _logs.FindIndex(e => e.Id == entidad.Id);
+
+        if (indice == -1)
+        {
+            throw new EntidadInexistenteExcepcion("El log de auditoría no existe.");
+        }
+
+        _logs[indice] = entidad;
+    }
+
+    public void Eliminar(Auditoria entidad)
+    {
+            _logs.Remove(entidad);
+    }
+
+    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado)
+    {
+        var resultados = new List<Auditoria>();
+
+        foreach (var log in _logs)
+        {
+            if (predicado(log))
+            {
+                resultados.Add(log);
+            }
+        }
+
+        return resultados;
+    }
+}
+~~~
+
+### RepositorioEquipoEnMemoria.cs
+
+Ruta: WorldCupPlanner.AccesoADatos\Repositorios\RepositorioEquipoEnMemoria.cs
+
+~~~csharp
+using WorldCupPlanner.AccesoADatos.Interfaces;
+using WorldCupPlanner.Dominio.Entidades;
+
+namespace WorldCupPlanner.AccesoADatos.Repositorios;
+
+public class RepositorioEquipoEnMemoria : IRepositorio<Equipo>
+{
+    private readonly List<Equipo> _equipos = new();
+
+    public void Agregar(Equipo equipo)
+    {
+        _equipos.Add(equipo);
+    }
+
+    public void Actualizar(Equipo equipo)
+    {
+        var indice = _equipos.FindIndex(e => ReferenceEquals(e, equipo));
+
+        if (indice == -1)
+        {
+            throw new InvalidOperationException("El equipo no existe.");
+        }
+
+        _equipos[indice] = equipo;
+    }
+
+    public void Eliminar(Equipo equipo)
+    {
+        _equipos.Remove(equipo);
+    }
+
+    public List<Equipo> Buscar(Func<Equipo, bool> predicado)
+    {
+        var resultados = new List<Equipo>();
+
+        foreach (var equipo in _equipos)
+        {
+            if (predicado(equipo))
+            {
+                resultados.Add(equipo);
+            }
+        }
+
+        return resultados;
+    }
+}
+~~~
+
+### RepositorioEstadioEnMemoria.cs
+
+Ruta: WorldCupPlanner.AccesoADatos\Repositorios\RepositorioEstadioEnMemoria.cs
+
+~~~csharp
+using WorldCupPlanner.AccesoADatos.Interfaces;
+using  WorldCupPlanner.Dominio.Entidades;
+
+namespace WorldCupPlanner.AccesoADatos.Repositorios;
+
+public class RepositorioEstadioEnMemoria : IRepositorio<Estadio>
+{
+    private readonly List<Estadio> _estadios = new();
+
+    public void Agregar(Estadio estadio)
+    {
+        _estadios.Add(estadio);
+    }
+
+    public void Actualizar(Estadio estadio)
+    {
+        var indice = _estadios.FindIndex(e => ReferenceEquals(e, estadio));
+
+        if (indice == -1)
+        {
+            throw new InvalidOperationException("El estadio no existe.");
+        }
+
+        _estadios[indice] = estadio;
+    }
+
+    public void Eliminar(Estadio estadio)
+    {
+        _estadios.Remove(estadio);
+    }
+    
+    public List<Estadio> Buscar(Func<Estadio, bool> predicado)
+    {
+        var resultados = new List<Estadio>();
+
+        foreach (var estadio in _estadios)
+        {
+            if (predicado(estadio))
+            {
+                resultados.Add(estadio);
+            }
+        }
+
+        return resultados;
+    }
+}
+~~~
+
+### RepositorioGrupoEnMemoria.cs
+
+Ruta: WorldCupPlanner.AccesoADatos\Repositorios\RepositorioGrupoEnMemoria.cs
+
+~~~csharp
+using WorldCupPlanner.AccesoADatos.Interfaces;
+using  WorldCupPlanner.Dominio.Entidades;
+
+namespace WorldCupPlanner.AccesoADatos.Repositorios;
+
+public class RepositorioGrupoEnMemoria : IRepositorio<Grupo>
+{
+    private readonly List<Grupo> _grupos = new();
+
+    public void Agregar(Grupo grupo)
+    {
+        _grupos.Add(grupo);
+    }
+
+    public void Actualizar(Grupo grupo)
+    {
+        var indice = _grupos.FindIndex(g => ReferenceEquals(g, grupo));
+
+        if (indice == -1)
+        {
+            throw new InvalidOperationException("El grupo no existe.");
+        }
+
+        _grupos[indice] = grupo;
+    }
+
+    public void Eliminar(Grupo grupo)
+    {
+        _grupos.Remove(grupo);
+    }
+
+    public List<Grupo> Buscar(Func<Grupo, bool> predicado)
+    {
+        var resultados = new List<Grupo>();
+
+        foreach (var grupo in _grupos)
+        {
+            if (predicado(grupo))
+            {
+                resultados.Add(grupo);
+            }
+        }
+
+        return resultados;
+    }
+}
+~~~
+
+### RepositorioPartidoEnMemoria.cs
+
+Ruta: WorldCupPlanner.AccesoADatos\Repositorios\RepositorioPartidoEnMemoria.cs
+
+~~~csharp
+using WorldCupPlanner.AccesoADatos.Interfaces;
+using  WorldCupPlanner.Dominio.Entidades;
+
+
+namespace WorldCupPlanner.AccesoADatos.Repositorios;
+
+public class RepositorioPartidoEnMemoria : IRepositorio<Partido>
+{
+    private readonly List<Partido> _partidos = new();
+
+    public void Agregar(Partido partido)
+    {
+        _partidos.Add(partido);
+    }
+
+    public void Actualizar(Partido partido)
+    {
+        var indice = _partidos.FindIndex(p => ReferenceEquals(p, partido));
+
+        if (indice == -1)
+        {
+            throw new InvalidOperationException("El partido no existe.");
+        }
+
+        _partidos[indice] = partido;
+    }
+
+    public void Eliminar(Partido partido)
+    {
+        _partidos.Remove(partido);
+    }
+
+    public List<Partido> Buscar(Func<Partido, bool> predicado)
+    {
+        var resultados = new List<Partido>();
+
+        foreach (var partido in _partidos)
+        {
+            if (predicado(partido))
+            {
+                resultados.Add(partido);
+            }
+        }
+
+        return resultados;
+    }
+}
+~~~
+
+### RepositorioUsuarioEnMemoria.cs
+
+Ruta: WorldCupPlanner.AccesoADatos\Repositorios\RepositorioUsuarioEnMemoria.cs
+
+~~~csharp
+using WorldCupPlanner.AccesoADatos.Interfaces;
+using WorldCupPlanner.Dominio.Entidades;
+
+namespace WorldCupPlanner.AccesoADatos.Repositorios;
+
+public class RepositorioUsuarioEnMemoria : IRepositorio<Usuario>
+{
+    private readonly List<Usuario> _usuarios = new();
+
+    public void Agregar(Usuario usuario)
+    {
+        _usuarios.Add(usuario);
+    }
+
+    public void Actualizar(Usuario usuario)
+    {
+        var indice = _usuarios.FindIndex(u => ReferenceEquals(u, usuario));
+
+        if (indice == -1)
+        {
+            throw new InvalidOperationException("El usuario no existe.");
+        }
+
+        _usuarios[indice] = usuario;
+    }
+
+    public void Eliminar(Usuario usuario)
+    {
+        _usuarios.Remove(usuario);
+    }
+
+    public List<Usuario> Buscar(Func<Usuario, bool> predicado)
+    {
+        var resultados = new List<Usuario>();
+
+        foreach (var usuario in _usuarios)
+        {
+            if (predicado(usuario))
+            {
+                resultados.Add(usuario);
+            }
+        }
+
+        return resultados;
+    }
+
+    public Usuario? ObtenerPorEmail(string email)
+    {
+        return _usuarios.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+    }
+}
+
+~~~
+
+End of WorldCupPlanner.AccesoADatos
+
+## WorldCupPlanner.AccesoADatosTest
+
+### RepositoriosEnMemoriaTests.cs
+
+Ruta: WorldCupPlanner.AccesoADatosTest\RepositoriosEnMemoriaTests.cs
+
+~~~csharp
+using WorldCupPlanner.AccesoADatos.Repositorios;
+using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
+
+namespace WorldCupPlanner.AccesoADatosTest;
+
+[TestClass]
+public class RepositoriosEnMemoriaTests
+{
+    [TestMethod]
+    public void RepositorioEquipoEnMemoria_AgregarEquipo_GuardaEquipo()
+    {
+        var repositorio = new RepositorioEquipoEnMemoria();
+        var equipo = CrearEquipoValido("Uruguay");
+
+        repositorio.Agregar(equipo);
+
+        Assert.AreEqual(1, repositorio.Buscar(_ => true).Count);
+        Assert.AreEqual(equipo, repositorio.Buscar(_ => true).First());
+    }
+
+    [TestMethod]
+    public void RepositorioEquipoEnMemoria_EliminarEquipo_EliminaEquipo()
+    {
+        var repositorio = new RepositorioEquipoEnMemoria();
+        var equipo = CrearEquipoValido("Uruguay");
+        repositorio.Agregar(equipo);
+
+        repositorio.Eliminar(equipo);
+
+        Assert.AreEqual(0, repositorio.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
+    public void RepositorioEstadioEnMemoria_ActualizarEstadio_ModificaEstadio()
+    {
+        var repositorio = new RepositorioEstadioEnMemoria();
+        var estadio = CrearEstadioValido("Estadio Centenario");
+        repositorio.Agregar(estadio);
+        estadio.Nombre = "Estadio Olimpico";
+
+        repositorio.Actualizar(estadio);
+
+        Assert.AreEqual("Estadio Olimpico", repositorio.Buscar(_ => true).First().Nombre);
+    }
+
+    [TestMethod]
+    public void RepositorioGrupoEnMemoria_AgregarGrupo_GuardaGrupo()
+    {
+        var repositorio = new RepositorioGrupoEnMemoria();
+        var grupo = new Grupo("A");
+
+        repositorio.Agregar(grupo);
+
+        Assert.AreEqual(1, repositorio.Buscar(_ => true).Count);
+        Assert.AreEqual(grupo, repositorio.Buscar(_ => true).First());
+    }
+
+    [TestMethod]
+    public void RepositorioPartidoEnMemoria_AgregarPartido_GuardaPartido()
+    {
+        var repositorio = new RepositorioPartidoEnMemoria();
+        var partido = CrearPartidoValido();
+
+        repositorio.Agregar(partido);
+
+        Assert.AreEqual(1, repositorio.Buscar(_ => true).Count);
+        Assert.AreEqual(partido, repositorio.Buscar(_ => true).First());
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_AgregarUsuario_GuardaUsuario()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("juan@example.com");
+
+        repositorio.Agregar(usuario);
+
+        Assert.AreEqual(1, repositorio.Buscar(_ => true).Count);
+        Assert.AreSame(usuario, repositorio.Buscar(_ => true).First());
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_AgregarVariosUsuarios_GuardaTodos()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario1 = CrearUsuarioValido("juan@example.com");
+        var usuario2 = CrearUsuarioValido("maria@example.com");
+        var usuario3 = CrearUsuarioValido("pedro@example.com");
+
+        repositorio.Agregar(usuario1);
+        repositorio.Agregar(usuario2);
+        repositorio.Agregar(usuario3);
+
+        Assert.AreEqual(3, repositorio.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_ActualizarUsuarioExistente_ModificaUsuario()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("juan@example.com");
+        repositorio.Agregar(usuario);
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+
+        repositorio.Actualizar(usuario);
+
+        Assert.IsTrue(repositorio.Buscar(_ => true).First().TieneRol(RolUsuario.AdministradorDelSistema));
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_ActualizarUsuarioNoExistente_LanzaExcepcion()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("juan@example.com");
+
+        Assert.ThrowsException<InvalidOperationException>(() => repositorio.Actualizar(usuario));
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_EliminarUsuarioExistente_EliminaUsuario()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("juan@example.com");
+        repositorio.Agregar(usuario);
+
+        repositorio.Eliminar(usuario);
+
+        Assert.AreEqual(0, repositorio.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_EliminarUsuarioNoExistente_NoLanzaExcepcion()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("juan@example.com");
+
+        repositorio.Eliminar(usuario);
+
+        Assert.AreEqual(0, repositorio.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_BuscarTodosSinUsuarios_DevuelveListaVacia()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+
+        var usuarios = repositorio.Buscar(_ => true);
+
+        Assert.AreEqual(0, usuarios.Count);
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_BuscarTodos_DevuelveCopia()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("juan@example.com");
+        repositorio.Agregar(usuario);
+
+        var usuarios1 = repositorio.Buscar(_ => true);
+        var usuarios2 = repositorio.Buscar(_ => true);
+
+        Assert.AreNotSame(usuarios1, usuarios2);
+        Assert.AreEqual(usuarios1.Count, usuarios2.Count);
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_ObtenerPorEmailExistente_DevuelveUsuario()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("juan@example.com");
+        repositorio.Agregar(usuario);
+
+        var usuarioEncontrado = repositorio.ObtenerPorEmail("juan@example.com");
+
+        Assert.IsNotNull(usuarioEncontrado);
+        Assert.AreSame(usuario, usuarioEncontrado);
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_ObtenerPorEmailNoExistente_DevuelveNull()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+
+        var usuarioEncontrado = repositorio.ObtenerPorEmail("noexiste@example.com");
+
+        Assert.IsNull(usuarioEncontrado);
+    }
+
+    [TestMethod]
+    public void RepositorioUsuarioEnMemoria_ObtenerPorEmailNoDistingueMayusculas_DevuelveUsuario()
+    {
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var usuario = CrearUsuarioValido("Juan@Example.com");
+        repositorio.Agregar(usuario);
+
+        var usuarioEncontrado = repositorio.ObtenerPorEmail("juan@example.com");
+
+        Assert.IsNotNull(usuarioEncontrado);
+        Assert.AreSame(usuario, usuarioEncontrado);
+    }
+
+    private Equipo CrearEquipoValido(string nombre)
+    {
+        return new Equipo
+        {
+            Nombre = nombre,
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL
+        };
+    }
+
+    private Estadio CrearEstadioValido(string nombre)
+    {
+        return new Estadio
+        {
+            Nombre = nombre,
+            Ciudad = "Montevideo",
+            Capacidad = 60000
+        };
+    }
+
+    private Partido CrearPartidoValido()
+    {
+        return new Partido
+        {
+            Id = 1,
+            Fecha = DateTime.Now,
+            Estadio = CrearEstadioValido("Estadio Centenario"),
+            EquipoLocal = CrearEquipoValido("Uruguay"),
+            EquipoVisitante = CrearEquipoValido("Argentina"),
+            Fase = FaseTorneo.FaseDeGrupos,
+            Grupo = new Grupo("A")
+        };
+    }
+
+    private static Usuario CrearUsuarioValido(string email)
+    {
+        return new Usuario(new DatosUsuario
+        {
+            Nombre = "Juan",
+            Apellido = "PÃ©rez",
+            Email = email,
+            FechaNacimiento = "01-01-1990"
+        });
+    }
+}
+~~~
+
+End of WorldCupPlanner.AccesoADatosTest
+
 ## WorldCupPlanner.Dominio
 
 ### Auditoria.cs
@@ -48,10 +670,12 @@ public class ClasificadosFaseGrupos
     {
         get
         {
-            return Primeros
-                .Concat(Segundos)
-                .Concat(MejoresTerceros)
-                .ToList();
+            var todos = new List<Equipo>();
+            todos.AddRange(Primeros);
+            todos.AddRange(Segundos);
+            todos.AddRange(MejoresTerceros);
+
+            return todos;
         }
     }
 
@@ -181,9 +805,14 @@ public class Fixture
     {
         get
         {
-            return Grupos
-                .SelectMany(g => g.Partidos)
-                .ToList();
+            var partidos = new List<Partido>();
+
+            foreach (var grupo in Grupos)
+            {
+                partidos.AddRange(grupo.Partidos);
+            }
+
+            return partidos;
         }
     }
 }
@@ -679,6 +1308,1304 @@ public class EntidadYaExistenteExcepcion : Exception
 
 End of WorldCupPlanner.Dominio
 
+## WorldCupPlanner.DominioTests
+
+### EquipoTests.cs
+
+Ruta: WorldCupPlanner.DominioTests\EquipoTests.cs
+
+~~~csharp
+using WorldCupPlanner.Dominio.Entidades;
+
+namespace WorldCupPlanner.DominioTests;
+
+[TestClass]
+public class EquipoTests
+{
+    [TestMethod]
+    public void Equipo_ConNombreVacio_NoEsValido()
+    {
+        // Arrange
+        var equipo = new Equipo();
+        equipo.Nombre = "";
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Equipo_ConNombreMasDe60Caracteres_NoEsValido()
+    {
+        //Arrange
+        var equipo = new Equipo();
+        equipo.Nombre = new string('A', 61);
+        
+        //Act
+        var resultado = equipo.EsValido();
+        
+        //Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Equipo_ConRankingFIFAMenorA300_NoEsValido()
+    {
+        //Arrange
+        var equipo = new Equipo();
+        equipo.Nombre = "Barcelona";
+        equipo.RankingFIFA = 299;
+        
+        //Act
+        var resultado = equipo.EsValido();
+        
+        //Assert
+        Assert.IsFalse(resultado);
+    }
+    
+    [TestMethod]
+    public void Equipo_ConRankingFIFAMayorA2500_NoEsValido()
+    {
+        //Arrange
+        var equipo = new Equipo();
+        equipo.Nombre = "Barcelona";
+        equipo.RankingFIFA = 2501;
+        
+        //Act
+        var resultado = equipo.EsValido();
+        
+        //Assert
+        Assert.IsFalse(resultado);
+    }
+    
+    [TestMethod]
+    public void Equipo_SinConfederacion_NoEsValido()
+    {
+        // Arrange
+        var equipo = new Equipo();
+        equipo.Nombre = "Barcelona";
+        equipo.RankingFIFA = 500;
+        equipo.Confederacion = null;
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+}
+~~~
+
+### EstadioTests.cs
+
+Ruta: WorldCupPlanner.DominioTests\EstadioTests.cs
+
+~~~csharp
+using  WorldCupPlanner.Dominio.Entidades;
+
+namespace WorldCupPlanner.DominioTests;
+
+[TestClass]
+public class EstadioTests
+{
+    [TestMethod]
+    public void Estadio_ConNombreVacio_NoEsValido()
+    {
+        // Arrange
+        var estadio = new Estadio();
+        estadio.Nombre = "";
+
+        // Act
+        var resultado = estadio.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+    
+    [TestMethod]
+    public void Estadio_NombreExcede80Caracteres_EsInvalido()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = new string('A', 81),
+            Ciudad = "Montevideo",
+            Capacidad = 20000
+        };
+        // Act
+        var resultado = estadio.EsValido();
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+    
+    [TestMethod]
+    public void Estadio_CiudadVacia_EsInvalido()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "",
+            Capacidad = 20000
+        };
+        // Act
+        var resultado = estadio.EsValido();
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+    [TestMethod]
+    public void Estadio_CiudadExcede60Caracteres_EsInvalido()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio Centenaario",
+            Ciudad = new string('A', 61),
+            Capacidad = 20000
+        };
+        // Act
+        var resultado = estadio.EsValido();
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+    
+    [TestMethod]
+    public void Estadio_CapacidadMenorA20000_EsInvalido()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "Montevideo",
+            Capacidad = 19999
+        };
+        // Act
+        var resultado = estadio.EsValido();
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+    
+    [TestMethod]
+    public void Estadio_DescripcionExcede400Caracteres_EsInvalido()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "Montevideo",
+            Capacidad = 20000,
+            Descripcion = new string('A', 401)
+        };
+        // Act
+        var resultado = estadio.EsValido();
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+
+    
+}
+~~~
+
+### FixtureTests.cs
+
+Ruta: WorldCupPlanner.DominioTests\FixtureTests.cs
+
+~~~csharp
+using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
+
+namespace WorldCupPlanner.DominioTests;
+
+[TestClass]
+public class FixtureTests
+{
+    [TestMethod]
+    public void Fixture_DebeExponerTodosLosPartidosDeSusGrupos()
+    {
+        // Arrange
+        var grupoA = new Grupo("A");
+        var grupoB = new Grupo("B");
+
+        grupoA.Partidos.Add(CrearPartido(1));
+        grupoA.Partidos.Add(CrearPartido(2));
+        grupoB.Partidos.Add(CrearPartido(3));
+
+        var fixture = new Fixture();
+        fixture.Grupos.Add(grupoA);
+        fixture.Grupos.Add(grupoB);
+
+        // Act
+        var partidos = fixture.Partidos;
+
+        // Assert
+        Assert.AreEqual(3, partidos.Count);
+
+        var idsObtenidos = partidos.Select(p => p.Id).ToList();
+        var idsEsperados = new List<int> { 1, 2, 3 };
+
+        CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
+    }
+
+    private Partido CrearPartido(int id)
+    {
+        return new Partido
+        {
+            Id = id,
+            Fecha = DateTime.Now,
+            Estadio = new Estadio
+            {
+                Nombre = $"Estadio{id}",
+                Ciudad = $"Ciudad{id}",
+                Capacidad = 30000
+            },
+            EquipoLocal = new Equipo
+            {
+                Nombre = $"Local{id}",
+                RankingFIFA = 1000,
+                Confederacion = Confederacion.UEFA
+            },
+            EquipoVisitante = new Equipo
+            {
+                Nombre = $"Visitante{id}",
+                RankingFIFA = 900,
+                Confederacion = Confederacion.CONMEBOL
+            },
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+    }
+}
+~~~
+
+### GrupoTests.cs
+
+Ruta: WorldCupPlanner.DominioTests\GrupoTests.cs
+
+~~~csharp
+using  WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
+
+namespace WorldCupPlanner.DominioTests;
+
+[TestClass]
+public class GrupoTests
+{
+    [TestMethod]
+    public void Grupo_ConEtiquetaVacia_DebeLanzarExcepcion()
+    {
+        // Arrange
+        string etiquetaVacia = string.Empty;
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Grupo(etiquetaVacia)
+        );
+    }
+
+    [TestMethod]
+    public void Grupo_ConEtiquetaDeMasDeUnCaracter_DebeLanzarExcepcion()
+    {
+        // Arrange
+        string etiquetaInvalida = "AB";
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Grupo(etiquetaInvalida)
+        );
+    }
+
+    [TestMethod]
+    public void Grupo_ConEtiquetaFueraDeRango_DebeLanzarExcepcion()
+    {
+        // Arrange
+        string etiquetaFueraDeRango = "M";
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Grupo(etiquetaFueraDeRango)
+        );
+    }
+
+
+
+    [TestMethod]
+    public void Grupo_ConMasDeCuatroEquipos_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var equipos = new List<Equipo>
+        {
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.UEFA),
+            CrearEquipoValido("Equipo3", Confederacion.CONMEBOL),
+            CrearEquipoValido("Equipo4", Confederacion.AFC),
+            CrearEquipoValido("Equipo5", Confederacion.CAF)
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Grupo("A", equipos)
+        );
+    }
+
+
+
+    [TestMethod]
+    public void Grupo_ConEtiquetaValida_YCuatroEquiposValidos_EsValido()
+    {
+        // Arrange
+        var grupo = CrearGrupoValido("B");
+
+        // Act
+        var resultado = grupo.EsValido();
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void Grupo_ConTresEquiposUEFA_NoEsValido()
+    {
+        // Arrange
+        var equipos = new List<Equipo>
+        {
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.UEFA),
+            CrearEquipoValido("Equipo3", Confederacion.UEFA),
+            CrearEquipoValido("Equipo4", Confederacion.CONMEBOL)
+        };
+        var grupo = new Grupo("C", equipos);
+
+        // Act
+        var resultado = grupo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Grupo_ConDosEquiposConmebol_NoEsValido()
+    {
+        // Arrange
+        var equipos = new List<Equipo>
+        {
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.CONMEBOL),
+            CrearEquipoValido("Equipo3", Confederacion.CONMEBOL),
+            CrearEquipoValido("Equipo4", Confederacion.AFC)
+        };
+        var grupo = new Grupo("D", equipos);
+
+        // Act
+        var resultado = grupo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Grupo_ConDosEquiposConcacaf_NoEsValido()
+    {
+        // Arrange
+        var equipos = new List<Equipo>
+        {
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.CONCACAF),
+            CrearEquipoValido("Equipo3", Confederacion.CONCACAF),
+            CrearEquipoValido("Equipo4", Confederacion.AFC)
+        };
+        var grupo = new Grupo("E", equipos);
+
+        // Act
+        var resultado = grupo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Grupo_ConDosEquiposCAF_NoEsValido()
+    {
+        // Arrange
+        var equipos = new List<Equipo>
+        {
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.CAF),
+            CrearEquipoValido("Equipo3", Confederacion.CAF),
+            CrearEquipoValido("Equipo4", Confederacion.AFC)
+        };
+        var grupo = new Grupo("F", equipos);
+
+        // Act
+        var resultado = grupo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Grupo_ConDosEquiposAFC_NoEsValido()
+    {
+        // Arrange
+        var equipos = new List<Equipo>
+        {
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.AFC),
+            CrearEquipoValido("Equipo3", Confederacion.AFC),
+            CrearEquipoValido("Equipo4", Confederacion.CONMEBOL)
+        };
+        var grupo = new Grupo("G", equipos);
+
+        // Act
+        var resultado = grupo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Grupo_ConDosEquiposOFC_NoEsValido()
+    {
+        // Arrange
+        var equipos = new List<Equipo>
+        {
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.OFC),
+            CrearEquipoValido("Equipo3", Confederacion.OFC),
+            CrearEquipoValido("Equipo4", Confederacion.CONMEBOL)
+        };
+        var grupo = new Grupo("H", equipos);
+
+        // Act
+        var resultado = grupo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Grupo_ConDosUEFAYUnoDeOtraConfederacion_EsValido()
+    {
+        // Arrange
+        var equipos = new List<Equipo>
+        {
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.UEFA),
+            CrearEquipoValido("Equipo3", Confederacion.CONMEBOL),
+            CrearEquipoValido("Equipo4", Confederacion.AFC)
+        };
+        var grupo = new Grupo("I", equipos);
+
+        // Act
+        var resultado = grupo.EsValido();
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void Grupo_ConEquipoInvalido_NoEsValido()
+    {
+        // Arrange
+        var equipos = new List<Equipo>
+        {
+            new Equipo { Nombre = "", RankingFIFA = 500, Confederacion = Confederacion.UEFA }
+        };
+        var grupo = new Grupo("A", equipos);
+
+        // Act
+        var resultado = grupo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+    
+    [TestMethod]
+    public void Grupo_ConMenosDeCuatroEquipos_NoEsValido()
+    {
+        // Arrange
+        var equipos = new List<Equipo>
+        {
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.CONMEBOL),
+            CrearEquipoValido("Equipo3", Confederacion.AFC)
+        };
+        var grupo = new Grupo("J", equipos);
+
+        // Act
+        var resultado = grupo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+
+
+    private Grupo CrearGrupoValido(string etiqueta = "A")
+    {
+        var equipos = new List<Equipo>
+        {
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.UEFA),
+            CrearEquipoValido("Equipo3", Confederacion.CONMEBOL),
+            CrearEquipoValido("Equipo4", Confederacion.AFC)
+        };
+
+        return new Grupo(etiqueta, equipos);
+    }
+
+    private Equipo CrearEquipoValido(string nombre, Confederacion confederacion)
+    {
+        return new Equipo { Nombre = nombre, RankingFIFA = 500, Confederacion = confederacion };
+    }
+
+}
+~~~
+
+### PartidoTests.cs
+
+Ruta: WorldCupPlanner.DominioTests\PartidoTests.cs
+
+~~~csharp
+using  WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
+
+namespace WorldCupPlanner.DominioTests;
+
+[TestClass]
+public class PartidoTests
+{
+    [TestMethod]
+    public void Partido_EquipoLocalIgualAVisitante_EsInvalido()
+    {
+        // Arrange
+        var equipo = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL
+        };
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = equipo,
+            EquipoVisitante = equipo,
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+
+        // Act
+        var resultado = partido.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+    
+    [TestMethod]
+    public void Partido_SinEstadio_EsInvalido()
+    {
+        // Arrange
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+
+        // Act
+        var resultado = partido.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+    
+    [TestMethod]
+    public void Partido_SinEquipoLocal_EsInvalido()
+    {
+        // Arrange
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+
+        // Act
+        var resultado = partido.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Partido_SinEquipoVisitante_EsInvalido()
+    {
+        // Arrange
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+
+        // Act
+        var resultado = partido.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+    [TestMethod]
+    public void Partido_ConGoles_EstaJugado()
+    {
+        // Arrange
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.FaseDeGrupos,
+            GolesLocal = 2,
+            GolesVisitante = 1
+        };
+
+        // Act
+        var resultado = partido.EstaJugado();
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void Partido_GolesLocalMayor_GanaLocal()
+    {
+        // Arrange
+        var equipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL };
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = equipoLocal,
+            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.FaseDeGrupos,
+            GolesLocal = 2,
+            GolesVisitante = 1
+        };
+
+        // Act
+        var resultado = partido.Ganador();
+
+        // Assert
+        Assert.AreEqual(equipoLocal, resultado);
+    }
+    
+    [TestMethod]
+    public void Partido_GolesIguales_EsEmpate()
+    {
+        // Arrange
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.FaseDeGrupos,
+            GolesLocal = 1,
+            GolesVisitante = 1
+        };
+
+        // Act
+        var resultado = partido.EsEmpate();
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void Partido_GolesVisitanteMayor_GanaVisitante()
+    {
+        // Arrange
+        var equipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL };
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            EquipoVisitante = equipoVisitante,
+            Fase = FaseTorneo.FaseDeGrupos,
+            GolesLocal = 0,
+            GolesVisitante = 2
+        };
+
+        // Act
+        var resultado = partido.Ganador();
+
+        // Assert
+        Assert.AreEqual(equipoVisitante, resultado);
+    }
+     
+    [TestMethod]
+    public void Partido_SinGoles_GanadorEsNull()
+    {
+        // Arrange
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+
+        // Act
+        var resultado = partido.Ganador();
+
+        // Assert
+        Assert.IsNull(resultado);
+    }
+    
+}
+~~~
+
+### UsuarioTests.cs
+
+Ruta: WorldCupPlanner.DominioTests\UsuarioTests.cs
+
+~~~csharp
+using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
+
+namespace WorldCupPlanner.DominioTests;
+
+[TestClass]
+public class UsuarioTests
+{
+    [TestMethod]
+    public void CrearUsuario_ConDatosValidos_DebeCrearExitosamente()
+    {
+        // Arrange
+        var nombre = "Juan";
+        var apellido = "PÃ©rez";
+        var email = "juan.perez@example.com";
+        var fechaNacimiento = "05-15-1990";
+
+        // Act
+        var usuario = new Usuario(new DatosUsuario
+        {
+            Nombre = nombre,
+            Apellido = apellido,
+            Email = email,
+            FechaNacimiento = fechaNacimiento
+        });
+
+        // Assert
+        Assert.AreEqual(nombre, usuario.Nombre);
+        Assert.AreEqual(apellido, usuario.Apellido);
+        Assert.AreEqual(email, usuario.Email);
+        Assert.AreEqual(new DateTime(1990, 5, 15), usuario.FechaNacimiento);
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConNombreVacio_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var apellido = "PÃ©rez";
+        var email = "juan.perez@example.com";
+        var fechaNacimiento = "05-15-1990";
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(new DatosUsuario { Nombre = string.Empty, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento })
+        );
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConApellidoVacio_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var nombre = "Juan";
+        var email = "juan.perez@example.com";
+        var fechaNacimiento = "05-15-1990";
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = string.Empty, Email = email, FechaNacimiento = fechaNacimiento })
+        );
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConEmailInvalido_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var nombre = "Juan";
+        var apellido = "PÃ©rez";
+        var email = "email-invalido";
+        var fechaNacimiento = "05-15-1990";
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento })
+        );
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConEmailVacio_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var nombre = "Juan";
+        var apellido = "PÃ©rez";
+        var email = string.Empty;
+        var fechaNacimiento = "05-15-1990";
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento })
+        );
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConFechaNacimientoFutura_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var nombre = "Juan";
+        var apellido = "PÃ©rez";
+        var email = "juan.perez@example.com";
+        var fechaNacimiento = DateTime.Now.AddDays(1).ToString("MM-dd-yyyy");
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento })
+        );
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConFormatoFechaInvalido_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var nombre = "Juan";
+        var apellido = "PÃ©rez";
+        var email = "juan.perez@example.com";
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = "1990-05-15" })
+        );
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = "15/05/1990" })
+        );
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = "05/15/1990" })
+        );
+    }
+
+
+
+    [TestMethod]
+    public void EstablecerContrasenia_ConContrasesiaValida_DebeEstablecerseExitosamente()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "MyPassword123!";
+
+        // Act
+        usuario.EstablecerContrasenia(contrasenia);
+
+        // Assert
+        Assert.IsTrue(usuario.VerificarContrasenia(contrasenia));
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_ConMenosDe8Caracteres_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "Pass12!"; // 7 caracteres
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            usuario.EstablecerContrasenia(contrasenia)
+        );
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_SinMayÃºsculas_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "password123!"; // Sin mayÃºsculas
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            usuario.EstablecerContrasenia(contrasenia)
+        );
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_SinMinÃºsculas_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "PASSWORD123!"; // Sin minÃºsculas
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            usuario.EstablecerContrasenia(contrasenia)
+        );
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_SinNÃºmeros_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "PasswordAbc!"; // Sin nÃºmeros
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            usuario.EstablecerContrasenia(contrasenia)
+        );
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_SinCaracteresEspeciales_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "Password1234"; // Sin caracteres especiales
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            usuario.EstablecerContrasenia(contrasenia)
+        );
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_ConContrasesiaVacia_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            usuario.EstablecerContrasenia(string.Empty)
+        );
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_DebeAlmacenarCifrada_NoEnTextoPlano()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "MyPassword123!";
+
+        // Act
+        usuario.EstablecerContrasenia(contrasenia);
+
+        // Assert
+        Assert.IsFalse(usuario.ContraseniaCifrada == contrasenia,
+            "La contrasenia no debe almacenarse en texto plano");
+        Assert.IsNotNull(usuario.ContraseniaCifrada);
+        Assert.IsTrue(usuario.ContraseniaCifrada.Length > 0);
+    }
+
+    [TestMethod]
+    public void VerificarContrasenia_ConContrasesiaCorrecta_DebeRetornarVerdadero()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "MyPassword123!";
+        usuario.EstablecerContrasenia(contrasenia);
+
+        // Act
+        var resultado = usuario.VerificarContrasenia(contrasenia);
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void VerificarContrasenia_ConContrasesiaIncorrecta_DebeRetornarFalso()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "MyPassword123!";
+        usuario.EstablecerContrasenia(contrasenia);
+
+        // Act
+        var resultado = usuario.VerificarContrasenia("WrongPassword123!");
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void VerificarContrasenia_ConContrasesiaCasoDiferente_DebeRetornarFalso()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenia = "MyPassword123!";
+        usuario.EstablecerContrasenia(contrasenia);
+
+        // Act - Intenta con caso diferente
+        var resultado = usuario.VerificarContrasenia("mypassword123!");
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_ConCaracteresEspecialesValidos_DebeAceptarlos()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var contrasenias = new[]
+        {
+            "Password123@",
+            "Password123#",
+            "Password123$",
+            "Password123."
+        };
+
+        // Act & Assert
+        foreach (var contrasenia in contrasenias)
+        {
+            usuario.EstablecerContrasenia(contrasenia);
+            Assert.IsTrue(usuario.VerificarContrasenia(contrasenia),
+                $"DeberÃ­a aceptar contrasenia con carÃ¡cter especial: {contrasenia}");
+        }
+    }
+
+
+
+    [TestMethod]
+    public void AgregarRol_ConRolAdministrador_DebeAgregarse()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+
+        // Assert
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
+    }
+
+    [TestMethod]
+    public void AgregarRol_ConRolEditor_DebeAgregarse()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.AgregarRol(RolUsuario.Editor);
+
+        // Assert
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void AgregarRol_ConRolesMultiples_DebePermitirRolesNoExcluyentes()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+        usuario.AgregarRol(RolUsuario.Editor);
+
+        // Assert
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void AgregarRol_MismoRolDosVeces_NoDebeAgregarseDuplicado()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+
+        // Act
+        var rolesAntes = usuario.ObtenerRoles().Count();
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+        var rolesDepues = usuario.ObtenerRoles().Count();
+
+        // Assert
+        Assert.AreEqual(rolesAntes, rolesDepues);
+    }
+
+    [TestMethod]
+    public void RemoverRol_ConRolExistente_DebeRemoverse()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+
+        // Act
+        usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
+
+        // Assert
+        Assert.IsFalse(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
+    }
+
+    [TestMethod]
+    public void RemoverRol_NoAfectaOtrosRoles()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+        usuario.AgregarRol(RolUsuario.Editor);
+
+        // Act
+        usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
+
+        // Assert
+        Assert.IsFalse(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void ObtenerRoles_ConRolesAsignados_DebeRetornarTodos()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+        usuario.AgregarRol(RolUsuario.Editor);
+
+        // Act
+        var roles = usuario.ObtenerRoles();
+
+        // Assert
+        Assert.AreEqual(2, roles.Count());
+        Assert.IsTrue(roles.Contains(RolUsuario.AdministradorDelSistema));
+        Assert.IsTrue(roles.Contains(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void TieneRol_UsuarioSinRoles_DebeRetornarFalso()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.IsFalse(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
+        Assert.IsFalse(usuario.TieneRol(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void ActualizarNombre_ConNombreValido_ActualizaElNombre()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.ActualizarNombre("Carlos");
+
+        // Assert
+        Assert.AreEqual("Carlos", usuario.Nombre);
+    }
+
+    [TestMethod]
+    public void ActualizarNombre_ConNombreVacio_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarNombre(string.Empty));
+    }
+
+    [TestMethod]
+    public void ActualizarApellido_ConApellidoValido_ActualizaElApellido()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.ActualizarApellido("GarcÃ­a");
+
+        // Assert
+        Assert.AreEqual("GarcÃ­a", usuario.Apellido);
+    }
+
+    [TestMethod]
+    public void ActualizarEmail_ConEmailValido_ActualizaElEmail()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.ActualizarEmail("newemail@example.com");
+
+        // Assert
+        Assert.AreEqual("newemail@example.com", usuario.Email);
+    }
+
+    [TestMethod]
+    public void ActualizarEmail_ConEmailInvalido_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarEmail("email_invalido"));
+    }
+
+    [TestMethod]
+    public void ActualizarFechaNacimiento_ConFechaValida_ActualizaLaFecha()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.ActualizarFechaNacimiento("05-15-1995");
+
+        // Assert
+        Assert.AreEqual(new DateTime(1995, 5, 15), usuario.FechaNacimiento);
+    }
+
+    [TestMethod]
+    public void ActualizarFechaNacimiento_ConFechaFutura_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        var fechaFutura = DateTime.Now.AddYears(1).ToString("MM-dd-yyyy");
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarFechaNacimiento(fechaFutura));
+    }
+
+    [TestMethod]
+    public void ActualizarFechaNacimiento_ConFormatoInvalido_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarFechaNacimiento("1995-05-15"));
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarFechaNacimiento("15/05/1995"));
+    }
+
+
+    private static Usuario CrearUsuarioValido()
+    {
+        return new Usuario(new DatosUsuario
+        {
+            Nombre = "Juan",
+            Apellido = "PÃ©rez",
+            Email = "juan.perez@example.com",
+            FechaNacimiento = "05-15-1990"
+        });
+    }
+}
+~~~
+
+End of WorldCupPlanner.DominioTests
+
 ## WorldCupPlanner.Servicios
 
 ### Normalizar.cs
@@ -768,7 +2695,7 @@ public class ServicioClasificacion
         }
 
         return OrdenarPosicionesConDesempateDeterministico(
-            posiciones.Values.ToList(),
+            new List<PosicionEquipo>(posiciones.Values),
             configuracionTorneo.SemillaCrucesFase
         );
     }
@@ -779,32 +2706,30 @@ public class ServicioClasificacion
     {
         ValidarFaseDeGruposCompleta(fixture);
 
-        var tablas = fixture.Grupos
-            .Select(g => CalcularTabla(g, configuracionTorneo))
-            .ToList();
+        var tablas = new List<List<PosicionEquipo>>(fixture.Grupos
+            .Select(g => CalcularTabla(g, configuracionTorneo)));
 
         var primerosOrdenados = OrdenarPosicionesConDesempateDeterministico(
-            tablas.Select(t => t[0]).ToList(),
+            new List<PosicionEquipo>(tablas.Select(t => t[0])),
             configuracionTorneo.SemillaCrucesFase
         );
 
         var segundosOrdenados = OrdenarPosicionesConDesempateDeterministico(
-            tablas.Select(t => t[1]).ToList(),
+            new List<PosicionEquipo>(tablas.Select(t => t[1])),
             configuracionTorneo.SemillaCrucesFase
         );
 
-        var mejoresTerceros = OrdenarPosicionesConDesempateDeterministico(
-                tablas.Select(t => t[2]).ToList(),
+        var mejoresTerceros = new List<PosicionEquipo>(OrdenarPosicionesConDesempateDeterministico(
+                new List<PosicionEquipo>(tablas.Select(t => t[2])),
                 configuracionTorneo.SemillaCrucesFase
             )
-            .Take(8)
-            .ToList();
+            .Take(8));
 
         var clasificados = new ClasificadosFaseGrupos
         {
-            Primeros = primerosOrdenados.Select(p => p.Equipo).ToList(),
-            Segundos = segundosOrdenados.Select(p => p.Equipo).ToList(),
-            MejoresTerceros = mejoresTerceros.Select(p => p.Equipo).ToList()
+            Primeros = new List<Equipo>(primerosOrdenados.Select(p => p.Equipo)),
+            Segundos = new List<Equipo>(segundosOrdenados.Select(p => p.Equipo)),
+            MejoresTerceros = new List<Equipo>(mejoresTerceros.Select(p => p.Equipo))
         };
 
         foreach (var posicion in primerosOrdenados.Concat(segundosOrdenados).Concat(mejoresTerceros))
@@ -902,7 +2827,7 @@ public class ServicioClasificacion
 
         foreach (var grupoEmpatado in gruposEmpatados)
         {
-            var posiciones = grupoEmpatado.ToList();
+            var posiciones = new List<PosicionEquipo>(grupoEmpatado);
 
             if (posiciones.Count > 1)
             {
@@ -928,11 +2853,10 @@ public class ServicioClasificacion
         List<PosicionEquipo> posiciones,
         int semillaCrucesFase)
     {
-        var posicionesOrdenadas = posiciones
+        var posicionesOrdenadas = new List<PosicionEquipo>(posiciones
             .OrderByDescending(p => p.Puntos)
             .ThenByDescending(p => p.DiferenciaGoles)
-            .ThenByDescending(p => p.GolesAFavor)
-            .ToList();
+            .ThenByDescending(p => p.GolesAFavor));
 
         return AplicarDesempateDeterministico(posicionesOrdenadas, semillaCrucesFase);
     }
@@ -963,11 +2887,11 @@ public class ServicioCruces
         var random = new Random(configuracionTorneo.SemillaCrucesFase);
 
         var primerosParaTerceros = MezclarEquiposConFisherYates(
-            clasificados.Primeros.Take(8).ToList(),
+            new List<Equipo>(clasificados.Primeros.Take(8)),
             random);
 
         var terceros = MezclarEquiposConFisherYates(
-            clasificados.MejoresTerceros.ToList(),
+            new List<Equipo>(clasificados.MejoresTerceros),
             random);
 
         AgregarCrucesPrimerosContraTerceros(
@@ -980,11 +2904,11 @@ public class ServicioCruces
         );
 
         var primerosRestantes = MezclarEquiposConFisherYates(
-            clasificados.Primeros.Skip(8).Take(4).ToList(),
+            new List<Equipo>(clasificados.Primeros.Skip(8).Take(4)),
             random);
 
         var segundosDeMenorRendimiento = MezclarEquiposConFisherYates(
-            clasificados.Segundos.Skip(8).Take(4).ToList(),
+            new List<Equipo>(clasificados.Segundos.Skip(8).Take(4)),
             random);
 
         AgregarCrucesPrimerosRestantesContraSegundosDeMenorRendimiento(
@@ -997,7 +2921,7 @@ public class ServicioCruces
         );
 
         var segundosRestantes = MezclarEquiposConFisherYates(
-            clasificados.Segundos.Take(8).ToList(),
+            new List<Equipo>(clasificados.Segundos.Take(8)),
             random);
 
         AgregarCrucesSegundosRestantesMinimos(
@@ -1391,9 +3315,8 @@ public class ServicioCruces
 
     private List<Equipo> ObtenerGanadores(List<Partido> partidos)
     {
-        return partidos
-            .Select(p => p.Ganador()!)
-            .ToList();
+        return new List<Equipo>(partidos
+            .Select(p => p.Ganador()!));
     }
 
     private Partido CrearPartidoEliminatorio(
@@ -1440,9 +3363,8 @@ public class ServicioCruces
     
     private List<Equipo> ObtenerPerdedores(List<Partido> partidos)
     {
-        return partidos
-            .Select(ObtenerPerdedor)
-            .ToList();
+        return new List<Equipo>(partidos
+            .Select(ObtenerPerdedor));
     }
 
     private Equipo ObtenerPerdedor(Partido partido)
@@ -1668,6 +3590,14 @@ public class ServicioFixture
     private const int CantidadEquiposPorGrupo = 4;
     private const int MaximoEquiposUefaPorGrupo = 2;
     private const int MaximoEquiposOtrasConfederacionesPorGrupo = 1;
+    private const int CupoUefa = 16;
+    private const int CupoConmebol = 7;
+    private const int CupoConcacaf = 7;
+    private const int CupoCaf = 9;
+    private const int CupoAfc = 8;
+    private const int CupoOfc = 1;
+    private const int RankingMinimoEquipoFicticio = 300;
+    private const int RankingMaximoEquipoFicticioExclusivo = 501;
 
     private const int IndiceJornadaUno = 0;
     private const int IndiceJornadaDos = 1;
@@ -1682,12 +3612,148 @@ public class ServicioFixture
     private const char PrimeraEtiquetaGrupo = 'A';
     private const char UltimaEtiquetaGrupo = 'L';
 
+    private static readonly Confederacion[] OrdenConfederacionesParaCompletar =
+    {
+        Confederacion.UEFA,
+        Confederacion.CONMEBOL,
+        Confederacion.CONCACAF,
+        Confederacion.CAF,
+        Confederacion.AFC,
+        Confederacion.OFC
+    };
+
     public Fixture GenerarFixture(List<Equipo> equipos, List<Estadio> estadios, ConfiguracionTorneo configuracionTorneo)
     {
-        ValidarCantidadEquipos(equipos);
+        var equiposCompletos = CompletarEquipos(equipos, configuracionTorneo);
+
+        ValidarCantidadEquipos(equiposCompletos);
         ValidarCantidadEstadios(estadios);
 
-        return CrearFixtureConDistribucionRoundRobin(equipos, estadios, configuracionTorneo);
+        return CrearFixtureConDistribucionRoundRobin(equiposCompletos, estadios, configuracionTorneo);
+    }
+
+    public List<Equipo> CompletarEquipos(
+        List<Equipo> equipos,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        ValidarEquiposParaCompletar(equipos);
+
+        var equiposCompletos = CopiarEquipos(equipos);
+        var random = new Random(configuracionTorneo.SemillaCompletar);
+
+        while (FaltanEquiposParaCompletar(equiposCompletos))
+        {
+            AgregarEquipoFicticio(equiposCompletos, random);
+        }
+
+        return equiposCompletos;
+    }
+
+    private void ValidarEquiposParaCompletar(List<Equipo> equipos)
+    {
+        if (equipos.Count > CantidadExactaEquipos)
+        {
+            throw new EntidadInvalidaExcepcion("No se puede completar una lista con más de 48 equipos.");
+        }
+
+        ValidarTodosLosEquiposSonValidos(equipos);
+    }
+
+    private bool FaltanEquiposParaCompletar(List<Equipo> equipos)
+    {
+        return equipos.Count < CantidadExactaEquipos;
+    }
+
+    private void AgregarEquipoFicticio(List<Equipo> equipos, Random random)
+    {
+        var confederacion = ObtenerConfederacionConCupoDisponible(equipos);
+        equipos.Add(CrearEquipoFicticio(equipos, confederacion, random));
+    }
+
+    private Equipo CrearEquipoFicticio(
+        List<Equipo> equipos,
+        Confederacion confederacion,
+        Random random)
+    {
+        return new Equipo
+        {
+            Nombre = GenerarNombreEquipoFicticio(equipos, confederacion),
+            RankingFIFA = GenerarRankingEquipoFicticio(random),
+            Confederacion = confederacion
+        };
+    }
+
+    private int GenerarRankingEquipoFicticio(Random random)
+    {
+        return random.Next(RankingMinimoEquipoFicticio, RankingMaximoEquipoFicticioExclusivo);
+    }
+
+    private string GenerarNombreEquipoFicticio(List<Equipo> equipos, Confederacion confederacion)
+    {
+        var numero = 1;
+        var nombre = CrearNombreEquipoFicticio(confederacion, numero);
+
+        while (ExisteEquipoConNombre(equipos, nombre))
+        {
+            numero++;
+            nombre = CrearNombreEquipoFicticio(confederacion, numero);
+        }
+
+        return nombre;
+    }
+
+    private string CrearNombreEquipoFicticio(Confederacion confederacion, int numero)
+    {
+        return $"{confederacion}_{numero:00}";
+    }
+
+    private bool ExisteEquipoConNombre(List<Equipo> equipos, string nombre)
+    {
+        return equipos.Any(e => e.Nombre == nombre);
+    }
+
+    private List<Equipo> CopiarEquipos(List<Equipo> equipos)
+    {
+        var equiposCopiados = new List<Equipo>();
+
+        foreach (var equipo in equipos)
+        {
+            equiposCopiados.Add(equipo);
+        }
+
+        return equiposCopiados;
+    }
+
+    private Confederacion ObtenerConfederacionConCupoDisponible(List<Equipo> equipos)
+    {
+        foreach (var confederacion in OrdenConfederacionesParaCompletar)
+        {
+            if (CantidadEquiposPorConfederacion(equipos, confederacion) < ObtenerCupoConfederacion(confederacion))
+            {
+                return confederacion;
+            }
+        }
+
+        throw new EntidadInvalidaExcepcion("No hay cupos disponibles para completar equipos ficticios.");
+    }
+
+    private int CantidadEquiposPorConfederacion(List<Equipo> equipos, Confederacion confederacion)
+    {
+        return equipos.Count(e => e.Confederacion == confederacion);
+    }
+
+    private int ObtenerCupoConfederacion(Confederacion confederacion)
+    {
+        return confederacion switch
+        {
+            Confederacion.UEFA => CupoUefa,
+            Confederacion.CONMEBOL => CupoConmebol,
+            Confederacion.CONCACAF => CupoConcacaf,
+            Confederacion.CAF => CupoCaf,
+            Confederacion.AFC => CupoAfc,
+            Confederacion.OFC => CupoOfc,
+            _ => throw new EntidadInvalidaExcepcion("Confederación inválida.")
+        };
     }
 
     private void ValidarCantidadEquipos(List<Equipo> equipos)
@@ -1764,7 +3830,7 @@ public class ServicioFixture
 
         foreach (var grupoDeRanking in ObtenerGruposPorRankingDescendente(equipos))
         {
-            var equiposMezclados = MezclarEquiposConFisherYates(grupoDeRanking.ToList(), random);
+            var equiposMezclados = MezclarEquiposConFisherYates(new List<Equipo>(grupoDeRanking), random);
             equiposOrdenados.AddRange(equiposMezclados);
         }
 
@@ -1955,9 +4021,9 @@ public class ServicioFixture
 
     private List<Estadio> OrdenarEstadiosPorNombreNormalizado(List<Estadio> estadios)
     {
-        return estadios
+        return new List<Estadio>(estadios
             .OrderBy(e => Normalizar.NormalizarTexto(e.Nombre))
-            .ToList();
+        );
     }
 
     private Estadio ObtenerEstadioParaPartido(List<Estadio> estadiosOrdenados, int indicePartidoGlobal)
@@ -1988,6 +4054,64 @@ public class ServicioFixture
             Grupo = grupo,
             Fase = FaseTorneo.FaseDeGrupos
         };
+    }
+}
+~~~
+
+### ServicioSimulacion.cs
+
+Ruta: WorldCupPlanner.Servicios\ServicioSimulacion.cs
+
+~~~csharp
+using WorldCupPlanner.Dominio.Entidades;
+
+using WorldCupPlanner.Dominio.Enumeraciones;
+
+namespace WorldCupPlanner.Servicios;
+
+public class ServicioSimulacion
+{
+    private const int GolesMinimos = 0;
+    private const int GolesMaximosExclusivo = 6;
+
+    public void SimularResultados(
+        List<Partido> partidos,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        var random = new Random(configuracionTorneo.SemillaSimulation);
+
+        foreach (var partido in partidos)
+        {
+            if (partido.EstaJugado())
+            {
+                continue;
+            }
+
+            partido.GolesLocal = random.Next(GolesMinimos, GolesMaximosExclusivo);
+            partido.GolesVisitante = random.Next(GolesMinimos, GolesMaximosExclusivo);
+
+            if (EsFaseEliminatoria(partido) && partido.EsEmpate())
+            {
+                DesempatarPartido(partido);
+            }
+        }
+    }
+
+    private bool EsFaseEliminatoria(Partido partido)
+    {
+        return partido.Fase != FaseTorneo.FaseDeGrupos;
+    }
+
+    private void DesempatarPartido(Partido partido)
+    {
+        if (partido.GolesLocal < GolesMaximosExclusivo - 1)
+        {
+            partido.GolesLocal++;
+        }
+        else
+        {
+            partido.GolesVisitante--;
+        }
     }
 }
 ~~~
@@ -4973,17 +7097,93 @@ namespace WorldCupPlanner.ServicioTests;
 public class ServicioFixtureTests
 {
     [TestMethod]
-    public void GenerarFixture_ConMenosDe48Equipos_DebeLanzarExcepcion()
+    public void GenerarFixture_ConMenosDe48Equipos_DebeCompletarEquiposYGenerarFixture()
     {
         // Arrange
         var servicioFixture = new ServicioFixture();
-        var equipos = new List<Equipo>();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
         var estadios = CrearEstadiosValidos(4);
-        var configuracionTorneo = new ConfiguracionTorneo();
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1,
+            SemillaFixture = 1
+        };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(
+            equipos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(12, fixture.Grupos.Count);
+        Assert.IsTrue(fixture.Grupos.All(g => g.Equipos.Count == 4));
+
+        var todosLosEquipos = fixture.Grupos
+            .SelectMany(g => g.Equipos)
+            .ToList();
+
+        Assert.AreEqual(48, todosLosEquipos.Count);
+        Assert.IsTrue(todosLosEquipos.Any(e => !equipos.Contains(e)));
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_ConMenosDe48Equipos_DebeAgregarEquiposFicticiosHasta48()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(48, equiposCompletos.Count);
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_ConMasDe48Equipos_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+
+        equipos.Add(new Equipo
+        {
+            Nombre = "EquipoExtra",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL
+        });
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
 
         // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
+            servicioFixture.CompletarEquipos(
+                equipos,
+                configuracionTorneo
+            )
         );
     }
 
@@ -5701,9 +7901,802 @@ public class ServicioFixtureTests
             }
         }
     }
+    
+    [TestMethod]
+    public void CompletarEquipos_DebeCrearEquiposFicticiosValidos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        var equiposFicticios = equiposCompletos
+            .Where(e => !equipos.Contains(e))
+            .ToList();
+
+        Assert.AreEqual(2, equiposFicticios.Count);
+        Assert.IsTrue(equiposFicticios.All(e => e.EsValido()));
+    }
+    
+    [TestMethod]
+    public void CompletarEquipos_ConDistintasSemillas_DebePermitirEquiposFicticiosDistintos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equiposBase1 = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        var equiposBase2 = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        var configuracionTorneo1 = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        var configuracionTorneo2 = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 2
+        };
+
+        // Act
+        var equiposCompletos1 = servicioFixture.CompletarEquipos(
+            equiposBase1,
+            configuracionTorneo1
+        );
+
+        var equiposCompletos2 = servicioFixture.CompletarEquipos(
+            equiposBase2,
+            configuracionTorneo2
+        );
+
+        // Assert
+        var rankingsFicticios1 = equiposCompletos1
+            .Where(e => !equiposBase1.Contains(e))
+            .Select(e => e.RankingFIFA)
+            .ToList();
+
+        var rankingsFicticios2 = equiposCompletos2
+            .Where(e => !equiposBase2.Contains(e))
+            .Select(e => e.RankingFIFA)
+            .ToList();
+
+        CollectionAssert.AreNotEqual(rankingsFicticios1, rankingsFicticios2);
+    }
+    
+    [TestMethod]
+    public void CompletarEquipos_ConMismaSemilla_DebeGenerarMismosEquiposFicticios()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equiposBase1 = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        var equiposBase2 = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        var configuracionTorneo1 = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 7
+        };
+
+        var configuracionTorneo2 = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 7
+        };
+
+        // Act
+        var equiposCompletos1 = servicioFixture.CompletarEquipos(
+            equiposBase1,
+            configuracionTorneo1
+        );
+
+        var equiposCompletos2 = servicioFixture.CompletarEquipos(
+            equiposBase2,
+            configuracionTorneo2
+        );
+
+        // Assert
+        var rankingsFicticios1 = equiposCompletos1
+            .Where(e => !equiposBase1.Contains(e))
+            .Select(e => e.RankingFIFA)
+            .ToList();
+
+        var rankingsFicticios2 = equiposCompletos2
+            .Where(e => !equiposBase2.Contains(e))
+            .Select(e => e.RankingFIFA)
+            .ToList();
+
+        CollectionAssert.AreEqual(rankingsFicticios1, rankingsFicticios2);
+    }
+    
+    [TestMethod]
+    public void CompletarEquipos_NoDebeModificarListaOriginal()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(24)
+            .ToList();
+
+        var cantidadOriginal = equipos.Count;
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(24, cantidadOriginal);
+        Assert.AreEqual(24, equipos.Count);
+        Assert.AreEqual(48, equiposCompletos.Count);
+    }
+    
+    [TestMethod]
+    public void CompletarEquipos_Con48Equipos_NoDebeAgregarEquiposFicticios()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(48, equiposCompletos.Count);
+        Assert.IsFalse(equiposCompletos.Any(e => !equipos.Contains(e)));
+    }
+    
+    [TestMethod]
+    public void CompletarEquipos_ConEquipoOriginalInvalido_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(47)
+            .ToList();
+
+        equipos[0].Nombre = "";
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioFixture.CompletarEquipos(
+                equipos,
+                configuracionTorneo
+            )
+        );
+    }
+    
+    [TestMethod]
+    public void GenerarFixture_ConMenosDe48Equipos_DebeIncluirEquiposFicticiosEnGrupos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1,
+            SemillaFixture = 1
+        };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(
+            equipos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var equiposDelFixture = fixture.Grupos
+            .SelectMany(g => g.Equipos)
+            .ToList();
+
+        var equiposFicticios = equiposDelFixture
+            .Where(e => !equipos.Contains(e))
+            .ToList();
+
+        Assert.AreEqual(2, equiposFicticios.Count);
+        Assert.IsTrue(equiposFicticios.All(e => e.EsValido()));
+    }
+    
+    [TestMethod]
+    public void GenerarFixture_ConMenosDe48Equipos_DebeGenerarGruposValidos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1,
+            SemillaFixture = 1
+        };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(
+            equipos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.IsTrue(fixture.Grupos.All(g => g.EsValido()));
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_ConMuchosEquiposFaltantes_DebeRespetarCuposPorConfederacion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(24)
+            .ToList();
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(48, equiposCompletos.Count);
+
+        Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.UEFA) <= 16);
+        Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.CONMEBOL) <= 7);
+        Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.CONCACAF) <= 7);
+        Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.CAF) <= 9);
+        Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.AFC) <= 8);
+        Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.OFC) <= 1);
+    }
+    
+    [TestMethod]
+    public void GenerarFixture_ConMuchosEquiposFaltantes_DebeCompletarYGenerarGruposValidos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(24)
+            .ToList();
+
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1,
+            SemillaFixture = 1
+        };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(
+            equipos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(12, fixture.Grupos.Count);
+        Assert.IsTrue(fixture.Grupos.All(g => g.Equipos.Count == 4));
+        Assert.IsTrue(fixture.Grupos.All(g => g.EsValido()));
+
+        var equiposDelFixture = fixture.Grupos
+            .SelectMany(g => g.Equipos)
+            .ToList();
+
+        Assert.AreEqual(48, equiposDelFixture.Count);
+        Assert.AreEqual(24, equiposDelFixture.Count(e => !equipos.Contains(e)));
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_NoDebeGenerarNombresRepetidosParaEquiposFicticios()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        equipos[0].Nombre = "AFC_01";
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        var nombres = equiposCompletos
+            .Select(e => e.Nombre)
+            .ToList();
+
+        Assert.AreEqual(48, nombres.Count);
+        Assert.AreEqual(48, nombres.Distinct().Count());
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_DebeGenerarNombresDeterministicosPorConfederacion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(24)
+            .ToList();
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        var equiposAgregados = equiposCompletos
+            .Where(e => !equipos.Contains(e))
+            .ToList();
+
+        Assert.AreEqual(24, equiposAgregados.Count);
+
+        CollectionAssert.AreEqual(
+            new List<string>
+            {
+                "CONCACAF_01", "CONCACAF_02", "CONCACAF_03", "CONCACAF_04",
+                "CONCACAF_05", "CONCACAF_06", "CONCACAF_07"
+            },
+            ObtenerNombresPorConfederacion(equiposAgregados, Confederacion.CONCACAF)
+        );
+
+        CollectionAssert.AreEqual(
+            new List<string>
+            {
+                "CAF_01", "CAF_02", "CAF_03", "CAF_04", "CAF_05",
+                "CAF_06", "CAF_07", "CAF_08", "CAF_09"
+            },
+            ObtenerNombresPorConfederacion(equiposAgregados, Confederacion.CAF)
+        );
+
+        CollectionAssert.AreEqual(
+            new List<string>
+            {
+                "AFC_01", "AFC_02", "AFC_03", "AFC_04",
+                "AFC_05", "AFC_06", "AFC_07", "AFC_08"
+            },
+            ObtenerNombresPorConfederacion(equiposAgregados, Confederacion.AFC)
+        );
+    }
+    
+    [TestMethod]
+    public void GenerarFixture_ConMenosDe48Equipos_NoDebeDuplicarNombresEnGrupos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        equipos[0].Nombre = "AFC_01";
+
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1,
+            SemillaFixture = 1
+        };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(
+            equipos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var nombresEquipos = fixture.Grupos
+            .SelectMany(g => g.Equipos)
+            .Select(e => e.Nombre)
+            .ToList();
+
+        Assert.AreEqual(48, nombresEquipos.Count);
+        Assert.AreEqual(48, nombresEquipos.Distinct().Count());
+    }
+
+    private List<string> ObtenerNombresPorConfederacion(
+        List<Equipo> equipos,
+        Confederacion confederacion)
+    {
+        return equipos
+            .Where(e => e.Confederacion == confederacion)
+            .Select(e => e.Nombre)
+            .OrderBy(nombre => nombre)
+            .ToList();
+    }
+    
+    [TestMethod]
+    public void GenerarFixture_ConMenosDe48Equipos_DebeIncluirFicticiosConNombresDeterministicosPorConfederacion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(24)
+            .ToList();
+
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1,
+            SemillaFixture = 1
+        };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(
+            equipos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var equiposDelFixture = fixture.Grupos
+            .SelectMany(g => g.Equipos)
+            .ToList();
+
+        var equiposAgregados = equiposDelFixture
+            .Where(e => !equipos.Contains(e))
+            .ToList();
+
+        Assert.AreEqual(24, equiposAgregados.Count);
+
+        Assert.IsTrue(equiposAgregados.Any(e => e.Nombre == "CONCACAF_01"));
+        Assert.IsTrue(equiposAgregados.Any(e => e.Nombre == "CAF_01"));
+        Assert.IsTrue(equiposAgregados.Any(e => e.Nombre == "AFC_01"));
+
+        Assert.AreEqual(
+            equiposDelFixture.Count,
+            equiposDelFixture.Select(e => e.Nombre).Distinct().Count()
+        );
+    }
+    
+    [TestMethod]
+    public void CompletarEquipos_NoDebeDuplicarNombreCuandoYaExisteNombreDeterministico()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(24)
+            .ToList();
+
+        equipos[0].Nombre = "CONCACAF_01";
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        var nombres = equiposCompletos
+            .Select(e => e.Nombre)
+            .ToList();
+
+        Assert.AreEqual(48, nombres.Count);
+        Assert.AreEqual(48, nombres.Distinct().Count());
+
+        Assert.IsTrue(nombres.Contains("CONCACAF_01"));
+        Assert.IsTrue(nombres.Contains("CONCACAF_02"));
+    }
 }
 
 
+~~~
+
+### ServicioSimulacionTests.cs
+
+Ruta: WorldCupPlanner.ServicioTests\ServicioSimulacionTests.cs
+
+~~~csharp
+using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Servicios;
+
+namespace WorldCupPlanner.ServicioTests;
+
+[TestClass]
+public class ServicioSimulacionTests
+{
+    [TestMethod]
+    public void SimularResultados_ConPartidosSinResultado_DebeAsignarGoles()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var partidos = CrearPartidosSinResultado(5);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 1
+        };
+
+        // Act
+        servicioSimulacion.SimularResultados(partidos, configuracionTorneo);
+
+        // Assert
+        Assert.IsTrue(partidos.All(p => p.GolesLocal.HasValue));
+        Assert.IsTrue(partidos.All(p => p.GolesVisitante.HasValue));
+    }
+
+    private List<Partido> CrearPartidosSinResultado(int cantidad)
+    {
+        var partidos = new List<Partido>();
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = i,
+                EquipoLocal = CrearEquipo($"Local{i}"),
+                EquipoVisitante = CrearEquipo($"Visitante{i}"),
+                Estadio = CrearEstadio(),
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.FaseDeGrupos
+            });
+        }
+
+        return partidos;
+    }
+
+    private List<Partido> CrearPartidosEliminatoriosSinResultado(int cantidad)
+    {
+        var partidos = new List<Partido>();
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = i,
+                EquipoLocal = CrearEquipo($"LocalEliminatorio{i}"),
+                EquipoVisitante = CrearEquipo($"VisitanteEliminatorio{i}"),
+                Estadio = CrearEstadio(),
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.PrimeraRondaEliminatoria
+            });
+        }
+
+        return partidos;
+    }
+
+    private Equipo CrearEquipo(string nombre)
+    {
+        return new Equipo
+        {
+            Nombre = nombre,
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.UEFA
+        };
+    }
+
+    private Estadio CrearEstadio()
+    {
+        return new Estadio
+        {
+            Nombre = "Estadio",
+            Ciudad = "Ciudad",
+            Capacidad = 30000
+        };
+    }
+    
+    private List<string> ObtenerResultados(List<Partido> partidos)
+    {
+        return partidos
+            .Select(p => $"{p.GolesLocal}-{p.GolesVisitante}")
+            .ToList();
+    }
+    
+    [TestMethod]
+    public void SimularResultados_ConMismaSemilla_DebeGenerarMismosResultados()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+
+        var partidos1 = CrearPartidosSinResultado(10);
+        var partidos2 = CrearPartidosSinResultado(10);
+
+        var configuracionTorneo1 = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 7
+        };
+
+        var configuracionTorneo2 = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 7
+        };
+
+        // Act
+        servicioSimulacion.SimularResultados(partidos1, configuracionTorneo1);
+        servicioSimulacion.SimularResultados(partidos2, configuracionTorneo2);
+
+        // Assert
+        var resultados1 = ObtenerResultados(partidos1);
+        var resultados2 = ObtenerResultados(partidos2);
+
+        CollectionAssert.AreEqual(resultados1, resultados2);
+    }
+    
+    [TestMethod]
+    public void SimularResultados_ConDistintasSemillas_DebePermitirResultadosDistintos()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+
+        var partidosReferencia = CrearPartidosSinResultado(10);
+
+        var configuracionReferencia = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 1
+        };
+
+        servicioSimulacion.SimularResultados(
+            partidosReferencia,
+            configuracionReferencia
+        );
+
+        var resultadosReferencia = ObtenerResultados(partidosReferencia);
+
+        var existeResultadoDistinto = false;
+
+        // Act
+        for (int semilla = 2; semilla <= 20; semilla++)
+        {
+            var partidos = CrearPartidosSinResultado(10);
+
+            var configuracionTorneo = new ConfiguracionTorneo
+            {
+                SemillaSimulation = semilla
+            };
+
+            servicioSimulacion.SimularResultados(
+                partidos,
+                configuracionTorneo
+            );
+
+            var resultados = ObtenerResultados(partidos);
+
+            if (!resultados.SequenceEqual(resultadosReferencia))
+            {
+                existeResultadoDistinto = true;
+                break;
+            }
+        }
+
+        // Assert
+        Assert.IsTrue(existeResultadoDistinto);
+    }
+
+    [TestMethod]
+    public void SimularResultados_ConPartidoYaJugado_NoDebeSobrescribirResultado()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var partidos = CrearPartidosSinResultado(3);
+
+        partidos[0].GolesLocal = 4;
+        partidos[0].GolesVisitante = 2;
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 1
+        };
+
+        // Act
+        servicioSimulacion.SimularResultados(partidos, configuracionTorneo);
+
+        // Assert
+        Assert.AreEqual(4, partidos[0].GolesLocal);
+        Assert.AreEqual(2, partidos[0].GolesVisitante);
+
+        Assert.IsTrue(partidos[1].GolesLocal.HasValue);
+        Assert.IsTrue(partidos[1].GolesVisitante.HasValue);
+        Assert.IsTrue(partidos[2].GolesLocal.HasValue);
+        Assert.IsTrue(partidos[2].GolesVisitante.HasValue);
+    }
+
+    [TestMethod]
+    public void SimularResultados_ConPartidosEliminatorios_NoDebeGenerarEmpates()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var partidos = CrearPartidosEliminatoriosSinResultado(100);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 1
+        };
+
+        // Act
+        servicioSimulacion.SimularResultados(partidos, configuracionTorneo);
+
+        // Assert
+        Assert.IsTrue(partidos.All(p => p.EstaJugado()));
+        Assert.IsTrue(partidos.All(p => !p.EsEmpate()));
+        Assert.IsTrue(partidos.All(p => p.Ganador() != null));
+    }
+}
 ~~~
 
 ### ServicioUsuarioTests.cs
@@ -6467,1863 +9460,3 @@ app.Run();
 ~~~
 
 End of WorldCupPlanner.UI
-
-## WorldCupPlanner.AccesoADatos
-
-### IRepositorio.cs
-
-Ruta: WorldCupPlanner.AccesoADatos\Interfaces\IRepositorio.cs
-
-~~~csharp
-
-namespace WorldCupPlanner.AccesoADatos.Interfaces;
-
-public interface IRepositorio<T>
-{
-    void Agregar(T entidad);
-    void Actualizar(T entidad);
-    void Eliminar(T entidad);
-    List<T> Buscar(Func<T,bool> predicado);
-}
-~~~
-
-### IRepositorioConId.cs
-
-Ruta: WorldCupPlanner.AccesoADatos\Interfaces\IRepositorioConId.cs
-
-~~~csharp
-
-namespace WorldCupPlanner.AccesoADatos.Interfaces;
-
-public interface IRepositorioConId<T> : IRepositorio<T>
-{
-    int SiguienteId();
-}
-~~~
-
-### RepositorioAuditoriaEnMemoria.cs
-
-Ruta: WorldCupPlanner.AccesoADatos\Repositorios\RepositorioAuditoriaEnMemoria.cs
-
-~~~csharp
-using WorldCupPlanner.AccesoADatos.Interfaces;
-using WorldCupPlanner.Dominio.Entidades;
-using WorldCupPlanner.Dominio.Excepciones;
-
-namespace WorldCupPlanner.AccesoADatos.Repositorios;
-
-public class RepositorioAuditoriaEnMemoria : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _logs = new();
-    private int _contador;
-
-    public int SiguienteId() => ++_contador;
-    
-    public void Agregar(Auditoria entidad)
-    {
-        _logs.Add(entidad);
-    }
-
-    public void Actualizar(Auditoria entidad)
-    {
-        var indice = _logs.FindIndex(e => e.Id == entidad.Id);
-
-        if (indice == -1)
-        {
-            throw new EntidadInexistenteExcepcion("El log de auditoría no existe.");
-        }
-
-        _logs[indice] = entidad;
-    }
-
-    public void Eliminar(Auditoria entidad)
-    {
-            _logs.Remove(entidad);
-    }
-
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado)
-    {
-        return _logs.Where(predicado).ToList();
-    }
-}
-~~~
-
-### RepositorioEquipoEnMemoria.cs
-
-Ruta: WorldCupPlanner.AccesoADatos\Repositorios\RepositorioEquipoEnMemoria.cs
-
-~~~csharp
-using WorldCupPlanner.AccesoADatos.Interfaces;
-using WorldCupPlanner.Dominio.Entidades;
-
-namespace WorldCupPlanner.AccesoADatos.Repositorios;
-
-public class RepositorioEquipoEnMemoria : IRepositorio<Equipo>
-{
-    private readonly List<Equipo> _equipos = new();
-
-    public void Agregar(Equipo equipo)
-    {
-        _equipos.Add(equipo);
-    }
-
-    public void Actualizar(Equipo equipo)
-    {
-        var indice = _equipos.FindIndex(e => ReferenceEquals(e, equipo));
-
-        if (indice == -1)
-        {
-            throw new InvalidOperationException("El equipo no existe.");
-        }
-
-        _equipos[indice] = equipo;
-    }
-
-    public void Eliminar(Equipo equipo)
-    {
-        _equipos.Remove(equipo);
-    }
-
-    public List<Equipo> Buscar(Func<Equipo, bool> predicado)
-    {
-        return _equipos.Where(predicado).ToList();
-    }
-}
-~~~
-
-### RepositorioEstadioEnMemoria.cs
-
-Ruta: WorldCupPlanner.AccesoADatos\Repositorios\RepositorioEstadioEnMemoria.cs
-
-~~~csharp
-using WorldCupPlanner.AccesoADatos.Interfaces;
-using  WorldCupPlanner.Dominio.Entidades;
-
-namespace WorldCupPlanner.AccesoADatos.Repositorios;
-
-public class RepositorioEstadioEnMemoria : IRepositorio<Estadio>
-{
-    private readonly List<Estadio> _estadios = new();
-
-    public void Agregar(Estadio estadio)
-    {
-        _estadios.Add(estadio);
-    }
-
-    public void Actualizar(Estadio estadio)
-    {
-        var indice = _estadios.FindIndex(e => ReferenceEquals(e, estadio));
-
-        if (indice == -1)
-        {
-            throw new InvalidOperationException("El estadio no existe.");
-        }
-
-        _estadios[indice] = estadio;
-    }
-
-    public void Eliminar(Estadio estadio)
-    {
-        _estadios.Remove(estadio);
-    }
-    
-    public List<Estadio> Buscar(Func<Estadio, bool> predicado)
-    {
-        return _estadios.Where(predicado).ToList();
-    }
-}
-~~~
-
-### RepositorioGrupoEnMemoria.cs
-
-Ruta: WorldCupPlanner.AccesoADatos\Repositorios\RepositorioGrupoEnMemoria.cs
-
-~~~csharp
-using WorldCupPlanner.AccesoADatos.Interfaces;
-using  WorldCupPlanner.Dominio.Entidades;
-
-namespace WorldCupPlanner.AccesoADatos.Repositorios;
-
-public class RepositorioGrupoEnMemoria : IRepositorio<Grupo>
-{
-    private readonly List<Grupo> _grupos = new();
-
-    public void Agregar(Grupo grupo)
-    {
-        _grupos.Add(grupo);
-    }
-
-    public void Actualizar(Grupo grupo)
-    {
-        var indice = _grupos.FindIndex(g => ReferenceEquals(g, grupo));
-
-        if (indice == -1)
-        {
-            throw new InvalidOperationException("El grupo no existe.");
-        }
-
-        _grupos[indice] = grupo;
-    }
-
-    public void Eliminar(Grupo grupo)
-    {
-        _grupos.Remove(grupo);
-    }
-
-    public List<Grupo> Buscar(Func<Grupo, bool> predicado)
-    {
-        return _grupos.Where(predicado).ToList();
-    }
-}
-~~~
-
-### RepositorioPartidoEnMemoria.cs
-
-Ruta: WorldCupPlanner.AccesoADatos\Repositorios\RepositorioPartidoEnMemoria.cs
-
-~~~csharp
-using WorldCupPlanner.AccesoADatos.Interfaces;
-using  WorldCupPlanner.Dominio.Entidades;
-
-
-namespace WorldCupPlanner.AccesoADatos.Repositorios;
-
-public class RepositorioPartidoEnMemoria : IRepositorio<Partido>
-{
-    private readonly List<Partido> _partidos = new();
-
-    public void Agregar(Partido partido)
-    {
-        _partidos.Add(partido);
-    }
-
-    public void Actualizar(Partido partido)
-    {
-        var indice = _partidos.FindIndex(p => ReferenceEquals(p, partido));
-
-        if (indice == -1)
-        {
-            throw new InvalidOperationException("El partido no existe.");
-        }
-
-        _partidos[indice] = partido;
-    }
-
-    public void Eliminar(Partido partido)
-    {
-        _partidos.Remove(partido);
-    }
-
-    public List<Partido> Buscar(Func<Partido, bool> predicado)
-    {
-        return _partidos.Where(predicado).ToList();
-    }
-}
-~~~
-
-### RepositorioUsuarioEnMemoria.cs
-
-Ruta: WorldCupPlanner.AccesoADatos\Repositorios\RepositorioUsuarioEnMemoria.cs
-
-~~~csharp
-using WorldCupPlanner.AccesoADatos.Interfaces;
-using WorldCupPlanner.Dominio.Entidades;
-
-namespace WorldCupPlanner.AccesoADatos.Repositorios;
-
-public class RepositorioUsuarioEnMemoria : IRepositorio<Usuario>
-{
-    private readonly List<Usuario> _usuarios = new();
-
-    public void Agregar(Usuario usuario)
-    {
-        _usuarios.Add(usuario);
-    }
-
-    public void Actualizar(Usuario usuario)
-    {
-        var indice = _usuarios.FindIndex(u => ReferenceEquals(u, usuario));
-
-        if (indice == -1)
-        {
-            throw new InvalidOperationException("El usuario no existe.");
-        }
-
-        _usuarios[indice] = usuario;
-    }
-
-    public void Eliminar(Usuario usuario)
-    {
-        _usuarios.Remove(usuario);
-    }
-
-    public List<Usuario> Buscar(Func<Usuario, bool> predicado)
-    {
-        return _usuarios.Where(predicado).ToList();
-    }
-
-    public Usuario? ObtenerPorEmail(string email)
-    {
-        return _usuarios.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
-    }
-}
-
-~~~
-
-End of WorldCupPlanner.AccesoADatos
-
-## WorldCupPlanner.DominioTests
-
-### EquipoTests.cs
-
-Ruta: WorldCupPlanner.DominioTests\EquipoTests.cs
-
-~~~csharp
-using WorldCupPlanner.Dominio.Entidades;
-
-namespace WorldCupPlanner.DominioTests;
-
-[TestClass]
-public class EquipoTests
-{
-    [TestMethod]
-    public void Equipo_ConNombreVacio_NoEsValido()
-    {
-        // Arrange
-        var equipo = new Equipo();
-        equipo.Nombre = "";
-
-        // Act
-        var resultado = equipo.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-
-    [TestMethod]
-    public void Equipo_ConNombreMasDe60Caracteres_NoEsValido()
-    {
-        //Arrange
-        var equipo = new Equipo();
-        equipo.Nombre = new string('A', 61);
-        
-        //Act
-        var resultado = equipo.EsValido();
-        
-        //Assert
-        Assert.IsFalse(resultado);
-    }
-
-    [TestMethod]
-    public void Equipo_ConRankingFIFAMenorA300_NoEsValido()
-    {
-        //Arrange
-        var equipo = new Equipo();
-        equipo.Nombre = "Barcelona";
-        equipo.RankingFIFA = 299;
-        
-        //Act
-        var resultado = equipo.EsValido();
-        
-        //Assert
-        Assert.IsFalse(resultado);
-    }
-    
-    [TestMethod]
-    public void Equipo_ConRankingFIFAMayorA2500_NoEsValido()
-    {
-        //Arrange
-        var equipo = new Equipo();
-        equipo.Nombre = "Barcelona";
-        equipo.RankingFIFA = 2501;
-        
-        //Act
-        var resultado = equipo.EsValido();
-        
-        //Assert
-        Assert.IsFalse(resultado);
-    }
-    
-    [TestMethod]
-    public void Equipo_SinConfederacion_NoEsValido()
-    {
-        // Arrange
-        var equipo = new Equipo();
-        equipo.Nombre = "Barcelona";
-        equipo.RankingFIFA = 500;
-        equipo.Confederacion = null;
-
-        // Act
-        var resultado = equipo.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-}
-~~~
-
-### EstadioTests.cs
-
-Ruta: WorldCupPlanner.DominioTests\EstadioTests.cs
-
-~~~csharp
-using  WorldCupPlanner.Dominio.Entidades;
-
-namespace WorldCupPlanner.DominioTests;
-
-[TestClass]
-public class EstadioTests
-{
-    [TestMethod]
-    public void Estadio_ConNombreVacio_NoEsValido()
-    {
-        // Arrange
-        var estadio = new Estadio();
-        estadio.Nombre = "";
-
-        // Act
-        var resultado = estadio.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-    
-    [TestMethod]
-    public void Estadio_NombreExcede80Caracteres_EsInvalido()
-    {
-        // Arrange
-        var estadio = new Estadio
-        {
-            Nombre = new string('A', 81),
-            Ciudad = "Montevideo",
-            Capacidad = 20000
-        };
-        // Act
-        var resultado = estadio.EsValido();
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-    
-    [TestMethod]
-    public void Estadio_CiudadVacia_EsInvalido()
-    {
-        // Arrange
-        var estadio = new Estadio
-        {
-            Nombre = "Estadio Centenario",
-            Ciudad = "",
-            Capacidad = 20000
-        };
-        // Act
-        var resultado = estadio.EsValido();
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-    [TestMethod]
-    public void Estadio_CiudadExcede60Caracteres_EsInvalido()
-    {
-        // Arrange
-        var estadio = new Estadio
-        {
-            Nombre = "Estadio Centenaario",
-            Ciudad = new string('A', 61),
-            Capacidad = 20000
-        };
-        // Act
-        var resultado = estadio.EsValido();
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-    
-    [TestMethod]
-    public void Estadio_CapacidadMenorA20000_EsInvalido()
-    {
-        // Arrange
-        var estadio = new Estadio
-        {
-            Nombre = "Estadio Centenario",
-            Ciudad = "Montevideo",
-            Capacidad = 19999
-        };
-        // Act
-        var resultado = estadio.EsValido();
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-    
-    [TestMethod]
-    public void Estadio_DescripcionExcede400Caracteres_EsInvalido()
-    {
-        // Arrange
-        var estadio = new Estadio
-        {
-            Nombre = "Estadio Centenario",
-            Ciudad = "Montevideo",
-            Capacidad = 20000,
-            Descripcion = new string('A', 401)
-        };
-        // Act
-        var resultado = estadio.EsValido();
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-
-
-    
-}
-~~~
-
-### FixtureTests.cs
-
-Ruta: WorldCupPlanner.DominioTests\FixtureTests.cs
-
-~~~csharp
-using WorldCupPlanner.Dominio.Entidades;
-using WorldCupPlanner.Dominio.Enumeraciones;
-
-namespace WorldCupPlanner.DominioTests;
-
-[TestClass]
-public class FixtureTests
-{
-    [TestMethod]
-    public void Fixture_DebeExponerTodosLosPartidosDeSusGrupos()
-    {
-        // Arrange
-        var grupoA = new Grupo("A");
-        var grupoB = new Grupo("B");
-
-        grupoA.Partidos.Add(CrearPartido(1));
-        grupoA.Partidos.Add(CrearPartido(2));
-        grupoB.Partidos.Add(CrearPartido(3));
-
-        var fixture = new Fixture();
-        fixture.Grupos.Add(grupoA);
-        fixture.Grupos.Add(grupoB);
-
-        // Act
-        var partidos = fixture.Partidos;
-
-        // Assert
-        Assert.AreEqual(3, partidos.Count);
-
-        var idsObtenidos = partidos.Select(p => p.Id).ToList();
-        var idsEsperados = new List<int> { 1, 2, 3 };
-
-        CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
-    }
-
-    private Partido CrearPartido(int id)
-    {
-        return new Partido
-        {
-            Id = id,
-            Fecha = DateTime.Now,
-            Estadio = new Estadio
-            {
-                Nombre = $"Estadio{id}",
-                Ciudad = $"Ciudad{id}",
-                Capacidad = 30000
-            },
-            EquipoLocal = new Equipo
-            {
-                Nombre = $"Local{id}",
-                RankingFIFA = 1000,
-                Confederacion = Confederacion.UEFA
-            },
-            EquipoVisitante = new Equipo
-            {
-                Nombre = $"Visitante{id}",
-                RankingFIFA = 900,
-                Confederacion = Confederacion.CONMEBOL
-            },
-            Fase = FaseTorneo.FaseDeGrupos
-        };
-    }
-}
-~~~
-
-### GrupoTests.cs
-
-Ruta: WorldCupPlanner.DominioTests\GrupoTests.cs
-
-~~~csharp
-using  WorldCupPlanner.Dominio.Entidades;
-using WorldCupPlanner.Dominio.Enumeraciones;
-
-namespace WorldCupPlanner.DominioTests;
-
-[TestClass]
-public class GrupoTests
-{
-    [TestMethod]
-    public void Grupo_ConEtiquetaVacia_DebeLanzarExcepcion()
-    {
-        // Arrange
-        string etiquetaVacia = string.Empty;
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Grupo(etiquetaVacia)
-        );
-    }
-
-    [TestMethod]
-    public void Grupo_ConEtiquetaDeMasDeUnCaracter_DebeLanzarExcepcion()
-    {
-        // Arrange
-        string etiquetaInvalida = "AB";
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Grupo(etiquetaInvalida)
-        );
-    }
-
-    [TestMethod]
-    public void Grupo_ConEtiquetaFueraDeRango_DebeLanzarExcepcion()
-    {
-        // Arrange
-        string etiquetaFueraDeRango = "M";
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Grupo(etiquetaFueraDeRango)
-        );
-    }
-
-
-
-    [TestMethod]
-    public void Grupo_ConMasDeCuatroEquipos_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var equipos = new List<Equipo>
-        {
-            CrearEquipoValido("Equipo1", Confederacion.UEFA),
-            CrearEquipoValido("Equipo2", Confederacion.UEFA),
-            CrearEquipoValido("Equipo3", Confederacion.CONMEBOL),
-            CrearEquipoValido("Equipo4", Confederacion.AFC),
-            CrearEquipoValido("Equipo5", Confederacion.CAF)
-        };
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Grupo("A", equipos)
-        );
-    }
-
-
-
-    [TestMethod]
-    public void Grupo_ConEtiquetaValida_YCuatroEquiposValidos_EsValido()
-    {
-        // Arrange
-        var grupo = CrearGrupoValido("B");
-
-        // Act
-        var resultado = grupo.EsValido();
-
-        // Assert
-        Assert.IsTrue(resultado);
-    }
-
-    [TestMethod]
-    public void Grupo_ConTresEquiposUEFA_NoEsValido()
-    {
-        // Arrange
-        var equipos = new List<Equipo>
-        {
-            CrearEquipoValido("Equipo1", Confederacion.UEFA),
-            CrearEquipoValido("Equipo2", Confederacion.UEFA),
-            CrearEquipoValido("Equipo3", Confederacion.UEFA),
-            CrearEquipoValido("Equipo4", Confederacion.CONMEBOL)
-        };
-        var grupo = new Grupo("C", equipos);
-
-        // Act
-        var resultado = grupo.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-
-    [TestMethod]
-    public void Grupo_ConDosEquiposConmebol_NoEsValido()
-    {
-        // Arrange
-        var equipos = new List<Equipo>
-        {
-            CrearEquipoValido("Equipo1", Confederacion.UEFA),
-            CrearEquipoValido("Equipo2", Confederacion.CONMEBOL),
-            CrearEquipoValido("Equipo3", Confederacion.CONMEBOL),
-            CrearEquipoValido("Equipo4", Confederacion.AFC)
-        };
-        var grupo = new Grupo("D", equipos);
-
-        // Act
-        var resultado = grupo.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-
-    [TestMethod]
-    public void Grupo_ConDosEquiposConcacaf_NoEsValido()
-    {
-        // Arrange
-        var equipos = new List<Equipo>
-        {
-            CrearEquipoValido("Equipo1", Confederacion.UEFA),
-            CrearEquipoValido("Equipo2", Confederacion.CONCACAF),
-            CrearEquipoValido("Equipo3", Confederacion.CONCACAF),
-            CrearEquipoValido("Equipo4", Confederacion.AFC)
-        };
-        var grupo = new Grupo("E", equipos);
-
-        // Act
-        var resultado = grupo.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-
-    [TestMethod]
-    public void Grupo_ConDosEquiposCAF_NoEsValido()
-    {
-        // Arrange
-        var equipos = new List<Equipo>
-        {
-            CrearEquipoValido("Equipo1", Confederacion.UEFA),
-            CrearEquipoValido("Equipo2", Confederacion.CAF),
-            CrearEquipoValido("Equipo3", Confederacion.CAF),
-            CrearEquipoValido("Equipo4", Confederacion.AFC)
-        };
-        var grupo = new Grupo("F", equipos);
-
-        // Act
-        var resultado = grupo.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-
-    [TestMethod]
-    public void Grupo_ConDosEquiposAFC_NoEsValido()
-    {
-        // Arrange
-        var equipos = new List<Equipo>
-        {
-            CrearEquipoValido("Equipo1", Confederacion.UEFA),
-            CrearEquipoValido("Equipo2", Confederacion.AFC),
-            CrearEquipoValido("Equipo3", Confederacion.AFC),
-            CrearEquipoValido("Equipo4", Confederacion.CONMEBOL)
-        };
-        var grupo = new Grupo("G", equipos);
-
-        // Act
-        var resultado = grupo.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-
-    [TestMethod]
-    public void Grupo_ConDosEquiposOFC_NoEsValido()
-    {
-        // Arrange
-        var equipos = new List<Equipo>
-        {
-            CrearEquipoValido("Equipo1", Confederacion.UEFA),
-            CrearEquipoValido("Equipo2", Confederacion.OFC),
-            CrearEquipoValido("Equipo3", Confederacion.OFC),
-            CrearEquipoValido("Equipo4", Confederacion.CONMEBOL)
-        };
-        var grupo = new Grupo("H", equipos);
-
-        // Act
-        var resultado = grupo.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-
-    [TestMethod]
-    public void Grupo_ConDosUEFAYUnoDeOtraConfederacion_EsValido()
-    {
-        // Arrange
-        var equipos = new List<Equipo>
-        {
-            CrearEquipoValido("Equipo1", Confederacion.UEFA),
-            CrearEquipoValido("Equipo2", Confederacion.UEFA),
-            CrearEquipoValido("Equipo3", Confederacion.CONMEBOL),
-            CrearEquipoValido("Equipo4", Confederacion.AFC)
-        };
-        var grupo = new Grupo("I", equipos);
-
-        // Act
-        var resultado = grupo.EsValido();
-
-        // Assert
-        Assert.IsTrue(resultado);
-    }
-
-    [TestMethod]
-    public void Grupo_ConEquipoInvalido_NoEsValido()
-    {
-        // Arrange
-        var equipos = new List<Equipo>
-        {
-            new Equipo { Nombre = "", RankingFIFA = 500, Confederacion = Confederacion.UEFA }
-        };
-        var grupo = new Grupo("A", equipos);
-
-        // Act
-        var resultado = grupo.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-    
-    [TestMethod]
-    public void Grupo_ConMenosDeCuatroEquipos_NoEsValido()
-    {
-        // Arrange
-        var equipos = new List<Equipo>
-        {
-            CrearEquipoValido("Equipo1", Confederacion.UEFA),
-            CrearEquipoValido("Equipo2", Confederacion.CONMEBOL),
-            CrearEquipoValido("Equipo3", Confederacion.AFC)
-        };
-        var grupo = new Grupo("J", equipos);
-
-        // Act
-        var resultado = grupo.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-
-
-
-    private Grupo CrearGrupoValido(string etiqueta = "A")
-    {
-        var equipos = new List<Equipo>
-        {
-            CrearEquipoValido("Equipo1", Confederacion.UEFA),
-            CrearEquipoValido("Equipo2", Confederacion.UEFA),
-            CrearEquipoValido("Equipo3", Confederacion.CONMEBOL),
-            CrearEquipoValido("Equipo4", Confederacion.AFC)
-        };
-
-        return new Grupo(etiqueta, equipos);
-    }
-
-    private Equipo CrearEquipoValido(string nombre, Confederacion confederacion)
-    {
-        return new Equipo { Nombre = nombre, RankingFIFA = 500, Confederacion = confederacion };
-    }
-
-}
-~~~
-
-### PartidoTests.cs
-
-Ruta: WorldCupPlanner.DominioTests\PartidoTests.cs
-
-~~~csharp
-using  WorldCupPlanner.Dominio.Entidades;
-using WorldCupPlanner.Dominio.Enumeraciones;
-
-namespace WorldCupPlanner.DominioTests;
-
-[TestClass]
-public class PartidoTests
-{
-    [TestMethod]
-    public void Partido_EquipoLocalIgualAVisitante_EsInvalido()
-    {
-        // Arrange
-        var equipo = new Equipo
-        {
-            Nombre = "Uruguay",
-            RankingFIFA = 1000,
-            Confederacion = Confederacion.CONMEBOL
-        };
-        var partido = new Partido
-        {
-            Fecha = DateTime.Now,
-            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
-            EquipoLocal = equipo,
-            EquipoVisitante = equipo,
-            Fase = FaseTorneo.FaseDeGrupos
-        };
-
-        // Act
-        var resultado = partido.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-    
-    [TestMethod]
-    public void Partido_SinEstadio_EsInvalido()
-    {
-        // Arrange
-        var partido = new Partido
-        {
-            Fecha = DateTime.Now,
-            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
-            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
-            Fase = FaseTorneo.FaseDeGrupos
-        };
-
-        // Act
-        var resultado = partido.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-    
-    [TestMethod]
-    public void Partido_SinEquipoLocal_EsInvalido()
-    {
-        // Arrange
-        var partido = new Partido
-        {
-            Fecha = DateTime.Now,
-            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
-            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
-            Fase = FaseTorneo.FaseDeGrupos
-        };
-
-        // Act
-        var resultado = partido.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-
-    [TestMethod]
-    public void Partido_SinEquipoVisitante_EsInvalido()
-    {
-        // Arrange
-        var partido = new Partido
-        {
-            Fecha = DateTime.Now,
-            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
-            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
-            Fase = FaseTorneo.FaseDeGrupos
-        };
-
-        // Act
-        var resultado = partido.EsValido();
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-    [TestMethod]
-    public void Partido_ConGoles_EstaJugado()
-    {
-        // Arrange
-        var partido = new Partido
-        {
-            Fecha = DateTime.Now,
-            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
-            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
-            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
-            Fase = FaseTorneo.FaseDeGrupos,
-            GolesLocal = 2,
-            GolesVisitante = 1
-        };
-
-        // Act
-        var resultado = partido.EstaJugado();
-
-        // Assert
-        Assert.IsTrue(resultado);
-    }
-
-    [TestMethod]
-    public void Partido_GolesLocalMayor_GanaLocal()
-    {
-        // Arrange
-        var equipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL };
-        var partido = new Partido
-        {
-            Fecha = DateTime.Now,
-            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
-            EquipoLocal = equipoLocal,
-            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
-            Fase = FaseTorneo.FaseDeGrupos,
-            GolesLocal = 2,
-            GolesVisitante = 1
-        };
-
-        // Act
-        var resultado = partido.Ganador();
-
-        // Assert
-        Assert.AreEqual(equipoLocal, resultado);
-    }
-    
-    [TestMethod]
-    public void Partido_GolesIguales_EsEmpate()
-    {
-        // Arrange
-        var partido = new Partido
-        {
-            Fecha = DateTime.Now,
-            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
-            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
-            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
-            Fase = FaseTorneo.FaseDeGrupos,
-            GolesLocal = 1,
-            GolesVisitante = 1
-        };
-
-        // Act
-        var resultado = partido.EsEmpate();
-
-        // Assert
-        Assert.IsTrue(resultado);
-    }
-
-    [TestMethod]
-    public void Partido_GolesVisitanteMayor_GanaVisitante()
-    {
-        // Arrange
-        var equipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL };
-        var partido = new Partido
-        {
-            Fecha = DateTime.Now,
-            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
-            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
-            EquipoVisitante = equipoVisitante,
-            Fase = FaseTorneo.FaseDeGrupos,
-            GolesLocal = 0,
-            GolesVisitante = 2
-        };
-
-        // Act
-        var resultado = partido.Ganador();
-
-        // Assert
-        Assert.AreEqual(equipoVisitante, resultado);
-    }
-     
-    [TestMethod]
-    public void Partido_SinGoles_GanadorEsNull()
-    {
-        // Arrange
-        var partido = new Partido
-        {
-            Fecha = DateTime.Now,
-            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
-            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
-            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
-            Fase = FaseTorneo.FaseDeGrupos
-        };
-
-        // Act
-        var resultado = partido.Ganador();
-
-        // Assert
-        Assert.IsNull(resultado);
-    }
-    
-}
-~~~
-
-### UsuarioTests.cs
-
-Ruta: WorldCupPlanner.DominioTests\UsuarioTests.cs
-
-~~~csharp
-using WorldCupPlanner.Dominio.Entidades;
-using WorldCupPlanner.Dominio.Enumeraciones;
-
-namespace WorldCupPlanner.DominioTests;
-
-[TestClass]
-public class UsuarioTests
-{
-    [TestMethod]
-    public void CrearUsuario_ConDatosValidos_DebeCrearExitosamente()
-    {
-        // Arrange
-        var nombre = "Juan";
-        var apellido = "PÃ©rez";
-        var email = "juan.perez@example.com";
-        var fechaNacimiento = "05-15-1990";
-
-        // Act
-        var usuario = new Usuario(new DatosUsuario
-        {
-            Nombre = nombre,
-            Apellido = apellido,
-            Email = email,
-            FechaNacimiento = fechaNacimiento
-        });
-
-        // Assert
-        Assert.AreEqual(nombre, usuario.Nombre);
-        Assert.AreEqual(apellido, usuario.Apellido);
-        Assert.AreEqual(email, usuario.Email);
-        Assert.AreEqual(new DateTime(1990, 5, 15), usuario.FechaNacimiento);
-    }
-
-    [TestMethod]
-    public void CrearUsuario_ConNombreVacio_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var apellido = "PÃ©rez";
-        var email = "juan.perez@example.com";
-        var fechaNacimiento = "05-15-1990";
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(new DatosUsuario { Nombre = string.Empty, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento })
-        );
-    }
-
-    [TestMethod]
-    public void CrearUsuario_ConApellidoVacio_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var nombre = "Juan";
-        var email = "juan.perez@example.com";
-        var fechaNacimiento = "05-15-1990";
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = string.Empty, Email = email, FechaNacimiento = fechaNacimiento })
-        );
-    }
-
-    [TestMethod]
-    public void CrearUsuario_ConEmailInvalido_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var nombre = "Juan";
-        var apellido = "PÃ©rez";
-        var email = "email-invalido";
-        var fechaNacimiento = "05-15-1990";
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento })
-        );
-    }
-
-    [TestMethod]
-    public void CrearUsuario_ConEmailVacio_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var nombre = "Juan";
-        var apellido = "PÃ©rez";
-        var email = string.Empty;
-        var fechaNacimiento = "05-15-1990";
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento })
-        );
-    }
-
-    [TestMethod]
-    public void CrearUsuario_ConFechaNacimientoFutura_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var nombre = "Juan";
-        var apellido = "PÃ©rez";
-        var email = "juan.perez@example.com";
-        var fechaNacimiento = DateTime.Now.AddDays(1).ToString("MM-dd-yyyy");
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento })
-        );
-    }
-
-    [TestMethod]
-    public void CrearUsuario_ConFormatoFechaInvalido_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var nombre = "Juan";
-        var apellido = "PÃ©rez";
-        var email = "juan.perez@example.com";
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = "1990-05-15" })
-        );
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = "15/05/1990" })
-        );
-        Assert.ThrowsException<ArgumentException>(() =>
-            new Usuario(new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = "05/15/1990" })
-        );
-    }
-
-
-
-    [TestMethod]
-    public void EstablecerContrasenia_ConContrasesiaValida_DebeEstablecerseExitosamente()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "MyPassword123!";
-
-        // Act
-        usuario.EstablecerContrasenia(contrasenia);
-
-        // Assert
-        Assert.IsTrue(usuario.VerificarContrasenia(contrasenia));
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_ConMenosDe8Caracteres_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "Pass12!"; // 7 caracteres
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContrasenia(contrasenia)
-        );
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_SinMayÃºsculas_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "password123!"; // Sin mayÃºsculas
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContrasenia(contrasenia)
-        );
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_SinMinÃºsculas_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "PASSWORD123!"; // Sin minÃºsculas
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContrasenia(contrasenia)
-        );
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_SinNÃºmeros_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "PasswordAbc!"; // Sin nÃºmeros
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContrasenia(contrasenia)
-        );
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_SinCaracteresEspeciales_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "Password1234"; // Sin caracteres especiales
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContrasenia(contrasenia)
-        );
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_ConContrasesiaVacia_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() =>
-            usuario.EstablecerContrasenia(string.Empty)
-        );
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_DebeAlmacenarCifrada_NoEnTextoPlano()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "MyPassword123!";
-
-        // Act
-        usuario.EstablecerContrasenia(contrasenia);
-
-        // Assert
-        Assert.IsFalse(usuario.ContraseniaCifrada == contrasenia,
-            "La contrasenia no debe almacenarse en texto plano");
-        Assert.IsNotNull(usuario.ContraseniaCifrada);
-        Assert.IsTrue(usuario.ContraseniaCifrada.Length > 0);
-    }
-
-    [TestMethod]
-    public void VerificarContrasenia_ConContrasesiaCorrecta_DebeRetornarVerdadero()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "MyPassword123!";
-        usuario.EstablecerContrasenia(contrasenia);
-
-        // Act
-        var resultado = usuario.VerificarContrasenia(contrasenia);
-
-        // Assert
-        Assert.IsTrue(resultado);
-    }
-
-    [TestMethod]
-    public void VerificarContrasenia_ConContrasesiaIncorrecta_DebeRetornarFalso()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "MyPassword123!";
-        usuario.EstablecerContrasenia(contrasenia);
-
-        // Act
-        var resultado = usuario.VerificarContrasenia("WrongPassword123!");
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-
-    [TestMethod]
-    public void VerificarContrasenia_ConContrasesiaCasoDiferente_DebeRetornarFalso()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenia = "MyPassword123!";
-        usuario.EstablecerContrasenia(contrasenia);
-
-        // Act - Intenta con caso diferente
-        var resultado = usuario.VerificarContrasenia("mypassword123!");
-
-        // Assert
-        Assert.IsFalse(resultado);
-    }
-
-    [TestMethod]
-    public void EstablecerContrasenia_ConCaracteresEspecialesValidos_DebeAceptarlos()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var contrasenias = new[]
-        {
-            "Password123@",
-            "Password123#",
-            "Password123$",
-            "Password123."
-        };
-
-        // Act & Assert
-        foreach (var contrasenia in contrasenias)
-        {
-            usuario.EstablecerContrasenia(contrasenia);
-            Assert.IsTrue(usuario.VerificarContrasenia(contrasenia),
-                $"DeberÃ­a aceptar contrasenia con carÃ¡cter especial: {contrasenia}");
-        }
-    }
-
-
-
-    [TestMethod]
-    public void AgregarRol_ConRolAdministrador_DebeAgregarse()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-
-        // Assert
-        Assert.IsTrue(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
-    }
-
-    [TestMethod]
-    public void AgregarRol_ConRolEditor_DebeAgregarse()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act
-        usuario.AgregarRol(RolUsuario.Editor);
-
-        // Assert
-        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
-    }
-
-    [TestMethod]
-    public void AgregarRol_ConRolesMultiples_DebePermitirRolesNoExcluyentes()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-        usuario.AgregarRol(RolUsuario.Editor);
-
-        // Assert
-        Assert.IsTrue(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
-        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
-    }
-
-    [TestMethod]
-    public void AgregarRol_MismoRolDosVeces_NoDebeAgregarseDuplicado()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-
-        // Act
-        var rolesAntes = usuario.ObtenerRoles().Count();
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-        var rolesDepues = usuario.ObtenerRoles().Count();
-
-        // Assert
-        Assert.AreEqual(rolesAntes, rolesDepues);
-    }
-
-    [TestMethod]
-    public void RemoverRol_ConRolExistente_DebeRemoverse()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-
-        // Act
-        usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
-
-        // Assert
-        Assert.IsFalse(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
-    }
-
-    [TestMethod]
-    public void RemoverRol_NoAfectaOtrosRoles()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-        usuario.AgregarRol(RolUsuario.Editor);
-
-        // Act
-        usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
-
-        // Assert
-        Assert.IsFalse(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
-        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
-    }
-
-    [TestMethod]
-    public void ObtenerRoles_ConRolesAsignados_DebeRetornarTodos()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-        usuario.AgregarRol(RolUsuario.Editor);
-
-        // Act
-        var roles = usuario.ObtenerRoles();
-
-        // Assert
-        Assert.AreEqual(2, roles.Count());
-        Assert.IsTrue(roles.Contains(RolUsuario.AdministradorDelSistema));
-        Assert.IsTrue(roles.Contains(RolUsuario.Editor));
-    }
-
-    [TestMethod]
-    public void TieneRol_UsuarioSinRoles_DebeRetornarFalso()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act & Assert
-        Assert.IsFalse(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
-        Assert.IsFalse(usuario.TieneRol(RolUsuario.Editor));
-    }
-
-    [TestMethod]
-    public void ActualizarNombre_ConNombreValido_ActualizaElNombre()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act
-        usuario.ActualizarNombre("Carlos");
-
-        // Assert
-        Assert.AreEqual("Carlos", usuario.Nombre);
-    }
-
-    [TestMethod]
-    public void ActualizarNombre_ConNombreVacio_LanzaExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarNombre(string.Empty));
-    }
-
-    [TestMethod]
-    public void ActualizarApellido_ConApellidoValido_ActualizaElApellido()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act
-        usuario.ActualizarApellido("GarcÃ­a");
-
-        // Assert
-        Assert.AreEqual("GarcÃ­a", usuario.Apellido);
-    }
-
-    [TestMethod]
-    public void ActualizarEmail_ConEmailValido_ActualizaElEmail()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act
-        usuario.ActualizarEmail("newemail@example.com");
-
-        // Assert
-        Assert.AreEqual("newemail@example.com", usuario.Email);
-    }
-
-    [TestMethod]
-    public void ActualizarEmail_ConEmailInvalido_LanzaExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarEmail("email_invalido"));
-    }
-
-    [TestMethod]
-    public void ActualizarFechaNacimiento_ConFechaValida_ActualizaLaFecha()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act
-        usuario.ActualizarFechaNacimiento("05-15-1995");
-
-        // Assert
-        Assert.AreEqual(new DateTime(1995, 5, 15), usuario.FechaNacimiento);
-    }
-
-    [TestMethod]
-    public void ActualizarFechaNacimiento_ConFechaFutura_LanzaExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-        var fechaFutura = DateTime.Now.AddYears(1).ToString("MM-dd-yyyy");
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarFechaNacimiento(fechaFutura));
-    }
-
-    [TestMethod]
-    public void ActualizarFechaNacimiento_ConFormatoInvalido_LanzaExcepcion()
-    {
-        // Arrange
-        var usuario = CrearUsuarioValido();
-
-        // Act & Assert
-        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarFechaNacimiento("1995-05-15"));
-        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarFechaNacimiento("15/05/1995"));
-    }
-
-
-    private static Usuario CrearUsuarioValido()
-    {
-        return new Usuario(new DatosUsuario
-        {
-            Nombre = "Juan",
-            Apellido = "PÃ©rez",
-            Email = "juan.perez@example.com",
-            FechaNacimiento = "05-15-1990"
-        });
-    }
-}
-~~~
-
-End of WorldCupPlanner.DominioTests
-
-## WorldCupPlanner.AccesoADatosTest
-
-### RepositoriosEnMemoriaTests.cs
-
-Ruta: WorldCupPlanner.AccesoADatosTest\RepositoriosEnMemoriaTests.cs
-
-~~~csharp
-using WorldCupPlanner.AccesoADatos.Repositorios;
-using WorldCupPlanner.Dominio.Entidades;
-using WorldCupPlanner.Dominio.Enumeraciones;
-
-namespace WorldCupPlanner.AccesoADatosTest;
-
-[TestClass]
-public class RepositoriosEnMemoriaTests
-{
-    [TestMethod]
-    public void RepositorioEquipoEnMemoria_AgregarEquipo_GuardaEquipo()
-    {
-        var repositorio = new RepositorioEquipoEnMemoria();
-        var equipo = CrearEquipoValido("Uruguay");
-
-        repositorio.Agregar(equipo);
-
-        Assert.AreEqual(1, repositorio.Buscar(_ => true).Count);
-        Assert.AreEqual(equipo, repositorio.Buscar(_ => true).First());
-    }
-
-    [TestMethod]
-    public void RepositorioEquipoEnMemoria_EliminarEquipo_EliminaEquipo()
-    {
-        var repositorio = new RepositorioEquipoEnMemoria();
-        var equipo = CrearEquipoValido("Uruguay");
-        repositorio.Agregar(equipo);
-
-        repositorio.Eliminar(equipo);
-
-        Assert.AreEqual(0, repositorio.Buscar(_ => true).Count);
-    }
-
-    [TestMethod]
-    public void RepositorioEstadioEnMemoria_ActualizarEstadio_ModificaEstadio()
-    {
-        var repositorio = new RepositorioEstadioEnMemoria();
-        var estadio = CrearEstadioValido("Estadio Centenario");
-        repositorio.Agregar(estadio);
-        estadio.Nombre = "Estadio Olimpico";
-
-        repositorio.Actualizar(estadio);
-
-        Assert.AreEqual("Estadio Olimpico", repositorio.Buscar(_ => true).First().Nombre);
-    }
-
-    [TestMethod]
-    public void RepositorioGrupoEnMemoria_AgregarGrupo_GuardaGrupo()
-    {
-        var repositorio = new RepositorioGrupoEnMemoria();
-        var grupo = new Grupo("A");
-
-        repositorio.Agregar(grupo);
-
-        Assert.AreEqual(1, repositorio.Buscar(_ => true).Count);
-        Assert.AreEqual(grupo, repositorio.Buscar(_ => true).First());
-    }
-
-    [TestMethod]
-    public void RepositorioPartidoEnMemoria_AgregarPartido_GuardaPartido()
-    {
-        var repositorio = new RepositorioPartidoEnMemoria();
-        var partido = CrearPartidoValido();
-
-        repositorio.Agregar(partido);
-
-        Assert.AreEqual(1, repositorio.Buscar(_ => true).Count);
-        Assert.AreEqual(partido, repositorio.Buscar(_ => true).First());
-    }
-
-    [TestMethod]
-    public void RepositorioUsuarioEnMemoria_AgregarUsuario_GuardaUsuario()
-    {
-        var repositorio = new RepositorioUsuarioEnMemoria();
-        var usuario = CrearUsuarioValido("juan@example.com");
-
-        repositorio.Agregar(usuario);
-
-        Assert.AreEqual(1, repositorio.Buscar(_ => true).Count);
-        Assert.AreSame(usuario, repositorio.Buscar(_ => true).First());
-    }
-
-    [TestMethod]
-    public void RepositorioUsuarioEnMemoria_AgregarVariosUsuarios_GuardaTodos()
-    {
-        var repositorio = new RepositorioUsuarioEnMemoria();
-        var usuario1 = CrearUsuarioValido("juan@example.com");
-        var usuario2 = CrearUsuarioValido("maria@example.com");
-        var usuario3 = CrearUsuarioValido("pedro@example.com");
-
-        repositorio.Agregar(usuario1);
-        repositorio.Agregar(usuario2);
-        repositorio.Agregar(usuario3);
-
-        Assert.AreEqual(3, repositorio.Buscar(_ => true).Count);
-    }
-
-    [TestMethod]
-    public void RepositorioUsuarioEnMemoria_ActualizarUsuarioExistente_ModificaUsuario()
-    {
-        var repositorio = new RepositorioUsuarioEnMemoria();
-        var usuario = CrearUsuarioValido("juan@example.com");
-        repositorio.Agregar(usuario);
-        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-
-        repositorio.Actualizar(usuario);
-
-        Assert.IsTrue(repositorio.Buscar(_ => true).First().TieneRol(RolUsuario.AdministradorDelSistema));
-    }
-
-    [TestMethod]
-    public void RepositorioUsuarioEnMemoria_ActualizarUsuarioNoExistente_LanzaExcepcion()
-    {
-        var repositorio = new RepositorioUsuarioEnMemoria();
-        var usuario = CrearUsuarioValido("juan@example.com");
-
-        Assert.ThrowsException<InvalidOperationException>(() => repositorio.Actualizar(usuario));
-    }
-
-    [TestMethod]
-    public void RepositorioUsuarioEnMemoria_EliminarUsuarioExistente_EliminaUsuario()
-    {
-        var repositorio = new RepositorioUsuarioEnMemoria();
-        var usuario = CrearUsuarioValido("juan@example.com");
-        repositorio.Agregar(usuario);
-
-        repositorio.Eliminar(usuario);
-
-        Assert.AreEqual(0, repositorio.Buscar(_ => true).Count);
-    }
-
-    [TestMethod]
-    public void RepositorioUsuarioEnMemoria_EliminarUsuarioNoExistente_NoLanzaExcepcion()
-    {
-        var repositorio = new RepositorioUsuarioEnMemoria();
-        var usuario = CrearUsuarioValido("juan@example.com");
-
-        repositorio.Eliminar(usuario);
-
-        Assert.AreEqual(0, repositorio.Buscar(_ => true).Count);
-    }
-
-    [TestMethod]
-    public void RepositorioUsuarioEnMemoria_BuscarTodosSinUsuarios_DevuelveListaVacia()
-    {
-        var repositorio = new RepositorioUsuarioEnMemoria();
-
-        var usuarios = repositorio.Buscar(_ => true);
-
-        Assert.AreEqual(0, usuarios.Count);
-    }
-
-    [TestMethod]
-    public void RepositorioUsuarioEnMemoria_BuscarTodos_DevuelveCopia()
-    {
-        var repositorio = new RepositorioUsuarioEnMemoria();
-        var usuario = CrearUsuarioValido("juan@example.com");
-        repositorio.Agregar(usuario);
-
-        var usuarios1 = repositorio.Buscar(_ => true);
-        var usuarios2 = repositorio.Buscar(_ => true);
-
-        Assert.AreNotSame(usuarios1, usuarios2);
-        Assert.AreEqual(usuarios1.Count, usuarios2.Count);
-    }
-
-    [TestMethod]
-    public void RepositorioUsuarioEnMemoria_ObtenerPorEmailExistente_DevuelveUsuario()
-    {
-        var repositorio = new RepositorioUsuarioEnMemoria();
-        var usuario = CrearUsuarioValido("juan@example.com");
-        repositorio.Agregar(usuario);
-
-        var usuarioEncontrado = repositorio.ObtenerPorEmail("juan@example.com");
-
-        Assert.IsNotNull(usuarioEncontrado);
-        Assert.AreSame(usuario, usuarioEncontrado);
-    }
-
-    [TestMethod]
-    public void RepositorioUsuarioEnMemoria_ObtenerPorEmailNoExistente_DevuelveNull()
-    {
-        var repositorio = new RepositorioUsuarioEnMemoria();
-
-        var usuarioEncontrado = repositorio.ObtenerPorEmail("noexiste@example.com");
-
-        Assert.IsNull(usuarioEncontrado);
-    }
-
-    [TestMethod]
-    public void RepositorioUsuarioEnMemoria_ObtenerPorEmailNoDistingueMayusculas_DevuelveUsuario()
-    {
-        var repositorio = new RepositorioUsuarioEnMemoria();
-        var usuario = CrearUsuarioValido("Juan@Example.com");
-        repositorio.Agregar(usuario);
-
-        var usuarioEncontrado = repositorio.ObtenerPorEmail("juan@example.com");
-
-        Assert.IsNotNull(usuarioEncontrado);
-        Assert.AreSame(usuario, usuarioEncontrado);
-    }
-
-    private Equipo CrearEquipoValido(string nombre)
-    {
-        return new Equipo
-        {
-            Nombre = nombre,
-            RankingFIFA = 1000,
-            Confederacion = Confederacion.CONMEBOL
-        };
-    }
-
-    private Estadio CrearEstadioValido(string nombre)
-    {
-        return new Estadio
-        {
-            Nombre = nombre,
-            Ciudad = "Montevideo",
-            Capacidad = 60000
-        };
-    }
-
-    private Partido CrearPartidoValido()
-    {
-        return new Partido
-        {
-            Id = 1,
-            Fecha = DateTime.Now,
-            Estadio = CrearEstadioValido("Estadio Centenario"),
-            EquipoLocal = CrearEquipoValido("Uruguay"),
-            EquipoVisitante = CrearEquipoValido("Argentina"),
-            Fase = FaseTorneo.FaseDeGrupos,
-            Grupo = new Grupo("A")
-        };
-    }
-
-    private static Usuario CrearUsuarioValido(string email)
-    {
-        return new Usuario(new DatosUsuario
-        {
-            Nombre = "Juan",
-            Apellido = "PÃ©rez",
-            Email = email,
-            FechaNacimiento = "01-01-1990"
-        });
-    }
-}
-~~~
-
-End of WorldCupPlanner.AccesoADatosTest
