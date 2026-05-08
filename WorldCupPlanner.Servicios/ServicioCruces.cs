@@ -466,4 +466,44 @@ public class ServicioCruces
             Fase = fase
         };
     }
+    
+    public Partido GenerarTercerPuesto(
+        List<Partido> semifinales,
+        List<Estadio> estadios,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        var perdedores = semifinales
+            .Select(ObtenerPerdedor)
+            .ToList();
+
+        return new Partido
+        {
+            Id = semifinales.Max(p => p.Id) + 1,
+            EquipoLocal = perdedores[0],
+            EquipoVisitante = perdedores[1],
+            Estadio = estadios[0],
+            Fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 4),
+            Fase = FaseTorneo.TercerPuesto
+        };
+    }
+
+    private Equipo? ObtenerPerdedor(Partido partido)
+    {
+        if (!partido.EstaJugado())
+        {
+            return null;
+        }
+
+        if (partido.GolesLocal < partido.GolesVisitante)
+        {
+            return partido.EquipoLocal;
+        }
+
+        if (partido.GolesVisitante < partido.GolesLocal)
+        {
+            return partido.EquipoVisitante;
+        }
+
+        return null;
+    }
 }

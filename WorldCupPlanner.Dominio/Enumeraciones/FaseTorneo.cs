@@ -7,5 +7,6 @@ public enum FaseTorneo
     Octavos,
     Cuartos,
     Semifinal,
+    TercerPuesto,
     Final
 }
