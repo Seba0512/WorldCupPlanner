@@ -550,6 +550,7 @@ public class ServicioCruces
         ConfiguracionTorneo configuracionTorneo)
     {
         ValidarCantidadSemifinalesParaFinal(semifinales);
+        ValidarFaseSemifinalesParaFinal(semifinales);
 
         var ganadores = semifinales
             .Select(p => p.Ganador())
@@ -570,6 +571,14 @@ public class ServicioCruces
         if (semifinales.Count != 2)
         {
             throw new EntidadInvalidaExcepcion("Para generar la final deben existir exactamente 2 semifinales.");
+        }
+    }
+    
+    private void ValidarFaseSemifinalesParaFinal(List<Partido> semifinales)
+    {
+        if (semifinales.Any(p => p.Fase != FaseTorneo.Semifinal))
+        {
+            throw new EntidadInvalidaExcepcion("Para generar la final todos los partidos deben ser semifinales.");
         }
     }
 }
