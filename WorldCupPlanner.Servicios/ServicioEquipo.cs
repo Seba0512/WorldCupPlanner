@@ -30,17 +30,11 @@ namespace WorldCupPlanner.Servicios
             { Confederacion.OFC,       1 },
         };
 
-        public void AgregarEquipo(Equipo equipo)
+        public void Agregar(Equipo equipo)
         {
             ValidarEquipo(equipo);
             ValidarNombreUnico(equipo.Nombre);
-
-            var cupo = CuposPorConfederacion[equipo.Confederacion!.Value];
-            var inscritos = _repositorio.Buscar(e => e.Confederacion == equipo.Confederacion).Count;
-            if (inscritos >= cupo)
-                throw new InvalidOperationException(
-                    $"La confederación {equipo.Confederacion!.Value} ya alcanzó su cupo máximo de {cupo} equipos.");
-
+            ValidarCupoConfederacion(equipo);
             _repositorio.Agregar(equipo);
         }
 
@@ -49,9 +43,8 @@ namespace WorldCupPlanner.Servicios
             ValidarEquipo(equipo);
             ValidarNombreUnico(equipo.Nombre, excluir: nombreOriginal);
 
-            var existente = _repositorio.Buscar(e => e.Nombre == nombreOriginal).FirstOrDefault();
-            if (existente == null)
-                throw new EntidadInvalidaExcepcion("El equipo no existe.");
+            var existente = _repositorio.Buscar(e => e.Nombre == nombreOriginal).FirstOrDefault()
+                ?? throw new EntidadInvalidaExcepcion("El equipo no existe.");
 
             existente.Nombre = equipo.Nombre;
             existente.Confederacion = equipo.Confederacion;
@@ -59,23 +52,16 @@ namespace WorldCupPlanner.Servicios
             _repositorio.Actualizar(existente);
         }
 
-        public void EliminarEquipo(Equipo equipo) => Eliminar(equipo);
-
-        public List<Equipo> ObtenerEquipos() => _repositorio.Buscar(_ => true);
-
-        public void Agregar(Equipo entidad) => AgregarEquipo(entidad);
-
-        public void Actualizar(Equipo entidad)
+        public void Actualizar(Equipo equipo)
         {
-            if (entidad == null)
+            if (equipo == null)
                 throw new EntidadInvalidaExcepcion("El equipo no puede ser nulo.");
-            var existente = _repositorio.Buscar(e => ReferenceEquals(e, entidad)).FirstOrDefault();
-            if (existente == null)
-                throw new EntidadInexistenteExcepcion("El equipo no existe en el sistema.");
+            var existente = _repositorio.Buscar(e => ReferenceEquals(e, equipo)).FirstOrDefault()
+                ?? throw new EntidadInexistenteExcepcion("El equipo no existe en el sistema.");
             _repositorio.Actualizar(existente);
         }
 
-        public void Eliminar(Equipo entidad) => _repositorio.Eliminar(entidad);
+        public void Eliminar(Equipo equipo) => _repositorio.Eliminar(equipo);
 
         public List<Equipo> Buscar(Func<Equipo, bool> predicado) => _repositorio.Buscar(predicado);
 
@@ -89,6 +75,15 @@ namespace WorldCupPlanner.Servicios
         {
             if (_repositorio.Buscar(e => e.Nombre == nombre && e.Nombre != excluir).Count > 0)
                 throw new EntidadYaExistenteExcepcion("Ya existe un equipo con ese nombre.");
+        }
+
+        private void ValidarCupoConfederacion(Equipo equipo)
+        {
+            var cupo = CuposPorConfederacion[equipo.Confederacion!.Value];
+            var inscritos = _repositorio.Buscar(e => e.Confederacion == equipo.Confederacion).Count;
+            if (inscritos >= cupo)
+                throw new InvalidOperationException(
+                    $"La confederación {equipo.Confederacion!.Value} ya alcanzó su cupo máximo de {cupo} equipos.");
         }
     }
 }
