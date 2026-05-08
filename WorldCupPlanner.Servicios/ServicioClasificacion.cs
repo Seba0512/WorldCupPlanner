@@ -1,4 +1,5 @@
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -34,6 +35,8 @@ public class ServicioClasificacion
         Fixture fixture,
         ConfiguracionTorneo configuracionTorneo)
     {
+        ValidarFaseDeGruposCompleta(fixture);
+
         var tablas = fixture.Grupos
             .Select(g => CalcularTabla(g, configuracionTorneo))
             .ToList();
@@ -68,6 +71,15 @@ public class ServicioClasificacion
         }
 
         return clasificados;
+    }
+
+    private static void ValidarFaseDeGruposCompleta(Fixture fixture)
+    {
+        if (fixture.Grupos.Any(g => g.Partidos.Any(p => !p.EstaJugado())))
+        {
+            throw new EntidadInvalidaExcepcion(
+                "No se pueden obtener clasificados si hay partidos de fase de grupos sin resultado.");
+        }
     }
 
     private static Dictionary<Equipo, PosicionEquipo> CrearPosicionesIniciales(Grupo grupo)

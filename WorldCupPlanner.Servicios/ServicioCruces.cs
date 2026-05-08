@@ -6,6 +6,8 @@ namespace WorldCupPlanner.Servicios;
 
 public class ServicioCruces
 {
+    private const int PrimerIdPrimeraRondaEliminatoria = 73;
+
     public List<Partido> GenerarPrimeraRondaEliminatoria(
         ClasificadosFaseGrupos clasificados,
         List<Estadio> estadios,
@@ -76,7 +78,7 @@ public class ServicioCruces
         for (int i = 0; i < primeros.Count; i++)
         {
             partidos.Add(CrearPartidoDePrimeraRonda(
-                partidos.Count + 1,
+                PrimerIdPrimeraRondaEliminatoria + partidos.Count,
                 primeros[i],
                 terceros[i],
                 estadios[partidos.Count % estadios.Count],
@@ -100,7 +102,7 @@ public class ServicioCruces
         for (int i = 0; i < primerosRestantes.Count; i++)
         {
             partidos.Add(CrearPartidoDePrimeraRonda(
-                partidos.Count + 1,
+                PrimerIdPrimeraRondaEliminatoria + partidos.Count,
                 primerosRestantes[i],
                 segundosDeMenorRendimiento[i],
                 estadios[partidos.Count % estadios.Count],
@@ -120,7 +122,7 @@ public class ServicioCruces
         for (int i = 0; i < segundosRestantes.Count; i += 2)
         {
             partidos.Add(CrearPartidoDePrimeraRonda(
-                partidos.Count + 1,
+                PrimerIdPrimeraRondaEliminatoria + partidos.Count,
                 segundosRestantes[i],
                 segundosRestantes[i + 1],
                 estadios[partidos.Count % estadios.Count],

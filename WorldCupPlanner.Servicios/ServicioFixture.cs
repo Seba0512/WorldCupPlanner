@@ -1,5 +1,6 @@
 ﻿using  WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -43,12 +44,12 @@ public class ServicioFixture
     {
         if (equipos.Count < CantidadExactaEquipos)
         {
-            throw new InvalidOperationException("No se puede generar el fixture con menos de 48 equipos.");
+            throw new EntidadInvalidaExcepcion("No se puede generar el fixture con menos de 48 equipos.");
         }
 
         if (equipos.Count > CantidadExactaEquipos)
         {
-            throw new InvalidOperationException("No se puede generar el fixture con más de 48 equipos.");
+            throw new EntidadInvalidaExcepcion("No se puede generar el fixture con más de 48 equipos.");
         }
     }
 
@@ -56,7 +57,7 @@ public class ServicioFixture
     {
         if (equipos.Any(e => !e.EsValido()))
         {
-            throw new InvalidOperationException("No se puede generar el fixture con equipos inválidos.");
+            throw new EntidadInvalidaExcepcion("No se puede generar el fixture con equipos inválidos.");
         }
     }
 
@@ -70,7 +71,7 @@ public class ServicioFixture
     {
         if (estadios.Count < CantidadMinimaEstadios)
         {
-            throw new InvalidOperationException("No se puede generar el fixture con menos de 4 estadios.");
+            throw new EntidadInvalidaExcepcion("No se puede generar el fixture con menos de 4 estadios.");
         }
     }
 
@@ -78,7 +79,7 @@ public class ServicioFixture
     {
         if (estadios.Any(e => !e.EsValido()))
         {
-            throw new InvalidOperationException("No se puede generar el fixture con estadios inválidos.");
+            throw new EntidadInvalidaExcepcion("No se puede generar el fixture con estadios inválidos.");
         }
     }
 
@@ -157,7 +158,7 @@ public class ServicioFixture
             }
         }
 
-        throw new InvalidOperationException(
+        throw new EntidadInvalidaExcepcion(
             "No se pudo asignar el equipo a ningún grupo respetando las restricciones de confederación.");
     }
 

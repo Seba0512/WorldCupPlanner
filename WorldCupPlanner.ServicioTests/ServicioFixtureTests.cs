@@ -1,5 +1,6 @@
 ﻿using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
@@ -17,7 +18,7 @@ public class ServicioFixtureTests
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
         );
     }
@@ -32,7 +33,7 @@ public class ServicioFixtureTests
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
         );
     }
@@ -519,7 +520,7 @@ public class ServicioFixtureTests
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
         );
     }
@@ -530,7 +531,7 @@ public class ServicioFixtureTests
         // Arrange
         var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidos(47);
-        // Agregar un equipo inválido (sin confederación)
+        // Agregar un equipo invalido (sin confederacion)
         equipos.Add(new Equipo
         {
             Nombre = "EquipoInvalido",
@@ -541,7 +542,7 @@ public class ServicioFixtureTests
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
         );
     }
@@ -553,7 +554,7 @@ public class ServicioFixtureTests
         var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidos(48);
         var estadios = CrearEstadiosValidos(3);
-        // Agregar un estadio inválido (capacidad menor a 20000)
+        // Agregar un estadio invalido (capacidad menor a 20000)
         estadios.Add(new Estadio
         {
             Nombre = "EstadioInvalido",
@@ -563,7 +564,7 @@ public class ServicioFixtureTests
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
         );
     }
@@ -589,7 +590,7 @@ public class ServicioFixtureTests
         var equiposUnicos = new HashSet<string>(todosLosEquiposEnFixture.Select(e => e.Nombre));
         Assert.AreEqual(48, equiposUnicos.Count);
 
-        // Assert - Todos los originales están en el fixture
+        // Assert - Todos los originales estan en el fixture
         var equiposEnFixtureSet = new HashSet<string>(todosLosEquiposEnFixture.Select(e => e.Nombre));
         CollectionAssert.AreEquivalent(equiposSet.ToList(), equiposEnFixtureSet.ToList());
     }
@@ -732,8 +733,10 @@ public class ServicioFixtureTests
                     $"El estadio {partido.Estadio.Nombre} debe ser uno de los estadios disponibles");
                 
                 Assert.IsTrue(partido.Estadio.EsValido(),
-                    $"El estadio {partido.Estadio.Nombre} asignado debe ser válido");
+                    $"El estadio {partido.Estadio.Nombre} asignado debe ser valido");
             }
         }
     }
 }
+
+

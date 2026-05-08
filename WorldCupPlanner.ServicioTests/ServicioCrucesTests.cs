@@ -32,6 +32,32 @@ public class ServicioCrucesTests
         Assert.IsTrue(partidos.All(p => p.Fase == FaseTorneo.PrimeraRondaEliminatoria));
     }
 
+    [TestMethod]
+    public void GenerarPrimeraRondaEliminatoria_DebeAsignarIdsIncrementalesLuegoDeFaseDeGrupos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var clasificados = CrearClasificadosCon32Equipos();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCrucesFase = 1
+        };
+
+        // Act
+        var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            clasificados,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var idsEsperados = Enumerable.Range(73, 16).ToList();
+        var idsObtenidos = partidos.Select(p => p.Id).ToList();
+
+        CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
+    }
+
     private ClasificadosFaseGrupos CrearClasificadosCon32Equipos()
     {
         return new ClasificadosFaseGrupos
@@ -364,7 +390,7 @@ public class ServicioCrucesTests
         {
             partidos.Add(new Partido
             {
-                Id = i,
+                Id = 72 + i,
                 EquipoLocal = new Equipo
                 {
                     Nombre = $"Local{i}",
@@ -435,7 +461,7 @@ public class ServicioCrucesTests
 
             partidos.Add(new Partido
             {
-                Id = i,
+                Id = 72 + i,
                 EquipoLocal = equipoLocal,
                 EquipoVisitante = equipoVisitante,
                 GolesLocal = 2,
@@ -468,7 +494,7 @@ public class ServicioCrucesTests
         {
             partidos.Add(new Partido
             {
-                Id = 16 + i,
+                Id = 88 + i,
                 EquipoLocal = new Equipo
                 {
                     Nombre = $"LocalOctavos{i}",
@@ -506,7 +532,7 @@ public class ServicioCrucesTests
         {
             partidos.Add(new Partido
             {
-                Id = 24 + i,
+                Id = 96 + i,
                 EquipoLocal = new Equipo
                 {
                     Nombre = $"LocalCuartos{i}",
@@ -619,7 +645,7 @@ public class ServicioCrucesTests
         );
 
         // Assert
-        var idsEsperados = Enumerable.Range(17, 8).ToList();
+        var idsEsperados = Enumerable.Range(89, 8).ToList();
         var idsObtenidos = octavos.Select(p => p.Id).ToList();
 
         CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
@@ -907,7 +933,7 @@ public class ServicioCrucesTests
         );
 
         // Assert
-        var idsEsperados = Enumerable.Range(25, 4).ToList();
+        var idsEsperados = Enumerable.Range(97, 4).ToList();
         var idsObtenidos = cuartos.Select(p => p.Id).ToList();
 
         CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
@@ -1137,7 +1163,7 @@ public class ServicioCrucesTests
         );
 
         // Assert
-        var idsEsperados = Enumerable.Range(29, 2).ToList();
+        var idsEsperados = Enumerable.Range(101, 2).ToList();
         var idsObtenidos = semifinales.Select(p => p.Id).ToList();
 
         CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
@@ -1205,7 +1231,7 @@ public class ServicioCrucesTests
         {
             partidos.Add(new Partido
             {
-                Id = 28 + i,
+                Id = 100 + i,
                 EquipoLocal = new Equipo
                 {
                     Nombre = $"LocalSemifinal{i}",
@@ -1376,7 +1402,7 @@ public class ServicioCrucesTests
         );
 
         // Assert
-        Assert.AreEqual(31, tercerPuesto.Id);
+        Assert.AreEqual(103, tercerPuesto.Id);
     }
     
     [TestMethod]
@@ -1570,7 +1596,7 @@ public class ServicioCrucesTests
         );
 
         // Assert
-        Assert.AreEqual(32, final.Id);
+        Assert.AreEqual(104, final.Id);
     }
     
     [TestMethod]
@@ -1688,7 +1714,7 @@ public class ServicioCrucesTests
         Assert.AreEqual(FaseTorneo.TercerPuesto, tercerPuesto.Fase);
         Assert.AreEqual(FaseTorneo.Final, final.Fase);
 
-        Assert.AreEqual(31, tercerPuesto.Id);
-        Assert.AreEqual(32, final.Id);
+        Assert.AreEqual(103, tercerPuesto.Id);
+        Assert.AreEqual(104, final.Id);
     }
 }

@@ -1,5 +1,6 @@
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
@@ -462,6 +463,26 @@ public class ServicioClasificacionTests
         // Assert
         Assert.AreSame(grupoA, clasificados.ObtenerGrupoDeOrigen(primerClasificadoGrupoA));
         Assert.AreSame(grupoA, clasificados.ObtenerGrupoDeOrigen(segundoClasificadoGrupoA));
+    }
+
+    [TestMethod]
+    public void ObtenerClasificadosAFaseEliminatoria_ConPartidoDeGrupoSinResultado_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+        var fixture = CrearFixtureConDoceGruposResueltos();
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+        fixture.Grupos[0].Partidos[0].GolesLocal = null;
+        fixture.Grupos[0].Partidos[0].GolesVisitante = null;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
+                fixture,
+                configuracionTorneo
+            )
+        );
     }
 
     private Fixture CrearFixtureConPrimerGrupoDeMenorRendimiento()
