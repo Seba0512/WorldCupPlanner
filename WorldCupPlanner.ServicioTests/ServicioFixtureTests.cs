@@ -615,6 +615,50 @@ public class ServicioFixtureTests
     }
 
     [TestMethod]
+    public void RegenerarFixture_ConFixtureSinResultados_DebeGenerarNuevoFixture()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionOriginal = new ConfiguracionTorneo { SemillaFixture = 1 };
+        var configuracionNueva = new ConfiguracionTorneo { SemillaFixture = 2 };
+        var fixtureActual = servicioFixture.GenerarFixture(equipos, estadios, configuracionOriginal);
+
+        // Act
+        var fixtureRegenerado = servicioFixture.RegenerarFixture(
+            fixtureActual,
+            equipos,
+            estadios,
+            configuracionNueva);
+
+        // Assert
+        Assert.AreEqual(12, fixtureRegenerado.Grupos.Count);
+        Assert.AreEqual(72, fixtureRegenerado.Partidos.Count);
+    }
+
+    [TestMethod]
+    public void RegenerarFixture_ConFixtureConResultados_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
+        var fixtureActual = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        fixtureActual.Partidos[0].GolesLocal = 1;
+        fixtureActual.Partidos[0].GolesVisitante = 0;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioFixture.RegenerarFixture(
+                fixtureActual,
+                equipos,
+                estadios,
+                configuracionTorneo));
+    }
+
+    [TestMethod]
     public void GenerarFixture_DebeAsignarIdsIncrementalesALosPartidos()
     {
         // Arrange

@@ -55,6 +55,17 @@ public class ServicioFixture
         return CrearFixtureConDistribucionRoundRobin(equiposCompletos, estadios, configuracionTorneo);
     }
 
+    public Fixture RegenerarFixture(
+        Fixture fixtureActual,
+        List<Equipo> equipos,
+        List<Estadio> estadios,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        ValidarFixtureSinResultados(fixtureActual);
+
+        return GenerarFixture(equipos, estadios, configuracionTorneo);
+    }
+
     public List<Equipo> CompletarEquipos(
         List<Equipo> equipos,
         ConfiguracionTorneo configuracionTorneo)
@@ -70,6 +81,15 @@ public class ServicioFixture
         }
 
         return equiposCompletos;
+    }
+
+    private void ValidarFixtureSinResultados(Fixture fixture)
+    {
+        if (fixture.Partidos.Any(p => p.EstaJugado()))
+        {
+            throw new EntidadInvalidaExcepcion(
+                "No se puede regenerar el fixture si ya hay resultados cargados.");
+        }
     }
 
     private void ValidarEquiposParaCompletar(List<Equipo> equipos)
