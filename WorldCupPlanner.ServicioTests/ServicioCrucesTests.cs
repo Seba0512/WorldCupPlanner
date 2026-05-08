@@ -799,4 +799,32 @@ public class ServicioCrucesTests
             )
         );
     }
+
+    [TestMethod]
+    public void GenerarCuartos_DebeUsarGanadoresDeOctavos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var cuartos = servicioCruces.GenerarCuartos(
+            octavos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var ganadoresOctavos = octavos
+            .Select(p => p.Ganador())
+            .ToList();
+
+        var equiposEnCuartos = cuartos
+            .SelectMany(p => new[] { p.EquipoLocal, p.EquipoVisitante })
+            .ToList();
+
+        CollectionAssert.AreEquivalent(ganadoresOctavos, equiposEnCuartos);
+    }
 }
