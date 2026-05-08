@@ -890,6 +890,34 @@ public class ServicioFixtureTests
 
         CollectionAssert.AreEqual(rankingsFicticios1, rankingsFicticios2);
     }
+    
+    [TestMethod]
+    public void CompletarEquipos_NoDebeModificarListaOriginal()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        var cantidadOriginal = equipos.Count;
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        // Act
+        var equiposCompletos = servicioFixture.CompletarEquipos(
+            equipos,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(cantidadOriginal, equipos.Count);
+        Assert.AreEqual(48, equiposCompletos.Count);
+    }
 }
 
 
