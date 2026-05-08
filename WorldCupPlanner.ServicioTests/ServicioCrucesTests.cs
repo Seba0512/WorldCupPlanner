@@ -874,4 +874,27 @@ public class ServicioCrucesTests
 
         CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
     }
+
+    [TestMethod]
+    public void GenerarCuartos_DebeAsignarEstadiosPorRotacion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var cuartos = servicioCruces.GenerarCuartos(
+            octavos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(estadios[0], cuartos[0].Estadio);
+        Assert.AreEqual(estadios[1], cuartos[1].Estadio);
+        Assert.AreEqual(estadios[2], cuartos[2].Estadio);
+        Assert.AreEqual(estadios[3], cuartos[3].Estadio);
+    }
 }
