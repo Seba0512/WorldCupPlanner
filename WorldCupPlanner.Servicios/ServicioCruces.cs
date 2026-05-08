@@ -472,6 +472,8 @@ public class ServicioCruces
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
+        ValidarCantidadSemifinales(semifinales);
+
         var perdedores = semifinales
             .Select(ObtenerPerdedor)
             .ToList();
@@ -485,6 +487,14 @@ public class ServicioCruces
             Fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 4),
             Fase = FaseTorneo.TercerPuesto
         };
+    }
+    
+    private void ValidarCantidadSemifinales(List<Partido> semifinales)
+    {
+        if (semifinales.Count != 2)
+        {
+            throw new EntidadInvalidaExcepcion("Para generar tercer puesto deben existir exactamente 2 semifinales.");
+        }
     }
 
     private Equipo? ObtenerPerdedor(Partido partido)
