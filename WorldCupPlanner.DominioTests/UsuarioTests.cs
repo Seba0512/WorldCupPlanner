@@ -512,6 +512,68 @@ public class UsuarioTests
         Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarFechaNacimiento("15/05/1995"));
     }
 
+    [TestMethod]
+    public void VerificarContrasenia_SinContraseniaEstablecida_DebeRetornarFalso()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        var resultado = usuario.VerificarContrasenia("CualquierContrasenia1!");
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConFechaNacimientoVacia_DebeLanzarExcepcion()
+    {
+        // Arrange & Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(new DatosUsuario
+            {
+                Nombre = "Juan",
+                Apellido = "Pérez",
+                Email = "juan.perez@example.com",
+                FechaNacimiento = string.Empty
+            })
+        );
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConFechaInvalidaEnCalendario_DebeLanzarExcepcion()
+    {
+        // El formato coincide con el patrón pero el día 30 de febrero no existe
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Usuario(new DatosUsuario
+            {
+                Nombre = "Juan",
+                Apellido = "Pérez",
+                Email = "juan.perez@example.com",
+                FechaNacimiento = "02-30-2020"
+            })
+        );
+    }
+
+    [TestMethod]
+    public void ActualizarApellido_ConApellidoVacio_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarApellido(string.Empty));
+    }
+
+    [TestMethod]
+    public void ActualizarEmail_ConEmailVacio_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() => usuario.ActualizarEmail(string.Empty));
+    }
 
     private static Usuario CrearUsuarioValido()
     {

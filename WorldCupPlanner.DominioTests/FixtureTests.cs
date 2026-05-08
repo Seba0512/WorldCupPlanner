@@ -33,6 +33,19 @@ public class FixtureTests
         CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
     }
 
+    [TestMethod]
+    public void Fixture_SinGrupos_DebeRetornarListaVacia()
+    {
+        // Arrange
+        var fixture = new Fixture();
+
+        // Act
+        var partidos = fixture.Partidos;
+
+        // Assert
+        Assert.AreEqual(0, partidos.Count);
+    }
+
     private Partido CrearPartido(int id)
     {
         return new Partido

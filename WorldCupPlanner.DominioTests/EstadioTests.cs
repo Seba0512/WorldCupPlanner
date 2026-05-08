@@ -99,6 +99,69 @@ public class EstadioTests
         Assert.IsFalse(resultado);
     }
 
+    [TestMethod]
+    public void Estadio_ConDatosValidos_SinDescripcion_EsValido()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "Montevideo",
+            Capacidad = 20000,
+            Descripcion = null
+        };
+        // Act
+        var resultado = estadio.EsValido();
+        // Assert
+        Assert.IsTrue(resultado);
+    }
 
-    
+    [TestMethod]
+    public void Estadio_ConDatosValidos_ConDescripcionValida_EsValido()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "Montevideo",
+            Capacidad = 20000,
+            Descripcion = "Estadio histórico de Uruguay"
+        };
+        // Act
+        var resultado = estadio.EsValido();
+        // Assert
+        Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void Estadio_NombreEsEspacioBlanco_EsInvalido()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "   ",
+            Ciudad = "Montevideo",
+            Capacidad = 20000
+        };
+        // Act
+        var resultado = estadio.EsValido();
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Estadio_CiudadEsEspacioBlanco_EsInvalido()
+    {
+        // Arrange
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio Centenario",
+            Ciudad = "   ",
+            Capacidad = 20000
+        };
+        // Act
+        var resultado = estadio.EsValido();
+        // Assert
+        Assert.IsFalse(resultado);
+    }
 }

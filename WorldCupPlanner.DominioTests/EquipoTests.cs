@@ -1,4 +1,5 @@
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
 
 namespace WorldCupPlanner.DominioTests;
 
@@ -71,6 +72,42 @@ public class EquipoTests
         equipo.Nombre = "Barcelona";
         equipo.RankingFIFA = 500;
         equipo.Confederacion = null;
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Equipo_ConDatosValidos_EsValido()
+    {
+        // Arrange
+        var equipo = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL
+        };
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void Equipo_ConNombreSoloEspacios_NoEsValido()
+    {
+        // Arrange
+        var equipo = new Equipo
+        {
+            Nombre = "   ",
+            RankingFIFA = 500,
+            Confederacion = Confederacion.UEFA
+        };
 
         // Act
         var resultado = equipo.EsValido();

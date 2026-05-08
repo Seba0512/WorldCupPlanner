@@ -254,7 +254,38 @@ public class GrupoTests
         Assert.IsFalse(resultado);
     }
 
+    [TestMethod]
+    public void Grupo_ConCuatroEquiposDondeUnoEsInvalido_NoEsValido()
+    {
+        // Arrange - 4 equipos en total para superar la validación de cantidad, pero uno es inválido
+        var equipos = new List<Equipo>
+        {
+            CrearEquipoValido("Equipo1", Confederacion.UEFA),
+            CrearEquipoValido("Equipo2", Confederacion.UEFA),
+            CrearEquipoValido("Equipo3", Confederacion.CONMEBOL),
+            new Equipo { Nombre = "", RankingFIFA = 500, Confederacion = Confederacion.AFC }
+        };
+        var grupo = new Grupo("K", equipos);
 
+        // Act
+        var resultado = grupo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Grupo_SinEquipos_NoEsValido()
+    {
+        // Arrange
+        var grupo = new Grupo("L");
+
+        // Act
+        var resultado = grupo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
 
     private Grupo CrearGrupoValido(string etiqueta = "A")
     {
