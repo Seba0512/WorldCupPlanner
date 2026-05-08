@@ -792,6 +792,55 @@ public class ServicioFixtureTests
         Assert.AreEqual(2, equiposFicticios.Count);
         Assert.IsTrue(equiposFicticios.All(e => e.EsValido()));
     }
+    
+    [TestMethod]
+    public void CompletarEquipos_ConDistintasSemillas_DebePermitirEquiposFicticiosDistintos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equiposBase1 = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        var equiposBase2 = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(46)
+            .ToList();
+
+        var configuracionTorneo1 = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1
+        };
+
+        var configuracionTorneo2 = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 2
+        };
+
+        // Act
+        var equiposCompletos1 = servicioFixture.CompletarEquipos(
+            equiposBase1,
+            configuracionTorneo1
+        );
+
+        var equiposCompletos2 = servicioFixture.CompletarEquipos(
+            equiposBase2,
+            configuracionTorneo2
+        );
+
+        // Assert
+        var rankingsFicticios1 = equiposCompletos1
+            .Where(e => e.Nombre.StartsWith("Equipo Ficticio"))
+            .Select(e => e.RankingFIFA)
+            .ToList();
+
+        var rankingsFicticios2 = equiposCompletos2
+            .Where(e => e.Nombre.StartsWith("Equipo Ficticio"))
+            .Select(e => e.RankingFIFA)
+            .ToList();
+
+        CollectionAssert.AreNotEqual(rankingsFicticios1, rankingsFicticios2);
+    }
 }
 
 

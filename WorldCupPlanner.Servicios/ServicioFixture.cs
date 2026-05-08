@@ -39,13 +39,14 @@ public class ServicioFixture
         ConfiguracionTorneo configuracionTorneo)
     {
         var equiposCompletos = equipos.ToList();
+        var random = new Random(configuracionTorneo.SemillaCompletar);
 
         while (equiposCompletos.Count < CantidadExactaEquipos)
         {
             equiposCompletos.Add(new Equipo
             {
                 Nombre = $"Equipo Ficticio {equiposCompletos.Count + 1}",
-                RankingFIFA = 300,
+                RankingFIFA = random.Next(300, 2501),
                 Confederacion = Confederacion.UEFA
             });
         }
