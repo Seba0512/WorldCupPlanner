@@ -1142,4 +1142,25 @@ public class ServicioCrucesTests
 
         CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
     }
+    
+    [TestMethod]
+    public void GenerarSemifinales_DebeAsignarEstadiosPorRotacion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var semifinales = servicioCruces.GenerarSemifinales(
+            cuartos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(estadios[0], semifinales[0].Estadio);
+        Assert.AreEqual(estadios[1], semifinales[1].Estadio);
+    }
 }
