@@ -552,6 +552,7 @@ public class ServicioCruces
         ValidarCantidadSemifinalesParaFinal(semifinales);
         ValidarFaseSemifinalesParaFinal(semifinales);
         ValidarSemifinalesJugadasParaFinal(semifinales);
+        ValidarSemifinalesConGanadorParaFinal(semifinales);
 
         var ganadores = semifinales
             .Select(p => p.Ganador())
@@ -588,6 +589,14 @@ public class ServicioCruces
         if (semifinales.Any(p => !p.EstaJugado()))
         {
             throw new EntidadInvalidaExcepcion("No se puede generar la final si hay semifinales sin jugar.");
+        }
+    }
+    
+    private void ValidarSemifinalesConGanadorParaFinal(List<Partido> semifinales)
+    {
+        if (semifinales.Any(p => p.Ganador() == null))
+        {
+            throw new EntidadInvalidaExcepcion("No se puede generar la final si hay semifinales empatadas.");
         }
     }
 }
