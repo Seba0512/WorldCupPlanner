@@ -47,6 +47,26 @@ public class ServicioSimulacionTests
         return partidos;
     }
 
+    private List<Partido> CrearPartidosEliminatoriosSinResultado(int cantidad)
+    {
+        var partidos = new List<Partido>();
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = i,
+                EquipoLocal = CrearEquipo($"LocalEliminatorio{i}"),
+                EquipoVisitante = CrearEquipo($"VisitanteEliminatorio{i}"),
+                Estadio = CrearEstadio(),
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.PrimeraRondaEliminatoria
+            });
+        }
+
+        return partidos;
+    }
+
     private Equipo CrearEquipo(string nombre)
     {
         return new Equipo
@@ -180,5 +200,26 @@ public class ServicioSimulacionTests
         Assert.IsTrue(partidos[1].GolesVisitante.HasValue);
         Assert.IsTrue(partidos[2].GolesLocal.HasValue);
         Assert.IsTrue(partidos[2].GolesVisitante.HasValue);
+    }
+
+    [TestMethod]
+    public void SimularResultados_ConPartidosEliminatorios_NoDebeGenerarEmpates()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var partidos = CrearPartidosEliminatoriosSinResultado(100);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 1
+        };
+
+        // Act
+        servicioSimulacion.SimularResultados(partidos, configuracionTorneo);
+
+        // Assert
+        Assert.IsTrue(partidos.All(p => p.EstaJugado()));
+        Assert.IsTrue(partidos.All(p => !p.EsEmpate()));
+        Assert.IsTrue(partidos.All(p => p.Ganador() != null));
     }
 }

@@ -1,5 +1,7 @@
 ﻿using WorldCupPlanner.Dominio.Entidades;
 
+using WorldCupPlanner.Dominio.Enumeraciones;
+
 namespace WorldCupPlanner.Servicios;
 
 public class ServicioSimulacion
@@ -22,6 +24,28 @@ public class ServicioSimulacion
 
             partido.GolesLocal = random.Next(GolesMinimos, GolesMaximosExclusivo);
             partido.GolesVisitante = random.Next(GolesMinimos, GolesMaximosExclusivo);
+
+            if (EsFaseEliminatoria(partido) && partido.EsEmpate())
+            {
+                DesempatarPartido(partido);
+            }
+        }
+    }
+
+    private bool EsFaseEliminatoria(Partido partido)
+    {
+        return partido.Fase != FaseTorneo.FaseDeGrupos;
+    }
+
+    private void DesempatarPartido(Partido partido)
+    {
+        if (partido.GolesLocal < GolesMaximosExclusivo - 1)
+        {
+            partido.GolesLocal++;
+        }
+        else
+        {
+            partido.GolesVisitante--;
         }
     }
 }
