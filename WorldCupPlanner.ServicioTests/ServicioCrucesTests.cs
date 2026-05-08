@@ -1190,4 +1190,64 @@ public class ServicioCrucesTests
 
         Assert.IsTrue(semifinales.All(p => p.Fecha == fechaEsperada));
     }
+    
+    private List<Partido> CrearPartidosSemifinalesJugados(int cantidad)
+    {
+        var partidos = new List<Partido>();
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio",
+            Ciudad = "Ciudad",
+            Capacidad = 30000
+        };
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = 28 + i,
+                EquipoLocal = new Equipo
+                {
+                    Nombre = $"LocalSemifinal{i}",
+                    RankingFIFA = 1000 + i,
+                    Confederacion = Confederacion.UEFA
+                },
+                EquipoVisitante = new Equipo
+                {
+                    Nombre = $"VisitanteSemifinal{i}",
+                    RankingFIFA = 900 + i,
+                    Confederacion = Confederacion.CONMEBOL
+                },
+                Estadio = estadio,
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.Semifinal,
+                GolesLocal = 2,
+                GolesVisitante = 0
+            });
+        }
+
+        return partidos;
+    }
+    
+    [TestMethod]
+    public void GenerarTercerPuesto_Con2SemifinalesJugadas_DebeGenerar1Partido()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var tercerPuesto = servicioCruces.GenerarTercerPuesto(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(FaseTorneo.TercerPuesto, tercerPuesto.Fase);
+        Assert.IsNotNull(tercerPuesto.EquipoLocal);
+        Assert.IsNotNull(tercerPuesto.EquipoVisitante);
+    }
 }
