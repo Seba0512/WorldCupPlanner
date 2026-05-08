@@ -1619,4 +1619,76 @@ public class ServicioCrucesTests
         // Assert
         Assert.AreEqual(estadios[0], final.Estadio);
     }
+    
+    private void MarcarPartidosComoJugados(List<Partido> partidos)
+    {
+        foreach (var partido in partidos)
+        {
+            partido.GolesLocal = 2;
+            partido.GolesVisitante = 0;
+        }
+    }
+    
+    [TestMethod]
+    public void GenerarFaseEliminatoria_CompletaDesdePrimeraRonda_DebeGenerarHastaFinal()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            FechaInicioTorneo = new DateTime(2026, 6, 1),
+            SeparacionEntreFechas = 3
+        };
+
+        var primeraRonda = CrearPartidosPrimeraRondaJugados(16);
+
+        // Act
+        var octavos = servicioCruces.GenerarOctavos(
+            primeraRonda,
+            estadios,
+            configuracionTorneo
+        );
+
+        MarcarPartidosComoJugados(octavos);
+
+        var cuartos = servicioCruces.GenerarCuartos(
+            octavos,
+            estadios,
+            configuracionTorneo
+        );
+
+        MarcarPartidosComoJugados(cuartos);
+
+        var semifinales = servicioCruces.GenerarSemifinales(
+            cuartos,
+            estadios,
+            configuracionTorneo
+        );
+
+        MarcarPartidosComoJugados(semifinales);
+
+        var tercerPuesto = servicioCruces.GenerarTercerPuesto(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        var final = servicioCruces.GenerarFinal(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(8, octavos.Count);
+        Assert.AreEqual(4, cuartos.Count);
+        Assert.AreEqual(2, semifinales.Count);
+
+        Assert.AreEqual(FaseTorneo.TercerPuesto, tercerPuesto.Fase);
+        Assert.AreEqual(FaseTorneo.Final, final.Fase);
+
+        Assert.AreEqual(31, tercerPuesto.Id);
+        Assert.AreEqual(32, final.Id);
+    }
 }
