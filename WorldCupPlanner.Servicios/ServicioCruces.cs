@@ -549,6 +549,8 @@ public class ServicioCruces
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
+        ValidarCantidadSemifinalesParaFinal(semifinales);
+
         var ganadores = semifinales
             .Select(p => p.Ganador())
             .ToList();
@@ -562,5 +564,12 @@ public class ServicioCruces
             Fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 5),
             Fase = FaseTorneo.Final
         };
+    }
+    private void ValidarCantidadSemifinalesParaFinal(List<Partido> semifinales)
+    {
+        if (semifinales.Count != 2)
+        {
+            throw new EntidadInvalidaExcepcion("Para generar la final deben existir exactamente 2 semifinales.");
+        }
     }
 }

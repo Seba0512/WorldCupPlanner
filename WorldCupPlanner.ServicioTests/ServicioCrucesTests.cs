@@ -1447,4 +1447,23 @@ public class ServicioCrucesTests
         Assert.IsNotNull(final.EquipoLocal);
         Assert.IsNotNull(final.EquipoVisitante);
     }
+    
+    [TestMethod]
+    public void GenerarFinal_ConCantidadDistintaA2Semifinales_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(1);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarFinal(
+                semifinales,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
 }
