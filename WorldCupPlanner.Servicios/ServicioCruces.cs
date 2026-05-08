@@ -473,6 +473,7 @@ public class ServicioCruces
         ConfiguracionTorneo configuracionTorneo)
     {
         ValidarCantidadSemifinales(semifinales);
+        ValidarFaseSemifinales(semifinales);
 
         var perdedores = semifinales
             .Select(ObtenerPerdedor)
@@ -487,6 +488,14 @@ public class ServicioCruces
             Fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 4),
             Fase = FaseTorneo.TercerPuesto
         };
+    }
+    
+    private void ValidarFaseSemifinales(List<Partido> semifinales)
+    {
+        if (semifinales.Any(p => p.Fase != FaseTorneo.Semifinal))
+        {
+            throw new EntidadInvalidaExcepcion("Para generar tercer puesto todos los partidos deben ser semifinales.");
+        }
     }
     
     private void ValidarCantidadSemifinales(List<Partido> semifinales)
@@ -516,4 +525,6 @@ public class ServicioCruces
 
         return null;
     }
+    
+    
 }
