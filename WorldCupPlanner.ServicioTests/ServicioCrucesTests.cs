@@ -1531,4 +1531,25 @@ public class ServicioCrucesTests
             )
         );
     }
+    
+    [TestMethod]
+    public void GenerarFinal_DebeUsarGanadoresDeSemifinales()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var final = servicioCruces.GenerarFinal(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(semifinales[0].Ganador(), final.EquipoLocal);
+        Assert.AreEqual(semifinales[1].Ganador(), final.EquipoVisitante);
+    }
 }
