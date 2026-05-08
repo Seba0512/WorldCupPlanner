@@ -10,6 +10,7 @@ namespace WorldCupPlanner.Servicios
     {
         private readonly IRepositorio<Equipo> _repositorio;
         private readonly ServicioAuditoria? _auditoria;
+        private Fixture? _fixtureGenerado;
 
         public ServicioEquipo()
         {
@@ -97,8 +98,15 @@ namespace WorldCupPlanner.Servicios
 
         public void Eliminar(Equipo equipo)
         {
+            ValidarEquipoNoEstaEnFixture(equipo);
+
             _repositorio.Eliminar(equipo);
             _auditoria?.Registrar("Sistema", "Baja", $"Equipo: {equipo.Nombre}, Confederacion: {equipo.Confederacion}");
+        }
+
+        public void RegistrarFixtureGenerado(Fixture fixture)
+        {
+            _fixtureGenerado = fixture;
         }
 
         public List<Equipo> Buscar(Func<Equipo, bool> predicado) => _repositorio.Buscar(predicado);
@@ -134,6 +142,20 @@ namespace WorldCupPlanner.Servicios
             if (inscritos >= cupo)
                 throw new InvalidOperationException(
                     $"La confederación {equipo.Confederacion!.Value} ya alcanzó su cupo máximo de {cupo} equipos.");
+        }
+
+        private void ValidarEquipoNoEstaEnFixture(Equipo equipo)
+        {
+            if (_fixtureGenerado == null)
+            {
+                return;
+            }
+
+            if (_fixtureGenerado.Grupos.Any(g => g.Equipos.Any(e => e.Nombre == equipo.Nombre)))
+            {
+                throw new EntidadInvalidaExcepcion(
+                    "No se puede eliminar un equipo que existe en un fixture generado.");
+            }
         }
     }
 }

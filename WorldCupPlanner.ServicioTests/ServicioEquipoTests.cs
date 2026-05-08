@@ -173,6 +173,18 @@ public class ServicioEquipoTests
     }
 
     [TestMethod]
+    public void Eliminar_EquipoUsadoEnFixture_DebeLanzarExcepcion()
+    {
+        var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+        var fixture = CrearFixtureConEquipo(equipo);
+        _servicio.Agregar(equipo);
+        _servicio.RegistrarFixtureGenerado(fixture);
+
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            _servicio.Eliminar(equipo));
+    }
+
+    [TestMethod]
     public void Buscar_ConPredicadoCoincidente_DevuelveEquiposCorrespondientes()
     {
         _servicio.Agregar(CrearEquipo("España", Confederacion.UEFA));
@@ -430,4 +442,21 @@ public class ServicioEquipoTests
         RankingFIFA = 1000,
         Confederacion = confederacion
     };
+
+    private static Fixture CrearFixtureConEquipo(Equipo equipo)
+    {
+        return new Fixture
+        {
+            Grupos =
+            {
+                new Grupo("A", new List<Equipo>
+                {
+                    equipo,
+                    CrearEquipo("Argentina", Confederacion.CONMEBOL),
+                    CrearEquipo("Francia", Confederacion.UEFA),
+                    CrearEquipo("Marruecos", Confederacion.CAF)
+                })
+            }
+        };
+    }
 }

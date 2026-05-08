@@ -1,6 +1,7 @@
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
@@ -75,6 +76,18 @@ public class ServicioEstadioTests
         _servicio.EliminarEstadio(estadio);
 
         Assert.AreEqual(0, _servicio.ObtenerEstadios().Count);
+    }
+
+    [TestMethod]
+    public void EliminarEstadio_EstadioUsadoEnFixture_DebeLanzarExcepcion()
+    {
+        var estadio = CrearEstadio();
+        var fixture = CrearFixtureConEstadio(estadio);
+        _servicio.AgregarEstadio(estadio);
+        _servicio.RegistrarFixtureGenerado(fixture);
+
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            _servicio.EliminarEstadio(estadio));
     }
 
     [TestMethod]
@@ -206,5 +219,54 @@ public class ServicioEstadioTests
         servicio.AgregarEstadio(CrearEstadio());
 
         Assert.AreEqual("Sistema", repoAuditoria.Entradas[0].Usuario);
+    }
+
+    private static Fixture CrearFixtureConEstadio(Estadio estadio)
+    {
+        var equipoLocal = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL
+        };
+        var equipoVisitante = new Equipo
+        {
+            Nombre = "Francia",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.UEFA
+        };
+        var grupo = new Grupo("A", new List<Equipo>
+        {
+            equipoLocal,
+            equipoVisitante,
+            new Equipo
+            {
+                Nombre = "Marruecos",
+                RankingFIFA = 1000,
+                Confederacion = Confederacion.CAF
+            },
+            new Equipo
+            {
+                Nombre = "Japon",
+                RankingFIFA = 1000,
+                Confederacion = Confederacion.AFC
+            }
+        });
+
+        grupo.Partidos.Add(new Partido
+        {
+            Id = 1,
+            Fecha = new DateTime(2026, 6, 1),
+            Estadio = estadio,
+            EquipoLocal = equipoLocal,
+            EquipoVisitante = equipoVisitante,
+            Fase = FaseTorneo.FaseDeGrupos,
+            Grupo = grupo
+        });
+
+        return new Fixture
+        {
+            Grupos = { grupo }
+        };
     }
 }

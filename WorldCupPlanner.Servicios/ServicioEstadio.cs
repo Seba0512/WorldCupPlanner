@@ -9,6 +9,7 @@ public class ServicioEstadio
 {
     private readonly IRepositorio<Estadio> _repositorioEstadio;
     private readonly ServicioAuditoria? _auditoria;
+    private Fixture? _fixtureGenerado;
 
     public ServicioEstadio()
     {
@@ -48,12 +49,33 @@ public class ServicioEstadio
 
     public void EliminarEstadio(Estadio estadio)
     {
+        ValidarEstadioNoEstaEnFixture(estadio);
+
         _repositorioEstadio.Eliminar(estadio);
         _auditoria?.Registrar("Sistema", "Baja", $"Estadio: {estadio.Nombre}, Ciudad: {estadio.Ciudad}");
+    }
+
+    public void RegistrarFixtureGenerado(Fixture fixture)
+    {
+        _fixtureGenerado = fixture;
     }
 
     public List<Estadio> ObtenerEstadios()
     {
         return _repositorioEstadio.Buscar(_ => true);
+    }
+
+    private void ValidarEstadioNoEstaEnFixture(Estadio estadio)
+    {
+        if (_fixtureGenerado == null)
+        {
+            return;
+        }
+
+        if (_fixtureGenerado.Partidos.Any(p => p.Estadio?.Nombre == estadio.Nombre))
+        {
+            throw new EntidadInvalidaExcepcion(
+                "No se puede eliminar un estadio que existe en un fixture generado.");
+        }
     }
 }
