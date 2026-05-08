@@ -612,6 +612,7 @@ public enum FaseTorneo
     Octavos,
     Cuartos,
     Semifinal,
+    TercerPuesto,
     Final
 }
 ~~~
@@ -951,6 +952,7 @@ Ruta: WorldCupPlanner.Servicios\ServicioCruces.cs
 ~~~csharp
 using  WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -1232,42 +1234,262 @@ public class ServicioCruces
 
         return grupo1 != null && ReferenceEquals(grupo1, grupo2);
     }
-    
+
     public List<Partido> GenerarOctavos(
         List<Partido> partidosPrimeraRonda,
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
-        if (partidosPrimeraRonda.Any(p => !p.EstaJugado()))
-        {
-            throw new InvalidOperationException("No se pueden generar octavos si hay partidos de primera ronda sin jugar.");
-        }
+        ValidarPartidosDeFaseAnterior(
+            partidosPrimeraRonda,
+            16,
+            FaseTorneo.PrimeraRondaEliminatoria,
+            "octavos",
+            "primera ronda",
+            "primera ronda eliminatoria");
 
-        var ganadores = partidosPrimeraRonda
-            .Select(p => p.Ganador())
-            .ToList();
-
+        var ganadores = ObtenerGanadores(partidosPrimeraRonda);
         var partidos = new List<Partido>();
         var proximoId = partidosPrimeraRonda.Max(p => p.Id) + 1;
+        var fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas);
 
-        for (int i = 0; i < ganadores.Count; i += 2)
+        for (int i = 0; i < 8; i++)
         {
-            partidos.Add(new Partido
-            {
-                Id = proximoId,
-                EquipoLocal = ganadores[i],
-                EquipoVisitante = ganadores[i + 1],
-                Estadio = estadios[partidos.Count % estadios.Count],
-                Fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas),
-                Fase = FaseTorneo.Octavos
-            });
-
-            proximoId++;
+            partidos.Add(CrearPartidoEliminatorio(
+                proximoId++,
+                ganadores[i],
+                ganadores[i + 8],
+                estadios[partidos.Count % estadios.Count],
+                fecha,
+                FaseTorneo.Octavos));
         }
 
         return partidos;
     }
+
+    public List<Partido> GenerarCuartos(
+        List<Partido> octavos,
+        List<Estadio> estadios,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        ValidarPartidosDeFaseAnterior(
+            octavos,
+            8,
+            FaseTorneo.Octavos,
+            "cuartos",
+            "octavos");
+
+        var ganadores = ObtenerGanadores(octavos);
+        var partidos = new List<Partido>();
+        var proximoId = octavos.Max(p => p.Id) + 1;
+        var fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 2);
+
+        for (int i = 0; i < 4; i++)
+        {
+            partidos.Add(CrearPartidoEliminatorio(
+                proximoId++,
+                ganadores[i * 2],
+                ganadores[i * 2 + 1],
+                estadios[partidos.Count % estadios.Count],
+                fecha,
+                FaseTorneo.Cuartos));
+        }
+
+        return partidos;
+    }
+
+    public List<Partido> GenerarSemifinales(
+        List<Partido> cuartos,
+        List<Estadio> estadios,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        ValidarPartidosDeFaseAnterior(
+            cuartos,
+            4,
+            FaseTorneo.Cuartos,
+            "semifinales",
+            "cuartos");
+
+        var ganadores = ObtenerGanadores(cuartos);
+        var partidos = new List<Partido>();
+        var proximoId = cuartos.Max(p => p.Id) + 1;
+        var fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 3);
+
+        for (int i = 0; i < 2; i++)
+        {
+            partidos.Add(CrearPartidoEliminatorio(
+                proximoId++,
+                ganadores[i * 2],
+                ganadores[i * 2 + 1],
+                estadios[partidos.Count % estadios.Count],
+                fecha,
+                FaseTorneo.Semifinal));
+        }
+
+        return partidos;
+    }
+
+    private void ValidarPartidosDeFaseAnterior(
+        List<Partido> partidos,
+        int cantidadEsperada,
+        FaseTorneo faseEsperada,
+        string faseAGenerar,
+        string faseAnterior,
+        string? faseAnteriorEsperada = null)
+    {
+        ValidarCantidadPartidos(partidos, cantidadEsperada, faseAGenerar, faseAnterior);
+        ValidarFasePartidos(partidos, faseEsperada, faseAGenerar, faseAnteriorEsperada ?? faseAnterior);
+        ValidarPartidosJugados(partidos, faseAGenerar, faseAnterior);
+        ValidarPartidosConGanador(partidos, faseAGenerar, faseAnterior);
+    }
+
+    private void ValidarCantidadPartidos(
+        List<Partido> partidos,
+        int cantidadEsperada,
+        string faseAGenerar,
+        string faseAnterior)
+    {
+        if (partidos.Count != cantidadEsperada)
+        {
+            throw new EntidadInvalidaExcepcion(
+                $"Para generar {faseAGenerar} deben existir exactamente {cantidadEsperada} partidos de {faseAnterior}.");
+        }
+    }
+
+    private void ValidarFasePartidos(
+        List<Partido> partidos,
+        FaseTorneo faseEsperada,
+        string faseAGenerar,
+        string faseAnterior)
+    {
+        if (partidos.Any(p => p.Fase != faseEsperada))
+        {
+            throw new EntidadInvalidaExcepcion(
+                $"Para generar {faseAGenerar} todos los partidos deben ser de {faseAnterior}.");
+        }
+    }
+
+    private void ValidarPartidosJugados(
+        List<Partido> partidos,
+        string faseAGenerar,
+        string faseAnterior)
+    {
+        if (partidos.Any(p => !p.EstaJugado()))
+        {
+            throw new EntidadInvalidaExcepcion(
+                $"No se pueden generar {faseAGenerar} si hay partidos de {faseAnterior} sin jugar.");
+        }
+    }
+
+    private void ValidarPartidosConGanador(
+        List<Partido> partidos,
+        string faseAGenerar,
+        string faseAnterior)
+    {
+        if (partidos.Any(p => p.Ganador() == null))
+        {
+            throw new EntidadInvalidaExcepcion(
+                $"No se pueden generar {faseAGenerar} si hay partidos de {faseAnterior} empatados.");
+        }
+    }
+
+    private List<Equipo> ObtenerGanadores(List<Partido> partidos)
+    {
+        return partidos
+            .Select(p => p.Ganador()!)
+            .ToList();
+    }
+
+    private Partido CrearPartidoEliminatorio(
+        int id,
+        Equipo equipoLocal,
+        Equipo equipoVisitante,
+        Estadio estadio,
+        DateTime fecha,
+        FaseTorneo fase)
+    {
+        return new Partido
+        {
+            Id = id,
+            EquipoLocal = equipoLocal,
+            EquipoVisitante = equipoVisitante,
+            Estadio = estadio,
+            Fecha = fecha,
+            Fase = fase
+        };
+    }
+
+    public Partido GenerarTercerPuesto(
+        List<Partido> semifinales,
+        List<Estadio> estadios,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        ValidarPartidosDeFaseAnterior(
+            semifinales,
+            2,
+            FaseTorneo.Semifinal,
+            "tercer puesto",
+            "semifinales");
+
+        var perdedores = ObtenerPerdedores(semifinales);
+
+        return CrearPartidoEliminatorio(
+            semifinales.Max(p => p.Id) + 1,
+            perdedores[0],
+            perdedores[1],
+            estadios[0],
+            configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 4),
+            FaseTorneo.TercerPuesto);
+    }
+    
+    private List<Equipo> ObtenerPerdedores(List<Partido> partidos)
+    {
+        return partidos
+            .Select(ObtenerPerdedor)
+            .ToList();
+    }
+
+    private Equipo ObtenerPerdedor(Partido partido)
+    {
+        var ganador = partido.Ganador();
+
+        if (ganador == null)
+        {
+            throw new EntidadInvalidaExcepcion("No se puede obtener perdedor de un partido sin ganador.");
+        }
+
+        if (ReferenceEquals(ganador, partido.EquipoLocal))
+        {
+            return partido.EquipoVisitante!;
+        }
+
+        return partido.EquipoLocal!;
+    }
+    
+    public Partido GenerarFinal(
+        List<Partido> semifinales,
+        List<Estadio> estadios,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        ValidarPartidosDeFaseAnterior(
+            semifinales,
+            2,
+            FaseTorneo.Semifinal,
+            "la final",
+            "semifinales");
+
+        var ganadores = ObtenerGanadores(semifinales);
+
+        return CrearPartidoEliminatorio(
+            semifinales.Max(p => p.Id) + 2,
+            ganadores[0],
+            ganadores[1],
+            estadios[0],
+            configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 5),
+            FaseTorneo.Final);
+    }
 }
+
 ~~~
 
 ### ServicioEquipo.cs
@@ -2592,6 +2814,7 @@ Ruta: WorldCupPlanner.ServicioTests\ServicioCrucesTests.cs
 ~~~csharp
 using  WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
@@ -3044,6 +3267,82 @@ public class ServicioCrucesTests
 
         return partidos;
     }
+
+    private List<Partido> CrearPartidosOctavosJugados(int cantidad)
+    {
+        var partidos = new List<Partido>();
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio",
+            Ciudad = "Ciudad",
+            Capacidad = 30000
+        };
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = 16 + i,
+                EquipoLocal = new Equipo
+                {
+                    Nombre = $"LocalOctavos{i}",
+                    RankingFIFA = 1000 + i,
+                    Confederacion = Confederacion.UEFA
+                },
+                EquipoVisitante = new Equipo
+                {
+                    Nombre = $"VisitanteOctavos{i}",
+                    RankingFIFA = 900 + i,
+                    Confederacion = Confederacion.CONMEBOL
+                },
+                Estadio = estadio,
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.Octavos,
+                GolesLocal = 2,
+                GolesVisitante = 0
+            });
+        }
+
+        return partidos;
+    }
+
+    private List<Partido> CrearPartidosCuartosJugados(int cantidad)
+    {
+        var partidos = new List<Partido>();
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio",
+            Ciudad = "Ciudad",
+            Capacidad = 30000
+        };
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = 24 + i,
+                EquipoLocal = new Equipo
+                {
+                    Nombre = $"LocalCuartos{i}",
+                    RankingFIFA = 1000 + i,
+                    Confederacion = Confederacion.UEFA
+                },
+                EquipoVisitante = new Equipo
+                {
+                    Nombre = $"VisitanteCuartos{i}",
+                    RankingFIFA = 900 + i,
+                    Confederacion = Confederacion.CONMEBOL
+                },
+                Estadio = estadio,
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.Cuartos,
+                GolesLocal = 2,
+                GolesVisitante = 0
+            });
+        }
+
+        return partidos;
+    }
     
     [TestMethod]
     public void GenerarOctavos_DebeUsarGanadoresDePrimeraRonda()
@@ -3071,6 +3370,30 @@ public class ServicioCrucesTests
             .ToList();
 
         CollectionAssert.AreEquivalent(ganadoresPrimeraRonda, equiposEnOctavos);
+    }
+
+    [TestMethod]
+    public void GenerarOctavos_DebeCruzarGanadoresAContraGanadoresB()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var partidosPrimeraRonda = CrearPartidosPrimeraRondaJugados();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var octavos = servicioCruces.GenerarOctavos(
+            partidosPrimeraRonda,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        for (int i = 0; i < 8; i++)
+        {
+            Assert.AreEqual(partidosPrimeraRonda[i].Ganador(), octavos[i].EquipoLocal);
+            Assert.AreEqual(partidosPrimeraRonda[i + 8].Ganador(), octavos[i].EquipoVisitante);
+        }
     }
     
     [TestMethod]
@@ -3153,7 +3476,7 @@ public class ServicioCrucesTests
         partidosPrimeraRonda[0].GolesVisitante = null;
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicioCruces.GenerarOctavos(
                 partidosPrimeraRonda,
                 estadios,
@@ -3161,7 +3484,1029 @@ public class ServicioCrucesTests
             )
         );
     }
+
+    [TestMethod]
+    public void GenerarOctavos_ConCantidadDistintaA16Partidos_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var partidosPrimeraRonda = CrearPartidosPrimeraRondaJugados(15);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarOctavos(
+                partidosPrimeraRonda,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+
+    [TestMethod]
+    public void GenerarOctavos_ConPartidoQueNoEsDePrimeraRonda_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var partidosPrimeraRonda = CrearPartidosPrimeraRondaJugados(16);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        partidosPrimeraRonda[0].Fase = FaseTorneo.FaseDeGrupos;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarOctavos(
+                partidosPrimeraRonda,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+
+    [TestMethod]
+    public void GenerarOctavos_ConPartidoPrimeraRondaEmpatado_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var partidosPrimeraRonda = CrearPartidosPrimeraRondaJugados(16);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        partidosPrimeraRonda[0].GolesLocal = 1;
+        partidosPrimeraRonda[0].GolesVisitante = 1;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarOctavos(
+                partidosPrimeraRonda,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+
+    [TestMethod]
+    public void GenerarCuartos_Con8OctavosJugados_DebeGenerar4Partidos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var cuartos = servicioCruces.GenerarCuartos(
+            octavos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(4, cuartos.Count);
+        Assert.IsTrue(cuartos.All(p => p.Fase == FaseTorneo.Cuartos));
+    }
+
+    [TestMethod]
+    public void GenerarCuartos_ConCantidadDistintaA8Octavos_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(7);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarCuartos(
+                octavos,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+
+    [TestMethod]
+    public void GenerarCuartos_ConPartidoQueNoEsOctavos_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        octavos[0].Fase = FaseTorneo.PrimeraRondaEliminatoria;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarCuartos(
+                octavos,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+
+    [TestMethod]
+    public void GenerarCuartos_ConOctavoNoJugado_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        octavos[0].GolesLocal = null;
+        octavos[0].GolesVisitante = null;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarCuartos(
+                octavos,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+
+    [TestMethod]
+    public void GenerarCuartos_ConOctavoEmpatado_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        octavos[0].GolesLocal = 1;
+        octavos[0].GolesVisitante = 1;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarCuartos(
+                octavos,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+
+    [TestMethod]
+    public void GenerarCuartos_DebeUsarGanadoresDeOctavos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var cuartos = servicioCruces.GenerarCuartos(
+            octavos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var ganadoresOctavos = octavos
+            .Select(p => p.Ganador())
+            .ToList();
+
+        var equiposEnCuartos = cuartos
+            .SelectMany(p => new[] { p.EquipoLocal, p.EquipoVisitante })
+            .ToList();
+
+        CollectionAssert.AreEquivalent(ganadoresOctavos, equiposEnCuartos);
+    }
+
+    [TestMethod]
+    public void GenerarCuartos_DebeCruzarGanadoresDeOctavosDeADos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var cuartos = servicioCruces.GenerarCuartos(
+            octavos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        for (int i = 0; i < 4; i++)
+        {
+            Assert.AreEqual(octavos[i * 2].Ganador(), cuartos[i].EquipoLocal);
+            Assert.AreEqual(octavos[i * 2 + 1].Ganador(), cuartos[i].EquipoVisitante);
+        }
+    }
+
+    [TestMethod]
+    public void GenerarCuartos_DebeAsignarIdsIncrementalesLuegoDeOctavos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var cuartos = servicioCruces.GenerarCuartos(
+            octavos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var idsEsperados = Enumerable.Range(25, 4).ToList();
+        var idsObtenidos = cuartos.Select(p => p.Id).ToList();
+
+        CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
+    }
+
+    [TestMethod]
+    public void GenerarCuartos_DebeAsignarEstadiosPorRotacion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var cuartos = servicioCruces.GenerarCuartos(
+            octavos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(estadios[0], cuartos[0].Estadio);
+        Assert.AreEqual(estadios[1], cuartos[1].Estadio);
+        Assert.AreEqual(estadios[2], cuartos[2].Estadio);
+        Assert.AreEqual(estadios[3], cuartos[3].Estadio);
+    }
+
+    [TestMethod]
+    public void GenerarCuartos_DebeAsignarFechaSegunConfiguracion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            FechaInicioTorneo = new DateTime(2026, 6, 1),
+            SeparacionEntreFechas = 3
+        };
+
+        // Act
+        var cuartos = servicioCruces.GenerarCuartos(
+            octavos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var fechaEsperada = new DateTime(2026, 6, 7);
+
+        Assert.IsTrue(cuartos.All(p => p.Fecha == fechaEsperada));
+    }
+
+    [TestMethod]
+    public void GenerarSemifinales_Con4CuartosJugados_DebeGenerar2Partidos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var semifinales = servicioCruces.GenerarSemifinales(
+            cuartos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(2, semifinales.Count);
+        Assert.IsTrue(semifinales.All(p => p.Fase == FaseTorneo.Semifinal));
+    }
+
+    [TestMethod]
+    public void GenerarSemifinales_ConCantidadDistintaA4Cuartos_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(3);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarSemifinales(
+                cuartos,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+
+    [TestMethod]
+    public void GenerarSemifinales_ConPartidoQueNoEsCuartos_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        cuartos[0].Fase = FaseTorneo.Octavos;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarSemifinales(
+                cuartos,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+
+    [TestMethod]
+    public void GenerarSemifinales_ConCuartoNoJugado_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        cuartos[0].GolesLocal = null;
+        cuartos[0].GolesVisitante = null;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarSemifinales(
+                cuartos,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+
+    [TestMethod]
+    public void GenerarSemifinales_ConCuartoEmpatado_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        cuartos[0].GolesLocal = 1;
+        cuartos[0].GolesVisitante = 1;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarSemifinales(
+                cuartos,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+
+    [TestMethod]
+    public void GenerarSemifinales_DebeUsarGanadoresDeCuartos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var semifinales = servicioCruces.GenerarSemifinales(
+            cuartos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var ganadoresCuartos = cuartos
+            .Select(p => p.Ganador())
+            .ToList();
+
+        var equiposEnSemifinales = semifinales
+            .SelectMany(p => new[] { p.EquipoLocal, p.EquipoVisitante })
+            .ToList();
+
+        CollectionAssert.AreEquivalent(ganadoresCuartos, equiposEnSemifinales);
+    }
+
+    [TestMethod]
+    public void GenerarSemifinales_DebeCruzarGanadoresDeCuartosDeADos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var semifinales = servicioCruces.GenerarSemifinales(
+            cuartos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        for (int i = 0; i < 2; i++)
+        {
+            Assert.AreEqual(cuartos[i * 2].Ganador(), semifinales[i].EquipoLocal);
+            Assert.AreEqual(cuartos[i * 2 + 1].Ganador(), semifinales[i].EquipoVisitante);
+        }
+    }
+    
+    [TestMethod]
+    public void GenerarSemifinales_DebeAsignarIdsIncrementalesLuegoDeCuartos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var semifinales = servicioCruces.GenerarSemifinales(
+            cuartos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var idsEsperados = Enumerable.Range(29, 2).ToList();
+        var idsObtenidos = semifinales.Select(p => p.Id).ToList();
+
+        CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
+    }
+    
+    [TestMethod]
+    public void GenerarSemifinales_DebeAsignarEstadiosPorRotacion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var semifinales = servicioCruces.GenerarSemifinales(
+            cuartos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(estadios[0], semifinales[0].Estadio);
+        Assert.AreEqual(estadios[1], semifinales[1].Estadio);
+    }
+    
+    [TestMethod]
+    public void GenerarSemifinales_DebeAsignarFechaSegunConfiguracion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            FechaInicioTorneo = new DateTime(2026, 6, 1),
+            SeparacionEntreFechas = 3
+        };
+
+        // Act
+        var semifinales = servicioCruces.GenerarSemifinales(
+            cuartos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var fechaEsperada = new DateTime(2026, 6, 10);
+
+        Assert.IsTrue(semifinales.All(p => p.Fecha == fechaEsperada));
+    }
+    
+    private List<Partido> CrearPartidosSemifinalesJugados(int cantidad)
+    {
+        var partidos = new List<Partido>();
+        var estadio = new Estadio
+        {
+            Nombre = "Estadio",
+            Ciudad = "Ciudad",
+            Capacidad = 30000
+        };
+
+        for (int i = 1; i <= cantidad; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = 28 + i,
+                EquipoLocal = new Equipo
+                {
+                    Nombre = $"LocalSemifinal{i}",
+                    RankingFIFA = 1000 + i,
+                    Confederacion = Confederacion.UEFA
+                },
+                EquipoVisitante = new Equipo
+                {
+                    Nombre = $"VisitanteSemifinal{i}",
+                    RankingFIFA = 900 + i,
+                    Confederacion = Confederacion.CONMEBOL
+                },
+                Estadio = estadio,
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.Semifinal,
+                GolesLocal = 2,
+                GolesVisitante = 0
+            });
+        }
+
+        return partidos;
+    }
+    
+    [TestMethod]
+    public void GenerarTercerPuesto_Con2SemifinalesJugadas_DebeGenerar1Partido()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var tercerPuesto = servicioCruces.GenerarTercerPuesto(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(FaseTorneo.TercerPuesto, tercerPuesto.Fase);
+        Assert.IsNotNull(tercerPuesto.EquipoLocal);
+        Assert.IsNotNull(tercerPuesto.EquipoVisitante);
+    }
+    
+    [TestMethod]
+    public void GenerarTercerPuesto_ConCantidadDistintaA2Semifinales_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(1);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarTercerPuesto(
+                semifinales,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+    
+    [TestMethod]
+    public void GenerarTercerPuesto_ConPartidoQueNoEsSemifinal_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        semifinales[0].Fase = FaseTorneo.Cuartos;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarTercerPuesto(
+                semifinales,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+    
+    [TestMethod]
+    public void GenerarTercerPuesto_ConSemifinalNoJugada_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        semifinales[0].GolesLocal = null;
+        semifinales[0].GolesVisitante = null;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarTercerPuesto(
+                semifinales,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+    
+    [TestMethod]
+    public void GenerarTercerPuesto_ConSemifinalEmpatada_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        semifinales[0].GolesLocal = 1;
+        semifinales[0].GolesVisitante = 1;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarTercerPuesto(
+                semifinales,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+    
+    [TestMethod]
+    public void GenerarTercerPuesto_DebeUsarPerdedoresDeSemifinales()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var tercerPuesto = servicioCruces.GenerarTercerPuesto(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var perdedorSemifinal1 = semifinales[0].EquipoVisitante;
+        var perdedorSemifinal2 = semifinales[1].EquipoVisitante;
+
+        Assert.AreEqual(perdedorSemifinal1, tercerPuesto.EquipoLocal);
+        Assert.AreEqual(perdedorSemifinal2, tercerPuesto.EquipoVisitante);
+    }
+    
+    [TestMethod]
+    public void GenerarTercerPuesto_DebeAsignarIdLuegoDeSemifinales()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var tercerPuesto = servicioCruces.GenerarTercerPuesto(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(31, tercerPuesto.Id);
+    }
+    
+    [TestMethod]
+    public void GenerarTercerPuesto_DebeAsignarFechaSegunConfiguracion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            FechaInicioTorneo = new DateTime(2026, 6, 1),
+            SeparacionEntreFechas = 3
+        };
+
+        // Act
+        var tercerPuesto = servicioCruces.GenerarTercerPuesto(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var fechaEsperada = new DateTime(2026, 6, 13);
+
+        Assert.AreEqual(fechaEsperada, tercerPuesto.Fecha);
+    }
+    
+    [TestMethod]
+    public void GenerarTercerPuesto_DebeAsignarPrimerEstadio()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var tercerPuesto = servicioCruces.GenerarTercerPuesto(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(estadios[0], tercerPuesto.Estadio);
+    }
+    
+    [TestMethod]
+    public void GenerarFinal_Con2SemifinalesJugadas_DebeGenerar1Partido()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var final = servicioCruces.GenerarFinal(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(FaseTorneo.Final, final.Fase);
+        Assert.IsNotNull(final.EquipoLocal);
+        Assert.IsNotNull(final.EquipoVisitante);
+    }
+    
+    [TestMethod]
+    public void GenerarFinal_ConCantidadDistintaA2Semifinales_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(1);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarFinal(
+                semifinales,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+    
+    [TestMethod]
+    public void GenerarFinal_ConPartidoQueNoEsSemifinal_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        semifinales[0].Fase = FaseTorneo.Cuartos;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarFinal(
+                semifinales,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+    
+    [TestMethod]
+    public void GenerarFinal_ConSemifinalNoJugada_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        semifinales[0].GolesLocal = null;
+        semifinales[0].GolesVisitante = null;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarFinal(
+                semifinales,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+    
+    [TestMethod]
+    public void GenerarFinal_ConSemifinalEmpatada_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        semifinales[0].GolesLocal = 1;
+        semifinales[0].GolesVisitante = 1;
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarFinal(
+                semifinales,
+                estadios,
+                configuracionTorneo
+            )
+        );
+    }
+    
+    [TestMethod]
+    public void GenerarFinal_DebeUsarGanadoresDeSemifinales()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var final = servicioCruces.GenerarFinal(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(semifinales[0].Ganador(), final.EquipoLocal);
+        Assert.AreEqual(semifinales[1].Ganador(), final.EquipoVisitante);
+    }
+    
+    [TestMethod]
+    public void GenerarFinal_DebeAsignarIdLuegoDeTercerPuesto()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var final = servicioCruces.GenerarFinal(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(32, final.Id);
+    }
+    
+    [TestMethod]
+    public void GenerarFinal_DebeAsignarFechaSegunConfiguracion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            FechaInicioTorneo = new DateTime(2026, 6, 1),
+            SeparacionEntreFechas = 3
+        };
+
+        // Act
+        var final = servicioCruces.GenerarFinal(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        var fechaEsperada = new DateTime(2026, 6, 16);
+
+        Assert.AreEqual(fechaEsperada, final.Fecha);
+    }
+    
+    [TestMethod]
+    public void GenerarFinal_DebeAsignarPrimerEstadio()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+
+        // Act
+        var final = servicioCruces.GenerarFinal(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(estadios[0], final.Estadio);
+    }
+    
+    private void MarcarPartidosComoJugados(List<Partido> partidos)
+    {
+        foreach (var partido in partidos)
+        {
+            partido.GolesLocal = 2;
+            partido.GolesVisitante = 0;
+        }
+    }
+    
+    [TestMethod]
+    public void GenerarFaseEliminatoria_CompletaDesdePrimeraRonda_DebeGenerarHastaFinal()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            FechaInicioTorneo = new DateTime(2026, 6, 1),
+            SeparacionEntreFechas = 3
+        };
+
+        var primeraRonda = CrearPartidosPrimeraRondaJugados(16);
+
+        // Act
+        var octavos = servicioCruces.GenerarOctavos(
+            primeraRonda,
+            estadios,
+            configuracionTorneo
+        );
+
+        MarcarPartidosComoJugados(octavos);
+
+        var cuartos = servicioCruces.GenerarCuartos(
+            octavos,
+            estadios,
+            configuracionTorneo
+        );
+
+        MarcarPartidosComoJugados(cuartos);
+
+        var semifinales = servicioCruces.GenerarSemifinales(
+            cuartos,
+            estadios,
+            configuracionTorneo
+        );
+
+        MarcarPartidosComoJugados(semifinales);
+
+        var tercerPuesto = servicioCruces.GenerarTercerPuesto(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        var final = servicioCruces.GenerarFinal(
+            semifinales,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(8, octavos.Count);
+        Assert.AreEqual(4, cuartos.Count);
+        Assert.AreEqual(2, semifinales.Count);
+
+        Assert.AreEqual(FaseTorneo.TercerPuesto, tercerPuesto.Fase);
+        Assert.AreEqual(FaseTorneo.Final, final.Fase);
+
+        Assert.AreEqual(31, tercerPuesto.Id);
+        Assert.AreEqual(32, final.Id);
+    }
 }
+
 ~~~
 
 ### ServicioEquipoTests.cs
