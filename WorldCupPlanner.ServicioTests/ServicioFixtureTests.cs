@@ -1118,6 +1118,44 @@ public class ServicioFixtureTests
         Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.AFC) <= 8);
         Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.OFC) <= 1);
     }
+    
+    [TestMethod]
+    public void GenerarFixture_ConMuchosEquiposFaltantes_DebeCompletarYGenerarGruposValidos()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+            .Take(24)
+            .ToList();
+
+        var estadios = CrearEstadiosValidos(4);
+
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaCompletar = 1,
+            SemillaFixture = 1
+        };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(
+            equipos,
+            estadios,
+            configuracionTorneo
+        );
+
+        // Assert
+        Assert.AreEqual(12, fixture.Grupos.Count);
+        Assert.IsTrue(fixture.Grupos.All(g => g.Equipos.Count == 4));
+        Assert.IsTrue(fixture.Grupos.All(g => g.EsValido()));
+
+        var equiposDelFixture = fixture.Grupos
+            .SelectMany(g => g.Equipos)
+            .ToList();
+
+        Assert.AreEqual(48, equiposDelFixture.Count);
+        Assert.AreEqual(24, equiposDelFixture.Count(e => e.Nombre.StartsWith("Equipo Ficticio")));
+    }
 }
 
 
