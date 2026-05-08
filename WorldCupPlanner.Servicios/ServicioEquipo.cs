@@ -44,7 +44,7 @@ namespace WorldCupPlanner.Servicios
             ValidarNombreUnico(equipo.Nombre, excluir: nombreOriginal);
 
             var existente = _repositorio.Buscar(e => e.Nombre == nombreOriginal).FirstOrDefault()
-                ?? throw new EntidadInvalidaExcepcion("El equipo no existe.");
+                ?? throw new EntidadInexistenteExcepcion("El equipo no existe.");
 
             existente.Nombre = equipo.Nombre;
             existente.Confederacion = equipo.Confederacion;
@@ -56,9 +56,7 @@ namespace WorldCupPlanner.Servicios
         {
             if (equipo == null)
                 throw new EntidadInvalidaExcepcion("El equipo no puede ser nulo.");
-            var existente = _repositorio.Buscar(e => ReferenceEquals(e, equipo)).FirstOrDefault()
-                ?? throw new EntidadInexistenteExcepcion("El equipo no existe en el sistema.");
-            _repositorio.Actualizar(existente);
+            EditarEquipo(equipo, equipo.Nombre);
         }
 
         public void Eliminar(Equipo equipo) => _repositorio.Eliminar(equipo);
