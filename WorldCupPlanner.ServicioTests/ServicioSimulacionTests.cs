@@ -103,4 +103,54 @@ public class ServicioSimulacionTests
 
         CollectionAssert.AreEqual(resultados1, resultados2);
     }
+    
+    [TestMethod]
+    public void SimularResultados_ConDistintasSemillas_DebePermitirResultadosDistintos()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+
+        var partidosReferencia = CrearPartidosSinResultado(10);
+
+        var configuracionReferencia = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 1
+        };
+
+        servicioSimulacion.SimularResultados(
+            partidosReferencia,
+            configuracionReferencia
+        );
+
+        var resultadosReferencia = ObtenerResultados(partidosReferencia);
+
+        var existeResultadoDistinto = false;
+
+        // Act
+        for (int semilla = 2; semilla <= 20; semilla++)
+        {
+            var partidos = CrearPartidosSinResultado(10);
+
+            var configuracionTorneo = new ConfiguracionTorneo
+            {
+                SemillaSimulation = semilla
+            };
+
+            servicioSimulacion.SimularResultados(
+                partidos,
+                configuracionTorneo
+            );
+
+            var resultados = ObtenerResultados(partidos);
+
+            if (!resultados.SequenceEqual(resultadosReferencia))
+            {
+                existeResultadoDistinto = true;
+                break;
+            }
+        }
+
+        // Assert
+        Assert.IsTrue(existeResultadoDistinto);
+    }
 }
