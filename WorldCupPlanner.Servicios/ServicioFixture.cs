@@ -34,6 +34,25 @@ public class ServicioFixture
         return CrearFixtureConDistribucionRoundRobin(equipos, estadios, configuracionTorneo);
     }
 
+    public List<Equipo> CompletarEquipos(
+        List<Equipo> equipos,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        var equiposCompletos = equipos.ToList();
+
+        while (equiposCompletos.Count < CantidadExactaEquipos)
+        {
+            equiposCompletos.Add(new Equipo
+            {
+                Nombre = $"Equipo Ficticio {equiposCompletos.Count + 1}",
+                RankingFIFA = 300,
+                Confederacion = Confederacion.UEFA
+            });
+        }
+
+        return equiposCompletos;
+    }
+
     private void ValidarCantidadEquipos(List<Equipo> equipos)
     {
         ValidarCantidadExactaDeEquipos(equipos);
