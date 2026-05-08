@@ -115,7 +115,72 @@ public class ServicioPartidoTests
             servicioPartido.CargarResultado(partido.Id, 2, 1));
     }
 
+    [TestMethod]
+    public void EditarPartidoDePrimeraRonda_ConOctavosGenerados_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var repositorio = new RepositorioPartidoEnMemoria();
+        var partido = CrearPartido(FaseTorneo.PrimeraRondaEliminatoria);
+        repositorio.Agregar(partido);
+        var servicioPartido = new ServicioPartido(repositorio);
+        servicioPartido.RegistrarFaseGenerada(FaseTorneo.Octavos);
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioPartido.CargarResultado(partido.Id, 2, 1));
+    }
+
+    [TestMethod]
+    public void EditarPartidoDeOctavos_ConCuartosGenerados_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var repositorio = new RepositorioPartidoEnMemoria();
+        var partido = CrearPartido(FaseTorneo.Octavos);
+        repositorio.Agregar(partido);
+        var servicioPartido = new ServicioPartido(repositorio);
+        servicioPartido.RegistrarFaseGenerada(FaseTorneo.Cuartos);
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioPartido.EditarFecha(partido.Id, new DateTime(2026, 7, 1)));
+    }
+
+    [TestMethod]
+    public void EditarPartidoDeCuartos_ConSemifinalesGeneradas_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var repositorio = new RepositorioPartidoEnMemoria();
+        var partido = CrearPartido(FaseTorneo.Cuartos);
+        repositorio.Agregar(partido);
+        var servicioPartido = new ServicioPartido(repositorio);
+        servicioPartido.RegistrarFaseGenerada(FaseTorneo.Semifinal);
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioPartido.EditarEstadio(partido.Id, CrearEstadio("Estadio Nuevo")));
+    }
+
+    [TestMethod]
+    public void EditarPartidoDeSemifinal_ConFinalGenerada_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var repositorio = new RepositorioPartidoEnMemoria();
+        var partido = CrearPartido(FaseTorneo.Semifinal);
+        repositorio.Agregar(partido);
+        var servicioPartido = new ServicioPartido(repositorio);
+        servicioPartido.RegistrarFaseGenerada(FaseTorneo.Final);
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioPartido.CargarResultado(partido.Id, 2, 1));
+    }
+
     private static Partido CrearPartido()
+    {
+        return CrearPartido(FaseTorneo.FaseDeGrupos);
+    }
+
+    private static Partido CrearPartido(FaseTorneo fase)
     {
         return new Partido
         {
@@ -124,7 +189,7 @@ public class ServicioPartidoTests
             Estadio = CrearEstadio("Estadio Inicial"),
             EquipoLocal = CrearEquipo("Equipo Local"),
             EquipoVisitante = CrearEquipo("Equipo Visitante"),
-            Fase = FaseTorneo.FaseDeGrupos
+            Fase = fase
         };
     }
 

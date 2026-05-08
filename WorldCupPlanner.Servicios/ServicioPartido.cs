@@ -9,7 +9,7 @@ namespace WorldCupPlanner.Servicios;
 public class ServicioPartido
 {
     private readonly IRepositorio<Partido> _repositorioPartido;
-    private bool _edicionPartidosFaseDeGruposBloqueada;
+    private readonly HashSet<FaseTorneo> _fasesBloqueadas = new();
 
     public ServicioPartido()
     {
@@ -63,7 +63,17 @@ public class ServicioPartido
 
     public void BloquearEdicionPartidosDeFaseDeGrupos()
     {
-        _edicionPartidosFaseDeGruposBloqueada = true;
+        BloquearEdicionFase(FaseTorneo.FaseDeGrupos);
+    }
+
+    public void RegistrarFaseGenerada(FaseTorneo faseGenerada)
+    {
+        BloquearEdicionFase(ObtenerFaseAnterior(faseGenerada));
+    }
+
+    public void BloquearEdicionFase(FaseTorneo fase)
+    {
+        _fasesBloqueadas.Add(fase);
     }
 
     public List<Partido> ObtenerPartidos()
@@ -85,10 +95,10 @@ public class ServicioPartido
 
     private void ValidarPuedeEditarPartido(Partido partido)
     {
-        if (_edicionPartidosFaseDeGruposBloqueada && partido.Fase == FaseTorneo.FaseDeGrupos)
+        if (_fasesBloqueadas.Contains(partido.Fase))
         {
             throw new EntidadInvalidaExcepcion(
-                "No se pueden editar partidos de fase de grupos una vez generados los cruces.");
+                "No se pueden editar partidos de una fase anterior una vez generada la fase siguiente.");
         }
     }
 
@@ -98,5 +108,19 @@ public class ServicioPartido
         {
             throw new EntidadInvalidaExcepcion("Los goles del partido no pueden ser negativos.");
         }
+    }
+
+    private FaseTorneo ObtenerFaseAnterior(FaseTorneo faseGenerada)
+    {
+        return faseGenerada switch
+        {
+            FaseTorneo.PrimeraRondaEliminatoria => FaseTorneo.FaseDeGrupos,
+            FaseTorneo.Octavos => FaseTorneo.PrimeraRondaEliminatoria,
+            FaseTorneo.Cuartos => FaseTorneo.Octavos,
+            FaseTorneo.Semifinal => FaseTorneo.Cuartos,
+            FaseTorneo.TercerPuesto => FaseTorneo.Semifinal,
+            FaseTorneo.Final => FaseTorneo.Semifinal,
+            _ => throw new EntidadInvalidaExcepcion("La fase generada no tiene una fase anterior para bloquear.")
+        };
     }
 }
