@@ -1,0 +1,145 @@
+@page "/fixture"
+@using WorldCupPlanner.Servicios
+@using WorldCupPlanner.Dominio.Entidades
+@inject ServicioFixture ServicioFixture
+@inject ServicioEquipo ServicioEquipo
+@inject ServicioEstadio ServicioEstadio
+@inject ServicioClasificacion ServicioClasificacion
+@inject ServicioCruces ServicioCruces
+@inject EstadoTorneo EstadoTorneo
+@inject ServicioSimulacion ServicioSimulacion
+
+<PageTitle>Fixture</PageTitle>
+
+<h1>Fixture</h1>
+
+@if (!string.IsNullOrEmpty(errorMensaje))
+{
+    <div class="alert alert-danger">@errorMensaje</div>
+}
+
+@if (EstadoTorneo.Fixture == null)
+{
+    <button type="button" class="btn btn-primary" @onclick="GenerarFixture">Generar Fixture</button>
+}
+else
+{
+    <button type="button" class="btn btn-warning mt-2 ms-2" @onclick="SimularResultados">Simular todos los resultados</button>
+
+    <h2>Fase de Grupos</h2>
+    @foreach (var grupo in EstadoTorneo.Fixture.Grupos)
+    {
+        <h3>Grupo @grupo.Etiqueta</h3>
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Equipo Local</th>
+                    <th>Equipo Visitante</th>
+                    <th>Fecha</th>
+                    <th>Estadio</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var partido in grupo.Partidos)
+                {
+                    <tr>
+                        <td>@partido.EquipoLocal?.Nombre</td>
+                        <td>@partido.EquipoVisitante?.Nombre</td>
+                        <td>@partido.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@partido.Estadio?.Nombre</td>
+                        <td><a href="/partidos/@partido.Id/editar" class="btn btn-success btn-sm">Editar</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <hr />
+
+    <h2>Fase Eliminatoria (Cruces)</h2>
+
+    @if (!EstadoTorneo.PartidosEliminatorios.Any())
+    {
+        <button type="button" class="btn btn-primary" @onclick="GenerarCruces">Generar Cruces</button>
+    }
+    else
+    {
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Equipo Local</th>
+                    <th>Equipo Visitante</th>
+                    <th>Fecha</th>
+                    <th>Estadio</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var partido in EstadoTorneo.PartidosEliminatorios)
+                {
+                    <tr>
+                        <td>@partido.EquipoLocal?.Nombre</td>
+                        <td>@partido.EquipoVisitante?.Nombre</td>
+                        <td>@partido.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@partido.Estadio?.Nombre</td>
+                        <td><a href="/partidos/@partido.Id/editar" class="btn btn-success btn-sm">Editar</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    private string errorMensaje = string.Empty;
+
+    private void GenerarFixture()
+    {
+        try
+        {
+            errorMensaje = string.Empty;
+            var equipos = ServicioEquipo.Buscar(_ => true);
+            var estadios = ServicioEstadio.ObtenerEstadios();
+            var configuracion = new ConfiguracionTorneo();
+            EstadoTorneo.Fixture = ServicioFixture.GenerarFixture(equipos, estadios, configuracion);
+            EstadoTorneo.PartidosEliminatorios = new();
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = ex.Message;
+        }
+    }
+
+    private void SimularResultados()
+    {
+        try
+        {
+            var configuracion = new ConfiguracionTorneo();
+            var partidos = EstadoTorneo.Fixture!.Partidos
+                .Concat(EstadoTorneo.PartidosEliminatorios)
+                .ToList();
+            ServicioSimulacion.SimularResultados(partidos, configuracion);
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = ex.Message;
+        }
+    }
+
+    private void GenerarCruces()
+    {
+        try
+        {
+            errorMensaje = string.Empty;
+            var configuracion = new ConfiguracionTorneo();
+            var clasificados = ServicioClasificacion.ObtenerClasificadosAFaseEliminatoria(EstadoTorneo.Fixture!, configuracion);
+            var estadios = ServicioEstadio.ObtenerEstadios();
+            EstadoTorneo.PartidosEliminatorios = ServicioCruces.GenerarPrimeraRondaEliminatoria(clasificados, estadios, configuracion);
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = ex.Message;
+        }
+    }
+}

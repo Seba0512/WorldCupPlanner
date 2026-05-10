@@ -11,13 +11,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<IRepositorioConId<Auditoria>, RepositorioAuditoriaEnMemoria>();
 builder.Services.AddSingleton<IRepositorio<Equipo>, RepositorioEquipoEnMemoria>();
 builder.Services.AddSingleton<IRepositorio<Estadio>, RepositorioEstadioEnMemoria>();
 builder.Services.AddSingleton<ServicioAuditoria>();
 builder.Services.AddSingleton<ServicioEstadio>();
 builder.Services.AddSingleton<ServicioEquipo>();
+builder.Services.AddSingleton<ServicioFixture>();
+builder.Services.AddSingleton<ServicioClasificacion>();
+builder.Services.AddSingleton<ServicioCruces>();
+builder.Services.AddSingleton<ServicioSimulacion>();
+builder.Services.AddSingleton<EstadoTorneo>();
 builder.Services.AddSingleton<ConfiguracionTorneo>();
 builder.Services.AddSingleton<RepositorioUsuarioEnMemoria>();
 builder.Services.AddSingleton<ServicioUsuario>();

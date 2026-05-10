@@ -1,0 +1,104 @@
+@page "/partidos/{Id:int}/editar"
+
+@using WorldCupPlanner.Servicios
+@using WorldCupPlanner.Dominio.Entidades
+@using WorldCupPlanner.Dominio.Enumeraciones
+@inject EstadoTorneo EstadoTorneo
+@inject ServicioEstadio ServicioEstadio
+@inject NavigationManager NavigationManager
+
+<PageTitle>Editar Partido</PageTitle>
+<h1>Editar Partido</h1>
+
+@if (!string.IsNullOrEmpty(errorMensaje))
+{
+    <div class="alert alert-danger">@errorMensaje</div>
+}
+
+@if (partido != null)
+{
+    <p><strong>@partido.EquipoLocal?.Nombre</strong> vs <strong>@partido.EquipoVisitante?.Nombre</strong></p>
+
+    @if (partido.Fase == FaseTorneo.FaseDeGrupos && EstadoTorneo.PartidosEliminatorios.Any())
+    {
+        <div class="alert alert-warning">Este partido no se puede editar porque ya se generaron los cruces de la fase eliminatoria.</div>
+    }
+    else
+    {
+
+    <div class="form-group mb-2">
+        <label>Fecha</label>
+        <input type="datetime-local" class="form-control" @bind="nuevaFecha" />
+    </div>
+    <div class="form-group mb-2">
+        <label>Estadio</label>
+        <select class="form-control" @bind="nombreEstadioSeleccionado">
+            @foreach (var estadio in estadios)
+            {
+                <option value="@estadio.Nombre">@estadio.Nombre</option>
+            }
+        </select>
+    </div>
+    <div class="form-group mb-2">
+        <label>Goles Local</label>
+        <input type="number" class="form-control" @bind="golesLocal" min="0" />
+    </div>
+    <div class="form-group mb-2">
+        <label>Goles Visitante</label>
+        <input type="number" class="form-control" @bind="golesVisitante" min="0" />
+    </div>
+
+    <button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
+    <a href="/fixture" class="btn btn-secondary mt-2">Cancelar</a>
+
+    }
+
+    <a href="/fixture" class="btn btn-secondary mt-2">Volver</a>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private Partido? partido;
+    private List<Estadio> estadios = new();
+    private DateTime nuevaFecha;
+    private string nombreEstadioSeleccionado = string.Empty;
+    private int? golesLocal;
+    private int? golesVisitante;
+    private string errorMensaje = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        estadios = ServicioEstadio.ObtenerEstadios();
+        partido = EstadoTorneo.Fixture?.Partidos.FirstOrDefault(p => p.Id == Id)
+            ?? EstadoTorneo.PartidosEliminatorios.FirstOrDefault(p => p.Id == Id);
+        if (partido != null)
+        {
+            nuevaFecha = partido.Fecha;
+            nombreEstadioSeleccionado = partido.Estadio?.Nombre ?? string.Empty;
+            golesLocal = partido.GolesLocal;
+            golesVisitante = partido.GolesVisitante;
+        }
+    }
+
+    private void Guardar()
+    {
+        try
+        {
+            if (partido == null) return;
+            if (partido.Fase == FaseTorneo.FaseDeGrupos && EstadoTorneo.PartidosEliminatorios.Any())
+            {
+                errorMensaje = "No se puede editar un partido de fase de grupos una vez generados los cruces.";
+                return;
+            }
+            partido.Fecha = nuevaFecha;
+            partido.Estadio = estadios.First(e => e.Nombre == nombreEstadioSeleccionado);
+            partido.GolesLocal = golesLocal;
+            partido.GolesVisitante = golesVisitante;
+            NavigationManager.NavigateTo("/fixture");
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = ex.Message;
+        }
+    }
+}

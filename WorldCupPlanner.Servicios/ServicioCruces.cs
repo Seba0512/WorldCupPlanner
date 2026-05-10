@@ -76,6 +76,8 @@ public class ServicioCruces
     {
         ReordenarVisitantesParaEvitarMismoGrupo(primeros, terceros, clasificados);
 
+        var fechaInicioDeFase = configuracionTorneo.FechaInicioTorneo.Date.AddDays(configuracionTorneo.SeparacionEntreFechas);
+
         for (int i = 0; i < primeros.Count; i++)
         {
             partidos.Add(CrearPartidoDePrimeraRonda(
@@ -83,7 +85,7 @@ public class ServicioCruces
                 primeros[i],
                 terceros[i],
                 estadios[partidos.Count % estadios.Count],
-                configuracionTorneo));
+                CalcularFechaPartidoEliminatorio(fechaInicioDeFase, partidos.Count, configuracionTorneo)));
         }
     }
 
@@ -100,6 +102,8 @@ public class ServicioCruces
             segundosDeMenorRendimiento,
             clasificados);
 
+        var fechaInicioDeFase = configuracionTorneo.FechaInicioTorneo.Date.AddDays(configuracionTorneo.SeparacionEntreFechas);
+
         for (int i = 0; i < primerosRestantes.Count; i++)
         {
             partidos.Add(CrearPartidoDePrimeraRonda(
@@ -107,7 +111,7 @@ public class ServicioCruces
                 primerosRestantes[i],
                 segundosDeMenorRendimiento[i],
                 estadios[partidos.Count % estadios.Count],
-                configuracionTorneo));
+                CalcularFechaPartidoEliminatorio(fechaInicioDeFase, partidos.Count, configuracionTorneo)));
         }
     }
 
@@ -120,6 +124,8 @@ public class ServicioCruces
     {
         ReordenarEquiposParaEvitarCrucesInternosDelMismoGrupo(segundosRestantes, clasificados);
 
+        var fechaInicioDeFase = configuracionTorneo.FechaInicioTorneo.Date.AddDays(configuracionTorneo.SeparacionEntreFechas);
+
         for (int i = 0; i < segundosRestantes.Count; i += 2)
         {
             partidos.Add(CrearPartidoDePrimeraRonda(
@@ -127,7 +133,7 @@ public class ServicioCruces
                 segundosRestantes[i],
                 segundosRestantes[i + 1],
                 estadios[partidos.Count % estadios.Count],
-                configuracionTorneo));
+                CalcularFechaPartidoEliminatorio(fechaInicioDeFase, partidos.Count, configuracionTorneo)));
         }
     }
 
@@ -136,7 +142,7 @@ public class ServicioCruces
         Equipo equipoLocal,
         Equipo equipoVisitante,
         Estadio estadio,
-        ConfiguracionTorneo configuracionTorneo)
+        DateTime fecha)
     {
         return new Partido
         {
@@ -144,7 +150,7 @@ public class ServicioCruces
             EquipoLocal = equipoLocal,
             EquipoVisitante = equipoVisitante,
             Estadio = estadio,
-            Fecha = configuracionTorneo.FechaInicioTorneo,
+            Fecha = fecha,
             Fase = FaseTorneo.PrimeraRondaEliminatoria
         };
     }
@@ -302,7 +308,7 @@ public class ServicioCruces
         var ganadores = ObtenerGanadores(partidosPrimeraRonda);
         var partidos = new List<Partido>();
         var proximoId = partidosPrimeraRonda.Max(p => p.Id) + 1;
-        var fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas);
+        var fechaInicio = partidosPrimeraRonda.Max(p => p.Fecha.Date).AddDays(configuracionTorneo.SeparacionEntreFechas);
 
         for (int i = 0; i < 8; i++)
         {
@@ -311,7 +317,7 @@ public class ServicioCruces
                 ganadores[i],
                 ganadores[i + 8],
                 estadios[partidos.Count % estadios.Count],
-                fecha,
+                CalcularFechaPartidoEliminatorio(fechaInicio, i, configuracionTorneo),
                 FaseTorneo.Octavos));
         }
 
@@ -333,7 +339,7 @@ public class ServicioCruces
         var ganadores = ObtenerGanadores(octavos);
         var partidos = new List<Partido>();
         var proximoId = octavos.Max(p => p.Id) + 1;
-        var fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 2);
+        var fechaInicio = octavos.Max(p => p.Fecha.Date).AddDays(configuracionTorneo.SeparacionEntreFechas);
 
         for (int i = 0; i < 4; i++)
         {
@@ -342,7 +348,7 @@ public class ServicioCruces
                 ganadores[i * 2],
                 ganadores[i * 2 + 1],
                 estadios[partidos.Count % estadios.Count],
-                fecha,
+                CalcularFechaPartidoEliminatorio(fechaInicio, i, configuracionTorneo),
                 FaseTorneo.Cuartos));
         }
 
@@ -364,7 +370,7 @@ public class ServicioCruces
         var ganadores = ObtenerGanadores(cuartos);
         var partidos = new List<Partido>();
         var proximoId = cuartos.Max(p => p.Id) + 1;
-        var fecha = configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 3);
+        var fechaInicio = cuartos.Max(p => p.Fecha.Date).AddDays(configuracionTorneo.SeparacionEntreFechas);
 
         for (int i = 0; i < 2; i++)
         {
@@ -373,7 +379,7 @@ public class ServicioCruces
                 ganadores[i * 2],
                 ganadores[i * 2 + 1],
                 estadios[partidos.Count % estadios.Count],
-                fecha,
+                CalcularFechaPartidoEliminatorio(fechaInicio, i, configuracionTorneo),
                 FaseTorneo.Semifinal));
         }
 
@@ -483,15 +489,34 @@ public class ServicioCruces
 
         var perdedores = ObtenerPerdedores(semifinales);
 
+        var fechaTercerPuesto = CalcularFechaPartidoEliminatorio(
+            semifinales.Max(p => p.Fecha.Date).AddDays(configuracionTorneo.SeparacionEntreFechas),
+            0,
+            configuracionTorneo);
+
         return CrearPartidoEliminatorio(
             semifinales.Max(p => p.Id) + 1,
             perdedores[0],
             perdedores[1],
             estadios[0],
-            configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 4),
+            fechaTercerPuesto,
             FaseTorneo.TercerPuesto);
     }
     
+    private DateTime CalcularFechaPartidoEliminatorio(
+        DateTime fechaInicioDeFase,
+        int indicePartidoEnFase,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        var diaOffset = indicePartidoEnFase / configuracionTorneo.MaxPartidosPorDia;
+        var horaOffset = indicePartidoEnFase % configuracionTorneo.MaxPartidosPorDia;
+
+        return fechaInicioDeFase.Date
+            .AddDays(diaOffset)
+            .Add(configuracionTorneo.HoraInicioPartidos)
+            .AddHours(configuracionTorneo.SeparacionHorasEntrePartidos * horaOffset);
+    }
+
     private List<Equipo> ObtenerPerdedores(List<Partido> partidos)
     {
         return new List<Equipo>(partidos
@@ -529,12 +554,17 @@ public class ServicioCruces
 
         var ganadores = ObtenerGanadores(semifinales);
 
+        var fechaFinal = CalcularFechaPartidoEliminatorio(
+            semifinales.Max(p => p.Fecha.Date).AddDays(configuracionTorneo.SeparacionEntreFechas * 2),
+            0,
+            configuracionTorneo);
+
         return CrearPartidoEliminatorio(
             semifinales.Max(p => p.Id) + 2,
             ganadores[0],
             ganadores[1],
             estadios[0],
-            configuracionTorneo.FechaInicioTorneo.AddDays(configuracionTorneo.SeparacionEntreFechas * 5),
+            fechaFinal,
             FaseTorneo.Final);
     }
 }

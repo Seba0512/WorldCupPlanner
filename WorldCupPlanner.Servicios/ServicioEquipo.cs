@@ -12,6 +12,16 @@ namespace WorldCupPlanner.Servicios
         private readonly ServicioAuditoria? _auditoria;
         private Fixture? _fixtureGenerado;
 
+        private static readonly Dictionary<Confederacion, int> CuposPorConfederacion = new()
+        {
+            { Confederacion.UEFA,     16 },
+            { Confederacion.CONMEBOL,  7 },
+            { Confederacion.CONCACAF,  7 },
+            { Confederacion.CAF,       9 },
+            { Confederacion.AFC,       8 },
+            { Confederacion.OFC,       1 },
+        };
+
         public ServicioEquipo()
         {
             _repositorio = new RepositorioEquipoEnMemoria();
@@ -22,16 +32,6 @@ namespace WorldCupPlanner.Servicios
             _repositorio = repositorio;
             _auditoria = auditoria;
         }
-
-        private static readonly Dictionary<Confederacion, int> CuposPorConfederacion = new()
-        {
-            { Confederacion.UEFA,     16 },
-            { Confederacion.CONMEBOL,  7 },
-            { Confederacion.CONCACAF,  7 },
-            { Confederacion.CAF,       9 },
-            { Confederacion.AFC,       8 },
-            { Confederacion.OFC,       1 },
-        };
 
         private const int MaximoEquipos = 48;
         private const int RankingMinimoFicticio = 300;
@@ -53,6 +53,9 @@ namespace WorldCupPlanner.Servicios
 
             var existente = _repositorio.Buscar(e => e.Nombre == nombreOriginal).FirstOrDefault()
                 ?? throw new EntidadInexistenteExcepcion("El equipo no existe.");
+
+            if (equipo.Confederacion != existente.Confederacion)
+                ValidarCupoConfederacion(equipo);
 
             existente.Nombre = equipo.Nombre;
             existente.Confederacion = equipo.Confederacion;

@@ -52,7 +52,32 @@ public class ServicioFixture
         ValidarCantidadEquipos(equiposCompletos);
         ValidarCantidadEstadios(estadios);
 
-        return CrearFixtureConDistribucionRoundRobin(equiposCompletos, estadios, configuracionTorneo);
+        for (int offset = 0; offset < 100; offset++)
+        {
+            try
+            {
+                var config = new ConfiguracionTorneo
+                {
+                    SemillaFixture = configuracionTorneo.SemillaFixture + offset,
+                    SemillaCompletar = configuracionTorneo.SemillaCompletar,
+                    SemillaCrucesFase = configuracionTorneo.SemillaCrucesFase,
+                    SemillaSimulation = configuracionTorneo.SemillaSimulation,
+                    FechaInicioTorneo = configuracionTorneo.FechaInicioTorneo,
+                    MaxPartidosPorDia = configuracionTorneo.MaxPartidosPorDia,
+                    SeparacionEntreFechas = configuracionTorneo.SeparacionEntreFechas,
+                    HoraInicioPartidos = configuracionTorneo.HoraInicioPartidos,
+                    SeparacionHorasEntrePartidos = configuracionTorneo.SeparacionHorasEntrePartidos,
+                };
+                return CrearFixtureConDistribucionRoundRobin(equiposCompletos, estadios, config);
+            }
+            catch (EntidadInvalidaExcepcion) when (offset < 99)
+            {
+                // la semilla actual genera un ordenamiento inválido, se prueba la siguiente
+            }
+        }
+
+        throw new EntidadInvalidaExcepcion(
+            "No se pudo generar el fixture respetando las restricciones de confederación.");
     }
 
     public Fixture RegenerarFixture(
