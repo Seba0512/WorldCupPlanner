@@ -1026,6 +1026,42 @@ a:hover { color: var(--accent-blue-dark); }
 }
 
 /* ── 17. FIXTURE & BRACKET ─────────────────────────────── */
+
+/* Stage navigation (top-level: Fase de grupos, 16avos, 8avos…) */
+.stage-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.stage-tab {
+    padding: 7px 20px;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-default);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.stage-tab:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.stage-tab:focus-visible {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 2px;
+}
+.stage-tab.active {
+    background: var(--accent-blue-subtle);
+    color: var(--accent-blue);
+    border-color: rgba(0,209,255,0.3);
+}
+
+/* Group tabs (secondary: Grupo A, Grupo B…) */
 .group-tabs {
     display: flex;
     flex-wrap: wrap;
@@ -1047,6 +1083,10 @@ a:hover { color: var(--accent-blue-dark); }
 }
 
 .group-tab:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.group-tab:focus-visible {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 2px;
+}
 .group-tab.active {
     background: var(--accent-blue-subtle);
     color: var(--accent-blue);

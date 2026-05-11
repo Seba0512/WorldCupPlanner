@@ -17,6 +17,12 @@
     <AccionesContent>
         @if (EstadoTorneo.Fixture != null)
         {
+            @if (!EstadoTorneo.PartidosEliminatorios.Any())
+            {
+                <button class="btn btn-primary btn-sm" @onclick="GenerarCruces">
+                    <span class="oi oi-cog" aria-hidden="true"></span> Generar Cruces
+                </button>
+            }
             <button class="btn btn-warning btn-sm" @onclick="SimularResultados">
                 <span class="oi oi-cog" aria-hidden="true"></span> Simular resultados
             </button>
@@ -33,7 +39,6 @@
 
 @if (EstadoTorneo.Fixture == null)
 {
-    <!-- Sin fixture -->
     <div class="row g-3">
         <div class="col-lg-6">
             <div class="glass-card" style="padding:32px; text-align:center;">
@@ -77,7 +82,6 @@
 }
 else
 {
-    <!-- Fixture generado -->
     <div class="row g-2 mb-3">
         <div class="col-auto">
             <span class="badge badge-green" style="font-size:12px; padding:5px 12px">
@@ -86,91 +90,97 @@ else
         </div>
     </div>
 
-    <!-- Tabs de grupos -->
-    <div class="group-tabs">
-        @foreach (var grupo in EstadoTorneo.Fixture.Grupos)
+    <!-- Navegación por etapas del torneo -->
+    <div class="stage-tabs" role="tablist" aria-label="Etapas del torneo">
+        @foreach (var etapa in EtapasDisponibles)
         {
-            <button class="group-tab @(_grupoActivo == grupo.Etiqueta ? "active" : "")"
-                    @onclick="() => _grupoActivo = grupo.Etiqueta">
-                Grupo @grupo.Etiqueta
+            <button class="stage-tab @(_etapaActiva == etapa.Fase ? "active" : "")"
+                    role="tab"
+                    aria-selected="@(_etapaActiva == etapa.Fase ? "true" : "false")"
+                    tabindex="@(_etapaActiva == etapa.Fase ? 0 : -1)"
+                    @onclick="() => SeleccionarEtapa(etapa.Fase)"
+                    @onkeydown="(e) => ManejarNavegacionTeclado(e, etapa.Fase)">
+                @etapa.Etiqueta
             </button>
         }
     </div>
 
-    <!-- Partidos del grupo activo -->
-    @if (GrupoSeleccionado != null)
+    <!-- Contenido de la etapa seleccionada -->
+    @if (_etapaActiva == FaseTorneo.FaseDeGrupos)
     {
-        <div class="table-card mb-4">
-            <div class="table-card-header">
-                <span class="table-card-title">Grupo @GrupoSeleccionado.Etiqueta</span>
-                <span style="font-size:12px; color:var(--text-secondary)">@GrupoSeleccionado.Partidos.Count partidos</span>
-            </div>
-            @foreach (var partido in GrupoSeleccionado.Partidos)
+        <!-- Tabs de grupos -->
+        <div class="group-tabs" role="tablist" aria-label="Grupos de la fase de grupos">
+            @foreach (var grupo in EstadoTorneo.Fixture.Grupos)
             {
-                <div class="match-card @(partido.EstaJugado() && partido.Ganador() != null ? "match-winner" : "")">
-                    <div class="match-team @(partido.EstaJugado() && partido.Ganador() == partido.EquipoLocal ? "match-winner" : "")">
-                        @partido.EquipoLocal?.Nombre
-                    </div>
-                    <div class="match-score">
-                        @if (partido.EstaJugado())
-                        {
-                            <span class="score-box">@partido.GolesLocal</span>
-                            <span class="score-sep">—</span>
-                            <span class="score-box">@partido.GolesVisitante</span>
-                        }
-                        else
-                        {
-                            <span style="font-size:12px; color:var(--text-muted)">vs</span>
-                        }
-                    </div>
-                    <div class="match-team right @(partido.EstaJugado() && partido.Ganador() == partido.EquipoVisitante ? "match-winner" : "")">
-                        @partido.EquipoVisitante?.Nombre
-                    </div>
-                    <div class="match-meta" style="margin-left:12px; text-align:right; min-width:110px">
-                        @partido.Fecha.ToString("dd/MM/yy HH:mm")
-                    </div>
-                    <a href="/partidos/@partido.Id/editar" class="btn btn-success btn-sm" style="margin-left:8px; flex-shrink:0">
-                        <span class="oi oi-pencil" aria-hidden="true"></span>
-                    </a>
-                </div>
-            }
-        </div>
-    }
-
-    <!-- Fase eliminatoria -->
-    <div class="table-card">
-        <div class="table-card-header">
-            <span class="table-card-title">Fase Eliminatoria</span>
-            @if (!EstadoTorneo.PartidosEliminatorios.Any())
-            {
-                <button class="btn btn-primary btn-sm" @onclick="GenerarCruces">
-                    <span class="oi oi-cog" aria-hidden="true"></span> Generar Cruces
+                <button class="group-tab @(_grupoActivo == grupo.Etiqueta ? "active" : "")"
+                        role="tab"
+                        aria-selected="@(_grupoActivo == grupo.Etiqueta ? "true" : "false")"
+                        tabindex="@(_grupoActivo == grupo.Etiqueta ? 0 : -1)"
+                        @onclick="() => _grupoActivo = grupo.Etiqueta">
+                    Grupo @grupo.Etiqueta
                 </button>
             }
-            else
-            {
-                <span class="badge badge-green">
-                    @EstadoTorneo.PartidosEliminatorios.Count partidos
-                </span>
-            }
         </div>
 
-        @if (!EstadoTorneo.PartidosEliminatorios.Any())
+        <!-- Partidos del grupo activo -->
+        @if (GrupoSeleccionado != null)
+        {
+            <div class="table-card mb-4">
+                <div class="table-card-header">
+                    <span class="table-card-title">Grupo @GrupoSeleccionado.Etiqueta</span>
+                    <span style="font-size:12px; color:var(--text-secondary)">@GrupoSeleccionado.Partidos.Count partidos</span>
+                </div>
+                @foreach (var partido in GrupoSeleccionado.Partidos)
+                {
+                    <div class="match-card @(partido.EstaJugado() && partido.Ganador() != null ? "match-winner" : "")">
+                        <div class="match-team @(partido.EstaJugado() && partido.Ganador() == partido.EquipoLocal ? "match-winner" : "")">
+                            @partido.EquipoLocal?.Nombre
+                        </div>
+                        <div class="match-score">
+                            @if (partido.EstaJugado())
+                            {
+                                <span class="score-box">@partido.GolesLocal</span>
+                                <span class="score-sep">—</span>
+                                <span class="score-box">@partido.GolesVisitante</span>
+                            }
+                            else
+                            {
+                                <span style="font-size:12px; color:var(--text-muted)">vs</span>
+                            }
+                        </div>
+                        <div class="match-team right @(partido.EstaJugado() && partido.Ganador() == partido.EquipoVisitante ? "match-winner" : "")">
+                            @partido.EquipoVisitante?.Nombre
+                        </div>
+                        <div class="match-meta" style="margin-left:12px; text-align:right; min-width:110px">
+                            @partido.Fecha.ToString("dd/MM/yy HH:mm")
+                        </div>
+                        <a href="/partidos/@partido.Id/editar" class="btn btn-success btn-sm" style="margin-left:8px; flex-shrink:0">
+                            <span class="oi oi-pencil" aria-hidden="true"></span>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <!-- Partidos de la etapa eliminatoria seleccionada -->
+        @if (!PartidosEtapaActiva.Any())
         {
             <div class="empty-state">
                 <div class="empty-state-icon">🏆</div>
-                <div class="empty-state-title">Sin cruces eliminatorios</div>
-                <div class="empty-state-text">Una vez jugada la fase de grupos, generá los cruces eliminatorios.</div>
+                <div class="empty-state-title">Sin partidos disponibles</div>
+                <div class="empty-state-text">No hay partidos disponibles para esta etapa.</div>
             </div>
         }
         else
         {
-            @foreach (var fase in EstadoTorneo.PartidosEliminatorios.Select(p => p.Fase).Distinct().OrderBy(f => (int)f))
-            {
-                <div style="padding: 12px 16px 4px; font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-muted); border-top: 1px solid var(--border-subtle);">
-                    @MostrarFase(fase)
+            <div class="table-card">
+                <div class="table-card-header">
+                    <span class="table-card-title">@EtapaActivaEtiqueta</span>
+                    <span class="badge badge-green">@PartidosEtapaActiva.Count partidos</span>
                 </div>
-                @foreach (var partido in EstadoTorneo.PartidosEliminatorios.Where(p => p.Fase == fase))
+                @foreach (var partido in PartidosEtapaActiva)
                 {
                     <div class="match-card">
                         <div class="match-team @(partido.EstaJugado() && partido.Ganador() == partido.EquipoLocal ? "match-winner" : "")">
@@ -199,17 +209,51 @@ else
                         </a>
                     </div>
                 }
-            }
+            </div>
         }
-    </div>
+    }
 }
 
 @code {
     private string _error = string.Empty;
     private string _grupoActivo = "A";
+    private FaseTorneo _etapaActiva = FaseTorneo.FaseDeGrupos;
+
+    private record EtapaTorneo(FaseTorneo Fase, string Etiqueta);
+
+    private static readonly List<EtapaTorneo> EtapasDisponibles = new()
+    {
+        new(FaseTorneo.FaseDeGrupos,              "Fase de grupos"),
+        new(FaseTorneo.PrimeraRondaEliminatoria,  "16avos"),
+        new(FaseTorneo.Octavos,                   "8avos"),
+        new(FaseTorneo.Cuartos,                   "4tos"),
+        new(FaseTorneo.Semifinal,                 "Semifinal"),
+        new(FaseTorneo.Final,                     "Final"),
+    };
 
     private Grupo? GrupoSeleccionado =>
         EstadoTorneo.Fixture?.Grupos.FirstOrDefault(g => g.Etiqueta == _grupoActivo);
+
+    private string EtapaActivaEtiqueta =>
+        EtapasDisponibles.FirstOrDefault(e => e.Fase == _etapaActiva)?.Etiqueta ?? string.Empty;
+
+    private List<Partido> PartidosEtapaActiva =>
+        EstadoTorneo.PartidosEliminatorios.Where(p => p.Fase == _etapaActiva).ToList();
+
+    private void SeleccionarEtapa(FaseTorneo fase) => _etapaActiva = fase;
+
+    private void ManejarNavegacionTeclado(KeyboardEventArgs e, FaseTorneo fase)
+    {
+        var indice = EtapasDisponibles.FindIndex(et => et.Fase == fase);
+        _etapaActiva = e.Key switch
+        {
+            "ArrowRight" when indice < EtapasDisponibles.Count - 1 => EtapasDisponibles[indice + 1].Fase,
+            "ArrowLeft"  when indice > 0                           => EtapasDisponibles[indice - 1].Fase,
+            "Home"                                                 => EtapasDisponibles[0].Fase,
+            "End"                                                  => EtapasDisponibles[^1].Fase,
+            _                                                      => _etapaActiva,
+        };
+    }
 
     private void GenerarFixture()
     {
@@ -254,15 +298,4 @@ else
         }
         catch (Exception ex) { _error = ex.Message; }
     }
-
-    private static string MostrarFase(FaseTorneo fase) => fase switch
-    {
-        FaseTorneo.PrimeraRondaEliminatoria => "Primera Ronda",
-        FaseTorneo.Octavos   => "Octavos de Final",
-        FaseTorneo.Cuartos   => "Cuartos de Final",
-        FaseTorneo.Semifinal => "Semifinal",
-        FaseTorneo.TercerPuesto => "Tercer Puesto",
-        FaseTorneo.Final     => "Final",
-        _                    => fase.ToString()
-    };
 }
