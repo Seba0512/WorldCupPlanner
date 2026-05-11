@@ -1,0 +1,79 @@
+@using Microsoft.AspNetCore.Hosting
+@inject IWebHostEnvironment Env
+
+@if (Env.IsDevelopment())
+{
+    <div class="ayuda-wrapper">
+        <button class="ayuda-btn"
+                @onclick="TogglePanel"
+                @onkeydown="ManejarTeclado"
+                title="Ver credenciales de prueba"
+                aria-label="Ayuda: ver credenciales de acceso de prueba"
+                aria-expanded="@_abierto"
+                aria-haspopup="dialog">
+            ?
+        </button>
+
+        @if (_abierto)
+        {
+            <div class="ayuda-backdrop" @onclick="Cerrar" aria-hidden="true"></div>
+            <div class="ayuda-panel"
+                 role="dialog"
+                 aria-labelledby="ayuda-panel-titulo"
+                 @onkeydown="ManejarTeclado">
+                <div class="ayuda-panel-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="ayuda-panel-icono" aria-hidden="true">🔑</span>
+                        <span class="ayuda-panel-titulo" id="ayuda-panel-titulo">Credenciales de prueba</span>
+                    </div>
+                    <button class="ayuda-panel-cerrar"
+                            @onclick="Cerrar"
+                            aria-label="Cerrar panel de credenciales">
+                        ✕
+                    </button>
+                </div>
+                <div class="ayuda-panel-cuerpo">
+                    @foreach (var credencial in _credenciales)
+                    {
+                        <div class="ayuda-credencial-card ayuda-credencial-@credencial.Clase">
+                            <div class="ayuda-credencial-rol">@credencial.Rol</div>
+                            <div class="ayuda-credencial-campo">
+                                <span class="ayuda-credencial-etiqueta">Email</span>
+                                <code class="ayuda-credencial-valor">@credencial.Email</code>
+                            </div>
+                            <div class="ayuda-credencial-campo">
+                                <span class="ayuda-credencial-etiqueta">Contraseña</span>
+                                <code class="ayuda-credencial-valor">@credencial.Contrasenia</code>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="ayuda-panel-footer">
+                    Solo visible en entorno de desarrollo
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private bool _abierto = false;
+
+    private readonly IReadOnlyList<CredencialPrueba> _credenciales = new[]
+    {
+        new CredencialPrueba("Administrador",          "administrador@mail.com", "Administrador1*", "admin"),
+        new CredencialPrueba("Editor",                 "editor@mail.com",        "Editor1*",        "editor"),
+        new CredencialPrueba("Administrador y Editor", "admineditor@mail.com",   "AdminEditor1*",   "admineditor"),
+    };
+
+    private void TogglePanel() => _abierto = !_abierto;
+
+    private void Cerrar() => _abierto = false;
+
+    private void ManejarTeclado(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") Cerrar();
+    }
+
+    private record CredencialPrueba(string Rol, string Email, string Contrasenia, string Clase);
+}
