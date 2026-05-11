@@ -83,6 +83,68 @@ public class ServicioConfiguracionTorneoTests
         Assert.AreEqual(6, configuracionVisible.SemillaSimulation);
     }
 
+    [TestMethod]
+    public void ObtenerConfiguracionActual_SinModificaciones_DevuelveValoresPorDefecto()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+
+        // Act
+        var configuracion = servicioConfiguracion.ObtenerConfiguracionActual();
+
+        // Assert
+        Assert.AreEqual(0, configuracion.SemillaFixture);
+        Assert.AreEqual(0, configuracion.SemillaCompletar);
+        Assert.AreEqual(0, configuracion.SemillaCrucesFase);
+        Assert.AreEqual(0, configuracion.SemillaSimulation);
+        Assert.AreEqual(new DateTime(2026, 6, 1), configuracion.FechaInicioTorneo);
+        Assert.AreEqual(3, configuracion.MaxPartidosPorDia);
+        Assert.AreEqual(3, configuracion.SeparacionEntreFechas);
+    }
+
+    [TestMethod]
+    public void ObtenerConfiguracionActual_DespuesDeModificar_DevuelveValoresActualizados()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var nuevaConfiguracion = new ConfiguracionTorneo
+        {
+            SemillaFixture = 42,
+            SemillaSimulation = 99,
+            MaxPartidosPorDia = 5,
+            FechaInicioTorneo = new DateTime(2026, 7, 1)
+        };
+
+        // Act
+        servicioConfiguracion.ModificarConfiguracion(administrador, nuevaConfiguracion);
+        var configuracion = servicioConfiguracion.ObtenerConfiguracionActual();
+
+        // Assert
+        Assert.AreEqual(42, configuracion.SemillaFixture);
+        Assert.AreEqual(99, configuracion.SemillaSimulation);
+        Assert.AreEqual(5, configuracion.MaxPartidosPorDia);
+        Assert.AreEqual(new DateTime(2026, 7, 1), configuracion.FechaInicioTorneo);
+    }
+
+    [TestMethod]
+    public void ObtenerConfiguracionActual_DevuelveCopia_ModificarlaNoAlteraElEstadoInterno()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var configuracionOriginal = new ConfiguracionTorneo { SemillaFixture = 10 };
+        servicioConfiguracion.ModificarConfiguracion(administrador, configuracionOriginal);
+
+        // Act
+        var copia = servicioConfiguracion.ObtenerConfiguracionActual();
+        copia.SemillaFixture = 999;
+
+        // Assert
+        var configuracionNoMutada = servicioConfiguracion.ObtenerConfiguracionActual();
+        Assert.AreEqual(10, configuracionNoMutada.SemillaFixture);
+    }
+
     private static Usuario CrearUsuarioConRol(RolUsuario rol)
     {
         var usuario = new Usuario(new DatosUsuario

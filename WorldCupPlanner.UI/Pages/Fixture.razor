@@ -7,6 +7,7 @@
 @inject ServicioCruces ServicioCruces
 @inject EstadoTorneo EstadoTorneo
 @inject ServicioSimulacion ServicioSimulacion
+@inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
 
 <PageTitle>Fixture</PageTitle>
 
@@ -99,7 +100,7 @@ else
         {
             errorMensaje = string.Empty;
             var estadios = ServicioEstadio.ObtenerEstadios();
-            var configuracion = new ConfiguracionTorneo();
+            var configuracion = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             EstadoTorneo.Fixture = ServicioFixture.GenerarFixture(estadios, configuracion);
             EstadoTorneo.PartidosEliminatorios = new();
         }
@@ -113,7 +114,7 @@ else
     {
         try
         {
-            var configuracion = new ConfiguracionTorneo();
+            var configuracion = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             var partidos = EstadoTorneo.Fixture!.Partidos
                 .Concat(EstadoTorneo.PartidosEliminatorios)
                 .ToList();
@@ -130,7 +131,7 @@ else
         try
         {
             errorMensaje = string.Empty;
-            var configuracion = new ConfiguracionTorneo();
+            var configuracion = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             var clasificados = ServicioClasificacion.ObtenerClasificadosAFaseEliminatoria(EstadoTorneo.Fixture!, configuracion);
             var estadios = ServicioEstadio.ObtenerEstadios();
             EstadoTorneo.PartidosEliminatorios = ServicioCruces.GenerarPrimeraRondaEliminatoria(clasificados, estadios, configuracion);
