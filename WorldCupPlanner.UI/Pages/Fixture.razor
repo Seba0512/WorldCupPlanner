@@ -17,10 +17,13 @@
     <AccionesContent>
         @if (EstadoTorneo.Fixture != null)
         {
-            @if (!EstadoTorneo.PartidosEliminatorios.Any())
+            @if (_etapaActiva != FaseTorneo.FaseDeGrupos)
             {
-                <button class="btn btn-primary btn-sm" @onclick="GenerarCruces">
-                    <span class="oi oi-cog" aria-hidden="true"></span> Generar Cruces
+                <button class="btn btn-primary btn-sm"
+                        disabled="@(FaseYaGenerada(_etapaActiva) || !PuedeGenerarFase(_etapaActiva))"
+                        @onclick="GenerarFaseActiva">
+                    <span class="oi oi-cog" aria-hidden="true"></span>
+                    @(FaseYaGenerada(_etapaActiva) ? "Cruces generados" : "Generar Cruces")
                 </button>
             }
             <button class="btn btn-warning btn-sm" @onclick="SimularResultados">
@@ -34,6 +37,13 @@
 {
     <div class="alert alert-danger">
         <span class="oi oi-warning" aria-hidden="true"></span> @_error
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(MensajeCondicionFaseActiva))
+{
+    <div class="alert alert-info">
+        <span class="oi oi-info" aria-hidden="true"></span> @MensajeCondicionFaseActiva
     </div>
 }
 
@@ -238,7 +248,11 @@ else
         EtapasDisponibles.FirstOrDefault(e => e.Fase == _etapaActiva)?.Etiqueta ?? string.Empty;
 
     private List<Partido> PartidosEtapaActiva =>
-        EstadoTorneo.PartidosEliminatorios.Where(p => p.Fase == _etapaActiva).ToList();
+        _etapaActiva == FaseTorneo.Final
+            ? EstadoTorneo.PartidosEliminatorios
+                .Where(p => p.Fase == FaseTorneo.TercerPuesto || p.Fase == FaseTorneo.Final)
+                .ToList()
+            : EstadoTorneo.PartidosEliminatorios.Where(p => p.Fase == _etapaActiva).ToList();
 
     private void SeleccionarEtapa(FaseTorneo fase) => _etapaActiva = fase;
 
@@ -284,7 +298,76 @@ else
         catch (Exception ex) { _error = ex.Message; }
     }
 
-    private void GenerarCruces()
+    private bool FaseYaGenerada(FaseTorneo fase)
+    {
+        if (fase == FaseTorneo.Final)
+            return EstadoTorneo.PartidosEliminatorios.Any(p => p.Fase == FaseTorneo.Final || p.Fase == FaseTorneo.TercerPuesto);
+        return EstadoTorneo.PartidosEliminatorios.Any(p => p.Fase == fase);
+    }
+
+    private bool GruposCompletos() =>
+        EstadoTorneo.Fixture?.Partidos.All(p => p.EstaJugado()) ?? false;
+
+    private bool FaseEliminatoriaCompleta(FaseTorneo fase)
+    {
+        var partidos = EstadoTorneo.PartidosEliminatorios.Where(p => p.Fase == fase).ToList();
+        return partidos.Any() && partidos.All(p => p.EstaJugado() && p.Ganador() != null);
+    }
+
+    private bool PuedeGenerarFase(FaseTorneo fase) => fase switch
+    {
+        FaseTorneo.PrimeraRondaEliminatoria => GruposCompletos(),
+        FaseTorneo.Octavos   => FaseEliminatoriaCompleta(FaseTorneo.PrimeraRondaEliminatoria),
+        FaseTorneo.Cuartos   => FaseEliminatoriaCompleta(FaseTorneo.Octavos),
+        FaseTorneo.Semifinal => FaseEliminatoriaCompleta(FaseTorneo.Cuartos),
+        FaseTorneo.Final     => FaseEliminatoriaCompleta(FaseTorneo.Semifinal),
+        _                    => false
+    };
+
+    private string MensajeCondicionFaseActiva
+    {
+        get
+        {
+            if (_etapaActiva == FaseTorneo.FaseDeGrupos || FaseYaGenerada(_etapaActiva) || PuedeGenerarFase(_etapaActiva))
+                return string.Empty;
+
+            return _etapaActiva switch
+            {
+                FaseTorneo.PrimeraRondaEliminatoria =>
+                    "Para generar los 16avos, todos los partidos de la fase de grupos deben estar jugados.",
+                FaseTorneo.Octavos => !FaseYaGenerada(FaseTorneo.PrimeraRondaEliminatoria)
+                    ? "Primero debés generar la primera ronda eliminatoria (16avos)."
+                    : "Para generar los 8avos, todos los partidos de 16avos deben estar jugados y sin empates.",
+                FaseTorneo.Cuartos => !FaseYaGenerada(FaseTorneo.Octavos)
+                    ? "Primero debés generar los 8avos de final."
+                    : "Para generar los 4tos, todos los partidos de 8avos deben estar jugados y sin empates.",
+                FaseTorneo.Semifinal => !FaseYaGenerada(FaseTorneo.Cuartos)
+                    ? "Primero debés generar los cuartos de final."
+                    : "Para generar las semifinales, todos los partidos de 4tos deben estar jugados y sin empates.",
+                FaseTorneo.Final => !FaseYaGenerada(FaseTorneo.Semifinal)
+                    ? "Primero debés generar las semifinales."
+                    : "Para generar la final, todos los partidos de semifinales deben estar jugados y sin empates.",
+                _ => string.Empty
+            };
+        }
+    }
+
+    private List<Partido> PartidosDeFase(FaseTorneo fase) =>
+        EstadoTorneo.PartidosEliminatorios.Where(p => p.Fase == fase).ToList();
+
+    private void GenerarFaseActiva()
+    {
+        switch (_etapaActiva)
+        {
+            case FaseTorneo.PrimeraRondaEliminatoria: GenerarPrimeraRondaEliminatoria(); break;
+            case FaseTorneo.Octavos:                  GenerarOctavos();                  break;
+            case FaseTorneo.Cuartos:                  GenerarCuartos();                  break;
+            case FaseTorneo.Semifinal:                GenerarSemifinales();              break;
+            case FaseTorneo.Final:                    GenerarFinalYTercerPuesto();       break;
+        }
+    }
+
+    private void GenerarPrimeraRondaEliminatoria()
     {
         _error = string.Empty;
         try
@@ -294,7 +377,66 @@ else
             var estadios = ServicioEstadio.ObtenerEstadios();
             EstadoTorneo.PartidosEliminatorios = ServicioCruces.GenerarPrimeraRondaEliminatoria(
                 new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = config });
-            Toast.Exito("Cruces eliminatorios generados.");
+            Toast.Exito("16avos de final generados correctamente.");
+        }
+        catch (Exception ex) { _error = ex.Message; }
+    }
+
+    private void GenerarOctavos()
+    {
+        _error = string.Empty;
+        try
+        {
+            var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
+            var estadios = ServicioEstadio.ObtenerEstadios();
+            var octavos = ServicioCruces.GenerarOctavos(PartidosDeFase(FaseTorneo.PrimeraRondaEliminatoria), estadios, config);
+            EstadoTorneo.PartidosEliminatorios.AddRange(octavos);
+            Toast.Exito("8avos de final generados correctamente.");
+        }
+        catch (Exception ex) { _error = ex.Message; }
+    }
+
+    private void GenerarCuartos()
+    {
+        _error = string.Empty;
+        try
+        {
+            var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
+            var estadios = ServicioEstadio.ObtenerEstadios();
+            var cuartos = ServicioCruces.GenerarCuartos(PartidosDeFase(FaseTorneo.Octavos), estadios, config);
+            EstadoTorneo.PartidosEliminatorios.AddRange(cuartos);
+            Toast.Exito("Cuartos de final generados correctamente.");
+        }
+        catch (Exception ex) { _error = ex.Message; }
+    }
+
+    private void GenerarSemifinales()
+    {
+        _error = string.Empty;
+        try
+        {
+            var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
+            var estadios = ServicioEstadio.ObtenerEstadios();
+            var semifinales = ServicioCruces.GenerarSemifinales(PartidosDeFase(FaseTorneo.Cuartos), estadios, config);
+            EstadoTorneo.PartidosEliminatorios.AddRange(semifinales);
+            Toast.Exito("Semifinales generadas correctamente.");
+        }
+        catch (Exception ex) { _error = ex.Message; }
+    }
+
+    private void GenerarFinalYTercerPuesto()
+    {
+        _error = string.Empty;
+        try
+        {
+            var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
+            var estadios = ServicioEstadio.ObtenerEstadios();
+            var semifinales = PartidosDeFase(FaseTorneo.Semifinal);
+            var tercerPuesto = ServicioCruces.GenerarTercerPuesto(semifinales, estadios, config);
+            var final = ServicioCruces.GenerarFinal(semifinales, estadios, config);
+            EstadoTorneo.PartidosEliminatorios.Add(tercerPuesto);
+            EstadoTorneo.PartidosEliminatorios.Add(final);
+            Toast.Exito("Final y tercer puesto generados correctamente.");
         }
         catch (Exception ex) { _error = ex.Message; }
     }
