@@ -1,6 +1,7 @@
 @page "/fixture"
 @inject ServicioFixture ServicioFixture
 @inject ServicioEstadio ServicioEstadio
+@inject ServicioEquipo ServicioEquipo
 @inject ServicioClasificacion ServicioClasificacion
 @inject ServicioCruces ServicioCruces
 @inject EstadoTorneo EstadoTorneo
@@ -219,6 +220,7 @@ else
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             EstadoTorneo.Fixture = ServicioFixture.GenerarFixture(estadios, config);
             EstadoTorneo.PartidosEliminatorios = new();
+            ServicioEquipo.RegistrarFixtureGenerado(EstadoTorneo.Fixture);
             Toast.Exito("Fixture generado correctamente.");
         }
         catch (Exception ex) { _error = ex.Message; }

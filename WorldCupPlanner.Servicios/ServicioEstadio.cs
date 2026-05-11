@@ -20,7 +20,7 @@ public class ServicioEstadio
     {
         if (!estadio.EsValido())
             throw new EntidadInvalidaExcepcion("El estadio no es valido.");
-        if (_repositorioEstadio.Buscar(e => e.Nombre == estadio.Nombre).Count > 0)
+        if (_repositorioEstadio.Buscar(e => NombresIguales(e.Nombre, estadio.Nombre)).Count > 0)
             throw new EntidadYaExistenteExcepcion("Ya existe un estadio con ese nombre.");
         _repositorioEstadio.Agregar(estadio);
         _auditoria?.Registrar("Sistema", "Alta", $"Estadio: {estadio.Nombre}, Ciudad: {estadio.Ciudad}, Capacidad: {estadio.Capacidad}");
@@ -30,9 +30,12 @@ public class ServicioEstadio
     {
         if (!estadio.EsValido())
             throw new EntidadInvalidaExcepcion("El estadio no es valido.");
-        var existente = _repositorioEstadio.Buscar(e => ReferenceEquals(e, estadio) || e.Nombre == nombreOriginal).FirstOrDefault();
+        var existente = _repositorioEstadio.Buscar(e => ReferenceEquals(e, estadio) || NombresIguales(e.Nombre, nombreOriginal)).FirstOrDefault();
         if (existente == null)
             throw new EntidadInvalidaExcepcion("El estadio no existe.");
+        var conflicto = _repositorioEstadio.Buscar(e => NombresIguales(e.Nombre, estadio.Nombre) && !ReferenceEquals(e, existente)).FirstOrDefault();
+        if (conflicto != null)
+            throw new EntidadYaExistenteExcepcion("Ya existe un estadio con ese nombre.");
         existente.Nombre = estadio.Nombre;
         existente.Ciudad = estadio.Ciudad;
         existente.Capacidad = estadio.Capacidad;
@@ -72,4 +75,7 @@ public class ServicioEstadio
                 "No se puede eliminar un estadio que existe en un fixture generado.");
         }
     }
+
+    private static bool NombresIguales(string a, string b) =>
+        string.Equals(a.Trim(), b.Trim(), StringComparison.OrdinalIgnoreCase);
 }

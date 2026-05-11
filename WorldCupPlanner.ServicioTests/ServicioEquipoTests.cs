@@ -175,13 +175,81 @@ public class ServicioEquipoTests
     [TestMethod]
     public void Eliminar_EquipoUsadoEnFixture_DebeLanzarExcepcion()
     {
+        // Arrange
         var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
         var fixture = CrearFixtureConEquipo(equipo);
         _servicio.Agregar(equipo);
         _servicio.RegistrarFixtureGenerado(fixture);
 
+        // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.Eliminar(equipo));
+    }
+
+    [TestMethod]
+    public void Eliminar_CuandoFixtureGenerado_EquipoNoEnFixture_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var equipoEnFixture = CrearEquipo("Argentina", Confederacion.CONMEBOL);
+        var equipoFueraDelFixture = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+        var fixture = CrearFixtureConEquipo(equipoEnFixture);
+        _servicio.Agregar(equipoFueraDelFixture);
+        _servicio.RegistrarFixtureGenerado(fixture);
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            _servicio.Eliminar(equipoFueraDelFixture));
+    }
+
+    [TestMethod]
+    public void FixtureYaFueGenerado_SinFixtureRegistrado_DevuelveFalse()
+    {
+        // Act & Assert
+        Assert.IsFalse(_servicio.FixtureYaFueGenerado);
+    }
+
+    [TestMethod]
+    public void FixtureYaFueGenerado_ConFixtureRegistrado_DevuelveTrue()
+    {
+        // Arrange
+        var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+        var fixture = CrearFixtureConEquipo(equipo);
+
+        // Act
+        _servicio.RegistrarFixtureGenerado(fixture);
+
+        // Assert
+        Assert.IsTrue(_servicio.FixtureYaFueGenerado);
+    }
+
+    [TestMethod]
+    public void EditarEquipo_CuandoFixtureGenerado_NoLanzaExcepcion()
+    {
+        // Arrange
+        var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+        _servicio.Agregar(equipo);
+        var fixture = CrearFixtureConEquipo(equipo);
+        _servicio.RegistrarFixtureGenerado(fixture);
+
+        // Act & Assert - editar no debe verse bloqueado por el fixture
+        _servicio.EditarEquipo(CrearEquipo("Uruguay", Confederacion.CONMEBOL), "Uruguay");
+        Assert.AreEqual(1, _servicio.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
+    public void Buscar_CuandoFixtureGenerado_DevuelveEquiposCorrectamente()
+    {
+        // Arrange
+        var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+        _servicio.Agregar(equipo);
+        var fixture = CrearFixtureConEquipo(equipo);
+        _servicio.RegistrarFixtureGenerado(fixture);
+
+        // Act
+        var resultado = _servicio.Buscar(_ => true);
+
+        // Assert
+        Assert.AreEqual(1, resultado.Count);
     }
 
     [TestMethod]

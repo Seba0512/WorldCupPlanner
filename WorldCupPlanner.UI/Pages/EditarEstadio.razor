@@ -49,17 +49,28 @@
     [Parameter] public string Nombre { get; set; } = string.Empty;
     private Estadio _estadio = new();
     private string _error = string.Empty;
+    private List<Estadio> _todosLosEstadios = [];
 
     protected override void OnInitialized()
     {
         if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
-        var original = ServicioEstadio.ObtenerEstadios().First(e => e.Nombre == Nombre);
+        _todosLosEstadios = ServicioEstadio.ObtenerEstadios();
+        var original = _todosLosEstadios.First(e => e.Nombre == Nombre);
         _estadio = new Estadio { Nombre = original.Nombre, Ciudad = original.Ciudad, Capacidad = original.Capacidad, Descripcion = original.Descripcion };
     }
 
     private void Guardar()
     {
         _error = string.Empty;
+        var nombreNuevo = (_estadio.Nombre ?? string.Empty).Trim();
+        var hayConflicto = _todosLosEstadios.Any(e =>
+            string.Equals(e.Nombre.Trim(), nombreNuevo, StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(e.Nombre.Trim(), Nombre.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (hayConflicto)
+        {
+            _error = "Ya existe un estadio con ese nombre.";
+            return;
+        }
         try
         {
             ServicioEstadio.EditarEstadio(Nombre, _estadio);

@@ -113,6 +113,83 @@ public class ServicioEstadioTests
     }
 
     [TestMethod]
+    public void EditarEstadio_NombreYaExisteEnOtroEstadio_LanzaExcepcion()
+    {
+        // Arrange
+        _servicio.AgregarEstadio(CrearEstadio("Estadio Centenario"));
+        _servicio.AgregarEstadio(CrearEstadio("Estadio Olimpico"));
+        var estadioActualizado = CrearEstadio("Estadio Olimpico");
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() =>
+            _servicio.EditarEstadio("Estadio Centenario", estadioActualizado));
+    }
+
+    [TestMethod]
+    public void EditarEstadio_MismoNombreSinCambios_SeEditaCorrectamente()
+    {
+        // Arrange
+        _servicio.AgregarEstadio(CrearEstadio("Estadio Centenario", capacidad: 60000));
+        var estadioActualizado = CrearEstadio("Estadio Centenario", ciudad: "Montevideo Centro", capacidad: 65000);
+
+        // Act
+        _servicio.EditarEstadio("Estadio Centenario", estadioActualizado);
+
+        // Assert
+        var resultado = _servicio.ObtenerEstadios().First();
+        Assert.AreEqual("Estadio Centenario", resultado.Nombre);
+        Assert.AreEqual(65000, resultado.Capacidad);
+    }
+
+    [TestMethod]
+    public void EditarEstadio_NombreIgualDiferenteCaso_LanzaExcepcion()
+    {
+        // Arrange
+        _servicio.AgregarEstadio(CrearEstadio("Centenario"));
+        _servicio.AgregarEstadio(CrearEstadio("Olimpico"));
+        var estadioActualizado = CrearEstadio("CENTENARIO");
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() =>
+            _servicio.EditarEstadio("Olimpico", estadioActualizado));
+    }
+
+    [TestMethod]
+    public void EditarEstadio_NombreConEspaciosExtraIgualAExistente_LanzaExcepcion()
+    {
+        // Arrange
+        _servicio.AgregarEstadio(CrearEstadio("Centenario"));
+        _servicio.AgregarEstadio(CrearEstadio("Olimpico"));
+        var estadioActualizado = CrearEstadio(" centenario ");
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() =>
+            _servicio.EditarEstadio("Olimpico", estadioActualizado));
+    }
+
+    [TestMethod]
+    public void AgregarEstadio_NombreIgualDiferenteCaso_LanzaExcepcion()
+    {
+        // Arrange
+        _servicio.AgregarEstadio(CrearEstadio("Centenario"));
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() =>
+            _servicio.AgregarEstadio(CrearEstadio("CENTENARIO")));
+    }
+
+    [TestMethod]
+    public void AgregarEstadio_NombreConEspaciosExtraIgualAExistente_LanzaExcepcion()
+    {
+        // Arrange
+        _servicio.AgregarEstadio(CrearEstadio("Centenario"));
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() =>
+            _servicio.AgregarEstadio(CrearEstadio(" centenario ")));
+    }
+
+    [TestMethod]
     public void EditarEstadio_ConNuevoObjetoYNombreOriginal_SeEditaCorrectamente()
     {
         // Cubre la rama del predicado donde ReferenceEquals es false
