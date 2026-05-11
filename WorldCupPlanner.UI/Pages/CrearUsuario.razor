@@ -3,6 +3,7 @@
 @using WorldCupPlanner.Dominio.Entidades
 @using WorldCupPlanner.Dominio.Enumeraciones
 @inject ServicioUsuario ServicioUsuario
+@inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 
 <PageTitle>Crear Usuario</PageTitle>
@@ -30,6 +31,17 @@
     <input type="date" class="form-control" @bind="fechaNacimiento" />
 </div>
 <div class="form-group mb-2">
+    <label>Contraseña</label>
+    <input type="password" class="form-control" @bind="contrasenia" />
+    <small class="text-muted">
+        Mínimo 8 caracteres. Debe incluir mayúscula, minúscula, número y carácter especial (@@, #, $, ., !, &amp;, *, -, _, +, =, ?).
+    </small>
+</div>
+<div class="form-group mb-2">
+    <label>Confirmar contraseña</label>
+    <input type="password" class="form-control" @bind="confirmarContrasenia" />
+</div>
+<div class="form-group mb-2">
     <label>Roles</label>
     <div>
         <input type="checkbox" @bind="esAdmin" /> Administrador del Sistema
@@ -43,21 +55,37 @@
 <a href="/usuarios" class="btn btn-secondary mt-2">Cancelar</a>
 
 @code {
+    protected override void OnInitialized()
+    {
+        if (!SesionServicio.EsAdministrador)
+            NavigationManager.NavigateTo("/");
+    }
+
     private string nombre = string.Empty;
     private string apellido = string.Empty;
     private string email = string.Empty;
     private DateTime fechaNacimiento = DateTime.Now.AddYears(-18);
+    private string contrasenia = string.Empty;
+    private string confirmarContrasenia = string.Empty;
     private bool esAdmin = false;
     private bool esEditor = false;
     private string errorMensaje = string.Empty;
 
     private void Guardar()
     {
+        errorMensaje = string.Empty;
+
+        if (contrasenia != confirmarContrasenia)
+        {
+            errorMensaje = "Las contraseñas no coinciden.";
+            return;
+        }
+
         try
         {
             var datos = new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento.ToString("MM-dd-yyyy") };
             var usuario = new Usuario(datos);
-            ServicioUsuario.GenerarContraseniaDefecto(usuario);
+            usuario.EstablecerContrasenia(contrasenia);
             if (esAdmin) usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
             if (esEditor) usuario.AgregarRol(RolUsuario.Editor);
             ServicioUsuario.AgregarUsuario(usuario);

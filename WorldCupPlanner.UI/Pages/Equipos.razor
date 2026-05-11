@@ -3,6 +3,8 @@
 @using WorldCupPlanner.Dominio.Entidades
 @inject ServicioEquipo ServicioEquipo
 @inject ConfiguracionTorneo ConfiguracionTorneo
+@inject SesionServicio SesionServicio
+@inject NavigationManager NavigationManager
 
 <PageTitle>Equipos</PageTitle>
 
@@ -60,6 +62,11 @@
 
     protected override void OnInitialized()
     {
+        if (!SesionServicio.EsAdministrador)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
         equipos = ServicioEquipo.Buscar(_ => true);
     }
 

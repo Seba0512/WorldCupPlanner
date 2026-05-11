@@ -1,16 +1,6 @@
 @page "/"
-@using WorldCupPlanner.UI.Data
 @inject SesionServicio SesionServicio
-@inject NavigationManager NavigationManager
 
 <PageTitle>WorldCupPlanner</PageTitle>
 
-<h1>Bienvenido, @SesionServicio.UsuarioActual?.Nombre</h1>
-
-@code {
-    protected override void OnInitialized()
-    {
-        if (!SesionServicio.HaySesion)
-            NavigationManager.NavigateTo("/login");
-    }
-}
+<h1>Bienvenido, @SesionServicio.UsuarioActual?.Nombre @SesionServicio.UsuarioActual?.Apellido</h1>

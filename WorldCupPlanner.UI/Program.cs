@@ -4,6 +4,7 @@ using WorldCupPlanner.UI.Data;
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,6 +35,7 @@ var app = builder.Build();
 var servicioUsuario = app.Services.GetRequiredService<ServicioUsuario>();
 var admin = new Usuario(new DatosUsuario { Nombre = "Admin", Apellido = "Admin", Email = "a@a.com", FechaNacimiento = "01-01-1990" });
 admin.EstablecerContrasenia("Admin@2026");
+admin.AgregarRol(RolUsuario.AdministradorDelSistema);
 servicioUsuario.AgregarUsuario(admin);
 
 if (!app.Environment.IsDevelopment())

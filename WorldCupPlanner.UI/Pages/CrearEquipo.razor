@@ -3,6 +3,7 @@
 @using WorldCupPlanner.Dominio.Entidades
 @using WorldCupPlanner.Dominio.Enumeraciones
 @inject ServicioEquipo ServicioEquipo
+@inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 
 <PageTitle>Crear Equipo</PageTitle>
@@ -36,6 +37,12 @@
 <a href="/equipos" class="btn btn-secondary mt-2">Cancelar</a>
 
 @code {
+    protected override void OnInitialized()
+    {
+        if (!SesionServicio.EsAdministrador)
+            NavigationManager.NavigateTo("/");
+    }
+
     private Equipo equipo = new();
     private string errorMensaje = string.Empty;
 

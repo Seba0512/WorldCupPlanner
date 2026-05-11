@@ -2,6 +2,7 @@
 @using WorldCupPlanner.Servicios
 @using WorldCupPlanner.Dominio.Entidades
 @inject ServicioEstadio ServicioEstadio
+@inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 
 <PageTitle>Crear Estadio</PageTitle>
@@ -33,6 +34,12 @@
 <a href="/estadios" class="btn btn-secondary mt-2">Cancelar</a>
 
 @code {
+    protected override void OnInitialized()
+    {
+        if (!SesionServicio.EsAdministrador)
+            NavigationManager.NavigateTo("/");
+    }
+
     private Estadio estadio = new();
     private string errorMensaje = string.Empty;
 

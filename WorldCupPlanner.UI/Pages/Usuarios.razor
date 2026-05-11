@@ -3,6 +3,8 @@
 @using WorldCupPlanner.Dominio.Entidades
 @using WorldCupPlanner.Dominio.Enumeraciones
 @inject ServicioUsuario ServicioUsuario
+@inject SesionServicio SesionServicio
+@inject NavigationManager NavigationManager
 
 <PageTitle>Usuarios</PageTitle>
 
@@ -43,6 +45,11 @@
 
     protected override void OnInitialized()
     {
+        if (!SesionServicio.EsAdministrador)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
         usuarios = ServicioUsuario.ObtenerTodosLosUsuarios();
     }
 

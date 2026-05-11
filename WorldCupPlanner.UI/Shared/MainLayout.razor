@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@inject SesionServicio SesionServicio
 
 <PageTitle>WorldCupPlanner.UI</PageTitle>
 
@@ -9,7 +10,12 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+            @if (SesionServicio.HaySesion)
+            {
+                <span class="text-muted me-3">
+                    @SesionServicio.UsuarioActual!.Nombre @SesionServicio.UsuarioActual.Apellido
+                </span>
+            }
         </div>
 
         <article class="content px-4">

@@ -3,6 +3,7 @@
 @using WorldCupPlanner.Dominio.Entidades
 @using WorldCupPlanner.Dominio.Enumeraciones
 @inject ServicioEquipo ServicioEquipo
+@inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 
 <PageTitle>Editar Equipo</PageTitle>
@@ -42,6 +43,11 @@
 
     protected override void OnInitialized()
     {
+        if (!SesionServicio.EsAdministrador)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
         var original = ServicioEquipo.Buscar(e => e.Nombre == Nombre).First();
         equipo = new Equipo
         {

@@ -2,6 +2,7 @@
 @using WorldCupPlanner.Servicios
 @using WorldCupPlanner.Dominio.Entidades
 @inject ServicioEstadio ServicioEstadio
+@inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 
 <PageTitle>Editar Estadio</PageTitle>
@@ -39,6 +40,11 @@
 
     protected override void OnInitialized()
     {
+        if (!SesionServicio.EsAdministrador)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
         var original = ServicioEstadio.ObtenerEstadios().First(e => e.Nombre == Nombre);
         estadio = new Estadio
         {

@@ -3,6 +3,7 @@
 @using WorldCupPlanner.Dominio.Entidades
 @using WorldCupPlanner.Dominio.Enumeraciones
 @inject ServicioUsuario ServicioUsuario
+@inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 
 <PageTitle>Editar Usuario</PageTitle>
@@ -55,6 +56,11 @@
 
     protected override void OnInitialized()
     {
+        if (!SesionServicio.EsAdministrador)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
         usuario = ServicioUsuario.ObtenerPorEmail(Email);
         if (usuario != null)
         {
