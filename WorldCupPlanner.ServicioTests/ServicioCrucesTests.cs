@@ -460,7 +460,7 @@ public class ServicioCrucesTests
         return partidos;
     }
 
-    private List<Partido> CrearPartidosOctavosJugados(int cantidad)
+    private List<Partido> CrearPartidosOctavosJugados(int cantidad, DateTime? fechaFija = null)
     {
         var partidos = new List<Partido>();
         var estadio = new Estadio
@@ -488,7 +488,7 @@ public class ServicioCrucesTests
                     Confederacion = Confederacion.CONMEBOL
                 },
                 Estadio = estadio,
-                Fecha = DateTime.Now,
+                Fecha = fechaFija ?? DateTime.Now,
                 Fase = FaseTorneo.Octavos,
                 GolesLocal = 2,
                 GolesVisitante = 0
@@ -498,7 +498,7 @@ public class ServicioCrucesTests
         return partidos;
     }
 
-    private List<Partido> CrearPartidosCuartosJugados(int cantidad)
+    private List<Partido> CrearPartidosCuartosJugados(int cantidad, DateTime? fechaFija = null)
     {
         var partidos = new List<Partido>();
         var estadio = new Estadio
@@ -526,7 +526,7 @@ public class ServicioCrucesTests
                     Confederacion = Confederacion.CONMEBOL
                 },
                 Estadio = estadio,
-                Fecha = DateTime.Now,
+                Fecha = fechaFija ?? DateTime.Now,
                 Fase = FaseTorneo.Cuartos,
                 GolesLocal = 2,
                 GolesVisitante = 0
@@ -947,13 +947,17 @@ public class ServicioCrucesTests
     {
         // Arrange
         var servicioCruces = new ServicioCruces();
-        var octavos = CrearPartidosOctavosJugados(8);
+        // octavos con fecha fija para que cuartos caigan en FechaInicioTorneo + 2*SeparacionEntreFechas
+        var octavos = CrearPartidosOctavosJugados(8, new DateTime(2026, 6, 4));
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo = new ConfiguracionTorneo
         {
             FechaInicioTorneo = new DateTime(2026, 6, 1),
-            SeparacionEntreFechas = 3
+            SeparacionEntreFechas = 3,
+            HoraInicioPartidos = TimeSpan.Zero,
+            SeparacionHorasEntrePartidos = 0,
+            MaxPartidosPorDia = 4
         };
 
         // Act
@@ -1175,13 +1179,16 @@ public class ServicioCrucesTests
     {
         // Arrange
         var servicioCruces = new ServicioCruces();
-        var cuartos = CrearPartidosCuartosJugados(4);
+        // cuartos con fecha fija para que semifinales caigan en FechaInicioTorneo + 3*SeparacionEntreFechas
+        var cuartos = CrearPartidosCuartosJugados(4, new DateTime(2026, 6, 7));
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo = new ConfiguracionTorneo
         {
             FechaInicioTorneo = new DateTime(2026, 6, 1),
-            SeparacionEntreFechas = 3
+            SeparacionEntreFechas = 3,
+            HoraInicioPartidos = TimeSpan.Zero,
+            SeparacionHorasEntrePartidos = 0
         };
 
         // Act
@@ -1197,7 +1204,7 @@ public class ServicioCrucesTests
         Assert.IsTrue(semifinales.All(p => p.Fecha == fechaEsperada));
     }
     
-    private List<Partido> CrearPartidosSemifinalesJugados(int cantidad)
+    private List<Partido> CrearPartidosSemifinalesJugados(int cantidad, DateTime? fechaFija = null)
     {
         var partidos = new List<Partido>();
         var estadio = new Estadio
@@ -1225,7 +1232,7 @@ public class ServicioCrucesTests
                     Confederacion = Confederacion.CONMEBOL
                 },
                 Estadio = estadio,
-                Fecha = DateTime.Now,
+                Fecha = fechaFija ?? DateTime.Now,
                 Fase = FaseTorneo.Semifinal,
                 GolesLocal = 2,
                 GolesVisitante = 0
@@ -1428,13 +1435,15 @@ public class ServicioCrucesTests
     {
         // Arrange
         var servicioCruces = new ServicioCruces();
-        var semifinales = CrearPartidosSemifinalesJugados(2);
+        // semifinales con fecha fija para que tercer puesto caiga en FechaInicioTorneo + 4*SeparacionEntreFechas
+        var semifinales = CrearPartidosSemifinalesJugados(2, new DateTime(2026, 6, 10));
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo = new ConfiguracionTorneo
         {
             FechaInicioTorneo = new DateTime(2026, 6, 1),
-            SeparacionEntreFechas = 3
+            SeparacionEntreFechas = 3,
+            HoraInicioPartidos = TimeSpan.Zero
         };
 
         // Act
@@ -1622,13 +1631,15 @@ public class ServicioCrucesTests
     {
         // Arrange
         var servicioCruces = new ServicioCruces();
-        var semifinales = CrearPartidosSemifinalesJugados(2);
+        // semifinales con fecha fija para que la final caiga en FechaInicioTorneo + 5*SeparacionEntreFechas
+        var semifinales = CrearPartidosSemifinalesJugados(2, new DateTime(2026, 6, 10));
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo = new ConfiguracionTorneo
         {
             FechaInicioTorneo = new DateTime(2026, 6, 1),
-            SeparacionEntreFechas = 3
+            SeparacionEntreFechas = 3,
+            HoraInicioPartidos = TimeSpan.Zero
         };
 
         // Act
