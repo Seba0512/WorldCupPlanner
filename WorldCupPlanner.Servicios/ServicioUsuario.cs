@@ -95,9 +95,11 @@ public class ServicioUsuario
         }
     }
 
+    private const int AnioBaseMundial = 2026;
+
     public void GenerarContraseniaDefecto(Usuario usuario, int seed = 0)
     {
-        var contraseniaDefecto = $"TempPass@{2026 + seed}";
+        var contraseniaDefecto = $"TempPass@{AnioBaseMundial + seed}";
         usuario.EstablecerContrasenia(contraseniaDefecto);
     }
 

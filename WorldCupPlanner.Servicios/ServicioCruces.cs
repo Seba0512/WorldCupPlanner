@@ -8,13 +8,27 @@ public class ServicioCruces
 {
     private const int PrimerIdPrimeraRondaEliminatoria = 73;
 
+    private const int CantidadPrimerosSorteadosContraTerceros = 8;
+    private const int CantidadPrimerosRestantes = 4;
+    private const int PasoEntreParesDeEquipos = 2;
+
+    private const int CantidadPartidosPrimeraRonda = 16;
+    private const int CantidadPartidosOctavos = 8;
+    private const int CantidadPartidosCuartos = 4;
+    private const int CantidadPartidosSemifinales = 2;
+
+    // La final se programa con el doble de separación respecto a la semifinal para dar lugar al partido de tercer puesto
+    private const int MultiplicadorSeparacionFinal = 2;
+    // El tercer puesto ocupa el ID siguiente al de las semifinales (+1); la final va un lugar después
+    private const int OffsetIdFinal = 2;
+
     public List<Partido> GenerarPrimeraRondaEliminatoria(ContextoSorteo sorteo, Random? random = null)
     {
         var partidos = new List<Partido>();
         random ??= new Random(sorteo.ConfiguracionTorneo.SemillaCrucesFase);
 
         var primerosParaTerceros = MezclarEquiposConFisherYates(
-            new List<Equipo>(sorteo.Clasificados.Primeros.Take(8)),
+            new List<Equipo>(sorteo.Clasificados.Primeros.Take(CantidadPrimerosSorteadosContraTerceros)),
             random);
 
         var terceros = MezclarEquiposConFisherYates(
@@ -32,17 +46,17 @@ public class ServicioCruces
         AgregarCrucesPrimerosContraTerceros(primerosParaTerceros, terceros, contexto);
 
         var primerosRestantes = MezclarEquiposConFisherYates(
-            new List<Equipo>(sorteo.Clasificados.Primeros.Skip(8).Take(4)),
+            new List<Equipo>(sorteo.Clasificados.Primeros.Skip(CantidadPrimerosSorteadosContraTerceros).Take(CantidadPrimerosRestantes)),
             random);
 
         var segundosDeMenorRendimiento = MezclarEquiposConFisherYates(
-            new List<Equipo>(sorteo.Clasificados.Segundos.Skip(8).Take(4)),
+            new List<Equipo>(sorteo.Clasificados.Segundos.Skip(CantidadPrimerosSorteadosContraTerceros).Take(CantidadPrimerosRestantes)),
             random);
 
         AgregarCrucesPrimerosRestantesContraSegundosDeMenorRendimiento(primerosRestantes, segundosDeMenorRendimiento, contexto);
 
         var segundosRestantes = MezclarEquiposConFisherYates(
-            new List<Equipo>(sorteo.Clasificados.Segundos.Take(8)),
+            new List<Equipo>(sorteo.Clasificados.Segundos.Take(CantidadPrimerosSorteadosContraTerceros)),
             random);
 
         AgregarCrucesSegundosRestantesMinimos(segundosRestantes, contexto);
@@ -119,7 +133,7 @@ public class ServicioCruces
         var fechaInicioDeFase = contexto.ConfiguracionTorneo.FechaInicioTorneo.Date
             .AddDays(contexto.ConfiguracionTorneo.SeparacionEntreFechas);
 
-        for (int i = 0; i < segundosRestantes.Count; i += 2)
+        for (int i = 0; i < segundosRestantes.Count; i += PasoEntreParesDeEquipos)
         {
             contexto.Partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
             {
@@ -280,7 +294,7 @@ public class ServicioCruces
             partidosPrimeraRonda,
             new ContextoValidacionFase
             {
-                CantidadEsperada = 16,
+                CantidadEsperada = CantidadPartidosPrimeraRonda,
                 FaseEsperada = FaseTorneo.PrimeraRondaEliminatoria,
                 FaseAGenerar = "octavos",
                 FaseAnterior = "primera ronda",
@@ -292,13 +306,13 @@ public class ServicioCruces
         var proximoId = partidosPrimeraRonda.Max(p => p.Id) + 1;
         var fechaInicio = partidosPrimeraRonda.Max(p => p.Fecha.Date).AddDays(configuracionTorneo.SeparacionEntreFechas);
 
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < CantidadPartidosOctavos; i++)
         {
             partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
             {
                 Id = proximoId++,
                 EquipoLocal = ganadores[i],
-                EquipoVisitante = ganadores[i + 8],
+                EquipoVisitante = ganadores[i + CantidadPartidosOctavos],
                 Estadio = estadios[partidos.Count % estadios.Count],
                 Fecha = CalcularFechaPartidoEliminatorio(fechaInicio, i, configuracionTorneo),
                 Fase = FaseTorneo.Octavos
@@ -317,7 +331,7 @@ public class ServicioCruces
             octavos,
             new ContextoValidacionFase
             {
-                CantidadEsperada = 8,
+                CantidadEsperada = CantidadPartidosOctavos,
                 FaseEsperada = FaseTorneo.Octavos,
                 FaseAGenerar = "cuartos",
                 FaseAnterior = "octavos"
@@ -328,7 +342,7 @@ public class ServicioCruces
         var proximoId = octavos.Max(p => p.Id) + 1;
         var fechaInicio = octavos.Max(p => p.Fecha.Date).AddDays(configuracionTorneo.SeparacionEntreFechas);
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < CantidadPartidosCuartos; i++)
         {
             partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
             {
@@ -353,7 +367,7 @@ public class ServicioCruces
             cuartos,
             new ContextoValidacionFase
             {
-                CantidadEsperada = 4,
+                CantidadEsperada = CantidadPartidosCuartos,
                 FaseEsperada = FaseTorneo.Cuartos,
                 FaseAGenerar = "semifinales",
                 FaseAnterior = "cuartos"
@@ -364,7 +378,7 @@ public class ServicioCruces
         var proximoId = cuartos.Max(p => p.Id) + 1;
         var fechaInicio = cuartos.Max(p => p.Fecha.Date).AddDays(configuracionTorneo.SeparacionEntreFechas);
 
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < CantidadPartidosSemifinales; i++)
         {
             partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
             {
@@ -446,7 +460,7 @@ public class ServicioCruces
             semifinales,
             new ContextoValidacionFase
             {
-                CantidadEsperada = 2,
+                CantidadEsperada = CantidadPartidosSemifinales,
                 FaseEsperada = FaseTorneo.Semifinal,
                 FaseAGenerar = "tercer puesto",
                 FaseAnterior = "semifinales"
@@ -516,7 +530,7 @@ public class ServicioCruces
             semifinales,
             new ContextoValidacionFase
             {
-                CantidadEsperada = 2,
+                CantidadEsperada = CantidadPartidosSemifinales,
                 FaseEsperada = FaseTorneo.Semifinal,
                 FaseAGenerar = "la final",
                 FaseAnterior = "semifinales"
@@ -525,13 +539,13 @@ public class ServicioCruces
         var ganadores = ObtenerGanadores(semifinales);
 
         var fechaFinal = CalcularFechaPartidoEliminatorio(
-            semifinales.Max(p => p.Fecha.Date).AddDays(configuracionTorneo.SeparacionEntreFechas * 2),
+            semifinales.Max(p => p.Fecha.Date).AddDays(configuracionTorneo.SeparacionEntreFechas * MultiplicadorSeparacionFinal),
             0,
             configuracionTorneo);
 
         return CrearPartidoEliminatorio(new DatosPartidoEliminatorio
         {
-            Id = semifinales.Max(p => p.Id) + 2,
+            Id = semifinales.Max(p => p.Id) + OffsetIdFinal,
             EquipoLocal = ganadores[0],
             EquipoVisitante = ganadores[1],
             Estadio = estadios[0],

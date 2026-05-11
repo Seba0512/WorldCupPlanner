@@ -29,6 +29,8 @@ public class ServicioFixture
     private const char PrimeraEtiquetaGrupo = 'A';
     private const char UltimaEtiquetaGrupo = 'L';
 
+    private const int MaxIntentosGeneracionFixture = 100;
+
     public ServicioFixture(ServicioEquipo servicioEquipo)
     {
         _servicioEquipo = servicioEquipo;
@@ -41,7 +43,7 @@ public class ServicioFixture
         ValidarCantidadEquipos(equiposCompletos);
         ValidarCantidadEstadios(estadios);
 
-        for (int offset = 0; offset < 100; offset++)
+        for (int offset = 0; offset < MaxIntentosGeneracionFixture; offset++)
         {
             try
             {
@@ -59,7 +61,7 @@ public class ServicioFixture
                 };
                 return CrearFixtureConDistribucionRoundRobin(equiposCompletos, estadios, config);
             }
-            catch (EntidadInvalidaExcepcion) when (offset < 99)
+            catch (EntidadInvalidaExcepcion) when (offset < MaxIntentosGeneracionFixture - 1)
             {
                 // la semilla actual genera un ordenamiento inválido, se prueba la siguiente
             }
