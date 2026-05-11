@@ -643,6 +643,52 @@ public sealed class ServicioUsuarioTests
         Assert.AreEqual("admin@example.com", repoAuditoria.Entradas[0].Usuario);
     }
 
+    [TestMethod]
+    public void ActualizarUsuario_SinCambiosDeCampos_RegistraDetalleAuditoriaSinCambios()
+    {
+        // Arrange
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var servicio = new ServicioUsuario(repositorio, auditoria);
+
+        var usuario = CrearUsuarioValido("juan@example.com");
+        servicio.AgregarUsuario(usuario);
+        repoAuditoria.Entradas.Clear();
+
+        // Act — actualizacion vacía: ningún campo cambia
+        servicio.ActualizarUsuario(usuario, new ActualizacionUsuario());
+
+        // Assert
+        var detalle = repoAuditoria.Entradas[0].Detalle;
+        Assert.IsTrue(detalle.StartsWith("Sin cambios efectivos en"),
+            $"Detalle inesperado: '{detalle}'");
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConCambiosDeCampos_RegistraDetalleAuditoriaConCamposModificados()
+    {
+        // Arrange
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var servicio = new ServicioUsuario(repositorio, auditoria);
+
+        var usuario = CrearUsuarioValido("juan@example.com");
+        servicio.AgregarUsuario(usuario);
+        repoAuditoria.Entradas.Clear();
+
+        // Act
+        servicio.ActualizarUsuario(usuario, new ActualizacionUsuario { Nombre = "Carlos", Apellido = "García" });
+
+        // Assert
+        var detalle = repoAuditoria.Entradas[0].Detalle;
+        Assert.IsTrue(detalle.StartsWith("Campos modificados en"),
+            $"Detalle inesperado: '{detalle}'");
+        StringAssert.Contains(detalle, "nombre: Carlos");
+        StringAssert.Contains(detalle, "apellido: García");
+    }
+
     private static Usuario CrearUsuarioValido(string email)
     {
         return new Usuario(new DatosUsuario

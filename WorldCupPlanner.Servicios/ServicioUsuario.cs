@@ -26,15 +26,25 @@ public class ServicioUsuario
     public void ActualizarUsuario(Usuario usuario, ActualizacionUsuario? actualizacion = null)
     {
         actualizacion ??= new ActualizacionUsuario();
+        var usuarioActual = BuscarUsuarioExistenteOLanzarExcepcion(usuario);
+        var campos = AplicarActualizacionesDeCampos(usuarioActual, actualizacion);
+        _repositorio.Actualizar(usuarioActual);
+        _auditoria.Registrar(
+            actualizacion.EjecutadoPor ?? usuarioActual.Email,
+            "EDICION_USUARIO",
+            ConstruirDetalleAuditoria(usuarioActual.Email, campos));
+    }
 
-        var usuarioActual = _repositorio.Buscar(u => ReferenceEquals(u, usuario))
-            .FirstOrDefault();
-
+    private Usuario BuscarUsuarioExistenteOLanzarExcepcion(Usuario usuario)
+    {
+        var usuarioActual = _repositorio.Buscar(u => ReferenceEquals(u, usuario)).FirstOrDefault();
         if (usuarioActual == null)
-        {
             throw new EntidadInvalidaExcepcion("El usuario no existe en el sistema.");
-        }
+        return usuarioActual;
+    }
 
+    private List<string> AplicarActualizacionesDeCampos(Usuario usuarioActual, ActualizacionUsuario actualizacion)
+    {
         var campos = new List<string>();
 
         if (actualizacion.Email != null && !actualizacion.Email.Equals(usuarioActual.Email, StringComparison.OrdinalIgnoreCase))
@@ -62,12 +72,14 @@ public class ServicioUsuario
             campos.Add($"fechaNacimiento: {actualizacion.FechaNacimiento}");
         }
 
-        _repositorio.Actualizar(usuarioActual);
+        return campos;
+    }
 
-        var detalle = campos.Count > 0
-            ? $"Campos modificados en {usuarioActual.Email}: {string.Join(", ", campos)}"
-            : $"Sin cambios efectivos en {usuarioActual.Email}";
-        _auditoria.Registrar(actualizacion.EjecutadoPor ?? usuarioActual.Email, "EDICION_USUARIO", detalle);
+    private static string ConstruirDetalleAuditoria(string email, List<string> campos)
+    {
+        return campos.Count > 0
+            ? $"Campos modificados en {email}: {string.Join(", ", campos)}"
+            : $"Sin cambios efectivos en {email}";
     }
 
     public void EliminarUsuario(Usuario usuario, string? ejecutadoPor = null)

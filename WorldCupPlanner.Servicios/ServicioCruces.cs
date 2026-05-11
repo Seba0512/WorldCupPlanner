@@ -26,42 +26,53 @@ public class ServicioCruces
     {
         var partidos = new List<Partido>();
         random ??= new Random(sorteo.ConfiguracionTorneo.SemillaCrucesFase);
+        var contexto = CrearContextoGeneracion(sorteo, partidos);
 
-        var primerosParaTerceros = MezclarEquiposConFisherYates(
-            new List<Equipo>(sorteo.Clasificados.Primeros.Take(CantidadPrimerosSorteadosContraTerceros)),
-            random);
+        var (primerosParaTerceros, terceros) = PrepararPrimerosYTerceros(sorteo, random);
+        AgregarCrucesPrimerosContraTerceros(primerosParaTerceros, terceros, contexto);
 
-        var terceros = MezclarEquiposConFisherYates(
-            new List<Equipo>(sorteo.Clasificados.MejoresTerceros),
-            random);
+        var (primerosRestantes, segundosDeMenorRendimiento) = PrepararPrimerosYSegundosRestantes(sorteo, random);
+        AgregarCrucesPrimerosRestantesContraSegundosDeMenorRendimiento(primerosRestantes, segundosDeMenorRendimiento, contexto);
 
-        var contexto = new ContextoGeneracionCruces
+        var segundosRestantes = PrepararSegundosParaCruceMinimo(sorteo, random);
+        AgregarCrucesSegundosRestantesMinimos(segundosRestantes, contexto);
+
+        return partidos;
+    }
+
+    private ContextoGeneracionCruces CrearContextoGeneracion(ContextoSorteo sorteo, List<Partido> partidos)
+    {
+        return new ContextoGeneracionCruces
         {
             Partidos = partidos,
             Clasificados = sorteo.Clasificados,
             Estadios = sorteo.Estadios,
             ConfiguracionTorneo = sorteo.ConfiguracionTorneo
         };
+    }
 
-        AgregarCrucesPrimerosContraTerceros(primerosParaTerceros, terceros, contexto);
+    private (List<Equipo> Primeros, List<Equipo> Terceros) PrepararPrimerosYTerceros(ContextoSorteo sorteo, Random random)
+    {
+        var primeros = MezclarEquiposConFisherYates(
+            new List<Equipo>(sorteo.Clasificados.Primeros.Take(CantidadPrimerosSorteadosContraTerceros)), random);
+        var terceros = MezclarEquiposConFisherYates(
+            new List<Equipo>(sorteo.Clasificados.MejoresTerceros), random);
+        return (primeros, terceros);
+    }
 
-        var primerosRestantes = MezclarEquiposConFisherYates(
-            new List<Equipo>(sorteo.Clasificados.Primeros.Skip(CantidadPrimerosSorteadosContraTerceros).Take(CantidadPrimerosRestantes)),
-            random);
+    private (List<Equipo> Primeros, List<Equipo> Segundos) PrepararPrimerosYSegundosRestantes(ContextoSorteo sorteo, Random random)
+    {
+        var primeros = MezclarEquiposConFisherYates(
+            new List<Equipo>(sorteo.Clasificados.Primeros.Skip(CantidadPrimerosSorteadosContraTerceros).Take(CantidadPrimerosRestantes)), random);
+        var segundos = MezclarEquiposConFisherYates(
+            new List<Equipo>(sorteo.Clasificados.Segundos.Skip(CantidadPrimerosSorteadosContraTerceros).Take(CantidadPrimerosRestantes)), random);
+        return (primeros, segundos);
+    }
 
-        var segundosDeMenorRendimiento = MezclarEquiposConFisherYates(
-            new List<Equipo>(sorteo.Clasificados.Segundos.Skip(CantidadPrimerosSorteadosContraTerceros).Take(CantidadPrimerosRestantes)),
-            random);
-
-        AgregarCrucesPrimerosRestantesContraSegundosDeMenorRendimiento(primerosRestantes, segundosDeMenorRendimiento, contexto);
-
-        var segundosRestantes = MezclarEquiposConFisherYates(
-            new List<Equipo>(sorteo.Clasificados.Segundos.Take(CantidadPrimerosSorteadosContraTerceros)),
-            random);
-
-        AgregarCrucesSegundosRestantesMinimos(segundosRestantes, contexto);
-
-        return partidos;
+    private List<Equipo> PrepararSegundosParaCruceMinimo(ContextoSorteo sorteo, Random random)
+    {
+        return MezclarEquiposConFisherYates(
+            new List<Equipo>(sorteo.Clasificados.Segundos.Take(CantidadPrimerosSorteadosContraTerceros)), random);
     }
 
     private void AgregarCrucesPrimerosContraTerceros(
@@ -189,28 +200,26 @@ public class ServicioCruces
     {
         for (int i = 0; i < cruceEquipos.Visitantes.Count; i++)
         {
-            if (i == indiceActual)
-            {
-                continue;
-            }
-
-            var evitaCruceActual = !PertenecenAlMismoGrupo(
-                cruceEquipos.Locales[indiceActual],
-                cruceEquipos.Visitantes[i],
-                cruceEquipos.Clasificados);
-
-            var noRompeCruceFuturo = !PertenecenAlMismoGrupo(
-                cruceEquipos.Locales[i],
-                cruceEquipos.Visitantes[indiceActual],
-                cruceEquipos.Clasificados);
-
-            if (evitaCruceActual && noRompeCruceFuturo)
-            {
-                return i;
-            }
+            if (i == indiceActual) continue;
+            if (EsVisitanteAlternativoValido(cruceEquipos, indiceActual, i)) return i;
         }
 
         return null;
+    }
+
+    private bool EsVisitanteAlternativoValido(ContextoCruceEquipos cruceEquipos, int indiceActual, int indiceAlternativo)
+    {
+        var evitaCruceActual = !PertenecenAlMismoGrupo(
+            cruceEquipos.Locales[indiceActual],
+            cruceEquipos.Visitantes[indiceAlternativo],
+            cruceEquipos.Clasificados);
+
+        var noRompeCruceFuturo = !PertenecenAlMismoGrupo(
+            cruceEquipos.Locales[indiceAlternativo],
+            cruceEquipos.Visitantes[indiceActual],
+            cruceEquipos.Clasificados);
+
+        return evitaCruceActual && noRompeCruceFuturo;
     }
 
     private void ReordenarEquiposParaEvitarCrucesInternosDelMismoGrupo(
@@ -234,39 +243,29 @@ public class ServicioCruces
         }
     }
 
-    private int? BuscarRivalAlternativo(
-        List<Equipo> equipos,
-        ClasificadosFaseGrupos clasificados,
-        int indiceLocal)
+    private int? BuscarRivalAlternativo(List<Equipo> equipos, ClasificadosFaseGrupos clasificados, int indiceLocal)
     {
         var indiceVisitante = indiceLocal + 1;
 
         for (int i = 0; i < equipos.Count; i++)
         {
-            if (i == indiceLocal || i == indiceVisitante)
-            {
-                continue;
-            }
-
-            var indiceCompanero = ObtenerIndiceCompaneroDeCruce(i);
-
-            var evitaCruceActual = !PertenecenAlMismoGrupo(
-                equipos[indiceLocal],
-                equipos[i],
-                clasificados);
-
-            var noRompeCruceAlternativo = !PertenecenAlMismoGrupo(
-                equipos[indiceCompanero],
-                equipos[indiceVisitante],
-                clasificados);
-
-            if (evitaCruceActual && noRompeCruceAlternativo)
-            {
-                return i;
-            }
+            if (i == indiceLocal || i == indiceVisitante) continue;
+            if (EsIndiceDeIntercambioValido(equipos, clasificados, indiceLocal, indiceVisitante, i)) return i;
         }
 
         return null;
+    }
+
+    private bool EsIndiceDeIntercambioValido(
+        List<Equipo> equipos,
+        ClasificadosFaseGrupos clasificados,
+        int indiceLocal,
+        int indiceVisitante,
+        int indiceAlternativo)
+    {
+        var indiceCompanero = ObtenerIndiceCompaneroDeCruce(indiceAlternativo);
+        return !PertenecenAlMismoGrupo(equipos[indiceLocal], equipos[indiceAlternativo], clasificados)
+            && !PertenecenAlMismoGrupo(equipos[indiceCompanero], equipos[indiceVisitante], clasificados);
     }
 
     private int ObtenerIndiceCompaneroDeCruce(int indice)

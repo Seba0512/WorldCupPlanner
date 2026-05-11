@@ -37,33 +37,40 @@ public class ServicioClasificacion
     {
         ValidarFaseDeGruposCompleta(fixture);
 
-        var tablas = new List<List<PosicionEquipo>>(fixture.Grupos
-            .Select(g => CalcularTabla(g, configuracionTorneo)));
+        var tablas = CalcularTablasPorGrupo(fixture, configuracionTorneo);
 
-        var primerosOrdenados = OrdenarPosicionesConDesempateDeterministico(
-            new List<PosicionEquipo>(tablas.Select(t => t[0])),
-            configuracionTorneo.SemillaCrucesFase
-        );
+        var primeros = OrdenarPosicionesConDesempateDeterministico(
+            new List<PosicionEquipo>(tablas.Select(t => t[0])), configuracionTorneo.SemillaCrucesFase);
 
-        var segundosOrdenados = OrdenarPosicionesConDesempateDeterministico(
-            new List<PosicionEquipo>(tablas.Select(t => t[1])),
-            configuracionTorneo.SemillaCrucesFase
-        );
+        var segundos = OrdenarPosicionesConDesempateDeterministico(
+            new List<PosicionEquipo>(tablas.Select(t => t[1])), configuracionTorneo.SemillaCrucesFase);
 
-        var mejoresTerceros = new List<PosicionEquipo>(OrdenarPosicionesConDesempateDeterministico(
-                new List<PosicionEquipo>(tablas.Select(t => t[2])),
-                configuracionTorneo.SemillaCrucesFase
-            )
+        var mejoresTerceros = new List<PosicionEquipo>(
+            OrdenarPosicionesConDesempateDeterministico(
+                new List<PosicionEquipo>(tablas.Select(t => t[2])), configuracionTorneo.SemillaCrucesFase)
             .Take(8));
 
+        return ConstruirClasificadosConGruposDeOrigen(primeros, segundos, mejoresTerceros);
+    }
+
+    private List<List<PosicionEquipo>> CalcularTablasPorGrupo(Fixture fixture, ConfiguracionTorneo configuracionTorneo)
+    {
+        return new List<List<PosicionEquipo>>(fixture.Grupos.Select(g => CalcularTabla(g, configuracionTorneo)));
+    }
+
+    private static ClasificadosFaseGrupos ConstruirClasificadosConGruposDeOrigen(
+        List<PosicionEquipo> primeros,
+        List<PosicionEquipo> segundos,
+        List<PosicionEquipo> mejoresTerceros)
+    {
         var clasificados = new ClasificadosFaseGrupos
         {
-            Primeros = new List<Equipo>(primerosOrdenados.Select(p => p.Equipo)),
-            Segundos = new List<Equipo>(segundosOrdenados.Select(p => p.Equipo)),
+            Primeros = new List<Equipo>(primeros.Select(p => p.Equipo)),
+            Segundos = new List<Equipo>(segundos.Select(p => p.Equipo)),
             MejoresTerceros = new List<Equipo>(mejoresTerceros.Select(p => p.Equipo))
         };
 
-        foreach (var posicion in primerosOrdenados.Concat(segundosOrdenados).Concat(mejoresTerceros))
+        foreach (var posicion in primeros.Concat(segundos).Concat(mejoresTerceros))
         {
             clasificados.GruposDeOrigen[posicion.Equipo] = posicion.Grupo;
         }

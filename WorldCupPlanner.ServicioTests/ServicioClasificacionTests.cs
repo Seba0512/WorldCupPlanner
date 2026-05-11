@@ -524,6 +524,28 @@ public class ServicioClasificacionTests
     }
 
     [TestMethod]
+    public void ObtenerClasificadosAFaseEliminatoria_AsignaGrupoDeOrigenAMejoresTerceros()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+        var fixture = CrearFixtureConDoceGruposResueltos();
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
+
+        var grupoA = fixture.Grupos.Single(g => g.Etiqueta == "A");
+        var terceroGrupoA = grupoA.Equipos[2];
+
+        // Act
+        var clasificados = servicioClasificacion.ObtenerClasificadosAFaseEliminatoria(
+            fixture,
+            configuracionTorneo
+        );
+
+        // Assert — ConstruirClasificadosConGruposDeOrigen debe asignar grupo también a mejoresTerceros
+        var grupoDeOrigen = clasificados.ObtenerGrupoDeOrigen(terceroGrupoA);
+        Assert.AreSame(grupoA, grupoDeOrigen);
+    }
+
+    [TestMethod]
     public void CalcularTabla_ConPartidoSinEquipos_NoModificaLasPosiciones()
     {
         // Arrange
