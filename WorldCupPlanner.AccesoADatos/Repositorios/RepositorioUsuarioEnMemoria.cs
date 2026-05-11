@@ -3,7 +3,7 @@ using WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
-public class RepositorioUsuarioEnMemoria : IRepositorio<Usuario>
+public class RepositorioUsuarioEnMemoria : IRepositorioUsuario
 {
     private readonly List<Usuario> _usuarios = new();
 

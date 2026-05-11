@@ -1,12 +1,11 @@
 using WorldCupPlanner.AccesoADatos.Interfaces;
-using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios
 {
-    public class ServicioEquipo : IRepositorio<Equipo>
+    public class ServicioEquipo
     {
         private readonly IRepositorio<Equipo> _repositorio;
         private readonly ServicioAuditoria? _auditoria;
@@ -21,11 +20,6 @@ namespace WorldCupPlanner.Servicios
             { Confederacion.AFC,       8 },
             { Confederacion.OFC,       1 },
         };
-
-        public ServicioEquipo()
-        {
-            _repositorio = new RepositorioEquipoEnMemoria();
-        }
 
         public ServicioEquipo(IRepositorio<Equipo> repositorio, ServicioAuditoria? auditoria = null)
         {

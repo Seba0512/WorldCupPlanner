@@ -1,17 +1,16 @@
 ﻿using WorldCupPlanner.AccesoADatos.Interfaces;
-using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
-public class ServicioUsuario : IRepositorio<Usuario>
+public class ServicioUsuario
 {
-    private readonly RepositorioUsuarioEnMemoria _repositorio;
+    private readonly IRepositorioUsuario _repositorio;
     private readonly ServicioAuditoria _auditoria;
 
-    public ServicioUsuario(RepositorioUsuarioEnMemoria repositorio, ServicioAuditoria auditoria)
+    public ServicioUsuario(IRepositorioUsuario repositorio, ServicioAuditoria auditoria)
     {
         _repositorio = repositorio;
         _auditoria = auditoria;

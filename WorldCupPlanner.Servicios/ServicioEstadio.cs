@@ -1,6 +1,5 @@
 using WorldCupPlanner.AccesoADatos.Interfaces;
-using WorldCupPlanner.AccesoADatos.Repositorios;
-using  WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
@@ -10,11 +9,6 @@ public class ServicioEstadio
     private readonly IRepositorio<Estadio> _repositorioEstadio;
     private readonly ServicioAuditoria? _auditoria;
     private Fixture? _fixtureGenerado;
-
-    public ServicioEstadio()
-    {
-        _repositorioEstadio = new RepositorioEstadioEnMemoria();
-    }
 
     public ServicioEstadio(IRepositorio<Estadio> repositorioEstadio, ServicioAuditoria? auditoria = null)
     {

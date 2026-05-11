@@ -26,7 +26,7 @@ builder.Services.AddSingleton<EstadoTorneo>();
 builder.Services.AddSingleton<ServicioPartido>(sp =>
     new ServicioPartido(sp.GetRequiredService<EstadoTorneo>()));
 builder.Services.AddSingleton<ConfiguracionTorneo>();
-builder.Services.AddSingleton<RepositorioUsuarioEnMemoria>();
+builder.Services.AddSingleton<IRepositorioUsuario, RepositorioUsuarioEnMemoria>();
 builder.Services.AddSingleton<ServicioUsuario>();
 builder.Services.AddScoped<SesionServicio>();
 

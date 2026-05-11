@@ -1,3 +1,4 @@
+using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -191,7 +192,7 @@ public class ServicioFixtureTests
 
     private ServicioEquipo CrearServicioEquipoConEquipos(IEnumerable<Equipo> equipos)
     {
-        var servicio = new ServicioEquipo();
+        var servicio = new ServicioEquipo(new RepositorioEquipoEnMemoria());
         foreach (var e in equipos)
             servicio.Agregar(e);
         return servicio;

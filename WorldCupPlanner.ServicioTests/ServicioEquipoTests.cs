@@ -27,7 +27,7 @@ public class ServicioEquipoTests
     [TestInitialize]
     public void Setup()
     {
-        _servicio = new ServicioEquipo();
+        _servicio = new ServicioEquipo(new RepositorioEquipoEnMemoria());
     }
 
     [TestMethod]
@@ -239,7 +239,7 @@ public class ServicioEquipoTests
     [TestMethod]
     public void CompletarEquipos_MismaSemilla_GeneraMismosEquipos()
     {
-        var servicio2 = new ServicioEquipo();
+        var servicio2 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
 
         var generados1 = _servicio.CompletarEquipos(42);
         var generados2 = servicio2.CompletarEquipos(42);
@@ -256,7 +256,7 @@ public class ServicioEquipoTests
     [TestMethod]
     public void CompletarEquipos_DistintaSemilla_GeneraDistintosRankings()
     {
-        var servicio2 = new ServicioEquipo();
+        var servicio2 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
 
         var generados1 = _servicio.CompletarEquipos(1);
         var generados2 = servicio2.CompletarEquipos(2);

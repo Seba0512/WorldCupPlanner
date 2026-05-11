@@ -27,7 +27,7 @@ public class ServicioEstadioTests
     [TestInitialize]
     public void Setup()
     {
-        _servicio = new ServicioEstadio();
+        _servicio = new ServicioEstadio(new RepositorioEstadioEnMemoria());
     }
 
     private static (ServicioEstadio servicio, RepositorioAuditoriaEstadioFake repoAuditoria) CrearServicioConAuditoria()
