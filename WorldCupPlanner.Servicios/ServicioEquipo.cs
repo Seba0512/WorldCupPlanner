@@ -31,7 +31,7 @@ namespace WorldCupPlanner.Servicios
 
         private const int MaximoEquipos = 48;
         private const int RankingMinimoFicticio = 300;
-        private const int RankingMaximoFicticioExclusivo = 501;
+        private const int RankingMaximoFicticioExclusivo = 2501;
 
         public void Agregar(Equipo equipo, Usuario? solicitante = null)
         {
@@ -87,10 +87,12 @@ namespace WorldCupPlanner.Servicios
                 var inscritos = existentes.Count(e => e.Confederacion == confederacion);
                 for (var i = inscritos; i < cupo; i++)
                 {
+                    var rankingGenerado = rng.Next(RankingMinimoFicticio, RankingMaximoFicticioExclusivo);
+                    var rankingFinal = Math.Clamp(rankingGenerado, RankingMinimoFicticio, RankingMaximoFicticioExclusivo - 1);
                     var equipo = new Equipo
                     {
                         Nombre = GenerarNombre(confederacion),
-                        RankingFIFA = rng.Next(RankingMinimoFicticio, RankingMaximoFicticioExclusivo),
+                        RankingFIFA = rankingFinal,
                         Confederacion = confederacion
                     };
                     Agregar(equipo);

@@ -397,6 +397,86 @@ public class ServicioEquipoTests
         Assert.IsTrue(generados.All(e => e.EsValido()));
     }
 
+    [TestMethod]
+    public void CompletarEquipos_RankingFIFA_SiempreDentroDelRangoValido()
+    {
+        // Arrange
+        const int RankingMinimo = 300;
+        const int RankingMaximo = 2500;
+
+        // Act
+        var generados = _servicio.CompletarEquipos(42);
+
+        // Assert
+        foreach (var equipo in generados)
+        {
+            Assert.IsTrue(
+                equipo.RankingFIFA >= RankingMinimo && equipo.RankingFIFA <= RankingMaximo,
+                $"RankingFIFA fuera de rango: {equipo.RankingFIFA} para equipo {equipo.Nombre}");
+        }
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_RankingFIFA_NuncaMenorAlMinimo()
+    {
+        // Arrange & Act
+        var generados = _servicio.CompletarEquipos(99);
+
+        // Assert
+        Assert.IsTrue(generados.All(e => e.RankingFIFA >= 300),
+            "Existen equipos con RankingFIFA menor a 300.");
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_RankingFIFA_NuncaMayorAlMaximo()
+    {
+        // Arrange & Act
+        var generados = _servicio.CompletarEquipos(77);
+
+        // Assert
+        Assert.IsTrue(generados.All(e => e.RankingFIFA <= 2500),
+            "Existen equipos con RankingFIFA mayor a 2500.");
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_RankingFIFA_DistribucionNoConcentradaEnMinimo()
+    {
+        // Arrange & Act
+        var generados = _servicio.CompletarEquipos(42);
+
+        // Assert: el promedio debe estar por encima del 40% del rango (780), lo que indica distribución uniforme
+        var promedio = generados.Average(e => e.RankingFIFA);
+        Assert.IsTrue(promedio > 780,
+            $"Distribución demasiado concentrada en valores bajos. Promedio: {promedio:F0}");
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_RankingFIFA_ExistenEquiposConRankingAlto()
+    {
+        // Arrange & Act
+        var generados = _servicio.CompletarEquipos(42);
+
+        // Assert: al menos algún equipo debe tener ranking superior a 1500
+        Assert.IsTrue(generados.Any(e => e.RankingFIFA > 1500),
+            "Ningún equipo generado tiene RankingFIFA mayor a 1500; distribución no es uniforme.");
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_RankingFIFA_Determinismo_MismaSemillaMismoRanking()
+    {
+        // Arrange
+        var servicio2 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
+
+        // Act
+        var generados1 = _servicio.CompletarEquipos(123);
+        var generados2 = servicio2.CompletarEquipos(123);
+
+        // Assert
+        var rankings1 = generados1.Select(e => e.RankingFIFA).ToList();
+        var rankings2 = generados2.Select(e => e.RankingFIFA).ToList();
+        CollectionAssert.AreEqual(rankings1, rankings2);
+    }
+
     // --- Auditoría ---
 
     private static (ServicioEquipo servicio, RepositorioAuditoriaFake repoAuditoria) CrearServicioConAuditoria()
