@@ -1,0 +1,68 @@
+@implements IDisposable
+@inject ToastServicio ToastServicio
+
+<div class="toast-container">
+    @foreach (var toast in _toasts)
+    {
+        <div class="toast-item toast-@toast.Tipo.ToString().ToLower() @(toast.Removing ? "toast-removing" : "")" @key="toast.Id">
+            <div class="toast-icon">
+                @switch (toast.Tipo)
+                {
+                    case TipoToast.Exito:      <span class="oi oi-check" aria-hidden="true"></span>; break;
+                    case TipoToast.Error:      <span class="oi oi-warning" aria-hidden="true"></span>; break;
+                    case TipoToast.Advertencia:<span class="oi oi-warning" aria-hidden="true"></span>; break;
+                    default:                   <span class="oi oi-info" aria-hidden="true"></span>; break;
+                }
+            </div>
+            <span class="toast-message">@toast.Mensaje</span>
+            <button class="toast-close" @onclick="() => Cerrar(toast)">
+                <span class="oi oi-x" aria-hidden="true"></span>
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly List<ToastVm> _toasts = new();
+
+    protected override void OnInitialized()
+    {
+        ToastServicio.OnToast += AgregarToast;
+    }
+
+    private void AgregarToast(ToastMensaje mensaje)
+    {
+        var vm = new ToastVm(mensaje);
+        _toasts.Add(vm);
+        InvokeAsync(StateHasChanged);
+        _ = AutoCerrar(vm);
+    }
+
+    private async Task AutoCerrar(ToastVm vm)
+    {
+        await Task.Delay(4500);
+        await Cerrar(vm);
+    }
+
+    private async Task Cerrar(ToastVm vm)
+    {
+        vm.Removing = true;
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(280);
+        _toasts.Remove(vm);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        ToastServicio.OnToast -= AgregarToast;
+    }
+
+    private class ToastVm(ToastMensaje msg)
+    {
+        public Guid       Id       { get; } = msg.Id;
+        public string     Mensaje  { get; } = msg.Mensaje;
+        public TipoToast  Tipo     { get; } = msg.Tipo;
+        public bool       Removing { get; set; }
+    }
+}

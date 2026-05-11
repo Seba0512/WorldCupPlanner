@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
 builder.Services.AddSingleton<IRepositorioConId<Auditoria>, RepositorioAuditoriaEnMemoria>();
 builder.Services.AddSingleton<IRepositorio<Equipo>, RepositorioEquipoEnMemoria>();
 builder.Services.AddSingleton<IRepositorio<Estadio>, RepositorioEstadioEnMemoria>();
@@ -28,7 +29,9 @@ builder.Services.AddSingleton<ServicioPartido>(sp =>
 builder.Services.AddSingleton<ConfiguracionTorneo>();
 builder.Services.AddSingleton<IRepositorioUsuario, RepositorioUsuarioEnMemoria>();
 builder.Services.AddSingleton<ServicioUsuario>();
+
 builder.Services.AddScoped<SesionServicio>();
+builder.Services.AddScoped<ToastServicio>();
 
 var app = builder.Build();
 
@@ -46,9 +49,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 

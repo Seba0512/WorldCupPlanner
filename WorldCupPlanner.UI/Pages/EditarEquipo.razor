@@ -1,72 +1,72 @@
 @page "/equipos/{Nombre}/editar"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@using WorldCupPlanner.Dominio.Enumeraciones
 @inject ServicioEquipo ServicioEquipo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
+@inject ToastServicio Toast
 
-<PageTitle>Editar Equipo</PageTitle>
-<h1>Editar Equipo</h1>
+<PageTitle>Editar equipo — WorldCupPlanner 2026</PageTitle>
 
-@if (!string.IsNullOrEmpty(errorMensaje))
-{
-    <div class="alert alert-danger">@errorMensaje</div>
-}
+<PageHeader Titulo="Editar equipo" UrlVolver="/equipos" TextoVolver="Volver a equipos" />
 
-<div class="form-group">
-    <label>Nombre</label>
-    <input type="text" class="form-control" @bind="equipo.Nombre" />
+<div class="form-section">
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger">
+            <span class="oi oi-warning" aria-hidden="true"></span> @_error
+        </div>
+    }
+
+    <div class="form-group">
+        <label class="form-label">Nombre del equipo</label>
+        <input type="text" class="form-control" @bind="_equipo.Nombre" maxlength="60" />
+        <span class="form-hint">1–60 caracteres. Debe ser único en el sistema.</span>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Confederación</label>
+        <select class="form-select" @bind="_equipo.Confederacion">
+            @foreach (var conf in Enum.GetValues<Confederacion>())
+            {
+                <option value="@conf">@conf</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Puntos FIFA</label>
+        <input type="number" class="form-control" @bind="_equipo.RankingFIFA" min="300" max="2500" />
+        <span class="form-hint">Valor entre 300 y 2500.</span>
+    </div>
+
+    <div class="d-flex gap-2 mt-2">
+        <button type="button" class="btn btn-primary" @onclick="Guardar">
+            <span class="oi oi-check" aria-hidden="true"></span> Guardar cambios
+        </button>
+        <a href="/equipos" class="btn btn-secondary">Cancelar</a>
+    </div>
 </div>
-<div class="form-group">
-    <label>Confederación</label>
-    <select class="form-control" @bind="equipo.Confederacion">
-        <option value="">-- Seleccione una confederación --</option>
-        @foreach (var conf in Enum.GetValues<Confederacion>())
-        {
-            <option value="@conf">@conf</option>
-        }
-    </select>
-</div>
-<div class="form-group">
-    <label>Puntos FIFA <small class="text-muted">(300 – 2500)</small></label>
-    <input type="number" class="form-control" @bind="equipo.RankingFIFA" min="300" max="2500" placeholder="Ej: 1500" />
-</div>
-
-<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
-<a href="/equipos" class="btn btn-secondary mt-2">Cancelar</a>
 
 @code {
     [Parameter] public string Nombre { get; set; } = string.Empty;
-    private Equipo equipo = new();
-    private string errorMensaje = string.Empty;
+    private Equipo _equipo = new();
+    private string _error = string.Empty;
 
     protected override void OnInitialized()
     {
-        if (!SesionServicio.EsAdministrador)
-        {
-            NavigationManager.NavigateTo("/");
-            return;
-        }
+        if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
         var original = ServicioEquipo.Buscar(e => e.Nombre == Nombre).First();
-        equipo = new Equipo
-        {
-            Nombre = original.Nombre,
-            Confederacion = original.Confederacion,
-            RankingFIFA = original.RankingFIFA
-        };
+        _equipo = new Equipo { Nombre = original.Nombre, Confederacion = original.Confederacion, RankingFIFA = original.RankingFIFA };
     }
 
     private void Guardar()
     {
+        _error = string.Empty;
         try
         {
-            ServicioEquipo.EditarEquipo(equipo, Nombre);
+            ServicioEquipo.EditarEquipo(_equipo, Nombre);
+            Toast.Exito($"Equipo actualizado correctamente.");
             NavigationManager.NavigateTo("/equipos");
         }
-        catch (Exception ex)
-        {
-            errorMensaje = ex.Message;
-        }
+        catch (Exception ex) { _error = ex.Message; }
     }
 }

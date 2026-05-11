@@ -1,6 +1,140 @@
 @page "/"
 @inject SesionServicio SesionServicio
+@inject ServicioEquipo ServicioEquipo
+@inject ServicioEstadio ServicioEstadio
+@inject ServicioUsuario ServicioUsuario
+@inject EstadoTorneo EstadoTorneo
 
-<PageTitle>WorldCupPlanner</PageTitle>
+<PageTitle>Dashboard — WorldCupPlanner 2026</PageTitle>
 
-<h1>Bienvenido, @SesionServicio.UsuarioActual?.Nombre @SesionServicio.UsuarioActual?.Apellido</h1>
+<PageHeader Titulo="Dashboard" Subtitulo="@_saludo" />
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon"><span class="oi oi-people" aria-hidden="true"></span></div>
+            <div class="stat-label">Equipos</div>
+            <div class="stat-value">@_equipos</div>
+            <div class="stat-sub">de 48 cupos disponibles</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card green">
+            <div class="stat-icon"><span class="oi oi-map-marker" aria-hidden="true"></span></div>
+            <div class="stat-label">Estadios</div>
+            <div class="stat-value">@_estadios</div>
+            <div class="stat-sub">registrados en el sistema</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card gold">
+            <div class="stat-icon"><span class="oi oi-list" aria-hidden="true"></span></div>
+            <div class="stat-label">Partidos</div>
+            <div class="stat-value">@_partidos</div>
+            <div class="stat-sub">@_partidos_jugados jugados</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card @(_fixture ? "green" : "")">
+            <div class="stat-icon"><span class="oi oi-globe" aria-hidden="true"></span></div>
+            <div class="stat-label">Fixture</div>
+            <div class="stat-value" style="font-size:18px; margin-top:4px">
+                @if (_fixture) { <span class="badge badge-green">Generado</span> }
+                else           { <span class="badge badge-muted">Pendiente</span> }
+            </div>
+            <div class="stat-sub">@(_cruces ? "Cruces generados" : "Sin cruces aún")</div>
+        </div>
+    </div>
+</div>
+
+<!-- Estado del torneo -->
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="table-card">
+            <div class="table-card-header">
+                <span class="table-card-title">Estado del torneo</span>
+            </div>
+            <div style="padding: 20px;">
+                <div class="d-flex align-items-center" style="padding: 12px 0; border-bottom: 1px solid var(--border-subtle);">
+                    <span style="flex:1; font-size:14px; color: var(--text-secondary);">Equipos cargados</span>
+                    <span class="badge @(_equipos >= 48 ? "badge-green" : _equipos > 0 ? "badge-gold" : "badge-muted")">
+                        @_equipos / 48
+                    </span>
+                </div>
+                <div class="d-flex align-items-center" style="padding: 12px 0; border-bottom: 1px solid var(--border-subtle);">
+                    <span style="flex:1; font-size:14px; color: var(--text-secondary);">Estadios registrados</span>
+                    <span class="badge @(_estadios >= 4 ? "badge-green" : "badge-muted")">@_estadios</span>
+                </div>
+                <div class="d-flex align-items-center" style="padding: 12px 0; border-bottom: 1px solid var(--border-subtle);">
+                    <span style="flex:1; font-size:14px; color: var(--text-secondary);">Fixture fase de grupos</span>
+                    <span class="badge @(_fixture ? "badge-green" : "badge-muted")">@(_fixture ? "Generado" : "Pendiente")</span>
+                </div>
+                <div class="d-flex align-items-center" style="padding: 12px 0; border-bottom: 1px solid var(--border-subtle);">
+                    <span style="flex:1; font-size:14px; color: var(--text-secondary);">Cruces eliminatorios</span>
+                    <span class="badge @(_cruces ? "badge-green" : "badge-muted")">@(_cruces ? "Generados" : "Pendiente")</span>
+                </div>
+                <div class="d-flex align-items-center" style="padding: 12px 0;">
+                    <span style="flex:1; font-size:14px; color: var(--text-secondary);">Partidos jugados</span>
+                    <span class="badge @(_partidos_jugados > 0 ? "badge-blue" : "badge-muted")">@_partidos_jugados / @_partidos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="table-card" style="height: 100%;">
+            <div class="table-card-header">
+                <span class="table-card-title">Acciones rápidas</span>
+            </div>
+            <div style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+                <a href="/fixture" class="btn btn-primary">
+                    <span class="oi oi-globe" aria-hidden="true"></span>
+                    Ver Fixture
+                </a>
+                <a href="/partidos" class="btn btn-secondary">
+                    <span class="oi oi-list" aria-hidden="true"></span>
+                    Ver Partidos
+                </a>
+                @if (SesionServicio.EsAdministrador)
+                {
+                    <a href="/equipos" class="btn btn-secondary">
+                        <span class="oi oi-people" aria-hidden="true"></span>
+                        Gestionar Equipos
+                    </a>
+                    <a href="/estadios" class="btn btn-secondary">
+                        <span class="oi oi-map-marker" aria-hidden="true"></span>
+                        Gestionar Estadios
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int  _equipos         = 0;
+    private int  _estadios        = 0;
+    private int  _partidos        = 0;
+    private int  _partidos_jugados = 0;
+    private bool _fixture         = false;
+    private bool _cruces          = false;
+    private string _saludo        = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _saludo   = SesionServicio.HaySesion
+            ? $"Bienvenido, {SesionServicio.UsuarioActual?.Nombre} {SesionServicio.UsuarioActual?.Apellido}"
+            : string.Empty;
+        _equipos  = ServicioEquipo.Buscar(_ => true).Count;
+        _estadios = ServicioEstadio.ObtenerEstadios().Count;
+        _fixture  = EstadoTorneo.Fixture != null;
+        _cruces   = EstadoTorneo.PartidosEliminatorios.Any();
+
+        var todosPartidos = (_fixture ? EstadoTorneo.Fixture!.Partidos : new())
+            .Concat(EstadoTorneo.PartidosEliminatorios)
+            .ToList();
+        _partidos         = todosPartidos.Count;
+        _partidos_jugados = todosPartidos.Count(p => p.EstaJugado());
+    }
+}

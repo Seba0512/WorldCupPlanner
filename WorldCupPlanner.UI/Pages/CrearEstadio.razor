@@ -1,58 +1,71 @@
 @page "/estadios/crear"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
 @inject ServicioEstadio ServicioEstadio
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
+@inject ToastServicio Toast
 
-<PageTitle>Crear Estadio</PageTitle>
-<h1>Crear Estadio</h1>
+<PageTitle>Nuevo estadio — WorldCupPlanner 2026</PageTitle>
 
-@if (!string.IsNullOrEmpty(errorMensaje))
-{
-    <div class="alert alert-danger">@errorMensaje</div>
-}
+<PageHeader Titulo="Nuevo estadio" UrlVolver="/estadios" TextoVolver="Volver a estadios" />
 
-<div class="form-group">
-    <label>Nombre</label>
-    <input type="text" class="form-control" @bind="estadio.Nombre" />
-</div>
-<div class="form-group">
-    <label>Ciudad</label>
-    <input type="text" class="form-control" @bind="estadio.Ciudad" />
-</div>
-<div class="form-group">
-    <label>Capacidad</label>
-    <input type="number" class="form-control" @bind="estadio.Capacidad" />
-</div>
-<div class="form-group">
-    <label>Descripción (opcional)</label>
-    <input type="text" class="form-control" @bind="estadio.Descripcion" />
-</div>
-
-<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
-<a href="/estadios" class="btn btn-secondary mt-2">Cancelar</a>
-
-@code {
-    protected override void OnInitialized()
+<div class="form-section">
+    @if (!string.IsNullOrEmpty(_error))
     {
-        if (!SesionServicio.EsAdministrador)
-            NavigationManager.NavigateTo("/");
+        <div class="alert alert-danger">
+            <span class="oi oi-warning" aria-hidden="true"></span> @_error
+        </div>
     }
 
-    private Estadio estadio = new();
-    private string errorMensaje = string.Empty;
+    <div class="form-group">
+        <label class="form-label">Nombre</label>
+        <input type="text" class="form-control" @bind="_estadio.Nombre" maxlength="80" placeholder="Ej: Estadio Metropolitano" />
+        <span class="form-hint">1–80 caracteres. Debe ser único.</span>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Ciudad</label>
+        <input type="text" class="form-control" @bind="_estadio.Ciudad" maxlength="60" placeholder="Ej: Madrid" />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Capacidad de público</label>
+        <input type="number" class="form-control" @bind="_estadio.Capacidad" min="20000" placeholder="Ej: 75000" />
+        <span class="form-hint">Mínimo 20.000 espectadores.</span>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Descripción <span style="color:var(--text-muted)">(opcional)</span></label>
+        <textarea class="form-control" @bind="_estadio.Descripcion" maxlength="400" rows="3"
+                  placeholder="Descripción breve del estadio..."></textarea>
+        <span class="form-hint">Hasta 400 caracteres.</span>
+    </div>
+
+    <div class="d-flex gap-2 mt-2">
+        <button type="button" class="btn btn-primary" @onclick="Guardar">
+            <span class="oi oi-check" aria-hidden="true"></span> Guardar
+        </button>
+        <a href="/estadios" class="btn btn-secondary">Cancelar</a>
+    </div>
+</div>
+
+@code {
+    private Estadio _estadio = new();
+    private string _error = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        if (!SesionServicio.EsAdministrador) NavigationManager.NavigateTo("/");
+    }
 
     private void Guardar()
     {
+        _error = string.Empty;
         try
         {
-            ServicioEstadio.AgregarEstadio(estadio);
+            ServicioEstadio.AgregarEstadio(_estadio);
+            Toast.Exito($"Estadio \"{_estadio.Nombre}\" creado correctamente.");
             NavigationManager.NavigateTo("/estadios");
         }
-        catch (Exception ex)
-        {
-            errorMensaje = ex.Message;
-        }
+        catch (Exception ex) { _error = ex.Message; }
     }
 }

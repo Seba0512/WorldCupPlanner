@@ -1,99 +1,114 @@
 @page "/usuarios/crear"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@using WorldCupPlanner.Dominio.Enumeraciones
 @inject ServicioUsuario ServicioUsuario
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
+@inject ToastServicio Toast
 
-<PageTitle>Crear Usuario</PageTitle>
-<h1>Crear Usuario</h1>
+<PageTitle>Nuevo usuario — WorldCupPlanner 2026</PageTitle>
 
-@if (!string.IsNullOrEmpty(errorMensaje))
-{
-    <div class="alert alert-danger">@errorMensaje</div>
-}
+<PageHeader Titulo="Nuevo usuario" UrlVolver="/usuarios" TextoVolver="Volver a usuarios" />
 
-<div class="form-group mb-2">
-    <label>Nombre</label>
-    <input type="text" class="form-control" @bind="nombre" />
-</div>
-<div class="form-group mb-2">
-    <label>Apellido</label>
-    <input type="text" class="form-control" @bind="apellido" />
-</div>
-<div class="form-group mb-2">
-    <label>Email</label>
-    <input type="email" class="form-control" @bind="email" />
-</div>
-<div class="form-group mb-2">
-    <label>Fecha de Nacimiento</label>
-    <input type="date" class="form-control" @bind="fechaNacimiento" />
-</div>
-<div class="form-group mb-2">
-    <label>Contraseña</label>
-    <input type="password" class="form-control" @bind="contrasenia" />
-    <small class="text-muted">
-        Mínimo 8 caracteres. Debe incluir mayúscula, minúscula, número y carácter especial (@@, #, $, ., !, &amp;, *, -, _, +, =, ?).
-    </small>
-</div>
-<div class="form-group mb-2">
-    <label>Confirmar contraseña</label>
-    <input type="password" class="form-control" @bind="confirmarContrasenia" />
-</div>
-<div class="form-group mb-2">
-    <label>Roles</label>
-    <div>
-        <input type="checkbox" @bind="esAdmin" /> Administrador del Sistema
-    </div>
-    <div>
-        <input type="checkbox" @bind="esEditor" /> Editor
-    </div>
-</div>
-
-<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
-<a href="/usuarios" class="btn btn-secondary mt-2">Cancelar</a>
-
-@code {
-    protected override void OnInitialized()
+<div class="form-section">
+    @if (!string.IsNullOrEmpty(_error))
     {
-        if (!SesionServicio.EsAdministrador)
-            NavigationManager.NavigateTo("/");
+        <div class="alert alert-danger">
+            <span class="oi oi-warning" aria-hidden="true"></span> @_error
+        </div>
     }
 
-    private string nombre = string.Empty;
-    private string apellido = string.Empty;
-    private string email = string.Empty;
-    private DateTime fechaNacimiento = DateTime.Now.AddYears(-18);
-    private string contrasenia = string.Empty;
-    private string confirmarContrasenia = string.Empty;
-    private bool esAdmin = false;
-    private bool esEditor = false;
-    private string errorMensaje = string.Empty;
+    <div class="row g-3">
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-control" @bind="_nombre" placeholder="Juan" />
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="form-label">Apellido</label>
+                <input type="text" class="form-control" @bind="_apellido" placeholder="García" />
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Correo electrónico</label>
+        <input type="email" class="form-control" @bind="_email" placeholder="usuario@ejemplo.com" />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Fecha de nacimiento</label>
+        <input type="date" class="form-control" @bind="_fechaNacimiento" />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <input type="password" class="form-control" @bind="_contrasenia" placeholder="••••••••" />
+        <span class="form-hint">Mínimo 8 caracteres. Debe incluir mayúscula, minúscula, número y carácter especial.</span>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Confirmar contraseña</label>
+        <input type="password" class="form-control" @bind="_confirmarContrasenia" placeholder="••••••••" />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Roles</label>
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="chkAdmin" @bind="_esAdmin" />
+            <label class="form-check-label" for="chkAdmin">
+                <span class="badge badge-blue" style="margin-right:6px">Admin</span>
+                Administrador del Sistema
+            </label>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="chkEditor" @bind="_esEditor" />
+            <label class="form-check-label" for="chkEditor">
+                <span class="badge badge-gold" style="margin-right:6px">Editor</span>
+                Editor
+            </label>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-2">
+        <button type="button" class="btn btn-primary" @onclick="Guardar">
+            <span class="oi oi-check" aria-hidden="true"></span> Crear usuario
+        </button>
+        <a href="/usuarios" class="btn btn-secondary">Cancelar</a>
+    </div>
+</div>
+
+@code {
+    private string _nombre = string.Empty;
+    private string _apellido = string.Empty;
+    private string _email = string.Empty;
+    private DateTime _fechaNacimiento = DateTime.Now.AddYears(-18);
+    private string _contrasenia = string.Empty;
+    private string _confirmarContrasenia = string.Empty;
+    private bool _esAdmin;
+    private bool _esEditor;
+    private string _error = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        if (!SesionServicio.EsAdministrador) NavigationManager.NavigateTo("/");
+    }
 
     private void Guardar()
     {
-        errorMensaje = string.Empty;
-
-        if (contrasenia != confirmarContrasenia)
-        {
-            errorMensaje = "Las contraseñas no coinciden.";
-            return;
-        }
-
+        _error = string.Empty;
+        if (_contrasenia != _confirmarContrasenia) { _error = "Las contraseñas no coinciden."; return; }
         try
         {
-            var datos = new DatosUsuario { Nombre = nombre, Apellido = apellido, Email = email, FechaNacimiento = fechaNacimiento.ToString("MM-dd-yyyy") };
+            var datos = new DatosUsuario { Nombre = _nombre, Apellido = _apellido, Email = _email, FechaNacimiento = _fechaNacimiento.ToString("MM-dd-yyyy") };
             var usuario = new Usuario(datos);
-            usuario.EstablecerContrasenia(contrasenia);
-            if (esAdmin) usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-            if (esEditor) usuario.AgregarRol(RolUsuario.Editor);
+            usuario.EstablecerContrasenia(_contrasenia);
+            if (_esAdmin)  usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+            if (_esEditor) usuario.AgregarRol(RolUsuario.Editor);
             ServicioUsuario.AgregarUsuario(usuario);
+            Toast.Exito($"Usuario \"{_nombre} {_apellido}\" creado correctamente.");
             NavigationManager.NavigateTo("/usuarios");
         }
-        catch (Exception ex)
-        {
-            errorMensaje = ex.Message;
-        }
+        catch (Exception ex) { _error = ex.Message; }
     }
 }

@@ -1,0 +1,32 @@
+<div class="page-header">
+    @if (!string.IsNullOrEmpty(UrlVolver))
+    {
+        <a href="@UrlVolver" class="page-back-link">
+            <span class="oi oi-arrow-left" aria-hidden="true"></span>
+            @TextoVolver
+        </a>
+    }
+    <div class="page-header-top">
+        <div>
+            <h1 class="page-title">@Titulo</h1>
+            @if (!string.IsNullOrEmpty(Subtitulo))
+            {
+                <p class="page-subtitle">@Subtitulo</p>
+            }
+        </div>
+        @if (AccionesContent != null)
+        {
+            <div class="d-flex gap-2 align-items-center">
+                @AccionesContent
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Titulo        { get; set; } = string.Empty;
+    [Parameter] public string Subtitulo     { get; set; } = string.Empty;
+    [Parameter] public string UrlVolver     { get; set; } = string.Empty;
+    [Parameter] public string TextoVolver   { get; set; } = "Volver";
+    [Parameter] public RenderFragment? AccionesContent { get; set; }
+}

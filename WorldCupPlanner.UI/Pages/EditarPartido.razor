@@ -1,98 +1,157 @@
 @page "/partidos/{Id:int}/editar"
-
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
 @inject ServicioPartido ServicioPartido
 @inject ServicioEstadio ServicioEstadio
 @inject NavigationManager NavigationManager
+@inject ToastServicio Toast
 
-<PageTitle>Editar Partido</PageTitle>
-<h1>Editar Partido</h1>
+<PageTitle>Editar partido — WorldCupPlanner 2026</PageTitle>
 
-@if (!string.IsNullOrEmpty(errorMensaje))
+<PageHeader Titulo="Editar partido" UrlVolver="/fixture" TextoVolver="Volver al fixture" />
+
+@if (_partido == null)
 {
-    <div class="alert alert-danger">@errorMensaje</div>
+    <div class="alert alert-warning">Partido no encontrado.</div>
 }
-
-@if (partido != null)
+else
 {
-    <p><strong>@partido.EquipoLocal?.Nombre</strong> vs <strong>@partido.EquipoVisitante?.Nombre</strong></p>
+    <!-- Encabezado del partido -->
+    <div class="glass-card" style="padding:20px; margin-bottom:24px; text-align:center;">
+        <div style="display:flex; align-items:center; justify-content:center; gap:16px;">
+            <span style="font-family:var(--font-heading); font-size:18px; font-weight:700; flex:1; text-align:right">
+                @_partido.EquipoLocal?.Nombre
+            </span>
+            <div style="display:flex; align-items:center; gap:8px; padding:8px 16px; background:var(--bg-raised); border-radius:var(--radius);">
+                @if (_partido.EstaJugado())
+                {
+                    <span class="score-box">@_partido.GolesLocal</span>
+                    <span class="score-sep" style="font-size:16px">—</span>
+                    <span class="score-box">@_partido.GolesVisitante</span>
+                }
+                else
+                {
+                    <span style="font-size:14px; color:var(--text-muted)">vs</span>
+                }
+            </div>
+            <span style="font-family:var(--font-heading); font-size:18px; font-weight:700; flex:1; text-align:left">
+                @_partido.EquipoVisitante?.Nombre
+            </span>
+        </div>
+        @if (_partido.Grupo != null)
+        {
+            <div style="margin-top:8px"><span class="badge badge-muted">Grupo @_partido.Grupo.Etiqueta</span></div>
+        }
+        else
+        {
+            <div style="margin-top:8px"><span class="badge badge-blue">@MostrarFase(_partido.Fase)</span></div>
+        }
+    </div>
 
-    @if (ServicioPartido.EsFaseBloqueada(partido.Fase))
+    @if (ServicioPartido.EsFaseBloqueada(_partido.Fase))
     {
-        <div class="alert alert-warning">Este partido no se puede editar porque ya se generaron los cruces de la fase eliminatoria.</div>
+        <div class="alert alert-warning">
+            <span class="oi oi-warning" aria-hidden="true"></span>
+            Este partido no se puede editar porque ya se generaron los cruces de la fase eliminatoria.
+        </div>
+        <a href="/fixture" class="btn btn-secondary">Volver al fixture</a>
     }
     else
     {
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="alert alert-danger">
+                <span class="oi oi-warning" aria-hidden="true"></span> @_error
+            </div>
+        }
 
-    <div class="form-group mb-2">
-        <label>Fecha</label>
-        <input type="datetime-local" class="form-control" @bind="nuevaFecha" />
-    </div>
-    <div class="form-group mb-2">
-        <label>Estadio</label>
-        <select class="form-control" @bind="nombreEstadioSeleccionado">
-            @foreach (var estadio in estadios)
-            {
-                <option value="@estadio.Nombre">@estadio.Nombre</option>
-            }
-        </select>
-    </div>
-    <div class="form-group mb-2">
-        <label>Goles Local</label>
-        <input type="number" class="form-control" @bind="golesLocal" min="0" />
-    </div>
-    <div class="form-group mb-2">
-        <label>Goles Visitante</label>
-        <input type="number" class="form-control" @bind="golesVisitante" min="0" />
-    </div>
+        <div class="form-section">
+            <div class="form-group">
+                <label class="form-label">Fecha y hora</label>
+                <input type="datetime-local" class="form-control" @bind="_nuevaFecha" />
+            </div>
 
-    <button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
-    <a href="/fixture" class="btn btn-secondary mt-2">Cancelar</a>
+            <div class="form-group">
+                <label class="form-label">Estadio</label>
+                <select class="form-select" @bind="_nombreEstadio">
+                    @foreach (var estadio in _estadios)
+                    {
+                        <option value="@estadio.Nombre">@estadio.Nombre (@estadio.Ciudad)</option>
+                    }
+                </select>
+            </div>
 
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="form-label">Goles — @_partido.EquipoLocal?.Nombre</label>
+                        <input type="number" class="form-control" @bind="_golesLocal" min="0" />
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="form-label">Goles — @_partido.EquipoVisitante?.Nombre</label>
+                        <input type="number" class="form-control" @bind="_golesVisitante" min="0" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-2">
+                <button type="button" class="btn btn-primary" @onclick="Guardar">
+                    <span class="oi oi-check" aria-hidden="true"></span> Guardar
+                </button>
+                <a href="/fixture" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </div>
     }
-
-    <a href="/fixture" class="btn btn-secondary mt-2">Volver</a>
 }
 
 @code {
     [Parameter] public int Id { get; set; }
-    private Partido? partido;
-    private List<Estadio> estadios = new();
-    private DateTime nuevaFecha;
-    private string nombreEstadioSeleccionado = string.Empty;
-    private int? golesLocal;
-    private int? golesVisitante;
-    private string errorMensaje = string.Empty;
+    private Partido? _partido;
+    private List<Estadio> _estadios = new();
+    private DateTime _nuevaFecha;
+    private string _nombreEstadio = string.Empty;
+    private int? _golesLocal;
+    private int? _golesVisitante;
+    private string _error = string.Empty;
 
     protected override void OnInitialized()
     {
-        estadios = ServicioEstadio.ObtenerEstadios();
-        partido = ServicioPartido.BuscarPartidoPorId(Id);
-        if (partido != null)
+        _estadios = ServicioEstadio.ObtenerEstadios();
+        _partido  = ServicioPartido.BuscarPartidoPorId(Id);
+        if (_partido != null)
         {
-            nuevaFecha = partido.Fecha;
-            nombreEstadioSeleccionado = partido.Estadio?.Nombre ?? string.Empty;
-            golesLocal = partido.GolesLocal;
-            golesVisitante = partido.GolesVisitante;
+            _nuevaFecha    = _partido.Fecha;
+            _nombreEstadio = _partido.Estadio?.Nombre ?? string.Empty;
+            _golesLocal    = _partido.GolesLocal;
+            _golesVisitante = _partido.GolesVisitante;
         }
     }
 
     private void Guardar()
     {
+        _error = string.Empty;
         try
         {
-            if (partido == null) return;
-            var estadio = estadios.First(e => e.Nombre == nombreEstadioSeleccionado);
-            ServicioPartido.EditarFecha(partido.Id, nuevaFecha);
-            ServicioPartido.EditarEstadio(partido.Id, estadio);
-            if (golesLocal.HasValue && golesVisitante.HasValue)
-                ServicioPartido.CargarResultado(partido.Id, golesLocal.Value, golesVisitante.Value);
+            if (_partido == null) return;
+            var estadio = _estadios.First(e => e.Nombre == _nombreEstadio);
+            ServicioPartido.EditarFecha(_partido.Id, _nuevaFecha);
+            ServicioPartido.EditarEstadio(_partido.Id, estadio);
+            if (_golesLocal.HasValue && _golesVisitante.HasValue)
+                ServicioPartido.CargarResultado(_partido.Id, _golesLocal.Value, _golesVisitante.Value);
+            Toast.Exito("Partido actualizado correctamente.");
             NavigationManager.NavigateTo("/fixture");
         }
-        catch (Exception ex)
-        {
-            errorMensaje = ex.Message;
-        }
+        catch (Exception ex) { _error = ex.Message; }
     }
+
+    private static string MostrarFase(FaseTorneo fase) => fase switch
+    {
+        FaseTorneo.PrimeraRondaEliminatoria => "Primera Ronda",
+        FaseTorneo.Octavos   => "Octavos de Final",
+        FaseTorneo.Cuartos   => "Cuartos de Final",
+        FaseTorneo.Semifinal => "Semifinal",
+        FaseTorneo.TercerPuesto => "Tercer Puesto",
+        FaseTorneo.Final     => "Final",
+        _                    => fase.ToString()
+    };
 }

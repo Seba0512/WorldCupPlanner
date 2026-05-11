@@ -1,25 +1,35 @@
 @inherits LayoutComponentBase
 @inject SesionServicio SesionServicio
 
-<PageTitle>WorldCupPlanner.UI</PageTitle>
+<PageTitle>WorldCupPlanner 2026</PageTitle>
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<div class="app-shell">
+    <NavMenu />
 
-    <main>
-        <div class="top-row px-4">
+    <div class="main-wrapper">
+        <header class="topbar">
+            <span class="topbar-title">WorldCupPlanner 2026</span>
             @if (SesionServicio.HaySesion)
             {
-                <span class="text-muted me-3">
-                    @SesionServicio.UsuarioActual!.Nombre @SesionServicio.UsuarioActual.Apellido
-                </span>
+                <div class="topbar-user-info">
+                    <span class="topbar-user-name">
+                        @SesionServicio.UsuarioActual!.Nombre @SesionServicio.UsuarioActual.Apellido
+                    </span>
+                    @if (SesionServicio.EsAdministrador)
+                    {
+                        <span class="topbar-role-badge">Admin</span>
+                    }
+                    else
+                    {
+                        <span class="topbar-role-badge editor">Editor</span>
+                    }
+                </div>
             }
-        </div>
+        </header>
 
-        <article class="content px-4">
+        <main class="main-content">
+            <AppToast />
             @Body
-        </article>
-    </main>
+        </main>
+    </div>
 </div>

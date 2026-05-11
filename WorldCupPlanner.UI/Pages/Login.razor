@@ -1,49 +1,65 @@
 @page "/login"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@using WorldCupPlanner.UI.Data
+@layout LoginLayout
 @inject ServicioUsuario ServicioUsuario
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 
-<PageTitle>Login</PageTitle>
+<PageTitle>Iniciar sesión — WorldCupPlanner 2026</PageTitle>
 
-<div style="max-width: 400px; margin: 100px auto;">
-    <h1>WorldCupPlanner</h1>
+<div class="login-card">
+    <div class="login-brand">
+        <div class="login-brand-icon">⚽</div>
+        <h1 class="login-brand-title">WorldCupPlanner</h1>
+        <p class="login-brand-subtitle">Tournament Intelligence 2026</p>
+    </div>
 
-    @if (!string.IsNullOrEmpty(errorMensaje))
+    @if (!string.IsNullOrEmpty(_error))
     {
-        <div class="alert alert-danger">@errorMensaje</div>
+        <div class="alert alert-danger">
+            <span class="oi oi-warning" aria-hidden="true"></span>
+            @_error
+        </div>
     }
 
-    <div class="form-group mb-2">
-        <label>Email</label>
-        <input type="email" class="form-control" @bind="email" />
+    <div class="form-group">
+        <label class="form-label">Correo electrónico</label>
+        <input type="email" class="form-control" @bind="_email" @onkeydown="TeclaPresionada"
+               placeholder="usuario@ejemplo.com" />
     </div>
-    <div class="form-group mb-2">
-        <label>Contraseña</label>
-        <input type="password" class="form-control" @bind="contrasenia" />
+    <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <input type="password" class="form-control" @bind="_contrasenia" @onkeydown="TeclaPresionada"
+               placeholder="••••••••" />
     </div>
 
-    <button type="button" class="btn btn-primary mt-2" @onclick="IniciarSesion">Ingresar</button>
+    <button type="button" class="btn btn-primary w-100 mt-2" @onclick="IniciarSesion">
+        <span class="oi oi-account-login" aria-hidden="true"></span>
+        Ingresar
+    </button>
 </div>
 
 @code {
-    private string email = string.Empty;
-    private string contrasenia = string.Empty;
-    private string errorMensaje = string.Empty;
+    private string _email = string.Empty;
+    private string _contrasenia = string.Empty;
+    private string _error = string.Empty;
 
     private void IniciarSesion()
     {
+        _error = string.Empty;
         try
         {
-            var usuario = ServicioUsuario.Login(email, contrasenia);
+            var usuario = ServicioUsuario.Login(_email, _contrasenia);
             SesionServicio.IniciarSesion(usuario);
             NavigationManager.NavigateTo("/");
         }
         catch (Exception ex)
         {
-            errorMensaje = ex.Message;
+            _error = ex.Message;
         }
+    }
+
+    private void TeclaPresionada(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") IniciarSesion();
     }
 }

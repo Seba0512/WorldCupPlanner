@@ -17,4 +17,7 @@ public class ServicioAuditoria
         var entry = new Auditoria(_repo.SiguienteId(), usuario, accion, detalle);
         _repo.Agregar(entry);
     }
+
+    public List<Auditoria> ObtenerTodos() =>
+        _repo.Buscar(_ => true).OrderByDescending(a => a.Timestamp).ToList();
 }

@@ -1,0 +1,77 @@
+@page "/auditoria"
+@inject ServicioAuditoria ServicioAuditoria
+@inject SesionServicio SesionServicio
+@inject NavigationManager NavigationManager
+
+<PageTitle>Auditoría — WorldCupPlanner 2026</PageTitle>
+
+<PageHeader Titulo="Auditoría" Subtitulo="Registro de acciones del sistema" />
+
+<div class="table-card">
+    @if (!_registros.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <div class="empty-state-title">Sin registros de auditoría</div>
+            <div class="empty-state-text">Las acciones importantes del sistema se registran aquí automáticamente.</div>
+        </div>
+    }
+    else
+    {
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Timestamp</th>
+                    <th>Usuario</th>
+                    <th>Acción</th>
+                    <th>Detalle</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var registro in _registros)
+                {
+                    <tr>
+                        <td style="color:var(--text-muted); width:40px">@registro.Id</td>
+                        <td style="white-space:nowrap; color:var(--text-secondary); font-size:12px">
+                            @FormatearTimestamp(registro.Timestamp)
+                        </td>
+                        <td style="font-weight:600">@registro.Usuario</td>
+                        <td>
+                            <span class="badge @ObtenerBadge(registro.Accion)">@registro.Accion</span>
+                        </td>
+                        <td style="color:var(--text-secondary); font-size:13px">
+                            @(string.IsNullOrEmpty(registro.Detalle) ? "—" : registro.Detalle)
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<Auditoria> _registros = new();
+
+    protected override void OnInitialized()
+    {
+        if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
+        _registros = ServicioAuditoria.ObtenerTodos();
+    }
+
+    private static string FormatearTimestamp(string iso)
+    {
+        if (DateTime.TryParse(iso, out var dt))
+            return dt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss");
+        return iso;
+    }
+
+    private static string ObtenerBadge(string accion) => accion.ToLower() switch
+    {
+        var a when a.Contains("elimin") || a.Contains("borr") => "badge-red",
+        var a when a.Contains("cre")   || a.Contains("agre")  => "badge-green",
+        var a when a.Contains("edit")  || a.Contains("actu")  => "badge-gold",
+        var a when a.Contains("login") || a.Contains("sesion") => "badge-blue",
+        _ => "badge-muted"
+    };
+}

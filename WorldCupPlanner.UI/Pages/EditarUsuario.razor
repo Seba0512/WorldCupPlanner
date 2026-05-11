@@ -1,99 +1,116 @@
 @page "/usuarios/{Email}/editar"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@using WorldCupPlanner.Dominio.Enumeraciones
 @inject ServicioUsuario ServicioUsuario
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
+@inject ToastServicio Toast
 
-<PageTitle>Editar Usuario</PageTitle>
-<h1>Editar Usuario</h1>
+<PageTitle>Editar usuario — WorldCupPlanner 2026</PageTitle>
 
-@if (!string.IsNullOrEmpty(errorMensaje))
-{
-    <div class="alert alert-danger">@errorMensaje</div>
-}
+<PageHeader Titulo="Editar usuario" UrlVolver="/usuarios" TextoVolver="Volver a usuarios" />
 
-<div class="form-group mb-2">
-    <label>Nombre</label>
-    <input type="text" class="form-control" @bind="nombre" />
-</div>
-<div class="form-group mb-2">
-    <label>Apellido</label>
-    <input type="text" class="form-control" @bind="apellido" />
-</div>
-<div class="form-group mb-2">
-    <label>Email</label>
-    <input type="email" class="form-control" @bind="email" />
-</div>
-<div class="form-group mb-2">
-    <label>Fecha de Nacimiento</label>
-    <input type="date" class="form-control" @bind="fechaNacimiento" />
-</div>
-<div class="form-group mb-2">
-    <label>Roles</label>
-    <div>
-        <input type="checkbox" @bind="esAdmin" /> Administrador del Sistema
+<div class="form-section">
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger">
+            <span class="oi oi-warning" aria-hidden="true"></span> @_error
+        </div>
+    }
+
+    <div class="row g-3">
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-control" @bind="_nombre" />
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="form-group">
+                <label class="form-label">Apellido</label>
+                <input type="text" class="form-control" @bind="_apellido" />
+            </div>
+        </div>
     </div>
-    <div>
-        <input type="checkbox" @bind="esEditor" /> Editor
+
+    <div class="form-group">
+        <label class="form-label">Correo electrónico</label>
+        <input type="email" class="form-control" @bind="_email" />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Fecha de nacimiento</label>
+        <input type="date" class="form-control" @bind="_fechaNacimiento" />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Roles</label>
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="chkAdmin" @bind="_esAdmin" />
+            <label class="form-check-label" for="chkAdmin">
+                <span class="badge badge-blue" style="margin-right:6px">Admin</span>
+                Administrador del Sistema
+            </label>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="chkEditor" @bind="_esEditor" />
+            <label class="form-check-label" for="chkEditor">
+                <span class="badge badge-gold" style="margin-right:6px">Editor</span>
+                Editor
+            </label>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-2">
+        <button type="button" class="btn btn-primary" @onclick="Guardar">
+            <span class="oi oi-check" aria-hidden="true"></span> Guardar cambios
+        </button>
+        <a href="/usuarios" class="btn btn-secondary">Cancelar</a>
     </div>
 </div>
-
-<button type="button" class="btn btn-primary mt-2" @onclick="Guardar">Guardar</button>
-<a href="/usuarios" class="btn btn-secondary mt-2">Cancelar</a>
 
 @code {
     [Parameter] public string Email { get; set; } = string.Empty;
-    private Usuario? usuario;
-    private string nombre = string.Empty;
-    private string apellido = string.Empty;
-    private string email = string.Empty;
-    private DateTime fechaNacimiento = DateTime.Now.AddYears(-18);
-    private bool esAdmin = false;
-    private bool esEditor = false;
-    private string errorMensaje = string.Empty;
+    private Usuario? _usuario;
+    private string _nombre = string.Empty;
+    private string _apellido = string.Empty;
+    private string _email = string.Empty;
+    private DateTime _fechaNacimiento = DateTime.Now.AddYears(-18);
+    private bool _esAdmin;
+    private bool _esEditor;
+    private string _error = string.Empty;
 
     protected override void OnInitialized()
     {
-        if (!SesionServicio.EsAdministrador)
+        if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
+        _usuario = ServicioUsuario.ObtenerPorEmail(Email);
+        if (_usuario != null)
         {
-            NavigationManager.NavigateTo("/");
-            return;
-        }
-        usuario = ServicioUsuario.ObtenerPorEmail(Email);
-        if (usuario != null)
-        {
-            nombre = usuario.Nombre;
-            apellido = usuario.Apellido;
-            email = usuario.Email;
-            fechaNacimiento = usuario.FechaNacimiento;
-            esAdmin = usuario.TieneRol(RolUsuario.AdministradorDelSistema);
-            esEditor = usuario.TieneRol(RolUsuario.Editor);
+            _nombre          = _usuario.Nombre;
+            _apellido        = _usuario.Apellido;
+            _email           = _usuario.Email;
+            _fechaNacimiento = _usuario.FechaNacimiento;
+            _esAdmin         = _usuario.TieneRol(RolUsuario.AdministradorDelSistema);
+            _esEditor        = _usuario.TieneRol(RolUsuario.Editor);
         }
     }
 
     private void Guardar()
     {
+        _error = string.Empty;
         try
         {
-            if (usuario == null) return;
-            ServicioUsuario.ActualizarUsuario(usuario, new ActualizacionUsuario
+            if (_usuario == null) return;
+            ServicioUsuario.ActualizarUsuario(_usuario, new ActualizacionUsuario
             {
-                Nombre = nombre,
-                Apellido = apellido,
-                Email = email,
-                FechaNacimiento = fechaNacimiento.ToString("MM-dd-yyyy")
+                Nombre = _nombre, Apellido = _apellido,
+                Email = _email, FechaNacimiento = _fechaNacimiento.ToString("MM-dd-yyyy")
             });
-            if (esAdmin) usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-            else usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
-            if (esEditor) usuario.AgregarRol(RolUsuario.Editor);
-            else usuario.RemoverRol(RolUsuario.Editor);
+            if (_esAdmin) _usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+            else _usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
+            if (_esEditor) _usuario.AgregarRol(RolUsuario.Editor);
+            else _usuario.RemoverRol(RolUsuario.Editor);
+            Toast.Exito("Usuario actualizado correctamente.");
             NavigationManager.NavigateTo("/usuarios");
         }
-        catch (Exception ex)
-        {
-            errorMensaje = ex.Message;
-        }
+        catch (Exception ex) { _error = ex.Message; }
     }
 }

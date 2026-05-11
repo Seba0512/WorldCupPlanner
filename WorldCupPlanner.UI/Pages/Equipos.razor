@@ -1,64 +1,132 @@
 @page "/equipos"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
 @inject ServicioEquipo ServicioEquipo
 @inject ConfiguracionTorneo ConfiguracionTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
+@inject ToastServicio Toast
 
-<PageTitle>Equipos</PageTitle>
+<PageTitle>Equipos — WorldCupPlanner 2026</PageTitle>
 
-<h1>
-    Equipos
-    <a href="/equipos/crear" class="btn btn-success btn-sm" style="float: right; margin-right: 40px;">Agregar +</a>
-</h1>
+<ConfirmDialog @bind-Visible="_confirmarEliminar"
+               Titulo="Eliminar equipo"
+               Mensaje="@($"¿Eliminás el equipo \"{_equipoAEliminar?.Nombre}\"? Esta acción no se puede deshacer.")"
+               OnConfirmar="ConfirmarEliminar" />
 
-<table class="table">
-    <thead>
-    <tr>
-        <th>Nombre</th>
-        <th>Confederación</th>
-        <th>Ranking FIFA</th>
-        <th>Acciones</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var equipo in equipos)
+<PageHeader Titulo="Equipos" Subtitulo="@($"{_equipos.Count} de 48 equipos registrados")">
+    <AccionesContent>
+        <a href="/equipos/crear" class="btn btn-primary btn-sm">
+            <span class="oi oi-plus" aria-hidden="true"></span> Agregar equipo
+        </a>
+    </AccionesContent>
+</PageHeader>
+
+<!-- Confederaciones resumen -->
+<div class="row g-2 mb-4">
+    @foreach (var conf in _cuposPorConfederacion)
     {
-        <tr>
-            <td>@equipo.Nombre</td>
-            <td>@equipo.Confederacion</td>
-            <td>@equipo.RankingFIFA</td>
-            <td>
-                <a href="/equipos/@equipo.Nombre/editar" class="btn btn-success btn-sm">Editar</a>
-                <button class="btn btn-danger btn-sm" @onclick="(() => Eliminar(equipo))">Eliminar</button>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
-
-<div class="card mt-3" style="max-width: 400px;">
-    <div class="card-body">
-        <h5 class="card-title">Completar equipos</h5>
-        <p class="text-muted">Equipos registrados: @equipos.Count / 48</p>
-        <div class="form-group mb-2">
-            <label>Semilla</label>
-            <input type="number" class="form-control" @bind="ConfiguracionTorneo.SemillaCompletar" />
+        <div class="col-auto">
+            <div class="glass-card" style="padding: 10px 16px; text-align:center; min-width:90px;">
+                <div style="font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-muted)">@conf.Key</div>
+                <div style="font-family:var(--font-heading); font-size:18px; font-weight:700; color:var(--text-primary);">@conf.Value.registrados</div>
+                <div style="font-size:11px; color:var(--text-secondary);">/ @conf.Value.cupo cupos</div>
+            </div>
         </div>
-        <button class="btn btn-warning" @onclick="Completar" disabled="@(equipos.Count >= 48)">
-            Completar hasta 48
-        </button>
-        @if (!string.IsNullOrEmpty(mensajeCompletar))
-        {
-            <div class="alert alert-info mt-2 mb-0">@mensajeCompletar</div>
-        }
-    </div>
+    }
 </div>
 
+<!-- Tabla de equipos -->
+<div class="table-card mb-4">
+    @if (_equipos.Count == 0)
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">⚽</div>
+            <div class="empty-state-title">No hay equipos registrados</div>
+            <div class="empty-state-text">Agregá equipos manualmente o usá la opción de completar automáticamente.</div>
+            <a href="/equipos/crear" class="btn btn-primary">
+                <span class="oi oi-plus" aria-hidden="true"></span> Agregar primer equipo
+            </a>
+        </div>
+    }
+    else
+    {
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Confederación</th>
+                    <th>Ranking FIFA</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var (equipo, i) in _equipos.Select((e, i) => (e, i + 1)))
+                {
+                    <tr>
+                        <td style="color:var(--text-muted); width:40px">@i</td>
+                        <td style="font-weight:600">@equipo.Nombre</td>
+                        <td><span class="badge badge-muted">@equipo.Confederacion</span></td>
+                        <td style="font-family:var(--font-heading); font-weight:700">@equipo.RankingFIFA</td>
+                        <td style="width:140px; text-align:right">
+                            <a href="/equipos/@equipo.Nombre/editar" class="btn btn-success btn-sm">
+                                <span class="oi oi-pencil" aria-hidden="true"></span>
+                            </a>
+                            <button class="btn btn-danger btn-sm" @onclick="() => PedirConfirmacion(equipo)">
+                                <span class="oi oi-trash" aria-hidden="true"></span>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<!-- Completar equipos -->
+@if (_equipos.Count < 48)
+{
+    <div style="max-width:460px;">
+        <div class="table-card">
+            <div class="table-card-header">
+                <span class="table-card-title">Completar hasta 48</span>
+                <span class="badge badge-muted">@_equipos.Count / 48</span>
+            </div>
+            <div style="padding:20px;">
+                <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
+                    Genera equipos ficticios para completar todos los cupos respetando las restricciones por confederación.
+                </p>
+                <div class="form-group">
+                    <label class="form-label">Semilla de generación</label>
+                    <input type="number" class="form-control" @bind="ConfiguracionTorneo.SemillaCompletar" />
+                    <span class="form-hint">Misma semilla = mismos equipos generados</span>
+                </div>
+                @if (!string.IsNullOrEmpty(_mensajeCompletar))
+                {
+                    <div class="alert alert-info">@_mensajeCompletar</div>
+                }
+                <button class="btn btn-warning w-100" @onclick="Completar">
+                    <span class="oi oi-cog" aria-hidden="true"></span>
+                    Completar equipos ficticios
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-    private List<Equipo> equipos = new();
-    private string mensajeCompletar = string.Empty;
+    private List<Equipo> _equipos = new();
+    private Equipo? _equipoAEliminar;
+    private bool _confirmarEliminar;
+    private string _mensajeCompletar = string.Empty;
+
+    private static readonly Dictionary<Confederacion, int> CuposMaximos = new()
+    {
+        { Confederacion.UEFA,     16 }, { Confederacion.CAF,      9 },
+        { Confederacion.CONCACAF, 7  }, { Confederacion.CONMEBOL, 7 },
+        { Confederacion.AFC,      8  }, { Confederacion.OFC,      1 }
+    };
+
+    private Dictionary<Confederacion, (int registrados, int cupo)> _cuposPorConfederacion = new();
 
     protected override void OnInitialized()
     {
@@ -67,21 +135,47 @@
             NavigationManager.NavigateTo("/");
             return;
         }
-        equipos = ServicioEquipo.Buscar(_ => true);
+        CargarDatos();
     }
 
-    private void Eliminar(Equipo equipo)
+    private void CargarDatos()
     {
-        ServicioEquipo.Eliminar(equipo);
-        equipos = ServicioEquipo.Buscar(_ => true);
+        _equipos = ServicioEquipo.Buscar(_ => true);
+        _cuposPorConfederacion = CuposMaximos.ToDictionary(
+            kvp => kvp.Key,
+            kvp => (_equipos.Count(e => e.Confederacion == kvp.Key), kvp.Value));
+    }
+
+    private void PedirConfirmacion(Equipo equipo)
+    {
+        _equipoAEliminar = equipo;
+        _confirmarEliminar = true;
+    }
+
+    private void ConfirmarEliminar()
+    {
+        if (_equipoAEliminar == null) return;
+        try
+        {
+            ServicioEquipo.Eliminar(_equipoAEliminar);
+            Toast.Exito($"Equipo \"{_equipoAEliminar.Nombre}\" eliminado.");
+            _equipoAEliminar = null;
+            CargarDatos();
+        }
+        catch (Exception ex) { Toast.Error(ex.Message); }
     }
 
     private void Completar()
     {
-        var generados = ServicioEquipo.CompletarEquipos(ConfiguracionTorneo.SemillaCompletar);
-        equipos = ServicioEquipo.Buscar(_ => true);
-        mensajeCompletar = generados.Count > 0
-            ? $"Se generaron {generados.Count} equipos ficticios."
-            : "Ya hay 48 equipos registrados.";
+        try
+        {
+            var generados = ServicioEquipo.CompletarEquipos(ConfiguracionTorneo.SemillaCompletar);
+            CargarDatos();
+            _mensajeCompletar = generados.Count > 0
+                ? $"Se generaron {generados.Count} equipos ficticios correctamente."
+                : "Ya hay 48 equipos registrados.";
+            if (generados.Count > 0) Toast.Exito(_mensajeCompletar);
+        }
+        catch (Exception ex) { Toast.Error(ex.Message); }
     }
 }

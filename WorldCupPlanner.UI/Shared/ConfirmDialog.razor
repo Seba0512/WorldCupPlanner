@@ -1,0 +1,39 @@
+@if (Visible)
+{
+    <div class="modal-backdrop-custom" @onclick="Cancelar">
+        <div class="modal-card" @onclick:stopPropagation="true">
+            <div class="modal-icon">
+                <span class="oi oi-warning" aria-hidden="true"></span>
+            </div>
+            <h2 class="modal-title">@Titulo</h2>
+            <p class="modal-message">@Mensaje</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" @onclick="Cancelar">@TextoCancelar</button>
+                <button class="btn btn-danger" @onclick="Confirmar">@TextoConfirmar</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible        { get; set; }
+    [Parameter] public string Titulo       { get; set; } = "Confirmar acción";
+    [Parameter] public string Mensaje      { get; set; } = "¿Estás seguro?";
+    [Parameter] public string TextoConfirmar { get; set; } = "Eliminar";
+    [Parameter] public string TextoCancelar  { get; set; } = "Cancelar";
+    [Parameter] public EventCallback OnConfirmar { get; set; }
+    [Parameter] public EventCallback OnCancelar  { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    private async Task Confirmar()
+    {
+        await VisibleChanged.InvokeAsync(false);
+        await OnConfirmar.InvokeAsync();
+    }
+
+    private async Task Cancelar()
+    {
+        await VisibleChanged.InvokeAsync(false);
+        await OnCancelar.InvokeAsync();
+    }
+}

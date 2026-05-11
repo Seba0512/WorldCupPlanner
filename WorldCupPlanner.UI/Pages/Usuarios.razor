@@ -1,61 +1,102 @@
 @page "/usuarios"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
-@using WorldCupPlanner.Dominio.Enumeraciones
 @inject ServicioUsuario ServicioUsuario
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
+@inject ToastServicio Toast
 
-<PageTitle>Usuarios</PageTitle>
+<PageTitle>Usuarios — WorldCupPlanner 2026</PageTitle>
 
-<h1>
-    Usuarios
-    <a href="/usuarios/crear" class="btn btn-success btn-sm" style="float: right; margin-right: 40px;">Agregar +</a>
-</h1>
+<ConfirmDialog @bind-Visible="_confirmarEliminar"
+               Titulo="Eliminar usuario"
+               Mensaje="@($"¿Eliminás al usuario \"{_usuarioAEliminar?.Email}\"?")"
+               OnConfirmar="ConfirmarEliminar" />
 
-<table class="table">
-    <thead>
-    <tr>
-        <th>Nombre</th>
-        <th>Apellido</th>
-        <th>Email</th>
-        <th>Roles</th>
-        <th>Acciones</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var usuario in usuarios)
+<PageHeader Titulo="Usuarios" Subtitulo="@($"{_usuarios.Count} usuarios en el sistema")">
+    <AccionesContent>
+        <a href="/usuarios/crear" class="btn btn-primary btn-sm">
+            <span class="oi oi-plus" aria-hidden="true"></span> Agregar usuario
+        </a>
+    </AccionesContent>
+</PageHeader>
+
+<div class="table-card">
+    @if (_usuarios.Count == 0)
     {
-        <tr>
-            <td>@usuario.Nombre</td>
-            <td>@usuario.Apellido</td>
-            <td>@usuario.Email</td>
-            <td>@string.Join(", ", usuario.ObtenerRoles())</td>
-            <td>
-                <a href="/usuarios/@usuario.Email/editar" class="btn btn-success btn-sm">Editar</a>
-                <button class="btn btn-danger btn-sm" @onclick="(() => Eliminar(usuario))">Eliminar</button>
-            </td>
-        </tr>
+        <div class="empty-state">
+            <div class="empty-state-icon">👤</div>
+            <div class="empty-state-title">No hay usuarios adicionales</div>
+            <div class="empty-state-text">Creá usuarios con roles de Administrador o Editor.</div>
+        </div>
     }
-    </tbody>
-</table>
+    else
+    {
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Roles</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var usuario in _usuarios)
+                {
+                    <tr>
+                        <td>
+                            <div style="font-weight:600">@usuario.Nombre @usuario.Apellido</div>
+                        </td>
+                        <td style="color:var(--text-secondary)">@usuario.Email</td>
+                        <td>
+                            @foreach (var rol in usuario.ObtenerRoles())
+                            {
+                                <span class="badge @(rol == RolUsuario.AdministradorDelSistema ? "badge-blue" : "badge-gold")" style="margin-right:4px">
+                                    @(rol == RolUsuario.AdministradorDelSistema ? "Admin" : "Editor")
+                                </span>
+                            }
+                        </td>
+                        <td style="width:120px; text-align:right">
+                            <a href="/usuarios/@usuario.Email/editar" class="btn btn-success btn-sm">
+                                <span class="oi oi-pencil" aria-hidden="true"></span>
+                            </a>
+                            <button class="btn btn-danger btn-sm" @onclick="() => PedirConfirmacion(usuario)">
+                                <span class="oi oi-trash" aria-hidden="true"></span>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
 
 @code {
-    private List<Usuario> usuarios = new();
+    private List<Usuario> _usuarios = new();
+    private Usuario? _usuarioAEliminar;
+    private bool _confirmarEliminar;
 
     protected override void OnInitialized()
     {
-        if (!SesionServicio.EsAdministrador)
-        {
-            NavigationManager.NavigateTo("/");
-            return;
-        }
-        usuarios = ServicioUsuario.ObtenerTodosLosUsuarios();
+        if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
+        _usuarios = ServicioUsuario.ObtenerTodosLosUsuarios();
     }
 
-    private void Eliminar(Usuario usuario)
+    private void PedirConfirmacion(Usuario usuario)
     {
-        ServicioUsuario.EliminarUsuario(usuario);
-        usuarios = ServicioUsuario.ObtenerTodosLosUsuarios();
+        _usuarioAEliminar = usuario;
+        _confirmarEliminar = true;
+    }
+
+    private void ConfirmarEliminar()
+    {
+        if (_usuarioAEliminar == null) return;
+        try
+        {
+            ServicioUsuario.EliminarUsuario(_usuarioAEliminar);
+            Toast.Exito("Usuario eliminado correctamente.");
+            _usuarioAEliminar = null;
+            _usuarios = ServicioUsuario.ObtenerTodosLosUsuarios();
+        }
+        catch (Exception ex) { Toast.Error(ex.Message); }
     }
 }

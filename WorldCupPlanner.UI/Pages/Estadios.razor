@@ -1,58 +1,102 @@
 @page "/estadios"
-@using WorldCupPlanner.Servicios
-@using WorldCupPlanner.Dominio.Entidades
 @inject ServicioEstadio ServicioEstadio
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
+@inject ToastServicio Toast
 
-<PageTitle>Estadios</PageTitle>
+<PageTitle>Estadios — WorldCupPlanner 2026</PageTitle>
 
-<h1>
-    Estadios
-    <a href="/estadios/crear" class="btn btn-success btn-sm" style="float: right; margin-right: 40px;">Agregar +</a>
-</h1>
+<ConfirmDialog @bind-Visible="_confirmarEliminar"
+               Titulo="Eliminar estadio"
+               Mensaje="@($"¿Eliminás el estadio \"{_estadioAEliminar?.Nombre}\"?")"
+               OnConfirmar="ConfirmarEliminar" />
 
-<table class="table">
-    <thead>
-    <tr>
-        <th>Nombre</th>
-        <th>Ciudad</th>
-        <th>Capacidad</th>
-        <th>Acciones</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var estadio in estadios)
+<PageHeader Titulo="Estadios" Subtitulo="@($"{_estadios.Count} estadios registrados")">
+    <AccionesContent>
+        <a href="/estadios/crear" class="btn btn-primary btn-sm">
+            <span class="oi oi-plus" aria-hidden="true"></span> Agregar estadio
+        </a>
+    </AccionesContent>
+</PageHeader>
+
+<div class="table-card">
+    @if (_estadios.Count == 0)
     {
-        <tr>
-            <td>@estadio.Nombre</td>
-            <td>@estadio.Ciudad</td>
-            <td>@estadio.Capacidad</td>
-            <td>
-                <a href="/estadios/@estadio.Nombre/editar" class="btn btn-success btn-sm">Editar</a>
-                <button class="btn btn-danger btn-sm" @onclick="(() => Eliminar(estadio))">Eliminar</button>
-            </td>
-        </tr>
+        <div class="empty-state">
+            <div class="empty-state-icon">🏟️</div>
+            <div class="empty-state-title">No hay estadios registrados</div>
+            <div class="empty-state-text">Necesitás al menos 4 estadios para generar el fixture.</div>
+            <a href="/estadios/crear" class="btn btn-primary">
+                <span class="oi oi-plus" aria-hidden="true"></span> Agregar estadio
+            </a>
+        </div>
     }
-    </tbody>
-</table>
+    else
+    {
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Ciudad</th>
+                    <th>Capacidad</th>
+                    <th>Descripción</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var estadio in _estadios)
+                {
+                    <tr>
+                        <td style="font-weight:600">@estadio.Nombre</td>
+                        <td>@estadio.Ciudad</td>
+                        <td style="font-family:var(--font-heading); font-weight:700">
+                            @estadio.Capacidad.ToString("N0")
+                        </td>
+                        <td style="color:var(--text-secondary); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">
+                            @(string.IsNullOrEmpty(estadio.Descripcion) ? "—" : estadio.Descripcion)
+                        </td>
+                        <td style="width:120px; text-align:right">
+                            <a href="/estadios/@estadio.Nombre/editar" class="btn btn-success btn-sm">
+                                <span class="oi oi-pencil" aria-hidden="true"></span>
+                            </a>
+                            <button class="btn btn-danger btn-sm" @onclick="() => PedirConfirmacion(estadio)">
+                                <span class="oi oi-trash" aria-hidden="true"></span>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
 
 @code {
-    private List<Estadio> estadios = new();
+    private List<Estadio> _estadios = new();
+    private Estadio? _estadioAEliminar;
+    private bool _confirmarEliminar;
 
     protected override void OnInitialized()
     {
-        if (!SesionServicio.EsAdministrador)
-        {
-            NavigationManager.NavigateTo("/");
-            return;
-        }
-        estadios = ServicioEstadio.ObtenerEstadios();
+        if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
+        _estadios = ServicioEstadio.ObtenerEstadios();
     }
 
-    private void Eliminar(Estadio estadio)
+    private void PedirConfirmacion(Estadio estadio)
     {
-        ServicioEstadio.EliminarEstadio(estadio);
-        estadios = ServicioEstadio.ObtenerEstadios();
+        _estadioAEliminar = estadio;
+        _confirmarEliminar = true;
+    }
+
+    private void ConfirmarEliminar()
+    {
+        if (_estadioAEliminar == null) return;
+        try
+        {
+            ServicioEstadio.EliminarEstadio(_estadioAEliminar);
+            Toast.Exito($"Estadio \"{_estadioAEliminar.Nombre}\" eliminado.");
+            _estadioAEliminar = null;
+            _estadios = ServicioEstadio.ObtenerEstadios();
+        }
+        catch (Exception ex) { Toast.Error(ex.Message); }
     }
 }
