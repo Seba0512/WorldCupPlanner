@@ -2,7 +2,7 @@
 
 public class EntidadInvalidaExcepcion : Exception
 {
-        public EntidadInvalidaExcepcion(string mensaje) : base(mensaje)
-        {
-        }
+    public EntidadInvalidaExcepcion(string mensaje) : base(mensaje)
+    {
+    }
 }

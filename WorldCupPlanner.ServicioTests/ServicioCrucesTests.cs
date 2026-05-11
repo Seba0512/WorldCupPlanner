@@ -1,4 +1,4 @@
-using  WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
