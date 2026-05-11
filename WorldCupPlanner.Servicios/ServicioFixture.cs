@@ -184,12 +184,7 @@ public class ServicioFixture
 
     private List<Equipo> MezclarEquiposConFisherYates(List<Equipo> equipos, Random random)
     {
-        for (int i = equipos.Count - 1; i > 0; i--)
-        {
-            int j = random.Next(i + 1);
-            (equipos[i], equipos[j]) = (equipos[j], equipos[i]);
-        }
-
+        AlgoritmoFisherYates.Mezclar(equipos, random);
         return equipos;
     }
 

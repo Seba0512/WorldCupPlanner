@@ -173,11 +173,7 @@ public class ServicioClasificacion
 
     private static void MezclarConFisherYates(List<PosicionEquipo> posiciones, Random random)
     {
-        for (int i = posiciones.Count - 1; i > 0; i--)
-        {
-            int j = random.Next(i + 1);
-            (posiciones[i], posiciones[j]) = (posiciones[j], posiciones[i]);
-        }
+        AlgoritmoFisherYates.Mezclar(posiciones, random);
     }
 
     private static List<PosicionEquipo> OrdenarPosicionesConDesempateDeterministico(
