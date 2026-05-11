@@ -71,7 +71,7 @@ namespace WorldCupPlanner.Servicios
             if (existentes.Count >= MaximoEquipos)
                 return [];
 
-            var rng = new Random(semilla);
+            var generadorAleatorio = new Random(semilla);
             var generados = new List<Equipo>();
 
             foreach (var (confederacion, cupo) in CuposPorConfederacion)
@@ -82,7 +82,7 @@ namespace WorldCupPlanner.Servicios
                     var equipo = new Equipo
                     {
                         Nombre = GenerarNombre(confederacion),
-                        RankingFIFA = rng.Next(RankingMinimoFicticio, RankingMaximoFicticioExclusivo),
+                        RankingFIFA = generadorAleatorio.Next(RankingMinimoFicticio, RankingMaximoFicticioExclusivo),
                         Confederacion = confederacion
                     };
                     Agregar(equipo);

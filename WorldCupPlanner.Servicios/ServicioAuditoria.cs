@@ -5,16 +5,16 @@ namespace WorldCupPlanner.Servicios;
 
 public class ServicioAuditoria
 {
-    private readonly IRepositorioConId<Auditoria> _repo;
+    private readonly IRepositorioConId<Auditoria> _repositorio;
 
     public ServicioAuditoria(IRepositorioConId<Auditoria> repo)
     {
-        _repo = repo;
+        _repositorio = repo;
     }
 
     public void Registrar(string usuario, string accion, string detalle = "")
     {
-        var entry = new Auditoria(_repo.SiguienteId(), usuario, accion, detalle);
-        _repo.Agregar(entry);
+        var registro = new Auditoria(_repositorio.SiguienteId(), usuario, accion, detalle);
+        _repositorio.Agregar(registro);
     }
 }

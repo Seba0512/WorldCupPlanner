@@ -9,10 +9,10 @@ namespace WorldCupPlanner.ServicioTests;
 
 internal class RepositorioAuditoriaEstadioFake : IRepositorioConId<Auditoria>
 {
-    private int _nextId = 1;
+    private int _siguienteId = 1;
     public List<Auditoria> Entradas { get; } = [];
 
-    public int SiguienteId() => _nextId++;
+    public int SiguienteId() => _siguienteId++;
     public void Agregar(Auditoria entidad) => Entradas.Add(entidad);
     public void Actualizar(Auditoria entidad) { }
     public void Eliminar(Auditoria entidad) => Entradas.Remove(entidad);
