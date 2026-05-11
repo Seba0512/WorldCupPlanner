@@ -8,16 +8,20 @@ public class ServicioEstadio
 {
     private readonly IRepositorio<Estadio> _repositorioEstadio;
     private readonly ServicioAuditoria? _auditoria;
+    private readonly ServicioAutorizacion _autorizacion;
     private Fixture? _fixtureGenerado;
 
-    public ServicioEstadio(IRepositorio<Estadio> repositorioEstadio, ServicioAuditoria? auditoria = null)
+    public ServicioEstadio(IRepositorio<Estadio> repositorioEstadio, ServicioAuditoria? auditoria = null, ServicioAutorizacion? autorizacion = null)
     {
         _repositorioEstadio = repositorioEstadio;
         _auditoria = auditoria;
+        _autorizacion = autorizacion ?? new ServicioAutorizacion();
     }
 
-    public void AgregarEstadio(Estadio estadio)
+    public void AgregarEstadio(Estadio estadio, Usuario? solicitante = null)
     {
+        if (solicitante != null)
+            _autorizacion.VerificarEsAdministrador(solicitante);
         if (!estadio.EsValido())
             throw new EntidadInvalidaExcepcion("El estadio no es valido.");
         if (_repositorioEstadio.Buscar(e => NombresIguales(e.Nombre, estadio.Nombre)).Count > 0)
@@ -26,8 +30,10 @@ public class ServicioEstadio
         _auditoria?.Registrar("Sistema", "Alta", $"Estadio: {estadio.Nombre}, Ciudad: {estadio.Ciudad}, Capacidad: {estadio.Capacidad}");
     }
 
-    public void EditarEstadio(string nombreOriginal, Estadio estadio)
+    public void EditarEstadio(string nombreOriginal, Estadio estadio, Usuario? solicitante = null)
     {
+        if (solicitante != null)
+            _autorizacion.VerificarEsAdministrador(solicitante);
         if (!estadio.EsValido())
             throw new EntidadInvalidaExcepcion("El estadio no es valido.");
         var existente = _repositorioEstadio.Buscar(e => ReferenceEquals(e, estadio) || NombresIguales(e.Nombre, nombreOriginal)).FirstOrDefault();
@@ -44,8 +50,10 @@ public class ServicioEstadio
         _auditoria?.Registrar("Sistema", "Edicion", $"Original: {nombreOriginal} -> Nuevo: {estadio.Nombre}, Ciudad: {estadio.Ciudad}, Capacidad: {estadio.Capacidad}");
     }
 
-    public void EliminarEstadio(Estadio estadio)
+    public void EliminarEstadio(Estadio estadio, Usuario? solicitante = null)
     {
+        if (solicitante != null)
+            _autorizacion.VerificarEsAdministrador(solicitante);
         ValidarEstadioNoEstaEnFixture(estadio);
 
         _repositorioEstadio.Eliminar(estadio);

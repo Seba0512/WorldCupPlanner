@@ -346,4 +346,118 @@ public class ServicioEstadioTests
             Grupos = { grupo }
         };
     }
+
+    // --- Autorización ---
+
+    [TestMethod]
+    public void AgregarEstadio_ConSolicitanteAdministrador_AgregaCorrectamente()
+    {
+        // Arrange
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var estadio = CrearEstadio();
+
+        // Act
+        _servicio.AgregarEstadio(estadio, solicitante: admin);
+
+        // Assert
+        Assert.AreEqual(1, _servicio.ObtenerEstadios().Count);
+    }
+
+    [TestMethod]
+    public void AgregarEstadio_ConSolicitanteEditor_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        var estadio = CrearEstadio();
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.AgregarEstadio(estadio, solicitante: editor));
+    }
+
+    [TestMethod]
+    public void AgregarEstadio_ConSolicitanteSinRoles_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var sinRoles = CrearUsuarioSinRoles();
+        var estadio = CrearEstadio();
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.AgregarEstadio(estadio, solicitante: sinRoles));
+    }
+
+    [TestMethod]
+    public void EditarEstadio_ConSolicitanteEditor_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        _servicio.AgregarEstadio(CrearEstadio());
+        var actualizado = CrearEstadio("Estadio Nuevo");
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.EditarEstadio("Estadio Centenario", actualizado, solicitante: editor));
+    }
+
+    [TestMethod]
+    public void EditarEstadio_ConSolicitanteAdministrador_EditaCorrectamente()
+    {
+        // Arrange
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarEstadio(CrearEstadio());
+        var actualizado = CrearEstadio("Estadio Nuevo");
+
+        // Act
+        _servicio.EditarEstadio("Estadio Centenario", actualizado, solicitante: admin);
+
+        // Assert
+        Assert.AreEqual("Estadio Nuevo", _servicio.ObtenerEstadios().First().Nombre);
+    }
+
+    [TestMethod]
+    public void EliminarEstadio_ConSolicitanteEditor_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        var estadio = CrearEstadio();
+        _servicio.AgregarEstadio(estadio);
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.EliminarEstadio(estadio, solicitante: editor));
+    }
+
+    [TestMethod]
+    public void EliminarEstadio_ConSolicitanteAdministrador_EliminaCorrectamente()
+    {
+        // Arrange
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var estadio = CrearEstadio();
+        _servicio.AgregarEstadio(estadio);
+
+        // Act
+        _servicio.EliminarEstadio(estadio, solicitante: admin);
+
+        // Assert
+        Assert.AreEqual(0, _servicio.ObtenerEstadios().Count);
+    }
+
+    private static Usuario CrearUsuarioConRol(RolUsuario rol)
+    {
+        var usuario = CrearUsuarioSinRoles();
+        usuario.AgregarRol(rol);
+        return usuario;
+    }
+
+    private static Usuario CrearUsuarioSinRoles()
+    {
+        return new Usuario(new DatosUsuario
+        {
+            Nombre = "Test",
+            Apellido = "User",
+            Email = "test@example.com",
+            FechaNacimiento = "01-01-1990"
+        });
+    }
 }

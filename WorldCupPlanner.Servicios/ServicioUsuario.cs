@@ -9,22 +9,28 @@ public class ServicioUsuario
 {
     private readonly IRepositorioUsuario _repositorio;
     private readonly ServicioAuditoria _auditoria;
+    private readonly ServicioAutorizacion _autorizacion;
 
-    public ServicioUsuario(IRepositorioUsuario repositorio, ServicioAuditoria auditoria)
+    public ServicioUsuario(IRepositorioUsuario repositorio, ServicioAuditoria auditoria, ServicioAutorizacion? autorizacion = null)
     {
         _repositorio = repositorio;
         _auditoria = auditoria;
+        _autorizacion = autorizacion ?? new ServicioAutorizacion();
     }
 
-    public void AgregarUsuario(Usuario usuario, string? ejecutadoPor = null)
+    public void AgregarUsuario(Usuario usuario, string? ejecutadoPor = null, Usuario? solicitante = null)
     {
+        if (solicitante != null)
+            _autorizacion.VerificarEsAdministrador(solicitante);
         ValidarEmailUnico(usuario.Email);
         _repositorio.Agregar(usuario);
         _auditoria.Registrar(ejecutadoPor ?? "sistema", "ALTA_USUARIO", $"Usuario creado: {usuario.Email}");
     }
 
-    public void ActualizarUsuario(Usuario usuario, ActualizacionUsuario? actualizacion = null)
+    public void ActualizarUsuario(Usuario usuario, ActualizacionUsuario? actualizacion = null, Usuario? solicitante = null)
     {
+        if (solicitante != null)
+            _autorizacion.VerificarEsAdministrador(solicitante);
         actualizacion ??= new ActualizacionUsuario();
         var usuarioActual = BuscarUsuarioExistenteOLanzarExcepcion(usuario);
         var campos = AplicarActualizacionesDeCampos(usuarioActual, actualizacion);
@@ -82,14 +88,18 @@ public class ServicioUsuario
             : $"Sin cambios efectivos en {email}";
     }
 
-    public void EliminarUsuario(Usuario usuario, string? ejecutadoPor = null)
+    public void EliminarUsuario(Usuario usuario, string? ejecutadoPor = null, Usuario? solicitante = null)
     {
+        if (solicitante != null)
+            _autorizacion.VerificarEsAdministrador(solicitante);
         _repositorio.Eliminar(usuario);
         _auditoria.Registrar(ejecutadoPor ?? "sistema", "BAJA_USUARIO", $"Usuario eliminado: {usuario.Email}");
     }
 
-    public List<Usuario> ObtenerTodosLosUsuarios()
+    public List<Usuario> ObtenerTodosLosUsuarios(Usuario? solicitante = null)
     {
+        if (solicitante != null)
+            _autorizacion.VerificarEsAdministrador(solicitante);
         return _repositorio.Buscar(_ => true);
     }
 

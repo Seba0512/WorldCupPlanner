@@ -6,10 +6,12 @@ namespace WorldCupPlanner.Servicios;
 public class ServicioAuditoria
 {
     private readonly IRepositorioConId<Auditoria> _repo;
+    private readonly ServicioAutorizacion _autorizacion;
 
-    public ServicioAuditoria(IRepositorioConId<Auditoria> repo)
+    public ServicioAuditoria(IRepositorioConId<Auditoria> repo, ServicioAutorizacion? autorizacion = null)
     {
         _repo = repo;
+        _autorizacion = autorizacion ?? new ServicioAutorizacion();
     }
 
     public void Registrar(string usuario, string accion, string detalle = "")
@@ -18,6 +20,10 @@ public class ServicioAuditoria
         _repo.Agregar(entry);
     }
 
-    public List<Auditoria> ObtenerTodos() =>
-        _repo.Buscar(_ => true).OrderByDescending(a => a.Timestamp).ToList();
+    public List<Auditoria> ObtenerTodos(Usuario? solicitante = null)
+    {
+        if (solicitante != null)
+            _autorizacion.VerificarEsAdministrador(solicitante);
+        return _repo.Buscar(_ => true).OrderByDescending(a => a.Timestamp).ToList();
+    }
 }

@@ -527,4 +527,141 @@ public class ServicioEquipoTests
             }
         };
     }
+
+    // --- Autorización ---
+
+    [TestMethod]
+    public void Agregar_ConSolicitanteAdministrador_AgregaCorrectamente()
+    {
+        // Arrange
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+
+        // Act
+        _servicio.Agregar(equipo, solicitante: admin);
+
+        // Assert
+        Assert.AreEqual(1, _servicio.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
+    public void Agregar_ConSolicitanteEditor_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.Agregar(equipo, solicitante: editor));
+    }
+
+    [TestMethod]
+    public void Agregar_ConSolicitanteSinRoles_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var sinRoles = CrearUsuarioSinRoles();
+        var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.Agregar(equipo, solicitante: sinRoles));
+    }
+
+    [TestMethod]
+    public void EditarEquipo_ConSolicitanteEditor_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        _servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.EditarEquipo(CrearEquipo("Uruguay", Confederacion.CONMEBOL), "Uruguay", solicitante: editor));
+    }
+
+    [TestMethod]
+    public void EditarEquipo_ConSolicitanteAdministrador_EditaCorrectamente()
+    {
+        // Arrange
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        _servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
+        var editado = new Equipo { Nombre = "Uruguay", RankingFIFA = 999, Confederacion = Confederacion.CONMEBOL };
+
+        // Act
+        _servicio.EditarEquipo(editado, "Uruguay", solicitante: admin);
+
+        // Assert
+        Assert.AreEqual(999, _servicio.Buscar(e => e.Nombre == "Uruguay").First().RankingFIFA);
+    }
+
+    [TestMethod]
+    public void Eliminar_ConSolicitanteEditor_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+        _servicio.Agregar(equipo);
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.Eliminar(equipo, solicitante: editor));
+    }
+
+    [TestMethod]
+    public void Eliminar_ConSolicitanteAdministrador_EliminaCorrectamente()
+    {
+        // Arrange
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+        _servicio.Agregar(equipo);
+
+        // Act
+        _servicio.Eliminar(equipo, solicitante: admin);
+
+        // Assert
+        Assert.AreEqual(0, _servicio.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_ConSolicitanteEditor_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.CompletarEquipos(42, solicitante: editor));
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_ConSolicitanteAdministrador_CompletaCorrectamente()
+    {
+        // Arrange
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+
+        // Act
+        var generados = _servicio.CompletarEquipos(42, solicitante: admin);
+
+        // Assert
+        Assert.AreEqual(48, generados.Count);
+    }
+
+    private static Usuario CrearUsuarioConRol(RolUsuario rol)
+    {
+        var usuario = CrearUsuarioSinRoles();
+        usuario.AgregarRol(rol);
+        return usuario;
+    }
+
+    private static Usuario CrearUsuarioSinRoles()
+    {
+        return new Usuario(new DatosUsuario
+        {
+            Nombre = "Test",
+            Apellido = "User",
+            Email = "test@example.com",
+            FechaNacimiento = "01-01-1990"
+        });
+    }
 }

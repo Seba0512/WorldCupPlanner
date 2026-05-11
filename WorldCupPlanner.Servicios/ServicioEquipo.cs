@@ -9,6 +9,7 @@ namespace WorldCupPlanner.Servicios
     {
         private readonly IRepositorio<Equipo> _repositorio;
         private readonly ServicioAuditoria? _auditoria;
+        private readonly ServicioAutorizacion _autorizacion;
         private Fixture? _fixtureGenerado;
 
         private static readonly Dictionary<Confederacion, int> CuposPorConfederacion = new()
@@ -21,18 +22,21 @@ namespace WorldCupPlanner.Servicios
             { Confederacion.OFC,       1 },
         };
 
-        public ServicioEquipo(IRepositorio<Equipo> repositorio, ServicioAuditoria? auditoria = null)
+        public ServicioEquipo(IRepositorio<Equipo> repositorio, ServicioAuditoria? auditoria = null, ServicioAutorizacion? autorizacion = null)
         {
             _repositorio = repositorio;
             _auditoria = auditoria;
+            _autorizacion = autorizacion ?? new ServicioAutorizacion();
         }
 
         private const int MaximoEquipos = 48;
         private const int RankingMinimoFicticio = 300;
         private const int RankingMaximoFicticioExclusivo = 501;
 
-        public void Agregar(Equipo equipo)
+        public void Agregar(Equipo equipo, Usuario? solicitante = null)
         {
+            if (solicitante != null)
+                _autorizacion.VerificarEsAdministrador(solicitante);
             ValidarEquipo(equipo);
             ValidarNombreUnico(equipo.Nombre);
             ValidarCupoConfederacion(equipo);
@@ -40,8 +44,10 @@ namespace WorldCupPlanner.Servicios
             _auditoria?.Registrar("Sistema", "Alta", $"Equipo: {equipo.Nombre}, Confederacion: {equipo.Confederacion}, Ranking: {equipo.RankingFIFA}");
         }
 
-        public void EditarEquipo(Equipo equipo, string nombreOriginal)
+        public void EditarEquipo(Equipo equipo, string nombreOriginal, Usuario? solicitante = null)
         {
+            if (solicitante != null)
+                _autorizacion.VerificarEsAdministrador(solicitante);
             ValidarEquipo(equipo);
             ValidarNombreUnico(equipo.Nombre, excluir: nombreOriginal);
 
@@ -65,8 +71,10 @@ namespace WorldCupPlanner.Servicios
             EditarEquipo(equipo, equipo.Nombre);
         }
 
-        public List<Equipo> CompletarEquipos(int semilla)
+        public List<Equipo> CompletarEquipos(int semilla, Usuario? solicitante = null)
         {
+            if (solicitante != null)
+                _autorizacion.VerificarEsAdministrador(solicitante);
             var existentes = _repositorio.Buscar(_ => true);
             if (existentes.Count >= MaximoEquipos)
                 return [];
@@ -93,8 +101,10 @@ namespace WorldCupPlanner.Servicios
             return generados;
         }
 
-        public void Eliminar(Equipo equipo)
+        public void Eliminar(Equipo equipo, Usuario? solicitante = null)
         {
+            if (solicitante != null)
+                _autorizacion.VerificarEsAdministrador(solicitante);
             ValidarEliminacionPermitida();
 
             _repositorio.Eliminar(equipo);

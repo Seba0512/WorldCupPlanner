@@ -689,6 +689,149 @@ public sealed class ServicioUsuarioTests
         StringAssert.Contains(detalle, "apellido: García");
     }
 
+    // --- Autorización ---
+
+    [TestMethod]
+    public void AgregarUsuario_ConSolicitanteAdministrador_AgregaCorrectamente()
+    {
+        // Arrange
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var nuevo = CrearUsuarioValido("nuevo@example.com");
+
+        // Act
+        _servicio.AgregarUsuario(nuevo, solicitante: admin);
+
+        // Assert
+        Assert.AreEqual(1, _servicio.ObtenerTodosLosUsuarios().Count);
+    }
+
+    [TestMethod]
+    public void AgregarUsuario_ConSolicitanteEditor_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        var nuevo = CrearUsuarioValido("nuevo@example.com");
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.AgregarUsuario(nuevo, solicitante: editor));
+    }
+
+    [TestMethod]
+    public void AgregarUsuario_ConSolicitanteSinRoles_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var sinRoles = CrearUsuarioValido("sinroles@example.com");
+        var nuevo = CrearUsuarioValido("nuevo@example.com");
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.AgregarUsuario(nuevo, solicitante: sinRoles));
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConSolicitanteEditor_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.ActualizarUsuario(usuario, solicitante: editor));
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConSolicitanteAdministrador_ActualizaCorrectamente()
+    {
+        // Arrange
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act
+        _servicio.ActualizarUsuario(usuario, new ActualizacionUsuario { Nombre = "Carlos" }, solicitante: admin);
+
+        // Assert
+        Assert.AreEqual("Carlos", _servicio.ObtenerTodosLosUsuarios()[0].Nombre);
+    }
+
+    [TestMethod]
+    public void EliminarUsuario_ConSolicitanteEditor_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.EliminarUsuario(usuario, solicitante: editor));
+    }
+
+    [TestMethod]
+    public void EliminarUsuario_ConSolicitanteAdministrador_EliminaCorrectamente()
+    {
+        // Arrange
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var usuario = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario);
+
+        // Act
+        _servicio.EliminarUsuario(usuario, solicitante: admin);
+
+        // Assert
+        Assert.AreEqual(0, _servicio.ObtenerTodosLosUsuarios().Count);
+    }
+
+    [TestMethod]
+    public void ObtenerTodosLosUsuarios_ConSolicitanteEditor_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.ObtenerTodosLosUsuarios(solicitante: editor));
+    }
+
+    [TestMethod]
+    public void ObtenerTodosLosUsuarios_ConSolicitanteAdministrador_DevuelveLista()
+    {
+        // Arrange
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+
+        // Act
+        var resultado = _servicio.ObtenerTodosLosUsuarios(solicitante: admin);
+
+        // Assert
+        Assert.IsNotNull(resultado);
+    }
+
+    [TestMethod]
+    public void AgregarUsuario_ConSolicitanteAmbosRoles_AgregaCorrectamente()
+    {
+        // Arrange
+        var ambos = CrearUsuarioValido("ambos@example.com");
+        ambos.AgregarRol(RolUsuario.AdministradorDelSistema);
+        ambos.AgregarRol(RolUsuario.Editor);
+        var nuevo = CrearUsuarioValido("nuevo@example.com");
+
+        // Act
+        _servicio.AgregarUsuario(nuevo, solicitante: ambos);
+
+        // Assert
+        Assert.AreEqual(1, _servicio.ObtenerTodosLosUsuarios().Count);
+    }
+
+    private static Usuario CrearUsuarioConRol(RolUsuario rol)
+    {
+        var usuario = CrearUsuarioValido($"{rol.ToString().ToLower()}@example.com");
+        usuario.AgregarRol(rol);
+        return usuario;
+    }
+
     private static Usuario CrearUsuarioValido(string email)
     {
         return new Usuario(new DatosUsuario

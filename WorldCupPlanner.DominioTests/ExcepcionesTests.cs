@@ -6,6 +6,30 @@ namespace WorldCupPlanner.DominioTests;
 public class ExcepcionesTests
 {
     [TestMethod]
+    public void AccesoDenegadoExcepcion_DebeConservarMensaje()
+    {
+        // Arrange
+        var mensaje = "Acceso denegado al recurso";
+
+        // Act
+        var excepcion = new AccesoDenegadoExcepcion(mensaje);
+
+        // Assert
+        Assert.AreEqual(mensaje, excepcion.Message);
+    }
+
+    [TestMethod]
+    public void AccesoDenegadoExcepcion_EsException()
+    {
+        // Act
+        var excepcion = new AccesoDenegadoExcepcion("mensaje");
+
+        // Assert
+        Assert.IsInstanceOfType(excepcion, typeof(Exception));
+    }
+
+
+    [TestMethod]
     public void EntidadInvalidaExcepcion_DebeConservarMensaje()
     {
         // Arrange
