@@ -204,7 +204,15 @@ public class ServicioFixture
         }
 
         throw new EntidadInvalidaExcepcion(
-            "No se pudo asignar el equipo a ningún grupo respetando las restricciones de confederación.");
+            $"No se pudo asignar '{equipo.Nombre}' (confederación: {equipo.Confederacion}) " +
+            $"a ningún grupo respetando las restricciones. " +
+            $"Estado de grupos: {DescribirEstadoGrupos(fixture)}");
+    }
+
+    private string DescribirEstadoGrupos(Fixture fixture)
+    {
+        return string.Join("; ", fixture.Grupos.Select(g =>
+            $"{g.Etiqueta}:[{string.Join(",", g.Equipos.Select(e => e.Confederacion))}]"));
     }
 
     private Grupo ObtenerGrupoCandidato(Fixture fixture, int indiceEquipo, int intento)

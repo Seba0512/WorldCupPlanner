@@ -258,6 +258,28 @@ public class ServicioFixtureTests
     }
 
     [TestMethod]
+    public void GenerarFixture_ConSemillaFixtureCeroYEquiposAutogeneradosEstandar_DebeCompletarConGruposValidosYRestricciones()
+    {
+        // Arrange
+        var equipos = CrearEquiposConDistribucionEstandarMundial();
+        var servicioFixture = new ServicioFixture();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 0 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        Assert.AreEqual(12, fixture.Grupos.Count, "Deben generarse exactamente 12 grupos");
+        Assert.IsTrue(
+            fixture.Grupos.All(g => g.Equipos.Count == 4),
+            "Todos los grupos deben tener exactamente 4 equipos");
+        Assert.IsTrue(
+            fixture.Grupos.All(g => g.EsValido()),
+            "Todos los grupos deben respetar las restricciones de confederación");
+    }
+
+    [TestMethod]
     public void GenerarFixture_DebeCrearSeisPartidosPorGrupo()
     {
         // Arrange
@@ -814,6 +836,39 @@ public class ServicioFixtureTests
                 RankingFIFA = 500 + numeroEquipo,
                 Confederacion = confederacionesPorOrden[posicion]
             });
+        }
+
+        return equipos;
+    }
+
+    private List<Equipo> CrearEquiposConDistribucionEstandarMundial()
+    {
+        // UEFA×16, CONMEBOL×7, CONCACAF×7, CAF×9, AFC×8, OFC×1 con rankings aleatorios [300-2500]
+        var distribucion = new (Confederacion Confederacion, int Cantidad)[]
+        {
+            (Confederacion.UEFA,     16),
+            (Confederacion.CONMEBOL,  7),
+            (Confederacion.CONCACAF,  7),
+            (Confederacion.CAF,       9),
+            (Confederacion.AFC,       8),
+            (Confederacion.OFC,       1),
+        };
+
+        var rng = new Random(0);
+        var equipos = new List<Equipo>();
+        int contador = 1;
+
+        foreach (var (confederacion, cantidad) in distribucion)
+        {
+            for (int i = 0; i < cantidad; i++)
+            {
+                equipos.Add(new Equipo
+                {
+                    Nombre = $"Equipo{contador++}",
+                    RankingFIFA = rng.Next(300, 2501),
+                    Confederacion = confederacion
+                });
+            }
         }
 
         return equipos;
