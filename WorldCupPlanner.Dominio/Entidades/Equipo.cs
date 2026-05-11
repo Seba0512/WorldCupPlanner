@@ -5,9 +5,9 @@ namespace WorldCupPlanner.Dominio.Entidades
 	public class Equipo
 	{
 
-		public string Nombre { get; set; } = ""; //arranca vacio por defecto
+		public string Nombre { get; set; } = "";
 		public int RankingFIFA { get; set; }
-		public Confederacion? Confederacion { get; set; } //puede ser nula
+		public Confederacion? Confederacion { get; set; }
 
 		public bool EsValido()
 		{
