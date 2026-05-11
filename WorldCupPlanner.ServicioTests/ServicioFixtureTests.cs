@@ -203,7 +203,6 @@ public class ServicioFixtureTests
     {
         // Arrange
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
-        // Cambiar algunos rankings para tener empates, permitiendo diferentes mezclas
         for (int i = 0; i < 12; i++)
         {
             equipos[i].RankingFIFA = 1000;
@@ -662,7 +661,6 @@ public class ServicioFixtureTests
         var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
         var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(3);
-        // Agregar un estadio invalido (capacidad menor a 20000)
         estadios.Add(new Estadio
         {
             Nombre = "EstadioInvalido",
@@ -691,15 +689,13 @@ public class ServicioFixtureTests
         // Act
         var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
-        // Assert - Total de 48 equipos asignados
+        // Assert
         var todosLosEquiposEnFixture = fixture.Grupos.SelectMany(g => g.Equipos).ToList();
         Assert.AreEqual(48, todosLosEquiposEnFixture.Count);
 
-        // Assert - No hay repetidos
         var equiposUnicos = new HashSet<string>(todosLosEquiposEnFixture.Select(e => e.Nombre));
         Assert.AreEqual(48, equiposUnicos.Count);
 
-        // Assert - Todos los originales estan en el fixture
         var equiposEnFixtureSet = new HashSet<string>(todosLosEquiposEnFixture.Select(e => e.Nombre));
         CollectionAssert.AreEquivalent(equiposSet.ToList(), equiposEnFixtureSet.ToList());
     }
@@ -752,7 +748,6 @@ public class ServicioFixtureTests
 
             foreach (var partido in grupo.Partidos)
             {
-                // Crear clave normalizada del enfrentamiento (sin importar orden)
                 var clave = string.Concat(
                     new[] { partido.EquipoLocal.Nombre, partido.EquipoVisitante.Nombre }.OrderBy(x => x)
                 );
@@ -1148,7 +1143,6 @@ public class ServicioFixtureTests
             .Take(46)
             .ToList();
 
-        // Rename before adding to the repo
         equipos[0].Nombre = "AFC_01";
 
         var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
@@ -1238,7 +1232,6 @@ public class ServicioFixtureTests
             .Take(46)
             .ToList();
 
-        // Rename before adding to the repo
         equipos[0].Nombre = "AFC_01";
 
         var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
@@ -1360,7 +1353,6 @@ public class ServicioFixtureTests
             .Take(24)
             .ToList();
 
-        // Rename before adding to the repo
         equipos[0].Nombre = "CONCACAF_01";
 
         var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
