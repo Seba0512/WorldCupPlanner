@@ -393,6 +393,14 @@ public class ServicioCruces
         return partidos;
     }
 
+    private void ValidarFaseNoGenerada(IReadOnlyList<Partido>? existentes, FaseTorneo fase, string nombreFase)
+    {
+        if (existentes != null && existentes.Any(p => p.Fase == fase))
+        {
+            throw new EntidadInvalidaExcepcion($"Ya existe un partido de {nombreFase}. No se puede generar nuevamente.");
+        }
+    }
+
     private void ValidarPartidosDeFaseAnterior(List<Partido> partidos, ContextoValidacionFase contexto)
     {
         ValidarCantidadPartidos(partidos, contexto);
@@ -453,8 +461,10 @@ public class ServicioCruces
     public Partido GenerarTercerPuesto(
         List<Partido> semifinales,
         List<Estadio> estadios,
-        ConfiguracionTorneo configuracionTorneo)
+        ConfiguracionTorneo configuracionTorneo,
+        IReadOnlyList<Partido>? existentes = null)
     {
+        ValidarFaseNoGenerada(existentes, FaseTorneo.TercerPuesto, "tercer puesto");
         ValidarPartidosDeFaseAnterior(
             semifinales,
             new ContextoValidacionFase
@@ -523,8 +533,10 @@ public class ServicioCruces
     public Partido GenerarFinal(
         List<Partido> semifinales,
         List<Estadio> estadios,
-        ConfiguracionTorneo configuracionTorneo)
+        ConfiguracionTorneo configuracionTorneo,
+        IReadOnlyList<Partido>? existentes = null)
     {
+        ValidarFaseNoGenerada(existentes, FaseTorneo.Final, "la final");
         ValidarPartidosDeFaseAnterior(
             semifinales,
             new ContextoValidacionFase

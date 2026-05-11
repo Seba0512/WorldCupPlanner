@@ -20,10 +20,18 @@
             @if (_etapaActiva != FaseTorneo.FaseDeGrupos)
             {
                 <button class="btn btn-primary btn-sm"
-                        disabled="@(FaseYaGenerada(_etapaActiva) || !PuedeGenerarFase(_etapaActiva))"
+                        disabled="@(FaseYaGenerada(_etapaActiva) || !PuedeGenerarFase(_etapaActiva) || _generando)"
                         @onclick="GenerarFaseActiva">
-                    <span class="oi oi-cog" aria-hidden="true"></span>
-                    @(FaseYaGenerada(_etapaActiva) ? "Cruces generados" : "Generar Cruces")
+                    @if (_generando)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                        <span>Generando...</span>
+                    }
+                    else
+                    {
+                        <span class="oi oi-cog" aria-hidden="true"></span>
+                        <span>@(FaseYaGenerada(_etapaActiva) ? "Cruces generados" : "Generar Cruces")</span>
+                    }
                 </button>
             }
             <button class="btn btn-warning btn-sm" @onclick="SimularResultados">
@@ -228,6 +236,7 @@ else
     private string _error = string.Empty;
     private string _grupoActivo = "A";
     private FaseTorneo _etapaActiva = FaseTorneo.FaseDeGrupos;
+    private bool _generando = false;
 
     private record EtapaTorneo(FaseTorneo Fase, string Etiqueta);
 
@@ -355,7 +364,7 @@ else
     private List<Partido> PartidosDeFase(FaseTorneo fase) =>
         EstadoTorneo.PartidosEliminatorios.Where(p => p.Fase == fase).ToList();
 
-    private void GenerarFaseActiva()
+    private async Task GenerarFaseActiva()
     {
         switch (_etapaActiva)
         {
@@ -363,7 +372,7 @@ else
             case FaseTorneo.Octavos:                  GenerarOctavos();                  break;
             case FaseTorneo.Cuartos:                  GenerarCuartos();                  break;
             case FaseTorneo.Semifinal:                GenerarSemifinales();              break;
-            case FaseTorneo.Final:                    GenerarFinalYTercerPuesto();       break;
+            case FaseTorneo.Final:                    await GenerarFinalYTercerPuesto(); break;
         }
     }
 
@@ -424,20 +433,28 @@ else
         catch (Exception ex) { _error = ex.Message; }
     }
 
-    private void GenerarFinalYTercerPuesto()
+    private async Task GenerarFinalYTercerPuesto()
     {
         _error = string.Empty;
+        _generando = true;
+        StateHasChanged();
         try
         {
+            await Task.Yield();
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             var estadios = ServicioEstadio.ObtenerEstadios();
             var semifinales = PartidosDeFase(FaseTorneo.Semifinal);
-            var tercerPuesto = ServicioCruces.GenerarTercerPuesto(semifinales, estadios, config);
-            var final = ServicioCruces.GenerarFinal(semifinales, estadios, config);
+            var existentes = EstadoTorneo.PartidosEliminatorios;
+            var tercerPuesto = ServicioCruces.GenerarTercerPuesto(semifinales, estadios, config, existentes);
+            var final = ServicioCruces.GenerarFinal(semifinales, estadios, config, existentes);
             EstadoTorneo.PartidosEliminatorios.Add(tercerPuesto);
             EstadoTorneo.PartidosEliminatorios.Add(final);
             Toast.Exito("Final y tercer puesto generados correctamente.");
         }
         catch (Exception ex) { _error = ex.Message; }
+        finally
+        {
+            _generando = false;
+        }
     }
 }

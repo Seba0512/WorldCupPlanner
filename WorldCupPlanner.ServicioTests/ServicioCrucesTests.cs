@@ -1627,6 +1627,44 @@ public class ServicioCrucesTests
     }
     
     [TestMethod]
+    public void GenerarFinal_CuandoFinalYaExiste_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+        var existentes = new List<Partido>
+        {
+            new Partido { Id = 104, Fase = FaseTorneo.Final }
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarFinal(semifinales, estadios, configuracionTorneo, existentes)
+        );
+    }
+
+    [TestMethod]
+    public void GenerarTercerPuesto_CuandoTercerPuestoYaExiste_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var semifinales = CrearPartidosSemifinalesJugados(2);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+        var existentes = new List<Partido>
+        {
+            new Partido { Id = 103, Fase = FaseTorneo.TercerPuesto }
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarTercerPuesto(semifinales, estadios, configuracionTorneo, existentes)
+        );
+    }
+
+    [TestMethod]
     public void GenerarFinal_DebeAsignarFechaSegunConfiguracion()
     {
         // Arrange
