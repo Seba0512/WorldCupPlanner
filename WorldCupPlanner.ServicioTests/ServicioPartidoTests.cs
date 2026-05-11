@@ -175,6 +175,56 @@ public class ServicioPartidoTests
             servicioPartido.CargarResultado(partido.Id, 2, 1));
     }
 
+    [TestMethod]
+    public void EsFaseBloqueada_SinFasesBloqueadas_RetornaFalso()
+    {
+        // Arrange
+        var servicioPartido = new ServicioPartido(new RepositorioPartidoEnMemoria());
+
+        // Act & Assert
+        Assert.IsFalse(servicioPartido.EsFaseBloqueada(FaseTorneo.FaseDeGrupos));
+    }
+
+    [TestMethod]
+    public void EsFaseBloqueada_ConFaseDeGruposBloqueadaExplicitamente_RetornaVerdadero()
+    {
+        // Arrange
+        var servicioPartido = new ServicioPartido(new RepositorioPartidoEnMemoria());
+        servicioPartido.BloquearEdicionPartidosDeFaseDeGrupos();
+
+        // Act & Assert
+        Assert.IsTrue(servicioPartido.EsFaseBloqueada(FaseTorneo.FaseDeGrupos));
+    }
+
+    [TestMethod]
+    public void BuscarPartidoPorId_ConIdInexistente_RetornaNull()
+    {
+        // Arrange
+        var servicioPartido = new ServicioPartido(new RepositorioPartidoEnMemoria());
+
+        // Act
+        var resultado = servicioPartido.BuscarPartidoPorId(99);
+
+        // Assert
+        Assert.IsNull(resultado);
+    }
+
+    [TestMethod]
+    public void BuscarPartidoPorId_ConPartidoExistente_RetornaPartido()
+    {
+        // Arrange
+        var repositorio = new RepositorioPartidoEnMemoria();
+        var partido = CrearPartido();
+        repositorio.Agregar(partido);
+        var servicioPartido = new ServicioPartido(repositorio);
+
+        // Act
+        var resultado = servicioPartido.BuscarPartidoPorId(partido.Id);
+
+        // Assert
+        Assert.AreEqual(partido, resultado);
+    }
+
     private static Partido CrearPartido()
     {
         return CrearPartido(FaseTorneo.FaseDeGrupos);

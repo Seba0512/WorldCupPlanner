@@ -1,4 +1,4 @@
-﻿using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
@@ -12,12 +12,12 @@ public class ServicioFixtureTests
     public void GenerarFixture_ConMenosDe48Equipos_DebeCompletarEquiposYGenerarFixture()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(46)
             .ToList();
 
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo = new ConfiguracionTorneo
@@ -28,7 +28,6 @@ public class ServicioFixtureTests
 
         // Act
         var fixture = servicioFixture.GenerarFixture(
-            equipos,
             estadios,
             configuracionTorneo
         );
@@ -42,18 +41,21 @@ public class ServicioFixtureTests
             .ToList();
 
         Assert.AreEqual(48, todosLosEquipos.Count);
-        Assert.IsTrue(todosLosEquipos.Any(e => !equipos.Contains(e)));
+
+        var nombresBase = equipos.Select(e => e.Nombre).ToHashSet();
+        Assert.IsTrue(todosLosEquipos.Any(e => !nombresBase.Contains(e.Nombre)));
     }
 
     [TestMethod]
     public void CompletarEquipos_ConMenosDe48Equipos_DebeAgregarEquiposFicticiosHasta48()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(46)
             .ToList();
+
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
 
         var configuracionTorneo = new ConfiguracionTorneo
         {
@@ -62,7 +64,6 @@ public class ServicioFixtureTests
 
         // Act
         var equiposCompletos = servicioFixture.CompletarEquipos(
-            equipos,
             configuracionTorneo
         );
 
@@ -71,46 +72,18 @@ public class ServicioFixtureTests
     }
 
     [TestMethod]
-    public void CompletarEquipos_ConMasDe48Equipos_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var servicioFixture = new ServicioFixture();
-
-        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
-
-        equipos.Add(new Equipo
-        {
-            Nombre = "EquipoExtra",
-            RankingFIFA = 1000,
-            Confederacion = Confederacion.CONMEBOL
-        });
-
-        var configuracionTorneo = new ConfiguracionTorneo
-        {
-            SemillaCompletar = 1
-        };
-
-        // Act & Assert
-        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            servicioFixture.CompletarEquipos(
-                equipos,
-                configuracionTorneo
-            )
-        );
-    }
-
-    [TestMethod]
     public void GenerarFixture_ConMenosDe4Estadios_DebeLanzarExcepcion()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-        var equipos = CrearEquiposValidos(48);
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(3);
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
+            servicioFixture.GenerarFixture(estadios, configuracionTorneo)
         );
     }
 
@@ -118,13 +91,14 @@ public class ServicioFixtureTests
     public void GenerarFixture_Con48EquiposY4Estadios_DebeGenerar12Grupos()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-        var equipos = CrearEquiposValidos(48);
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         Assert.AreEqual(12, fixture.Grupos.Count);
@@ -134,13 +108,14 @@ public class ServicioFixtureTests
     public void GenerarFixture_DebeCrearGruposConEtiquetasDeAToL()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-        var equipos = CrearEquiposValidos(48);
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         var etiquetasEsperadas = new List<string>
@@ -157,13 +132,14 @@ public class ServicioFixtureTests
     public void GenerarFixture_DebeCrearGruposConCuatroEquiposCadaUno()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-        var equipos = CrearEquiposValidos(48);
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         Assert.IsTrue(fixture.Grupos.All(g => g.Equipos.Count == 4));
@@ -173,13 +149,14 @@ public class ServicioFixtureTests
     public void GenerarFixture_DebeDistribuirLosEquiposOrdenadosPorRankingEnRoundRobin()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         var nombresGrupoA = fixture.Grupos[0].Equipos.Select(e => e.Nombre).ToList();
@@ -212,51 +189,35 @@ public class ServicioFixtureTests
         return estadios;
     }
 
-    private List<Equipo> CrearEquiposValidos(int cantidad)
+    private ServicioEquipo CrearServicioEquipoConEquipos(IEnumerable<Equipo> equipos)
     {
-        var equipos = new List<Equipo>();
-        var confederaciones = new[]
-        {
-            Confederacion.UEFA,
-            Confederacion.CONMEBOL,
-            Confederacion.CONCACAF,
-            Confederacion.CAF,
-            Confederacion.AFC,
-            Confederacion.OFC
-        };
-
-        for (int i = 1; i <= cantidad; i++)
-        {
-            equipos.Add(new Equipo
-            {
-                Nombre = $"Equipo{i}",
-                RankingFIFA = 500 + i,
-                Confederacion = confederaciones[(i - 1) % confederaciones.Length]
-            });
-        }
-        return equipos;
+        var servicio = new ServicioEquipo();
+        foreach (var e in equipos)
+            servicio.Agregar(e);
+        return servicio;
     }
 
     [TestMethod]
     public void GenerarFixture_ConEmpatesEnRanking_YDistintaSemilla_DebeGenerarDistribucionDistinta()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
         // Cambiar algunos rankings para tener empates, permitiendo diferentes mezclas
         for (int i = 0; i < 12; i++)
         {
             equipos[i].RankingFIFA = 1000;
         }
-        
+
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo1 = new ConfiguracionTorneo { SemillaFixture = 1 };
         var configuracionTorneo2 = new ConfiguracionTorneo { SemillaFixture = 2 };
 
         // Act
-        var fixture1 = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo1);
-        var fixture2 = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo2);
+        var fixture1 = servicioFixture.GenerarFixture(estadios, configuracionTorneo1);
+        var fixture2 = servicioFixture.GenerarFixture(estadios, configuracionTorneo2);
 
         // Assert
         var ordenFixture1 = fixture1.Grupos
@@ -271,27 +232,28 @@ public class ServicioFixtureTests
 
         CollectionAssert.AreNotEqual(ordenFixture1, ordenFixture2);
     }
-    
+
     [TestMethod]
     public void GenerarFixture_ConMismaSemilla_YEmpatesEnRanking_DebeGenerarMismaDistribucion()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
-        
+
         for (int i = 0; i < 12; i++)
         {
             equipos[i].RankingFIFA = 1000;
         }
-        
+
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo1 = new ConfiguracionTorneo { SemillaFixture = 7 };
         var configuracionTorneo2 = new ConfiguracionTorneo { SemillaFixture = 7 };
 
         // Act
-        var fixture1 = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo1);
-        var fixture2 = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo2);
+        var fixture1 = servicioFixture.GenerarFixture(estadios, configuracionTorneo1);
+        var fixture2 = servicioFixture.GenerarFixture(estadios, configuracionTorneo2);
 
         // Assert
         var ordenFixture1 = fixture1.Grupos
@@ -306,7 +268,7 @@ public class ServicioFixtureTests
 
         CollectionAssert.AreEqual(ordenFixture1, ordenFixture2);
     }
-    
+
     private List<Equipo> CrearEquiposValidosSinConflictosDeConfederacion()
     {
         var confederacionesPorOrden = new[]
@@ -348,7 +310,7 @@ public class ServicioFixtureTests
 
         return equipos;
     }
-    
+
     private List<Equipo> CrearEquiposQueRequierenAjustePorConfederacion()
     {
         var confederacionesPorOrden = new List<Confederacion>
@@ -396,50 +358,53 @@ public class ServicioFixtureTests
 
         return equipos;
     }
-    
+
     [TestMethod]
     public void GenerarFixture_DebeCrearGruposValidosRespetandoRestriccionesDeConfederacion()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposQueRequierenAjustePorConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         Assert.IsTrue(fixture.Grupos.All(g => g.EsValido()));
     }
-    
+
     [TestMethod]
     public void GenerarFixture_DebeCrearSeisPartidosPorGrupo()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         Assert.IsTrue(fixture.Grupos.All(g => g.Partidos.Count == 6));
     }
-    
+
     [TestMethod]
     public void GenerarFixture_DebeCrearPartidosDelGrupoSegunPatronDeJornadas()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         var grupo = fixture.Grupos[0];
@@ -464,13 +429,14 @@ public class ServicioFixtureTests
         Assert.AreEqual(equiposDelGrupo[2], partidos[5].EquipoLocal);
         Assert.AreEqual(equiposDelGrupo[3], partidos[5].EquipoVisitante);
     }
-    
+
     [TestMethod]
     public void GenerarFixture_DebeAsignarHorariosSegunJornadasDelGrupo()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo = new ConfiguracionTorneo
@@ -483,7 +449,7 @@ public class ServicioFixtureTests
         };
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         var partidos = fixture.Grupos[0].Partidos;
@@ -497,7 +463,7 @@ public class ServicioFixtureTests
         Assert.AreEqual(new DateTime(2026, 6, 7, 14, 0, 0), partidos[4].Fecha);
         Assert.AreEqual(new DateTime(2026, 6, 7, 14, 0, 0), partidos[5].Fecha);
     }
-    
+
     private List<Estadio> CrearEstadiosValidosDesordenadosParaRotacion()
     {
         return new List<Estadio>
@@ -508,18 +474,19 @@ public class ServicioFixtureTests
             new Estadio { Nombre = "Estadio2", Ciudad = "Ciudad2", Capacidad = 30000 }
         };
     }
-    
+
     [TestMethod]
     public void GenerarFixture_DebeAsignarEstadiosPorRotacionSegunNombreNormalizado()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidosDesordenadosParaRotacion();
         var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         var partidos = fixture.Grupos.SelectMany(g => g.Partidos).ToList();
@@ -535,8 +502,9 @@ public class ServicioFixtureTests
     public void GenerarFixture_NoDebeSuperarMaximoPartidosPorDia()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo = new ConfiguracionTorneo
@@ -550,7 +518,7 @@ public class ServicioFixtureTests
         };
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         var cantidadPartidosPorDia = fixture.Grupos
@@ -566,8 +534,9 @@ public class ServicioFixtureTests
     public void GenerarFixture_ConMaxPartidosPorDiaMayor_DebeUsarMasCuposDelDia()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo = new ConfiguracionTorneo
@@ -581,7 +550,7 @@ public class ServicioFixtureTests
         };
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         var cantidadPartidosPorDia = fixture.Grupos
@@ -598,8 +567,9 @@ public class ServicioFixtureTests
     public void GenerarFixture_ConMaxPartidosPorDiaMenorAUnaJornada_DebeLanzarExcepcion()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo = new ConfiguracionTorneo
@@ -610,7 +580,7 @@ public class ServicioFixtureTests
 
         // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
+            servicioFixture.GenerarFixture(estadios, configuracionTorneo)
         );
     }
 
@@ -618,17 +588,17 @@ public class ServicioFixtureTests
     public void RegenerarFixture_ConFixtureSinResultados_DebeGenerarNuevoFixture()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionOriginal = new ConfiguracionTorneo { SemillaFixture = 1 };
         var configuracionNueva = new ConfiguracionTorneo { SemillaFixture = 2 };
-        var fixtureActual = servicioFixture.GenerarFixture(equipos, estadios, configuracionOriginal);
+        var fixtureActual = servicioFixture.GenerarFixture(estadios, configuracionOriginal);
 
         // Act
         var fixtureRegenerado = servicioFixture.RegenerarFixture(
             fixtureActual,
-            equipos,
             estadios,
             configuracionNueva);
 
@@ -641,11 +611,12 @@ public class ServicioFixtureTests
     public void RegenerarFixture_ConFixtureConResultados_DebeLanzarExcepcion()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
-        var fixtureActual = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixtureActual = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
         fixtureActual.Partidos[0].GolesLocal = 1;
         fixtureActual.Partidos[0].GolesVisitante = 0;
 
@@ -653,7 +624,6 @@ public class ServicioFixtureTests
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicioFixture.RegenerarFixture(
                 fixtureActual,
-                equipos,
                 estadios,
                 configuracionTorneo));
     }
@@ -662,13 +632,14 @@ public class ServicioFixtureTests
     public void GenerarFixture_DebeAsignarIdsIncrementalesALosPartidos()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         var partidos = fixture.Grupos
@@ -681,50 +652,14 @@ public class ServicioFixtureTests
         Assert.AreEqual(72, partidos.Count);
         CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
     }
-    
-    [TestMethod]
-    public void GenerarFixture_ConMasDe48Equipos_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var servicioFixture = new ServicioFixture();
-        var equipos = CrearEquiposValidos(49);
-        var estadios = CrearEstadiosValidos(4);
-        var configuracionTorneo = new ConfiguracionTorneo();
-
-        // Act & Assert
-        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
-        );
-    }
-
-    [TestMethod]
-    public void GenerarFixture_ConEquipoInvalido_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var servicioFixture = new ServicioFixture();
-        var equipos = CrearEquiposValidos(47);
-        // Agregar un equipo invalido (sin confederacion)
-        equipos.Add(new Equipo
-        {
-            Nombre = "EquipoInvalido",
-            RankingFIFA = 500,
-            Confederacion = null
-        });
-        var estadios = CrearEstadiosValidos(4);
-        var configuracionTorneo = new ConfiguracionTorneo();
-
-        // Act & Assert
-        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
-        );
-    }
 
     [TestMethod]
     public void GenerarFixture_ConEstadioInvalido_DebeLanzarExcepcion()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-        var equipos = CrearEquiposValidos(48);
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(3);
         // Agregar un estadio invalido (capacidad menor a 20000)
         estadios.Add(new Estadio
@@ -737,7 +672,7 @@ public class ServicioFixtureTests
 
         // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo)
+            servicioFixture.GenerarFixture(estadios, configuracionTorneo)
         );
     }
 
@@ -745,14 +680,15 @@ public class ServicioFixtureTests
     public void GenerarFixture_DebeAsignarCadaEquipoUnaSolaVez()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var equiposSet = new HashSet<string>(equipos.Select(e => e.Nombre));
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo();
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert - Total de 48 equipos asignados
         var todosLosEquiposEnFixture = fixture.Grupos.SelectMany(g => g.Equipos).ToList();
@@ -771,13 +707,14 @@ public class ServicioFixtureTests
     public void GenerarFixture_CadaEquipoDebeJugarTresPartidosEnSuGrupo()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         foreach (var grupo in fixture.Grupos)
@@ -788,7 +725,7 @@ public class ServicioFixtureTests
                     .Where(p => p.EquipoLocal == equipo || p.EquipoVisitante == equipo)
                     .ToList();
 
-                Assert.AreEqual(3, partidosDelEquipo.Count, 
+                Assert.AreEqual(3, partidosDelEquipo.Count,
                     $"El equipo {equipo.Nombre} en el grupo {grupo.Etiqueta} debe jugar exactamente 3 partidos");
             }
         }
@@ -798,13 +735,14 @@ public class ServicioFixtureTests
     public void GenerarFixture_NoDebeRepetirEnfrentamientosDentroDelGrupo()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         foreach (var grupo in fixture.Grupos)
@@ -831,13 +769,14 @@ public class ServicioFixtureTests
     public void GenerarFixture_TodosLosPartidosGeneradosDebenSerDeFaseDeGrupos()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         foreach (var grupo in fixture.Grupos)
@@ -855,13 +794,14 @@ public class ServicioFixtureTests
     public void GenerarFixture_TodosLosPartidosDebenTenerGrupoAsignado()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         foreach (var grupo in fixture.Grupos)
@@ -870,10 +810,10 @@ public class ServicioFixtureTests
             {
                 Assert.IsNotNull(partido.Grupo,
                     $"El partido entre {partido.EquipoLocal.Nombre} y {partido.EquipoVisitante.Nombre} debe tener grupo asignado");
-                
+
                 Assert.AreEqual(grupo, partido.Grupo,
                     $"El partido debe pertenencer al grupo {grupo.Etiqueta}");
-                
+
                 var etiqueta = grupo.Etiqueta;
                 Assert.IsTrue(etiqueta[0] >= 'A' && etiqueta[0] <= 'L',
                     $"La etiqueta del grupo '{etiqueta}' debe estar entre A y L");
@@ -885,13 +825,14 @@ public class ServicioFixtureTests
     public void GenerarFixture_TodosLosPartidosDebenTenerEstadioAsignado()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1 };
 
         // Act
-        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+        var fixture = servicioFixture.GenerarFixture(estadios, configuracionTorneo);
 
         // Assert
         foreach (var grupo in fixture.Grupos)
@@ -900,25 +841,26 @@ public class ServicioFixtureTests
             {
                 Assert.IsNotNull(partido.Estadio,
                     $"El partido entre {partido.EquipoLocal.Nombre} y {partido.EquipoVisitante.Nombre} debe tener estadio asignado");
-                
+
                 Assert.IsTrue(estadios.Contains(partido.Estadio),
                     $"El estadio {partido.Estadio.Nombre} debe ser uno de los estadios disponibles");
-                
+
                 Assert.IsTrue(partido.Estadio.EsValido(),
                     $"El estadio {partido.Estadio.Nombre} asignado debe ser valido");
             }
         }
     }
-    
+
     [TestMethod]
     public void CompletarEquipos_DebeCrearEquiposFicticiosValidos()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-
-        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+        var equiposBase = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(46)
             .ToList();
+
+        var servicioEquipo = CrearServicioEquipoConEquipos(equiposBase);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
 
         var configuracionTorneo = new ConfiguracionTorneo
         {
@@ -927,25 +869,23 @@ public class ServicioFixtureTests
 
         // Act
         var equiposCompletos = servicioFixture.CompletarEquipos(
-            equipos,
             configuracionTorneo
         );
 
         // Assert
+        var nombresBase = equiposBase.Select(e => e.Nombre).ToHashSet();
         var equiposFicticios = equiposCompletos
-            .Where(e => !equipos.Contains(e))
+            .Where(e => !nombresBase.Contains(e.Nombre))
             .ToList();
 
         Assert.AreEqual(2, equiposFicticios.Count);
         Assert.IsTrue(equiposFicticios.All(e => e.EsValido()));
     }
-    
+
     [TestMethod]
     public void CompletarEquipos_ConDistintasSemillas_DebePermitirEquiposFicticiosDistintos()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-
         var equiposBase1 = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(46)
             .ToList();
@@ -953,6 +893,11 @@ public class ServicioFixtureTests
         var equiposBase2 = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(46)
             .ToList();
+
+        var servicioEquipo1 = CrearServicioEquipoConEquipos(equiposBase1);
+        var servicioEquipo2 = CrearServicioEquipoConEquipos(equiposBase2);
+        var servicioFixture1 = new ServicioFixture(servicioEquipo1);
+        var servicioFixture2 = new ServicioFixture(servicioEquipo2);
 
         var configuracionTorneo1 = new ConfiguracionTorneo
         {
@@ -965,36 +910,30 @@ public class ServicioFixtureTests
         };
 
         // Act
-        var equiposCompletos1 = servicioFixture.CompletarEquipos(
-            equiposBase1,
-            configuracionTorneo1
-        );
-
-        var equiposCompletos2 = servicioFixture.CompletarEquipos(
-            equiposBase2,
-            configuracionTorneo2
-        );
+        var equiposCompletos1 = servicioFixture1.CompletarEquipos(configuracionTorneo1);
+        var equiposCompletos2 = servicioFixture2.CompletarEquipos(configuracionTorneo2);
 
         // Assert
+        var nombresBase1 = equiposBase1.Select(e => e.Nombre).ToHashSet();
+        var nombresBase2 = equiposBase2.Select(e => e.Nombre).ToHashSet();
+
         var rankingsFicticios1 = equiposCompletos1
-            .Where(e => !equiposBase1.Contains(e))
+            .Where(e => !nombresBase1.Contains(e.Nombre))
             .Select(e => e.RankingFIFA)
             .ToList();
 
         var rankingsFicticios2 = equiposCompletos2
-            .Where(e => !equiposBase2.Contains(e))
+            .Where(e => !nombresBase2.Contains(e.Nombre))
             .Select(e => e.RankingFIFA)
             .ToList();
 
         CollectionAssert.AreNotEqual(rankingsFicticios1, rankingsFicticios2);
     }
-    
+
     [TestMethod]
     public void CompletarEquipos_ConMismaSemilla_DebeGenerarMismosEquiposFicticios()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-
         var equiposBase1 = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(46)
             .ToList();
@@ -1002,6 +941,11 @@ public class ServicioFixtureTests
         var equiposBase2 = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(46)
             .ToList();
+
+        var servicioEquipo1 = CrearServicioEquipoConEquipos(equiposBase1);
+        var servicioEquipo2 = CrearServicioEquipoConEquipos(equiposBase2);
+        var servicioFixture1 = new ServicioFixture(servicioEquipo1);
+        var servicioFixture2 = new ServicioFixture(servicioEquipo2);
 
         var configuracionTorneo1 = new ConfiguracionTorneo
         {
@@ -1014,66 +958,34 @@ public class ServicioFixtureTests
         };
 
         // Act
-        var equiposCompletos1 = servicioFixture.CompletarEquipos(
-            equiposBase1,
-            configuracionTorneo1
-        );
-
-        var equiposCompletos2 = servicioFixture.CompletarEquipos(
-            equiposBase2,
-            configuracionTorneo2
-        );
+        var equiposCompletos1 = servicioFixture1.CompletarEquipos(configuracionTorneo1);
+        var equiposCompletos2 = servicioFixture2.CompletarEquipos(configuracionTorneo2);
 
         // Assert
+        var nombresBase1 = equiposBase1.Select(e => e.Nombre).ToHashSet();
+        var nombresBase2 = equiposBase2.Select(e => e.Nombre).ToHashSet();
+
         var rankingsFicticios1 = equiposCompletos1
-            .Where(e => !equiposBase1.Contains(e))
+            .Where(e => !nombresBase1.Contains(e.Nombre))
             .Select(e => e.RankingFIFA)
             .ToList();
 
         var rankingsFicticios2 = equiposCompletos2
-            .Where(e => !equiposBase2.Contains(e))
+            .Where(e => !nombresBase2.Contains(e.Nombre))
             .Select(e => e.RankingFIFA)
             .ToList();
 
         CollectionAssert.AreEqual(rankingsFicticios1, rankingsFicticios2);
     }
-    
-    [TestMethod]
-    public void CompletarEquipos_NoDebeModificarListaOriginal()
-    {
-        // Arrange
-        var servicioFixture = new ServicioFixture();
 
-        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
-            .Take(24)
-            .ToList();
-
-        var cantidadOriginal = equipos.Count;
-
-        var configuracionTorneo = new ConfiguracionTorneo
-        {
-            SemillaCompletar = 1
-        };
-
-        // Act
-        var equiposCompletos = servicioFixture.CompletarEquipos(
-            equipos,
-            configuracionTorneo
-        );
-
-        // Assert
-        Assert.AreEqual(24, cantidadOriginal);
-        Assert.AreEqual(24, equipos.Count);
-        Assert.AreEqual(48, equiposCompletos.Count);
-    }
-    
     [TestMethod]
     public void CompletarEquipos_Con48Equipos_NoDebeAgregarEquiposFicticios()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
+        var equiposBase = CrearEquiposValidosSinConflictosDeConfederacion();
 
-        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioEquipo = CrearServicioEquipoConEquipos(equiposBase);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
 
         var configuracionTorneo = new ConfiguracionTorneo
         {
@@ -1082,51 +994,25 @@ public class ServicioFixtureTests
 
         // Act
         var equiposCompletos = servicioFixture.CompletarEquipos(
-            equipos,
             configuracionTorneo
         );
 
         // Assert
         Assert.AreEqual(48, equiposCompletos.Count);
-        Assert.IsFalse(equiposCompletos.Any(e => !equipos.Contains(e)));
+        var nombresBase = equiposBase.Select(e => e.Nombre).ToHashSet();
+        Assert.IsFalse(equiposCompletos.Any(e => !nombresBase.Contains(e.Nombre)));
     }
-    
-    [TestMethod]
-    public void CompletarEquipos_ConEquipoOriginalInvalido_DebeLanzarExcepcion()
-    {
-        // Arrange
-        var servicioFixture = new ServicioFixture();
 
-        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
-            .Take(47)
-            .ToList();
-
-        equipos[0].Nombre = "";
-
-        var configuracionTorneo = new ConfiguracionTorneo
-        {
-            SemillaCompletar = 1
-        };
-
-        // Act & Assert
-        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            servicioFixture.CompletarEquipos(
-                equipos,
-                configuracionTorneo
-            )
-        );
-    }
-    
     [TestMethod]
     public void GenerarFixture_ConMenosDe48Equipos_DebeIncluirEquiposFicticiosEnGrupos()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-
-        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+        var equiposBase = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(46)
             .ToList();
 
+        var servicioEquipo = CrearServicioEquipoConEquipos(equiposBase);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo = new ConfiguracionTorneo
@@ -1137,7 +1023,6 @@ public class ServicioFixtureTests
 
         // Act
         var fixture = servicioFixture.GenerarFixture(
-            equipos,
             estadios,
             configuracionTorneo
         );
@@ -1147,24 +1032,25 @@ public class ServicioFixtureTests
             .SelectMany(g => g.Equipos)
             .ToList();
 
+        var nombresBase = equiposBase.Select(e => e.Nombre).ToHashSet();
         var equiposFicticios = equiposDelFixture
-            .Where(e => !equipos.Contains(e))
+            .Where(e => !nombresBase.Contains(e.Nombre))
             .ToList();
 
         Assert.AreEqual(2, equiposFicticios.Count);
         Assert.IsTrue(equiposFicticios.All(e => e.EsValido()));
     }
-    
+
     [TestMethod]
     public void GenerarFixture_ConMenosDe48Equipos_DebeGenerarGruposValidos()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(46)
             .ToList();
 
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo = new ConfiguracionTorneo
@@ -1175,7 +1061,6 @@ public class ServicioFixtureTests
 
         // Act
         var fixture = servicioFixture.GenerarFixture(
-            equipos,
             estadios,
             configuracionTorneo
         );
@@ -1188,11 +1073,12 @@ public class ServicioFixtureTests
     public void CompletarEquipos_ConMuchosEquiposFaltantes_DebeRespetarCuposPorConfederacion()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(24)
             .ToList();
+
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
 
         var configuracionTorneo = new ConfiguracionTorneo
         {
@@ -1201,7 +1087,6 @@ public class ServicioFixtureTests
 
         // Act
         var equiposCompletos = servicioFixture.CompletarEquipos(
-            equipos,
             configuracionTorneo
         );
 
@@ -1215,17 +1100,17 @@ public class ServicioFixtureTests
         Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.AFC) <= 8);
         Assert.IsTrue(equiposCompletos.Count(e => e.Confederacion == Confederacion.OFC) <= 1);
     }
-    
+
     [TestMethod]
     public void GenerarFixture_ConMuchosEquiposFaltantes_DebeCompletarYGenerarGruposValidos()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-
-        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+        var equiposBase = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(24)
             .ToList();
 
+        var servicioEquipo = CrearServicioEquipoConEquipos(equiposBase);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo = new ConfiguracionTorneo
@@ -1236,7 +1121,6 @@ public class ServicioFixtureTests
 
         // Act
         var fixture = servicioFixture.GenerarFixture(
-            equipos,
             estadios,
             configuracionTorneo
         );
@@ -1251,20 +1135,23 @@ public class ServicioFixtureTests
             .ToList();
 
         Assert.AreEqual(48, equiposDelFixture.Count);
-        Assert.AreEqual(24, equiposDelFixture.Count(e => !equipos.Contains(e)));
+        var nombresBase = equiposBase.Select(e => e.Nombre).ToHashSet();
+        Assert.AreEqual(24, equiposDelFixture.Count(e => !nombresBase.Contains(e.Nombre)));
     }
 
     [TestMethod]
     public void CompletarEquipos_NoDebeGenerarNombresRepetidosParaEquiposFicticios()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(46)
             .ToList();
 
+        // Rename before adding to the repo
         equipos[0].Nombre = "AFC_01";
+
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
 
         var configuracionTorneo = new ConfiguracionTorneo
         {
@@ -1273,7 +1160,6 @@ public class ServicioFixtureTests
 
         // Act
         var equiposCompletos = servicioFixture.CompletarEquipos(
-            equipos,
             configuracionTorneo
         );
 
@@ -1290,11 +1176,12 @@ public class ServicioFixtureTests
     public void CompletarEquipos_DebeGenerarNombresDeterministicosPorConfederacion()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(24)
             .ToList();
+
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
 
         var configuracionTorneo = new ConfiguracionTorneo
         {
@@ -1303,13 +1190,13 @@ public class ServicioFixtureTests
 
         // Act
         var equiposCompletos = servicioFixture.CompletarEquipos(
-            equipos,
             configuracionTorneo
         );
 
         // Assert
+        var nombresBase = equipos.Select(e => e.Nombre).ToHashSet();
         var equiposAgregados = equiposCompletos
-            .Where(e => !equipos.Contains(e))
+            .Where(e => !nombresBase.Contains(e.Nombre))
             .ToList();
 
         Assert.AreEqual(24, equiposAgregados.Count);
@@ -1341,19 +1228,20 @@ public class ServicioFixtureTests
             ObtenerNombresPorConfederacion(equiposAgregados, Confederacion.AFC)
         );
     }
-    
+
     [TestMethod]
     public void GenerarFixture_ConMenosDe48Equipos_NoDebeDuplicarNombresEnGrupos()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(46)
             .ToList();
 
+        // Rename before adding to the repo
         equipos[0].Nombre = "AFC_01";
 
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo = new ConfiguracionTorneo
@@ -1364,7 +1252,6 @@ public class ServicioFixtureTests
 
         // Act
         var fixture = servicioFixture.GenerarFixture(
-            equipos,
             estadios,
             configuracionTorneo
         );
@@ -1389,17 +1276,17 @@ public class ServicioFixtureTests
             .OrderBy(nombre => nombre)
             .ToList();
     }
-    
+
     [TestMethod]
     public void GenerarFixture_ConMenosDe48Equipos_DebeIncluirFicticiosConNombresDeterministicosPorConfederacion()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-
-        var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
+        var equiposBase = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(24)
             .ToList();
 
+        var servicioEquipo = CrearServicioEquipoConEquipos(equiposBase);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var estadios = CrearEstadiosValidos(4);
 
         var configuracionTorneo = new ConfiguracionTorneo
@@ -1410,7 +1297,6 @@ public class ServicioFixtureTests
 
         // Act
         var fixture = servicioFixture.GenerarFixture(
-            equipos,
             estadios,
             configuracionTorneo
         );
@@ -1420,8 +1306,9 @@ public class ServicioFixtureTests
             .SelectMany(g => g.Equipos)
             .ToList();
 
+        var nombresBase = equiposBase.Select(e => e.Nombre).ToHashSet();
         var equiposAgregados = equiposDelFixture
-            .Where(e => !equipos.Contains(e))
+            .Where(e => !nombresBase.Contains(e.Nombre))
             .ToList();
 
         Assert.AreEqual(24, equiposAgregados.Count);
@@ -1435,15 +1322,11 @@ public class ServicioFixtureTests
             equiposDelFixture.Select(e => e.Nombre).Distinct().Count()
         );
     }
-    
+
     [TestMethod]
     public void CompletarEquipos_CuandoSoloFaltaOfc_DebeAgregarEquipoOfc()
     {
         // Arrange — 47 equipos con todas las confederaciones al máximo excepto OFC (0/1).
-        // ObtenerConfederacionConCupoDisponible iterará UEFA→CONMEBOL→CONCACAF→CAF→AFC (todos llenos)
-        // y finalmente alcanzará OFC → cubre la rama Confederacion.OFC => CupoOfc.
-        var servicioFixture = new ServicioFixture();
-
         var equipos = new List<Equipo>();
         for (int i = 0; i < 16; i++)
             equipos.Add(new Equipo { Nombre = $"UEFA{i + 1}", RankingFIFA = 1000 + i, Confederacion = Confederacion.UEFA });
@@ -1456,10 +1339,12 @@ public class ServicioFixtureTests
         for (int i = 0; i < 8; i++)
             equipos.Add(new Equipo { Nombre = $"AFC{i + 1}", RankingFIFA = 600 + i, Confederacion = Confederacion.AFC });
 
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
         var configuracionTorneo = new ConfiguracionTorneo { SemillaCompletar = 1 };
 
         // Act
-        var equiposCompletos = servicioFixture.CompletarEquipos(equipos, configuracionTorneo);
+        var equiposCompletos = servicioFixture.CompletarEquipos(configuracionTorneo);
 
         // Assert
         Assert.AreEqual(48, equiposCompletos.Count);
@@ -1470,13 +1355,15 @@ public class ServicioFixtureTests
     public void CompletarEquipos_NoDebeDuplicarNombreCuandoYaExisteNombreDeterministico()
     {
         // Arrange
-        var servicioFixture = new ServicioFixture();
-
         var equipos = CrearEquiposValidosSinConflictosDeConfederacion()
             .Take(24)
             .ToList();
 
+        // Rename before adding to the repo
         equipos[0].Nombre = "CONCACAF_01";
+
+        var servicioEquipo = CrearServicioEquipoConEquipos(equipos);
+        var servicioFixture = new ServicioFixture(servicioEquipo);
 
         var configuracionTorneo = new ConfiguracionTorneo
         {
@@ -1485,7 +1372,6 @@ public class ServicioFixtureTests
 
         // Act
         var equiposCompletos = servicioFixture.CompletarEquipos(
-            equipos,
             configuracionTorneo
         );
 

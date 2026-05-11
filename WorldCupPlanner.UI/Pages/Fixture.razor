@@ -2,7 +2,6 @@
 @using WorldCupPlanner.Servicios
 @using WorldCupPlanner.Dominio.Entidades
 @inject ServicioFixture ServicioFixture
-@inject ServicioEquipo ServicioEquipo
 @inject ServicioEstadio ServicioEstadio
 @inject ServicioClasificacion ServicioClasificacion
 @inject ServicioCruces ServicioCruces
@@ -99,10 +98,9 @@ else
         try
         {
             errorMensaje = string.Empty;
-            var equipos = ServicioEquipo.Buscar(_ => true);
             var estadios = ServicioEstadio.ObtenerEstadios();
             var configuracion = new ConfiguracionTorneo();
-            EstadoTorneo.Fixture = ServicioFixture.GenerarFixture(equipos, estadios, configuracion);
+            EstadoTorneo.Fixture = ServicioFixture.GenerarFixture(estadios, configuracion);
             EstadoTorneo.PartidosEliminatorios = new();
         }
         catch (Exception ex)

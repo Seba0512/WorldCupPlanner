@@ -8,7 +8,8 @@ namespace WorldCupPlanner.Servicios;
 
 public class ServicioPartido
 {
-    private readonly IRepositorio<Partido> _repositorioPartido;
+    private readonly IRepositorio<Partido>? _repositorioPartido;
+    private readonly EstadoTorneo? _estadoTorneo;
     private readonly HashSet<FaseTorneo> _fasesBloqueadas = new();
 
     public ServicioPartido()
@@ -19,6 +20,11 @@ public class ServicioPartido
     public ServicioPartido(IRepositorio<Partido> repositorioPartido)
     {
         _repositorioPartido = repositorioPartido;
+    }
+
+    public ServicioPartido(EstadoTorneo estadoTorneo)
+    {
+        _estadoTorneo = estadoTorneo;
     }
 
     public void EditarFecha(int idPartido, DateTime nuevaFecha)
@@ -32,7 +38,7 @@ public class ServicioPartido
         ValidarPuedeEditarPartido(partido);
 
         partido.Fecha = nuevaFecha;
-        _repositorioPartido.Actualizar(partido);
+        _repositorioPartido?.Actualizar(partido);
     }
 
     public void EditarEstadio(int idPartido, Estadio nuevoEstadio)
@@ -46,7 +52,7 @@ public class ServicioPartido
         ValidarPuedeEditarPartido(partido);
 
         partido.Estadio = nuevoEstadio;
-        _repositorioPartido.Actualizar(partido);
+        _repositorioPartido?.Actualizar(partido);
     }
 
     public void CargarResultado(int idPartido, int golesLocal, int golesVisitante)
@@ -58,7 +64,7 @@ public class ServicioPartido
 
         partido.GolesLocal = golesLocal;
         partido.GolesVisitante = golesVisitante;
-        _repositorioPartido.Actualizar(partido);
+        _repositorioPartido?.Actualizar(partido);
     }
 
     public void BloquearEdicionPartidosDeFaseDeGrupos()
@@ -76,14 +82,36 @@ public class ServicioPartido
         _fasesBloqueadas.Add(fase);
     }
 
+    public bool EsFaseBloqueada(FaseTorneo fase)
+    {
+        return _fasesBloqueadas.Contains(fase) ||
+               (fase == FaseTorneo.FaseDeGrupos && _estadoTorneo?.PartidosEliminatorios.Any() == true);
+    }
+
+    public Partido? BuscarPartidoPorId(int idPartido)
+    {
+        if (_repositorioPartido != null)
+            return _repositorioPartido.Buscar(p => p.Id == idPartido).FirstOrDefault();
+
+        return _estadoTorneo?.Fixture?.Partidos.FirstOrDefault(p => p.Id == idPartido)
+            ?? _estadoTorneo?.PartidosEliminatorios.FirstOrDefault(p => p.Id == idPartido);
+    }
+
     public List<Partido> ObtenerPartidos()
     {
-        return _repositorioPartido.Buscar(_ => true);
+        if (_repositorioPartido != null)
+            return _repositorioPartido.Buscar(_ => true);
+
+        var partidos = new List<Partido>();
+        if (_estadoTorneo?.Fixture != null)
+            partidos.AddRange(_estadoTorneo.Fixture.Partidos);
+        partidos.AddRange(_estadoTorneo?.PartidosEliminatorios ?? new List<Partido>());
+        return partidos;
     }
 
     private Partido ObtenerPartidoPorId(int idPartido)
     {
-        var partido = _repositorioPartido.Buscar(p => p.Id == idPartido).FirstOrDefault();
+        var partido = BuscarPartidoPorId(idPartido);
 
         if (partido == null)
         {
@@ -95,7 +123,7 @@ public class ServicioPartido
 
     private void ValidarPuedeEditarPartido(Partido partido)
     {
-        if (_fasesBloqueadas.Contains(partido.Fase))
+        if (EsFaseBloqueada(partido.Fase))
         {
             throw new EntidadInvalidaExcepcion(
                 "No se pueden editar partidos de una fase anterior una vez generada la fase siguiente.");

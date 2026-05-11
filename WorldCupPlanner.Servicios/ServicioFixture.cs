@@ -1,4 +1,4 @@
-﻿using  WorldCupPlanner.Dominio.Entidades;
+using  WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 
@@ -6,20 +6,14 @@ namespace WorldCupPlanner.Servicios;
 
 public class ServicioFixture
 {
+    private readonly ServicioEquipo _servicioEquipo;
+
     private const int CantidadExactaEquipos = 48;
     private const int CantidadMinimaEstadios = 4;
     private const int CantidadGrupos = 12;
     private const int CantidadEquiposPorGrupo = 4;
     private const int MaximoEquiposUefaPorGrupo = 2;
     private const int MaximoEquiposOtrasConfederacionesPorGrupo = 1;
-    private const int CupoUefa = 16;
-    private const int CupoConmebol = 7;
-    private const int CupoConcacaf = 7;
-    private const int CupoCaf = 9;
-    private const int CupoAfc = 8;
-    private const int CupoOfc = 1;
-    private const int RankingMinimoEquipoFicticio = 300;
-    private const int RankingMaximoEquipoFicticioExclusivo = 501;
 
     private const int IndiceJornadaUno = 0;
     private const int IndiceJornadaDos = 1;
@@ -35,19 +29,14 @@ public class ServicioFixture
     private const char PrimeraEtiquetaGrupo = 'A';
     private const char UltimaEtiquetaGrupo = 'L';
 
-    private static readonly Confederacion[] OrdenConfederacionesParaCompletar =
+    public ServicioFixture(ServicioEquipo servicioEquipo)
     {
-        Confederacion.UEFA,
-        Confederacion.CONMEBOL,
-        Confederacion.CONCACAF,
-        Confederacion.CAF,
-        Confederacion.AFC,
-        Confederacion.OFC
-    };
+        _servicioEquipo = servicioEquipo;
+    }
 
-    public Fixture GenerarFixture(List<Equipo> equipos, List<Estadio> estadios, ConfiguracionTorneo configuracionTorneo)
+    public Fixture GenerarFixture(List<Estadio> estadios, ConfiguracionTorneo configuracionTorneo)
     {
-        var equiposCompletos = CompletarEquipos(equipos, configuracionTorneo);
+        var equiposCompletos = CompletarEquipos(configuracionTorneo);
 
         ValidarCantidadEquipos(equiposCompletos);
         ValidarCantidadEstadios(estadios);
@@ -82,30 +71,18 @@ public class ServicioFixture
 
     public Fixture RegenerarFixture(
         Fixture fixtureActual,
-        List<Equipo> equipos,
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
         ValidarFixtureSinResultados(fixtureActual);
 
-        return GenerarFixture(equipos, estadios, configuracionTorneo);
+        return GenerarFixture(estadios, configuracionTorneo);
     }
 
-    public List<Equipo> CompletarEquipos(
-        List<Equipo> equipos,
-        ConfiguracionTorneo configuracionTorneo)
+    public List<Equipo> CompletarEquipos(ConfiguracionTorneo configuracionTorneo)
     {
-        ValidarEquiposParaCompletar(equipos);
-
-        var equiposCompletos = CopiarEquipos(equipos);
-        var random = new Random(configuracionTorneo.SemillaCompletar);
-
-        while (FaltanEquiposParaCompletar(equiposCompletos))
-        {
-            AgregarEquipoFicticio(equiposCompletos, random);
-        }
-
-        return equiposCompletos;
+        _servicioEquipo.CompletarEquipos(configuracionTorneo.SemillaCompletar);
+        return _servicioEquipo.Buscar(_ => true);
     }
 
     private void ValidarFixtureSinResultados(Fixture fixture)
@@ -115,113 +92,6 @@ public class ServicioFixture
             throw new EntidadInvalidaExcepcion(
                 "No se puede regenerar el fixture si ya hay resultados cargados.");
         }
-    }
-
-    private void ValidarEquiposParaCompletar(List<Equipo> equipos)
-    {
-        if (equipos.Count > CantidadExactaEquipos)
-        {
-            throw new EntidadInvalidaExcepcion("No se puede completar una lista con más de 48 equipos.");
-        }
-
-        ValidarTodosLosEquiposSonValidos(equipos);
-    }
-
-    private bool FaltanEquiposParaCompletar(List<Equipo> equipos)
-    {
-        return equipos.Count < CantidadExactaEquipos;
-    }
-
-    private void AgregarEquipoFicticio(List<Equipo> equipos, Random random)
-    {
-        var confederacion = ObtenerConfederacionConCupoDisponible(equipos);
-        equipos.Add(CrearEquipoFicticio(equipos, confederacion, random));
-    }
-
-    private Equipo CrearEquipoFicticio(
-        List<Equipo> equipos,
-        Confederacion confederacion,
-        Random random)
-    {
-        return new Equipo
-        {
-            Nombre = GenerarNombreEquipoFicticio(equipos, confederacion),
-            RankingFIFA = GenerarRankingEquipoFicticio(random),
-            Confederacion = confederacion
-        };
-    }
-
-    private int GenerarRankingEquipoFicticio(Random random)
-    {
-        return random.Next(RankingMinimoEquipoFicticio, RankingMaximoEquipoFicticioExclusivo);
-    }
-
-    private string GenerarNombreEquipoFicticio(List<Equipo> equipos, Confederacion confederacion)
-    {
-        var numero = 1;
-        var nombre = CrearNombreEquipoFicticio(confederacion, numero);
-
-        while (ExisteEquipoConNombre(equipos, nombre))
-        {
-            numero++;
-            nombre = CrearNombreEquipoFicticio(confederacion, numero);
-        }
-
-        return nombre;
-    }
-
-    private string CrearNombreEquipoFicticio(Confederacion confederacion, int numero)
-    {
-        return $"{confederacion}_{numero:00}";
-    }
-
-    private bool ExisteEquipoConNombre(List<Equipo> equipos, string nombre)
-    {
-        return equipos.Any(e => e.Nombre == nombre);
-    }
-
-    private List<Equipo> CopiarEquipos(List<Equipo> equipos)
-    {
-        var equiposCopiados = new List<Equipo>();
-
-        foreach (var equipo in equipos)
-        {
-            equiposCopiados.Add(equipo);
-        }
-
-        return equiposCopiados;
-    }
-
-    private Confederacion ObtenerConfederacionConCupoDisponible(List<Equipo> equipos)
-    {
-        foreach (var confederacion in OrdenConfederacionesParaCompletar)
-        {
-            if (CantidadEquiposPorConfederacion(equipos, confederacion) < ObtenerCupoConfederacion(confederacion))
-            {
-                return confederacion;
-            }
-        }
-
-        throw new EntidadInvalidaExcepcion("No hay cupos disponibles para completar equipos ficticios.");
-    }
-
-    private int CantidadEquiposPorConfederacion(List<Equipo> equipos, Confederacion confederacion)
-    {
-        return equipos.Count(e => e.Confederacion == confederacion);
-    }
-
-    private int ObtenerCupoConfederacion(Confederacion confederacion)
-    {
-        return confederacion switch
-        {
-            Confederacion.UEFA => CupoUefa,
-            Confederacion.CONMEBOL => CupoConmebol,
-            Confederacion.CONCACAF => CupoConcacaf,
-            Confederacion.CAF => CupoCaf,
-            Confederacion.AFC => CupoAfc,
-            Confederacion.OFC => CupoOfc,
-            _ => throw new EntidadInvalidaExcepcion("Confederación inválida.")
-        };
     }
 
     private void ValidarCantidadEquipos(List<Equipo> equipos)

@@ -2,8 +2,7 @@
 
 @using WorldCupPlanner.Servicios
 @using WorldCupPlanner.Dominio.Entidades
-@using WorldCupPlanner.Dominio.Enumeraciones
-@inject EstadoTorneo EstadoTorneo
+@inject ServicioPartido ServicioPartido
 @inject ServicioEstadio ServicioEstadio
 @inject NavigationManager NavigationManager
 
@@ -19,7 +18,7 @@
 {
     <p><strong>@partido.EquipoLocal?.Nombre</strong> vs <strong>@partido.EquipoVisitante?.Nombre</strong></p>
 
-    @if (partido.Fase == FaseTorneo.FaseDeGrupos && EstadoTorneo.PartidosEliminatorios.Any())
+    @if (ServicioPartido.EsFaseBloqueada(partido.Fase))
     {
         <div class="alert alert-warning">Este partido no se puede editar porque ya se generaron los cruces de la fase eliminatoria.</div>
     }
@@ -69,8 +68,7 @@
     protected override void OnInitialized()
     {
         estadios = ServicioEstadio.ObtenerEstadios();
-        partido = EstadoTorneo.Fixture?.Partidos.FirstOrDefault(p => p.Id == Id)
-            ?? EstadoTorneo.PartidosEliminatorios.FirstOrDefault(p => p.Id == Id);
+        partido = ServicioPartido.BuscarPartidoPorId(Id);
         if (partido != null)
         {
             nuevaFecha = partido.Fecha;
@@ -85,15 +83,11 @@
         try
         {
             if (partido == null) return;
-            if (partido.Fase == FaseTorneo.FaseDeGrupos && EstadoTorneo.PartidosEliminatorios.Any())
-            {
-                errorMensaje = "No se puede editar un partido de fase de grupos una vez generados los cruces.";
-                return;
-            }
-            partido.Fecha = nuevaFecha;
-            partido.Estadio = estadios.First(e => e.Nombre == nombreEstadioSeleccionado);
-            partido.GolesLocal = golesLocal;
-            partido.GolesVisitante = golesVisitante;
+            var estadio = estadios.First(e => e.Nombre == nombreEstadioSeleccionado);
+            ServicioPartido.EditarFecha(partido.Id, nuevaFecha);
+            ServicioPartido.EditarEstadio(partido.Id, estadio);
+            if (golesLocal.HasValue && golesVisitante.HasValue)
+                ServicioPartido.CargarResultado(partido.Id, golesLocal.Value, golesVisitante.Value);
             NavigationManager.NavigateTo("/fixture");
         }
         catch (Exception ex)
