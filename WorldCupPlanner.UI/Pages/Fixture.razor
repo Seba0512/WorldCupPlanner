@@ -42,7 +42,7 @@
                     Fase de Grupos
                 </h3>
                 <p style="font-size:14px; color:var(--text-secondary); margin-bottom:20px; line-height:1.6">
-                    Generá el fixture completo de la fase de grupos. Necesitás 48 equipos y al menos 4 estadios.
+                    Generá el fixture completo de la fase de grupos. Necesitás exactamente 48 equipos registrados y al menos 4 estadios. Si faltan equipos, completalos primero desde la sección <strong>Equipos</strong>.
                 </p>
                 <div class="form-group" style="text-align:left; margin-bottom:16px">
                     <label class="form-label">Semilla del fixture</label>
@@ -216,9 +216,10 @@ else
         _error = string.Empty;
         try
         {
+            var equipos = ServicioEquipo.Buscar(_ => true);
             var estadios = ServicioEstadio.ObtenerEstadios();
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
-            EstadoTorneo.Fixture = ServicioFixture.GenerarFixture(estadios, config);
+            EstadoTorneo.Fixture = ServicioFixture.GenerarFixture(equipos, estadios, config);
             EstadoTorneo.PartidosEliminatorios = new();
             ServicioEquipo.RegistrarFixtureGenerado(EstadoTorneo.Fixture);
             Toast.Exito("Fixture generado correctamente.");

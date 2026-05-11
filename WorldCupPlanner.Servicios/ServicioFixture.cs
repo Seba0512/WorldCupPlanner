@@ -6,8 +6,6 @@ namespace WorldCupPlanner.Servicios;
 
 public class ServicioFixture
 {
-    private readonly ServicioEquipo _servicioEquipo;
-
     private const int CantidadExactaEquipos = 48;
     private const int CantidadMinimaEstadios = 4;
     private const int CantidadGrupos = 12;
@@ -31,16 +29,9 @@ public class ServicioFixture
 
     private const int MaxIntentosGeneracionFixture = 100;
 
-    public ServicioFixture(ServicioEquipo servicioEquipo)
+    public Fixture GenerarFixture(List<Equipo> equipos, List<Estadio> estadios, ConfiguracionTorneo configuracionTorneo)
     {
-        _servicioEquipo = servicioEquipo;
-    }
-
-    public Fixture GenerarFixture(List<Estadio> estadios, ConfiguracionTorneo configuracionTorneo)
-    {
-        var equiposCompletos = CompletarEquipos(configuracionTorneo);
-
-        ValidarCantidadEquipos(equiposCompletos);
+        ValidarCantidadEquipos(equipos);
         ValidarCantidadEstadios(estadios);
 
         for (int offset = 0; offset < MaxIntentosGeneracionFixture; offset++)
@@ -59,7 +50,7 @@ public class ServicioFixture
                     HoraInicioPartidos = configuracionTorneo.HoraInicioPartidos,
                     SeparacionHorasEntrePartidos = configuracionTorneo.SeparacionHorasEntrePartidos,
                 };
-                return CrearFixtureConDistribucionRoundRobin(equiposCompletos, estadios, config);
+                return CrearFixtureConDistribucionRoundRobin(equipos, estadios, config);
             }
             catch (EntidadInvalidaExcepcion) when (offset < MaxIntentosGeneracionFixture - 1)
             {
@@ -72,19 +63,14 @@ public class ServicioFixture
     }
 
     public Fixture RegenerarFixture(
+        List<Equipo> equipos,
         Fixture fixtureActual,
         List<Estadio> estadios,
         ConfiguracionTorneo configuracionTorneo)
     {
         ValidarFixtureSinResultados(fixtureActual);
 
-        return GenerarFixture(estadios, configuracionTorneo);
-    }
-
-    public List<Equipo> CompletarEquipos(ConfiguracionTorneo configuracionTorneo)
-    {
-        _servicioEquipo.CompletarEquipos(configuracionTorneo.SemillaCompletar);
-        return _servicioEquipo.Buscar(_ => true);
+        return GenerarFixture(equipos, estadios, configuracionTorneo);
     }
 
     private void ValidarFixtureSinResultados(Fixture fixture)
@@ -106,7 +92,9 @@ public class ServicioFixture
     {
         if (equipos.Count < CantidadExactaEquipos)
         {
-            throw new EntidadInvalidaExcepcion("No se puede generar el fixture con menos de 48 equipos.");
+            int faltantes = CantidadExactaEquipos - equipos.Count;
+            throw new EntidadInvalidaExcepcion(
+                $"No es posible generar el fixture. Faltan {faltantes} equipo(s) por registrar o completar.");
         }
 
         if (equipos.Count > CantidadExactaEquipos)
