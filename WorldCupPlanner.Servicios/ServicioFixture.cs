@@ -258,69 +258,54 @@ public class ServicioFixture
     {
         ValidarMaxPartidosPorDia(configuracionTorneo);
 
-        var estadiosOrdenados = OrdenarEstadiosPorNombreNormalizado(estadios);
-        var indicePartidoGlobal = 0;
-        var cantidadPartidosPorDia = new Dictionary<DateTime, int>();
+        var contexto = new ContextoGeneracionFixture
+        {
+            EstadiosOrdenados = OrdenarEstadiosPorNombreNormalizado(estadios)
+        };
 
         foreach (var grupo in fixture.Grupos)
         {
-            GenerarPartidosDelGrupo(
-                grupo,
-                configuracionTorneo,
-                estadiosOrdenados,
-                cantidadPartidosPorDia,
-                ref indicePartidoGlobal);
+            GenerarPartidosDelGrupo(grupo, configuracionTorneo, contexto);
         }
     }
 
     private void GenerarPartidosDelGrupo(
         Grupo grupo,
         ConfiguracionTorneo configuracionTorneo,
-        List<Estadio> estadiosOrdenados,
-        Dictionary<DateTime, int> cantidadPartidosPorDia,
-        ref int indicePartidoGlobal)
+        ContextoGeneracionFixture contexto)
     {
-        var equipos = grupo.Equipos;
-        var fechaBaseGrupo = ObtenerFechaBaseDisponibleParaGrupo(configuracionTorneo, cantidadPartidosPorDia);
+        var fechaBaseGrupo = ObtenerFechaBaseDisponibleParaGrupo(configuracionTorneo, contexto.CantidadPartidosPorDia);
 
         var (fechaJornada1Partido1, fechaJornada1Partido2) = ObtenerFechasJornada1(configuracionTorneo, fechaBaseGrupo);
         var (fechaJornada2Partido1, fechaJornada2Partido2) = ObtenerFechasJornada2(configuracionTorneo, fechaBaseGrupo);
         var fechaJornada3 = ObtenerFechasJornada3(configuracionTorneo, fechaBaseGrupo);
 
-        AgregarPartidoDeGrupo(grupo, equipos, EquipoUno, EquipoCuatro, fechaJornada1Partido1, estadiosOrdenados, cantidadPartidosPorDia, ref indicePartidoGlobal);
-        AgregarPartidoDeGrupo(grupo, equipos, EquipoDos, EquipoTres, fechaJornada1Partido2, estadiosOrdenados, cantidadPartidosPorDia, ref indicePartidoGlobal);
+        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { IndiceEquipoLocal = EquipoUno, IndiceEquipoVisitante = EquipoCuatro, Fecha = fechaJornada1Partido1 }, contexto);
+        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { IndiceEquipoLocal = EquipoDos, IndiceEquipoVisitante = EquipoTres, Fecha = fechaJornada1Partido2 }, contexto);
 
-        AgregarPartidoDeGrupo(grupo, equipos, EquipoUno, EquipoTres, fechaJornada2Partido1, estadiosOrdenados, cantidadPartidosPorDia, ref indicePartidoGlobal);
-        AgregarPartidoDeGrupo(grupo, equipos, EquipoDos, EquipoCuatro, fechaJornada2Partido2, estadiosOrdenados, cantidadPartidosPorDia, ref indicePartidoGlobal);
+        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { IndiceEquipoLocal = EquipoUno, IndiceEquipoVisitante = EquipoTres, Fecha = fechaJornada2Partido1 }, contexto);
+        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { IndiceEquipoLocal = EquipoDos, IndiceEquipoVisitante = EquipoCuatro, Fecha = fechaJornada2Partido2 }, contexto);
 
-        AgregarPartidoDeGrupo(grupo, equipos, EquipoUno, EquipoDos, fechaJornada3, estadiosOrdenados, cantidadPartidosPorDia, ref indicePartidoGlobal);
-        AgregarPartidoDeGrupo(grupo, equipos, EquipoTres, EquipoCuatro, fechaJornada3, estadiosOrdenados, cantidadPartidosPorDia, ref indicePartidoGlobal);
+        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { IndiceEquipoLocal = EquipoUno, IndiceEquipoVisitante = EquipoDos, Fecha = fechaJornada3 }, contexto);
+        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { IndiceEquipoLocal = EquipoTres, IndiceEquipoVisitante = EquipoCuatro, Fecha = fechaJornada3 }, contexto);
     }
 
-    private void AgregarPartidoDeGrupo(
-        Grupo grupo,
-        List<Equipo> equipos,
-        int indiceEquipoLocal,
-        int indiceEquipoVisitante,
-        DateTime fecha,
-        List<Estadio> estadiosOrdenados,
-        Dictionary<DateTime, int> cantidadPartidosPorDia,
-        ref int indicePartidoGlobal)
+    private void AgregarPartidoDeGrupo(Grupo grupo, ContextoCruceGrupo cruce, ContextoGeneracionFixture contexto)
     {
-        var estadio = ObtenerEstadioParaPartido(estadiosOrdenados, indicePartidoGlobal);
-        int idPartido = ObtenerSiguienteIdPartido(indicePartidoGlobal);
-        var partido = CrearPartidoDeGrupoConId(
-            grupo,
-            equipos[indiceEquipoLocal],
-            equipos[indiceEquipoVisitante],
-            fecha,
-            estadio,
-            idPartido
-        );
+        var estadio = ObtenerEstadioParaPartido(contexto.EstadiosOrdenados, contexto.IndicePartidoGlobal);
+        var datos = new DatosPartidoDeGrupo
+        {
+            Grupo = grupo,
+            EquipoLocal = grupo.Equipos[cruce.IndiceEquipoLocal],
+            EquipoVisitante = grupo.Equipos[cruce.IndiceEquipoVisitante],
+            Fecha = cruce.Fecha,
+            Estadio = estadio,
+            Id = ObtenerSiguienteIdPartido(contexto.IndicePartidoGlobal)
+        };
 
-        grupo.Partidos.Add(partido);
-        RegistrarPartidoEnDia(cantidadPartidosPorDia, fecha);
-        indicePartidoGlobal++;
+        grupo.Partidos.Add(CrearPartidoDeGrupoConId(datos));
+        RegistrarPartidoEnDia(contexto.CantidadPartidosPorDia, cruce.Fecha);
+        contexto.IndicePartidoGlobal++;
     }
 
     private void ValidarMaxPartidosPorDia(ConfiguracionTorneo configuracionTorneo)
@@ -431,22 +416,16 @@ public class ServicioFixture
         return indicePartidoGlobal + 1;
     }
 
-    private Partido CrearPartidoDeGrupoConId(
-        Grupo grupo,
-        Equipo local,
-        Equipo visitante,
-        DateTime fecha,
-        Estadio estadio,
-        int id)
+    private Partido CrearPartidoDeGrupoConId(DatosPartidoDeGrupo datos)
     {
         return new Partido
         {
-            Id = id,
-            Fecha = fecha,
-            Estadio = estadio,
-            EquipoLocal = local,
-            EquipoVisitante = visitante,
-            Grupo = grupo,
+            Id = datos.Id,
+            Fecha = datos.Fecha,
+            Estadio = datos.Estadio,
+            EquipoLocal = datos.EquipoLocal,
+            EquipoVisitante = datos.EquipoVisitante,
+            Grupo = datos.Grupo,
             Fase = FaseTorneo.FaseDeGrupos
         };
     }

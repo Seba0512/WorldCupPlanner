@@ -1,4 +1,4 @@
-﻿using  WorldCupPlanner.Dominio.Entidades;
+using  WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 
@@ -8,150 +8,141 @@ public class ServicioCruces
 {
     private const int PrimerIdPrimeraRondaEliminatoria = 73;
 
-    public List<Partido> GenerarPrimeraRondaEliminatoria(
-        ClasificadosFaseGrupos clasificados,
-        List<Estadio> estadios,
-        ConfiguracionTorneo configuracionTorneo,
-        Random? random = null)
+    public List<Partido> GenerarPrimeraRondaEliminatoria(ContextoSorteo sorteo, Random? random = null)
     {
         var partidos = new List<Partido>();
-        random ??= new Random(configuracionTorneo.SemillaCrucesFase);
+        random ??= new Random(sorteo.ConfiguracionTorneo.SemillaCrucesFase);
 
         var primerosParaTerceros = MezclarEquiposConFisherYates(
-            new List<Equipo>(clasificados.Primeros.Take(8)),
+            new List<Equipo>(sorteo.Clasificados.Primeros.Take(8)),
             random);
 
         var terceros = MezclarEquiposConFisherYates(
-            new List<Equipo>(clasificados.MejoresTerceros),
+            new List<Equipo>(sorteo.Clasificados.MejoresTerceros),
             random);
 
-        AgregarCrucesPrimerosContraTerceros(
-            partidos,
-            primerosParaTerceros,
-            terceros,
-            clasificados,
-            estadios,
-            configuracionTorneo
-        );
+        var contexto = new ContextoGeneracionCruces
+        {
+            Partidos = partidos,
+            Clasificados = sorteo.Clasificados,
+            Estadios = sorteo.Estadios,
+            ConfiguracionTorneo = sorteo.ConfiguracionTorneo
+        };
+
+        AgregarCrucesPrimerosContraTerceros(primerosParaTerceros, terceros, contexto);
 
         var primerosRestantes = MezclarEquiposConFisherYates(
-            new List<Equipo>(clasificados.Primeros.Skip(8).Take(4)),
+            new List<Equipo>(sorteo.Clasificados.Primeros.Skip(8).Take(4)),
             random);
 
         var segundosDeMenorRendimiento = MezclarEquiposConFisherYates(
-            new List<Equipo>(clasificados.Segundos.Skip(8).Take(4)),
+            new List<Equipo>(sorteo.Clasificados.Segundos.Skip(8).Take(4)),
             random);
 
-        AgregarCrucesPrimerosRestantesContraSegundosDeMenorRendimiento(
-            partidos,
-            primerosRestantes,
-            segundosDeMenorRendimiento,
-            clasificados,
-            estadios,
-            configuracionTorneo
-        );
+        AgregarCrucesPrimerosRestantesContraSegundosDeMenorRendimiento(primerosRestantes, segundosDeMenorRendimiento, contexto);
 
         var segundosRestantes = MezclarEquiposConFisherYates(
-            new List<Equipo>(clasificados.Segundos.Take(8)),
+            new List<Equipo>(sorteo.Clasificados.Segundos.Take(8)),
             random);
 
-        AgregarCrucesSegundosRestantesMinimos(
-            partidos,
-            segundosRestantes,
-            clasificados,
-            estadios,
-            configuracionTorneo
-        );
+        AgregarCrucesSegundosRestantesMinimos(segundosRestantes, contexto);
 
         return partidos;
     }
 
     private void AgregarCrucesPrimerosContraTerceros(
-        List<Partido> partidos,
         List<Equipo> primeros,
         List<Equipo> terceros,
-        ClasificadosFaseGrupos clasificados,
-        List<Estadio> estadios,
-        ConfiguracionTorneo configuracionTorneo)
+        ContextoGeneracionCruces contexto)
     {
-        ReordenarVisitantesParaEvitarMismoGrupo(primeros, terceros, clasificados);
+        var cruceEquipos = new ContextoCruceEquipos
+        {
+            Locales = primeros,
+            Visitantes = terceros,
+            Clasificados = contexto.Clasificados
+        };
+        ReordenarVisitantesParaEvitarMismoGrupo(cruceEquipos);
 
-        var fechaInicioDeFase = configuracionTorneo.FechaInicioTorneo.Date.AddDays(configuracionTorneo.SeparacionEntreFechas);
+        var fechaInicioDeFase = contexto.ConfiguracionTorneo.FechaInicioTorneo.Date
+            .AddDays(contexto.ConfiguracionTorneo.SeparacionEntreFechas);
 
         for (int i = 0; i < primeros.Count; i++)
         {
-            partidos.Add(CrearPartidoDePrimeraRonda(
-                PrimerIdPrimeraRondaEliminatoria + partidos.Count,
-                primeros[i],
-                terceros[i],
-                estadios[partidos.Count % estadios.Count],
-                CalcularFechaPartidoEliminatorio(fechaInicioDeFase, partidos.Count, configuracionTorneo)));
+            contexto.Partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
+            {
+                Id = PrimerIdPrimeraRondaEliminatoria + contexto.Partidos.Count,
+                EquipoLocal = primeros[i],
+                EquipoVisitante = terceros[i],
+                Estadio = contexto.Estadios[contexto.Partidos.Count % contexto.Estadios.Count],
+                Fecha = CalcularFechaPartidoEliminatorio(fechaInicioDeFase, contexto.Partidos.Count, contexto.ConfiguracionTorneo),
+                Fase = FaseTorneo.PrimeraRondaEliminatoria
+            }));
         }
     }
 
     private void AgregarCrucesPrimerosRestantesContraSegundosDeMenorRendimiento(
-        List<Partido> partidos,
         List<Equipo> primerosRestantes,
         List<Equipo> segundosDeMenorRendimiento,
-        ClasificadosFaseGrupos clasificados,
-        List<Estadio> estadios,
-        ConfiguracionTorneo configuracionTorneo)
+        ContextoGeneracionCruces contexto)
     {
-        ReordenarVisitantesParaEvitarMismoGrupo(
-            primerosRestantes,
-            segundosDeMenorRendimiento,
-            clasificados);
+        var cruceEquipos = new ContextoCruceEquipos
+        {
+            Locales = primerosRestantes,
+            Visitantes = segundosDeMenorRendimiento,
+            Clasificados = contexto.Clasificados
+        };
+        ReordenarVisitantesParaEvitarMismoGrupo(cruceEquipos);
 
-        var fechaInicioDeFase = configuracionTorneo.FechaInicioTorneo.Date.AddDays(configuracionTorneo.SeparacionEntreFechas);
+        var fechaInicioDeFase = contexto.ConfiguracionTorneo.FechaInicioTorneo.Date
+            .AddDays(contexto.ConfiguracionTorneo.SeparacionEntreFechas);
 
         for (int i = 0; i < primerosRestantes.Count; i++)
         {
-            partidos.Add(CrearPartidoDePrimeraRonda(
-                PrimerIdPrimeraRondaEliminatoria + partidos.Count,
-                primerosRestantes[i],
-                segundosDeMenorRendimiento[i],
-                estadios[partidos.Count % estadios.Count],
-                CalcularFechaPartidoEliminatorio(fechaInicioDeFase, partidos.Count, configuracionTorneo)));
+            contexto.Partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
+            {
+                Id = PrimerIdPrimeraRondaEliminatoria + contexto.Partidos.Count,
+                EquipoLocal = primerosRestantes[i],
+                EquipoVisitante = segundosDeMenorRendimiento[i],
+                Estadio = contexto.Estadios[contexto.Partidos.Count % contexto.Estadios.Count],
+                Fecha = CalcularFechaPartidoEliminatorio(fechaInicioDeFase, contexto.Partidos.Count, contexto.ConfiguracionTorneo),
+                Fase = FaseTorneo.PrimeraRondaEliminatoria
+            }));
         }
     }
 
     private void AgregarCrucesSegundosRestantesMinimos(
-        List<Partido> partidos,
         List<Equipo> segundosRestantes,
-        ClasificadosFaseGrupos clasificados,
-        List<Estadio> estadios,
-        ConfiguracionTorneo configuracionTorneo)
+        ContextoGeneracionCruces contexto)
     {
-        ReordenarEquiposParaEvitarCrucesInternosDelMismoGrupo(segundosRestantes, clasificados);
+        ReordenarEquiposParaEvitarCrucesInternosDelMismoGrupo(segundosRestantes, contexto.Clasificados);
 
-        var fechaInicioDeFase = configuracionTorneo.FechaInicioTorneo.Date.AddDays(configuracionTorneo.SeparacionEntreFechas);
+        var fechaInicioDeFase = contexto.ConfiguracionTorneo.FechaInicioTorneo.Date
+            .AddDays(contexto.ConfiguracionTorneo.SeparacionEntreFechas);
 
         for (int i = 0; i < segundosRestantes.Count; i += 2)
         {
-            partidos.Add(CrearPartidoDePrimeraRonda(
-                PrimerIdPrimeraRondaEliminatoria + partidos.Count,
-                segundosRestantes[i],
-                segundosRestantes[i + 1],
-                estadios[partidos.Count % estadios.Count],
-                CalcularFechaPartidoEliminatorio(fechaInicioDeFase, partidos.Count, configuracionTorneo)));
+            contexto.Partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
+            {
+                Id = PrimerIdPrimeraRondaEliminatoria + contexto.Partidos.Count,
+                EquipoLocal = segundosRestantes[i],
+                EquipoVisitante = segundosRestantes[i + 1],
+                Estadio = contexto.Estadios[contexto.Partidos.Count % contexto.Estadios.Count],
+                Fecha = CalcularFechaPartidoEliminatorio(fechaInicioDeFase, contexto.Partidos.Count, contexto.ConfiguracionTorneo),
+                Fase = FaseTorneo.PrimeraRondaEliminatoria
+            }));
         }
     }
 
-    private Partido CrearPartidoDePrimeraRonda(
-        int id,
-        Equipo equipoLocal,
-        Equipo equipoVisitante,
-        Estadio estadio,
-        DateTime fecha)
+    private Partido CrearPartidoEliminatorio(DatosPartidoEliminatorio datos)
     {
         return new Partido
         {
-            Id = id,
-            EquipoLocal = equipoLocal,
-            EquipoVisitante = equipoVisitante,
-            Estadio = estadio,
-            Fecha = fecha,
-            Fase = FaseTorneo.PrimeraRondaEliminatoria
+            Id = datos.Id,
+            EquipoLocal = datos.EquipoLocal,
+            EquipoVisitante = datos.EquipoVisitante,
+            Estadio = datos.Estadio,
+            Fecha = datos.Fecha,
+            Fase = datos.Fase
         };
     }
 
@@ -161,35 +152,28 @@ public class ServicioCruces
         return equipos;
     }
 
-    private void ReordenarVisitantesParaEvitarMismoGrupo(
-        List<Equipo> locales,
-        List<Equipo> visitantes,
-        ClasificadosFaseGrupos clasificados)
+    private void ReordenarVisitantesParaEvitarMismoGrupo(ContextoCruceEquipos cruceEquipos)
     {
-        for (int i = 0; i < locales.Count; i++)
+        for (int i = 0; i < cruceEquipos.Locales.Count; i++)
         {
-            if (!PertenecenAlMismoGrupo(locales[i], visitantes[i], clasificados))
+            if (!PertenecenAlMismoGrupo(cruceEquipos.Locales[i], cruceEquipos.Visitantes[i], cruceEquipos.Clasificados))
             {
                 continue;
             }
 
-            var indiceAlternativo = BuscarVisitanteAlternativo(locales, visitantes, clasificados, i);
+            var indiceAlternativo = BuscarVisitanteAlternativo(cruceEquipos, i);
 
             if (indiceAlternativo.HasValue)
             {
-                (visitantes[i], visitantes[indiceAlternativo.Value]) =
-                    (visitantes[indiceAlternativo.Value], visitantes[i]);
+                (cruceEquipos.Visitantes[i], cruceEquipos.Visitantes[indiceAlternativo.Value]) =
+                    (cruceEquipos.Visitantes[indiceAlternativo.Value], cruceEquipos.Visitantes[i]);
             }
         }
     }
 
-    private int? BuscarVisitanteAlternativo(
-        List<Equipo> locales,
-        List<Equipo> visitantes,
-        ClasificadosFaseGrupos clasificados,
-        int indiceActual)
+    private int? BuscarVisitanteAlternativo(ContextoCruceEquipos cruceEquipos, int indiceActual)
     {
-        for (int i = 0; i < visitantes.Count; i++)
+        for (int i = 0; i < cruceEquipos.Visitantes.Count; i++)
         {
             if (i == indiceActual)
             {
@@ -197,14 +181,14 @@ public class ServicioCruces
             }
 
             var evitaCruceActual = !PertenecenAlMismoGrupo(
-                locales[indiceActual],
-                visitantes[i],
-                clasificados);
+                cruceEquipos.Locales[indiceActual],
+                cruceEquipos.Visitantes[i],
+                cruceEquipos.Clasificados);
 
             var noRompeCruceFuturo = !PertenecenAlMismoGrupo(
-                locales[i],
-                visitantes[indiceActual],
-                clasificados);
+                cruceEquipos.Locales[i],
+                cruceEquipos.Visitantes[indiceActual],
+                cruceEquipos.Clasificados);
 
             if (evitaCruceActual && noRompeCruceFuturo)
             {
@@ -294,11 +278,14 @@ public class ServicioCruces
     {
         ValidarPartidosDeFaseAnterior(
             partidosPrimeraRonda,
-            16,
-            FaseTorneo.PrimeraRondaEliminatoria,
-            "octavos",
-            "primera ronda",
-            "primera ronda eliminatoria");
+            new ContextoValidacionFase
+            {
+                CantidadEsperada = 16,
+                FaseEsperada = FaseTorneo.PrimeraRondaEliminatoria,
+                FaseAGenerar = "octavos",
+                FaseAnterior = "primera ronda",
+                FaseAnteriorEsperada = "primera ronda eliminatoria"
+            });
 
         var ganadores = ObtenerGanadores(partidosPrimeraRonda);
         var partidos = new List<Partido>();
@@ -307,13 +294,15 @@ public class ServicioCruces
 
         for (int i = 0; i < 8; i++)
         {
-            partidos.Add(CrearPartidoEliminatorio(
-                proximoId++,
-                ganadores[i],
-                ganadores[i + 8],
-                estadios[partidos.Count % estadios.Count],
-                CalcularFechaPartidoEliminatorio(fechaInicio, i, configuracionTorneo),
-                FaseTorneo.Octavos));
+            partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
+            {
+                Id = proximoId++,
+                EquipoLocal = ganadores[i],
+                EquipoVisitante = ganadores[i + 8],
+                Estadio = estadios[partidos.Count % estadios.Count],
+                Fecha = CalcularFechaPartidoEliminatorio(fechaInicio, i, configuracionTorneo),
+                Fase = FaseTorneo.Octavos
+            }));
         }
 
         return partidos;
@@ -326,10 +315,13 @@ public class ServicioCruces
     {
         ValidarPartidosDeFaseAnterior(
             octavos,
-            8,
-            FaseTorneo.Octavos,
-            "cuartos",
-            "octavos");
+            new ContextoValidacionFase
+            {
+                CantidadEsperada = 8,
+                FaseEsperada = FaseTorneo.Octavos,
+                FaseAGenerar = "cuartos",
+                FaseAnterior = "octavos"
+            });
 
         var ganadores = ObtenerGanadores(octavos);
         var partidos = new List<Partido>();
@@ -338,13 +330,15 @@ public class ServicioCruces
 
         for (int i = 0; i < 4; i++)
         {
-            partidos.Add(CrearPartidoEliminatorio(
-                proximoId++,
-                ganadores[i * 2],
-                ganadores[i * 2 + 1],
-                estadios[partidos.Count % estadios.Count],
-                CalcularFechaPartidoEliminatorio(fechaInicio, i, configuracionTorneo),
-                FaseTorneo.Cuartos));
+            partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
+            {
+                Id = proximoId++,
+                EquipoLocal = ganadores[i * 2],
+                EquipoVisitante = ganadores[i * 2 + 1],
+                Estadio = estadios[partidos.Count % estadios.Count],
+                Fecha = CalcularFechaPartidoEliminatorio(fechaInicio, i, configuracionTorneo),
+                Fase = FaseTorneo.Cuartos
+            }));
         }
 
         return partidos;
@@ -357,10 +351,13 @@ public class ServicioCruces
     {
         ValidarPartidosDeFaseAnterior(
             cuartos,
-            4,
-            FaseTorneo.Cuartos,
-            "semifinales",
-            "cuartos");
+            new ContextoValidacionFase
+            {
+                CantidadEsperada = 4,
+                FaseEsperada = FaseTorneo.Cuartos,
+                FaseAGenerar = "semifinales",
+                FaseAnterior = "cuartos"
+            });
 
         var ganadores = ObtenerGanadores(cuartos);
         var partidos = new List<Partido>();
@@ -369,55 +366,44 @@ public class ServicioCruces
 
         for (int i = 0; i < 2; i++)
         {
-            partidos.Add(CrearPartidoEliminatorio(
-                proximoId++,
-                ganadores[i * 2],
-                ganadores[i * 2 + 1],
-                estadios[partidos.Count % estadios.Count],
-                CalcularFechaPartidoEliminatorio(fechaInicio, i, configuracionTorneo),
-                FaseTorneo.Semifinal));
+            partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
+            {
+                Id = proximoId++,
+                EquipoLocal = ganadores[i * 2],
+                EquipoVisitante = ganadores[i * 2 + 1],
+                Estadio = estadios[partidos.Count % estadios.Count],
+                Fecha = CalcularFechaPartidoEliminatorio(fechaInicio, i, configuracionTorneo),
+                Fase = FaseTorneo.Semifinal
+            }));
         }
 
         return partidos;
     }
 
-    private void ValidarPartidosDeFaseAnterior(
-        List<Partido> partidos,
-        int cantidadEsperada,
-        FaseTorneo faseEsperada,
-        string faseAGenerar,
-        string faseAnterior,
-        string? faseAnteriorEsperada = null)
+    private void ValidarPartidosDeFaseAnterior(List<Partido> partidos, ContextoValidacionFase contexto)
     {
-        ValidarCantidadPartidos(partidos, cantidadEsperada, faseAGenerar, faseAnterior);
-        ValidarFasePartidos(partidos, faseEsperada, faseAGenerar, faseAnteriorEsperada ?? faseAnterior);
-        ValidarPartidosJugados(partidos, faseAGenerar, faseAnterior);
-        ValidarPartidosConGanador(partidos, faseAGenerar, faseAnterior);
+        ValidarCantidadPartidos(partidos, contexto);
+        ValidarFasePartidos(partidos, contexto);
+        ValidarPartidosJugados(partidos, contexto.FaseAGenerar, contexto.FaseAnterior);
+        ValidarPartidosConGanador(partidos, contexto.FaseAGenerar, contexto.FaseAnterior);
     }
 
-    private void ValidarCantidadPartidos(
-        List<Partido> partidos,
-        int cantidadEsperada,
-        string faseAGenerar,
-        string faseAnterior)
+    private void ValidarCantidadPartidos(List<Partido> partidos, ContextoValidacionFase contexto)
     {
-        if (partidos.Count != cantidadEsperada)
+        if (partidos.Count != contexto.CantidadEsperada)
         {
             throw new EntidadInvalidaExcepcion(
-                $"Para generar {faseAGenerar} deben existir exactamente {cantidadEsperada} partidos de {faseAnterior}.");
+                $"Para generar {contexto.FaseAGenerar} deben existir exactamente {contexto.CantidadEsperada} partidos de {contexto.FaseAnterior}.");
         }
     }
 
-    private void ValidarFasePartidos(
-        List<Partido> partidos,
-        FaseTorneo faseEsperada,
-        string faseAGenerar,
-        string faseAnterior)
+    private void ValidarFasePartidos(List<Partido> partidos, ContextoValidacionFase contexto)
     {
-        if (partidos.Any(p => p.Fase != faseEsperada))
+        if (partidos.Any(p => p.Fase != contexto.FaseEsperada))
         {
+            var faseAnteriorDescripcion = contexto.FaseAnteriorEsperada ?? contexto.FaseAnterior;
             throw new EntidadInvalidaExcepcion(
-                $"Para generar {faseAGenerar} todos los partidos deben ser de {faseAnterior}.");
+                $"Para generar {contexto.FaseAGenerar} todos los partidos deben ser de {faseAnteriorDescripcion}.");
         }
     }
 
@@ -451,25 +437,6 @@ public class ServicioCruces
             .Select(p => p.Ganador()!));
     }
 
-    private Partido CrearPartidoEliminatorio(
-        int id,
-        Equipo equipoLocal,
-        Equipo equipoVisitante,
-        Estadio estadio,
-        DateTime fecha,
-        FaseTorneo fase)
-    {
-        return new Partido
-        {
-            Id = id,
-            EquipoLocal = equipoLocal,
-            EquipoVisitante = equipoVisitante,
-            Estadio = estadio,
-            Fecha = fecha,
-            Fase = fase
-        };
-    }
-
     public Partido GenerarTercerPuesto(
         List<Partido> semifinales,
         List<Estadio> estadios,
@@ -477,10 +444,13 @@ public class ServicioCruces
     {
         ValidarPartidosDeFaseAnterior(
             semifinales,
-            2,
-            FaseTorneo.Semifinal,
-            "tercer puesto",
-            "semifinales");
+            new ContextoValidacionFase
+            {
+                CantidadEsperada = 2,
+                FaseEsperada = FaseTorneo.Semifinal,
+                FaseAGenerar = "tercer puesto",
+                FaseAnterior = "semifinales"
+            });
 
         var perdedores = ObtenerPerdedores(semifinales);
 
@@ -489,15 +459,17 @@ public class ServicioCruces
             0,
             configuracionTorneo);
 
-        return CrearPartidoEliminatorio(
-            semifinales.Max(p => p.Id) + 1,
-            perdedores[0],
-            perdedores[1],
-            estadios[0],
-            fechaTercerPuesto,
-            FaseTorneo.TercerPuesto);
+        return CrearPartidoEliminatorio(new DatosPartidoEliminatorio
+        {
+            Id = semifinales.Max(p => p.Id) + 1,
+            EquipoLocal = perdedores[0],
+            EquipoVisitante = perdedores[1],
+            Estadio = estadios[0],
+            Fecha = fechaTercerPuesto,
+            Fase = FaseTorneo.TercerPuesto
+        });
     }
-    
+
     private DateTime CalcularFechaPartidoEliminatorio(
         DateTime fechaInicioDeFase,
         int indicePartidoEnFase,
@@ -534,7 +506,7 @@ public class ServicioCruces
 
         return partido.EquipoLocal!;
     }
-    
+
     public Partido GenerarFinal(
         List<Partido> semifinales,
         List<Estadio> estadios,
@@ -542,10 +514,13 @@ public class ServicioCruces
     {
         ValidarPartidosDeFaseAnterior(
             semifinales,
-            2,
-            FaseTorneo.Semifinal,
-            "la final",
-            "semifinales");
+            new ContextoValidacionFase
+            {
+                CantidadEsperada = 2,
+                FaseEsperada = FaseTorneo.Semifinal,
+                FaseAGenerar = "la final",
+                FaseAnterior = "semifinales"
+            });
 
         var ganadores = ObtenerGanadores(semifinales);
 
@@ -554,12 +529,14 @@ public class ServicioCruces
             0,
             configuracionTorneo);
 
-        return CrearPartidoEliminatorio(
-            semifinales.Max(p => p.Id) + 2,
-            ganadores[0],
-            ganadores[1],
-            estadios[0],
-            fechaFinal,
-            FaseTorneo.Final);
+        return CrearPartidoEliminatorio(new DatosPartidoEliminatorio
+        {
+            Id = semifinales.Max(p => p.Id) + 2,
+            EquipoLocal = ganadores[0],
+            EquipoVisitante = ganadores[1],
+            Estadio = estadios[0],
+            Fecha = fechaFinal,
+            Fase = FaseTorneo.Final
+        });
     }
 }

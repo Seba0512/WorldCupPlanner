@@ -134,7 +134,8 @@ else
             var configuracion = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             var clasificados = ServicioClasificacion.ObtenerClasificadosAFaseEliminatoria(EstadoTorneo.Fixture!, configuracion);
             var estadios = ServicioEstadio.ObtenerEstadios();
-            EstadoTorneo.PartidosEliminatorios = ServicioCruces.GenerarPrimeraRondaEliminatoria(clasificados, estadios, configuracion);
+            EstadoTorneo.PartidosEliminatorios = ServicioCruces.GenerarPrimeraRondaEliminatoria(
+                new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = configuracion });
         }
         catch (Exception ex)
         {

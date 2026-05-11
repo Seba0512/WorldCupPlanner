@@ -22,9 +22,7 @@ public class ServicioCrucesTests
 
         // Act
         var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
-            clasificados,
-            estadios,
-            configuracionTorneo
+            new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = configuracionTorneo }
         );
 
         // Assert
@@ -46,9 +44,7 @@ public class ServicioCrucesTests
 
         // Act
         var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
-            clasificados,
-            estadios,
-            configuracionTorneo
+            new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = configuracionTorneo }
         );
 
         // Assert
@@ -116,9 +112,7 @@ public class ServicioCrucesTests
 
         // Act
         var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
-            clasificados,
-            estadios,
-            configuracionTorneo
+            new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = configuracionTorneo }
         );
 
         // Assert
@@ -150,9 +144,7 @@ public class ServicioCrucesTests
 
         // Act
         var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
-            clasificados,
-            estadios,
-            configuracionTorneo
+            new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = configuracionTorneo }
         );
 
         // Assert
@@ -197,9 +189,7 @@ public class ServicioCrucesTests
 
         // Act
         var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
-            clasificados,
-            estadios,
-            configuracionTorneo
+            new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = configuracionTorneo }
         );
 
         // Assert
@@ -242,15 +232,11 @@ public class ServicioCrucesTests
 
         // Act
         var partidos1 = servicioCruces.GenerarPrimeraRondaEliminatoria(
-            clasificados,
-            estadios,
-            configuracionTorneo1
+            new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = configuracionTorneo1 }
         );
 
         var partidos2 = servicioCruces.GenerarPrimeraRondaEliminatoria(
-            clasificados,
-            estadios,
-            configuracionTorneo2
+            new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = configuracionTorneo2 }
         );
 
         // Assert
@@ -272,9 +258,7 @@ public class ServicioCrucesTests
 
         // Act
         var partidosReferencia = servicioCruces.GenerarPrimeraRondaEliminatoria(
-            clasificados,
-            estadios,
-            configuracionReferencia
+            new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = configuracionReferencia }
         );
 
         var crucesReferencia = ObtenerCruces(partidosReferencia);
@@ -285,9 +269,7 @@ public class ServicioCrucesTests
             var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = semilla };
 
             var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
-                clasificados,
-                estadios,
-                configuracionTorneo
+                new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = configuracionTorneo }
             );
 
             var cruces = ObtenerCruces(partidos);
@@ -314,9 +296,7 @@ public class ServicioCrucesTests
 
         // Act
         var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
-            clasificados,
-            estadios,
-            configuracionTorneo
+            new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = configuracionTorneo }
         );
 
         // Assert
@@ -1749,7 +1729,9 @@ public class ServicioCrucesTests
         var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
 
         // Act — no debe lanzar excepción aunque no se puedan evitar cruces del mismo grupo
-        var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(clasificados, estadios, configuracionTorneo);
+        var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = configuracionTorneo }
+        );
 
         // Assert
         Assert.AreEqual(16, partidos.Count);
@@ -1834,7 +1816,8 @@ public class ServicioCrucesTests
 
         // Act — RandomSiempreCero produce shuffles predecibles que garantizan conflictos resolubles
         var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
-            clasificados, estadios, configuracionTorneo, new RandomSiempreCero());
+            new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = configuracionTorneo },
+            new RandomSiempreCero());
 
         // Assert
         Assert.AreEqual(16, partidos.Count);

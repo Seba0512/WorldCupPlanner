@@ -82,7 +82,7 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(usuario);
 
         // Act
-        _servicio.ActualizarUsuario(usuario, nombre: "Carlos");
+        _servicio.ActualizarUsuario(usuario, new ActualizacionUsuario { Nombre = "Carlos" });
 
         // Assert
         var usuarioActualizado = _servicio.ObtenerTodosLosUsuarios()[0];
@@ -97,7 +97,7 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(usuario);
 
         // Act
-        _servicio.ActualizarUsuario(usuario, apellido: "García");
+        _servicio.ActualizarUsuario(usuario, new ActualizacionUsuario { Apellido = "García" });
 
         // Assert
         var usuarioActualizado = _servicio.ObtenerTodosLosUsuarios()[0];
@@ -112,7 +112,7 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(usuario);
 
         // Act
-        _servicio.ActualizarUsuario(usuario, email: "newemail@example.com");
+        _servicio.ActualizarUsuario(usuario, new ActualizacionUsuario { Email = "newemail@example.com" });
 
         // Assert
         var usuarioActualizado = _servicio.ObtenerTodosLosUsuarios()[0];
@@ -130,7 +130,7 @@ public sealed class ServicioUsuarioTests
 
         // Act & Assert
         Assert.ThrowsException<InvalidOperationException>(() =>
-            _servicio.ActualizarUsuario(usuario2, email: "juan@example.com")
+            _servicio.ActualizarUsuario(usuario2, new ActualizacionUsuario { Email = "juan@example.com" })
         );
     }
 
@@ -145,7 +145,7 @@ public sealed class ServicioUsuarioTests
 
         // Act & Assert
         Assert.ThrowsException<InvalidOperationException>(() =>
-            _servicio.ActualizarUsuario(usuario2, email: "juan@example.com")
+            _servicio.ActualizarUsuario(usuario2, new ActualizacionUsuario { Email = "juan@example.com" })
         );
     }
 
@@ -157,7 +157,7 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(usuario);
 
         // Act
-        _servicio.ActualizarUsuario(usuario, fechaNacimiento: "05-15-1995");
+        _servicio.ActualizarUsuario(usuario, new ActualizacionUsuario { FechaNacimiento = "05-15-1995" });
 
         // Assert
         var usuarioActualizado = _servicio.ObtenerTodosLosUsuarios()[0];
@@ -172,8 +172,13 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(usuario);
 
         // Act
-        _servicio.ActualizarUsuario(usuario, nombre: "Carlos", apellido: "García",
-            email: "carlos@example.com", fechaNacimiento: "05-15-1995");
+        _servicio.ActualizarUsuario(usuario, new ActualizacionUsuario
+        {
+            Nombre = "Carlos",
+            Apellido = "García",
+            Email = "carlos@example.com",
+            FechaNacimiento = "05-15-1995"
+        });
 
         // Assert
         var usuarioActualizado = _servicio.ObtenerTodosLosUsuarios()[0];
@@ -190,7 +195,7 @@ public sealed class ServicioUsuarioTests
         var usuario = CrearUsuarioValido("juan@example.com");
 
         // Act & Assert
-        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.ActualizarUsuario(usuario));
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.ActualizarUsuario(usuario, new ActualizacionUsuario()));
     }
 
     [TestMethod]
@@ -415,7 +420,7 @@ public sealed class ServicioUsuarioTests
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            _servicio.ActualizarUsuario(usuario, nombre: "")
+            _servicio.ActualizarUsuario(usuario, new ActualizacionUsuario { Nombre = "" })
         );
     }
 
@@ -428,7 +433,7 @@ public sealed class ServicioUsuarioTests
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            _servicio.ActualizarUsuario(usuario, apellido: "")
+            _servicio.ActualizarUsuario(usuario, new ActualizacionUsuario { Apellido = "" })
         );
     }
 
@@ -441,7 +446,7 @@ public sealed class ServicioUsuarioTests
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            _servicio.ActualizarUsuario(usuario, email: "")
+            _servicio.ActualizarUsuario(usuario, new ActualizacionUsuario { Email = "" })
         );
     }
 
@@ -454,7 +459,7 @@ public sealed class ServicioUsuarioTests
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            _servicio.ActualizarUsuario(usuario, email: "email_invalido")
+            _servicio.ActualizarUsuario(usuario, new ActualizacionUsuario { Email = "email_invalido" })
         );
     }
 
@@ -467,7 +472,7 @@ public sealed class ServicioUsuarioTests
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
-            _servicio.ActualizarUsuario(usuario, email: "   ")
+            _servicio.ActualizarUsuario(usuario, new ActualizacionUsuario { Email = "   " })
         );
     }
 
@@ -582,7 +587,7 @@ public sealed class ServicioUsuarioTests
         var usuario = CrearUsuarioValido("juan@example.com");
         _servicio.AgregarUsuario(usuario);
 
-        _servicio.ActualizarUsuario(usuario, email: "juan@example.com");
+        _servicio.ActualizarUsuario(usuario, new ActualizacionUsuario { Email = "juan@example.com" });
 
         Assert.AreEqual("juan@example.com", usuario.Email);
     }
@@ -633,7 +638,7 @@ public sealed class ServicioUsuarioTests
         servicio.AgregarUsuario(usuario);
         repoAuditoria.Entradas.Clear();
 
-        servicio.ActualizarUsuario(usuario, nombre: "Carlos", ejecutadoPor: "admin@example.com");
+        servicio.ActualizarUsuario(usuario, new ActualizacionUsuario { Nombre = "Carlos", EjecutadoPor = "admin@example.com" });
 
         Assert.AreEqual("admin@example.com", repoAuditoria.Entradas[0].Usuario);
     }

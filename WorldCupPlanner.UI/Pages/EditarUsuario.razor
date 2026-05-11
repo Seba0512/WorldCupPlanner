@@ -72,7 +72,13 @@
         try
         {
             if (usuario == null) return;
-            ServicioUsuario.ActualizarUsuario(usuario, nombre, apellido, email, fechaNacimiento.ToString("MM-dd-yyyy"));
+            ServicioUsuario.ActualizarUsuario(usuario, new ActualizacionUsuario
+            {
+                Nombre = nombre,
+                Apellido = apellido,
+                Email = email,
+                FechaNacimiento = fechaNacimiento.ToString("MM-dd-yyyy")
+            });
             if (esAdmin) usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
             else usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
             if (esEditor) usuario.AgregarRol(RolUsuario.Editor);

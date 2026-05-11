@@ -24,9 +24,10 @@ public class ServicioUsuario : IRepositorio<Usuario>
         _auditoria.Registrar(ejecutadoPor ?? "sistema", "ALTA_USUARIO", $"Usuario creado: {usuario.Email}");
     }
 
-    public void ActualizarUsuario(Usuario usuario, string? nombre = null, string? apellido = null,
-        string? email = null, string? fechaNacimiento = null, string? ejecutadoPor = null)
+    public void ActualizarUsuario(Usuario usuario, ActualizacionUsuario? actualizacion = null)
     {
+        actualizacion ??= new ActualizacionUsuario();
+
         var usuarioActual = _repositorio.Buscar(u => ReferenceEquals(u, usuario))
             .FirstOrDefault();
 
@@ -37,29 +38,29 @@ public class ServicioUsuario : IRepositorio<Usuario>
 
         var campos = new List<string>();
 
-        if (email != null && !email.Equals(usuarioActual.Email, StringComparison.OrdinalIgnoreCase))
+        if (actualizacion.Email != null && !actualizacion.Email.Equals(usuarioActual.Email, StringComparison.OrdinalIgnoreCase))
         {
-            ValidarEmailUnico(email);
-            usuarioActual.ActualizarEmail(email);
-            campos.Add($"email: {email}");
+            ValidarEmailUnico(actualizacion.Email);
+            usuarioActual.ActualizarEmail(actualizacion.Email);
+            campos.Add($"email: {actualizacion.Email}");
         }
 
-        if (nombre != null)
+        if (actualizacion.Nombre != null)
         {
-            usuarioActual.ActualizarNombre(nombre);
-            campos.Add($"nombre: {nombre}");
+            usuarioActual.ActualizarNombre(actualizacion.Nombre);
+            campos.Add($"nombre: {actualizacion.Nombre}");
         }
 
-        if (apellido != null)
+        if (actualizacion.Apellido != null)
         {
-            usuarioActual.ActualizarApellido(apellido);
-            campos.Add($"apellido: {apellido}");
+            usuarioActual.ActualizarApellido(actualizacion.Apellido);
+            campos.Add($"apellido: {actualizacion.Apellido}");
         }
 
-        if (fechaNacimiento != null)
+        if (actualizacion.FechaNacimiento != null)
         {
-            usuarioActual.ActualizarFechaNacimiento(fechaNacimiento);
-            campos.Add($"fechaNacimiento: {fechaNacimiento}");
+            usuarioActual.ActualizarFechaNacimiento(actualizacion.FechaNacimiento);
+            campos.Add($"fechaNacimiento: {actualizacion.FechaNacimiento}");
         }
 
         _repositorio.Actualizar(usuarioActual);
@@ -67,7 +68,7 @@ public class ServicioUsuario : IRepositorio<Usuario>
         var detalle = campos.Count > 0
             ? $"Campos modificados en {usuarioActual.Email}: {string.Join(", ", campos)}"
             : $"Sin cambios efectivos en {usuarioActual.Email}";
-        _auditoria.Registrar(ejecutadoPor ?? usuarioActual.Email, "EDICION_USUARIO", detalle);
+        _auditoria.Registrar(actualizacion.EjecutadoPor ?? usuarioActual.Email, "EDICION_USUARIO", detalle);
     }
 
     public void EliminarUsuario(Usuario usuario, string? ejecutadoPor = null)
