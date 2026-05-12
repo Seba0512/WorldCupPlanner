@@ -1,0 +1,92 @@
+@page "/importar"
+@inject ServicioImportacionLegible ServicioImportacionLegible
+@inject ServicioEquipo ServicioEquipo
+@inject SesionServicio SesionServicio
+@inject NavigationManager NavigationManager
+
+<PageTitle>Importar equipos — WorldCupPlanner 2026</PageTitle>
+
+<PageHeader Titulo="Importar equipos" UrlVolver="/equipos" TextoVolver="Volver a equipos" />
+
+<div class="form-section">
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger">
+            <span class="oi oi-warning" aria-hidden="true"></span> @_error
+        </div>
+    }
+
+    @if (_resultado != null)
+    {
+        <div class="alert @(_resultado.Exitosos > 0 ? "alert-success" : "alert-warning")">
+            <span class="oi oi-check" aria-hidden="true"></span>
+            <strong>@_resultado.Exitosos</strong> equipo(s) importado(s) correctamente.
+        </div>
+
+        @if (_resultado.Errores.Count > 0)
+        {
+            <div class="alert alert-danger">
+                <strong>Filas con error:</strong>
+                <ul class="mb-0 mt-1">
+                    @foreach (var mensajeDeError in _resultado.Errores)
+                    {
+                        <li>@mensajeDeError</li>
+                    }
+                </ul>
+            </div>
+        }
+    }
+
+    <div class="form-group">
+        <label class="form-label">Archivo CSV</label>
+        <InputFile class="form-control" accept=".csv" OnChange="SeleccionarArchivo" />
+        <span class="form-hint">Encabezados requeridos: <code>Nombre,Confederacion,RankingFIFA</code></span>
+    </div>
+
+    <div class="d-flex gap-2 mt-2">
+        <button type="button" class="btn btn-primary" disabled="@(_archivoSeleccionado == null)" @onclick="EjecutarImportacion">
+            <span class="oi oi-data-transfer-upload" aria-hidden="true"></span> Importar
+        </button>
+        <a href="/equipos" class="btn btn-secondary">Cancelar</a>
+    </div>
+</div>
+
+@code {
+    private const long TamanioMaximoArchivoBytes = 5 * 1024 * 1024;
+
+    private IBrowserFile? _archivoSeleccionado;
+    private ResultadoImportacion? _resultado;
+    private string _error = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        if (!SesionServicio.HaySesion) NavigationManager.NavigateTo("/login");
+    }
+
+    private void SeleccionarArchivo(InputFileChangeEventArgs e)
+    {
+        _archivoSeleccionado = e.File;
+        _resultado = null;
+        _error = string.Empty;
+    }
+
+    private async Task EjecutarImportacion()
+    {
+        if (_archivoSeleccionado == null) return;
+        _error = string.Empty;
+        _resultado = null;
+
+        try
+        {
+            await using var browserStream = _archivoSeleccionado.OpenReadStream(TamanioMaximoArchivoBytes);
+            using var memoryStream = new MemoryStream();
+            await browserStream.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+            _resultado = ServicioImportacionLegible.Importar(memoryStream, ServicioEquipo);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+}

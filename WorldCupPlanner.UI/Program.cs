@@ -28,6 +28,7 @@ builder.Services.AddSingleton<ServicioPartido>(sp =>
 builder.Services.AddSingleton<ConfiguracionTorneo>();
 builder.Services.AddSingleton<IRepositorioUsuario, RepositorioUsuarioEnMemoria>();
 builder.Services.AddSingleton<ServicioUsuario>();
+builder.Services.AddSingleton<ServicioImportacionLegible>();
 builder.Services.AddSingleton<InicializadorDatos>();
 
 builder.Services.AddScoped<SesionServicio>();
