@@ -54,6 +54,39 @@ public class ServicioCrucesTests
         CollectionAssert.AreEqual(idsEsperados, idsObtenidos);
     }
 
+    [TestMethod]
+    public void GenerarPrimeraRondaEliminatoria_DebeProgramarseDespuesDeLaUltimaFechaDeGrupos()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var clasificados = CrearClasificadosCon32Equipos();
+        var estadios = CrearEstadiosValidos(4);
+        var ultimaFechaGrupos = new DateTime(2026, 6, 28);
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            FechaInicioTorneo = new DateTime(2026, 6, 1),
+            SeparacionEntreFechas = 3,
+            SemillaCrucesFase = 1
+        };
+
+        // Act
+        var partidos = servicioCruces.GenerarPrimeraRondaEliminatoria(
+            new ContextoSorteo
+            {
+                Clasificados = clasificados,
+                Estadios = estadios,
+                ConfiguracionTorneo = configuracionTorneo,
+                FechaUltimoPartidoFaseGrupos = ultimaFechaGrupos
+            }
+        );
+
+        // Assert
+        var fechaEsperada = ultimaFechaGrupos.AddDays(configuracionTorneo.SeparacionEntreFechas).Date;
+
+        Assert.AreEqual(fechaEsperada, partidos.Min(p => p.Fecha.Date));
+        Assert.IsTrue(partidos.All(p => p.Fecha.Date >= fechaEsperada));
+    }
+
     private ClasificadosFaseGrupos CrearClasificadosCon32Equipos()
     {
         return new ClasificadosFaseGrupos

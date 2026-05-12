@@ -41,9 +41,9 @@
                             style="width:auto"
                             @bind="_jornadaActiva"
                             disabled="@(!EsEtapaActivaSimulable)">
-                        <option value="@JornadaUno">Jornada 1</option>
-                        <option value="@JornadaDos">Jornada 2</option>
-                        <option value="@JornadaTres">Jornada 3</option>
+                        <option value="@JornadaUno" disabled="@(!EsJornadaSeleccionable(JornadaUno))">Jornada 1</option>
+                        <option value="@JornadaDos" disabled="@(!EsJornadaSeleccionable(JornadaDos))">Jornada 2</option>
+                        <option value="@JornadaTres" disabled="@(!EsJornadaSeleccionable(JornadaTres))">Jornada 3</option>
                     </select>
                 }
                 <button class="btn btn-warning"
@@ -513,6 +513,11 @@ else
     private int _jornadaActiva = JornadaUno;
     private bool _generando = false;
 
+    protected override void OnInitialized()
+    {
+        SincronizarJornadaActivaConPendiente();
+    }
+
     private record EtapaTorneo(FaseTorneo Fase, string Etiqueta);
 
     private static readonly List<EtapaTorneo> EtapasDisponibles = new()
@@ -547,7 +552,11 @@ else
     private Partido? PartidoTercerPuesto =>
         EstadoTorneo.PartidosEliminatorios.FirstOrDefault(p => p.Fase == FaseTorneo.TercerPuesto);
 
-    private void SeleccionarEtapa(FaseTorneo fase) => _etapaActiva = fase;
+    private void SeleccionarEtapa(FaseTorneo fase)
+    {
+        _etapaActiva = fase;
+        SincronizarJornadaActivaConPendiente();
+    }
 
     private void ManejarNavegacionTeclado(KeyboardEventArgs e, FaseTorneo fase)
     {
@@ -560,6 +569,8 @@ else
             "End"                                                  => EtapasDisponibles[^1].Fase,
             _                                                      => _etapaActiva,
         };
+
+        SincronizarJornadaActivaConPendiente();
     }
 
     private string ObtenerEstiloFilaPosicion(int posicion)
@@ -584,6 +595,8 @@ else
             EstadoTorneo.Fixture = ServicioFixture.GenerarFixture(equipos, estadios, config);
             EstadoTorneo.PartidosEliminatorios = new();
             ServicioEquipo.RegistrarFixtureGenerado(EstadoTorneo.Fixture);
+            ServicioEstadio.RegistrarFixtureGenerado(EstadoTorneo.Fixture);
+            SincronizarJornadaActivaConPendiente();
             Toast.Exito("Fixture generado correctamente.");
         }
         catch (Exception ex) { _error = ex.Message; }
@@ -631,6 +644,7 @@ else
         {
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             ServicioSimulacion.SimularResultados(partidos, config);
+            SincronizarJornadaActivaConPendiente();
             Toast.Exito(mensajeExito);
         }
         catch (Exception ex)
@@ -647,7 +661,8 @@ else
         return partido != null
             && EsEtapaActivaSimulable
             && PerteneceAEtapaActiva(partido)
-            && !partido.EstaJugado();
+            && !partido.EstaJugado()
+            && ObtenerPartidosSimulablesAhora().Contains(partido);
     }
 
     private bool PuedeSimularJornadaOFecha()
@@ -727,9 +742,19 @@ else
             return new List<Partido>();
         }
 
-        return _etapaActiva == FaseTorneo.FaseDeGrupos
-            ? ObtenerPartidosPendientesDeJornada(_jornadaActiva)
-            : ObtenerPartidosPendientesDePrimeraFechaActual();
+        if (_etapaActiva != FaseTorneo.FaseDeGrupos)
+        {
+            return ObtenerPartidosPendientesDePrimeraFechaActual();
+        }
+
+        var jornadaPendiente = ObtenerJornadaPendienteActual();
+
+        if (!jornadaPendiente.HasValue || _jornadaActiva != jornadaPendiente.Value)
+        {
+            return new List<Partido>();
+        }
+
+        return ObtenerPartidosPendientesDeJornada(_jornadaActiva);
     }
 
     private List<Partido> ObtenerPartidosEtapaActiva()
@@ -787,6 +812,59 @@ else
         return pendientes
             .Where(p => p.Fecha.Date == fecha)
             .ToList();
+    }
+
+    private List<Partido> ObtenerPartidosSimulablesAhora()
+    {
+        if (!EsEtapaActivaSimulable)
+        {
+            return new List<Partido>();
+        }
+
+        if (_etapaActiva != FaseTorneo.FaseDeGrupos)
+        {
+            return ObtenerPartidosPendientesDePrimeraFechaActual();
+        }
+
+        var jornadaPendiente = ObtenerJornadaPendienteActual();
+
+        return jornadaPendiente.HasValue
+            ? ObtenerPartidosPendientesDeJornada(jornadaPendiente.Value)
+            : new List<Partido>();
+    }
+
+    private int? ObtenerJornadaPendienteActual()
+    {
+        for (var jornada = JornadaUno; jornada <= JornadaTres; jornada++)
+        {
+            if (ObtenerPartidosPendientesDeJornada(jornada).Any())
+            {
+                return jornada;
+            }
+        }
+
+        return null;
+    }
+
+    private bool EsJornadaSeleccionable(int jornada)
+    {
+        var jornadaPendiente = ObtenerJornadaPendienteActual();
+        return jornadaPendiente.HasValue && jornada == jornadaPendiente.Value;
+    }
+
+    private void SincronizarJornadaActivaConPendiente()
+    {
+        if (_etapaActiva != FaseTorneo.FaseDeGrupos)
+        {
+            return;
+        }
+
+        var jornadaPendiente = ObtenerJornadaPendienteActual();
+
+        if (jornadaPendiente.HasValue)
+        {
+            _jornadaActiva = jornadaPendiente.Value;
+        }
     }
 
     private bool FaseYaGenerada(FaseTorneo fase)
@@ -867,7 +945,13 @@ else
             var clasificados = ServicioClasificacion.ObtenerClasificadosAFaseEliminatoria(EstadoTorneo.Fixture!, config);
             var estadios = ServicioEstadio.ObtenerEstadios();
             EstadoTorneo.PartidosEliminatorios = ServicioCruces.GenerarPrimeraRondaEliminatoria(
-                new ContextoSorteo { Clasificados = clasificados, Estadios = estadios, ConfiguracionTorneo = config });
+                new ContextoSorteo
+                {
+                    Clasificados = clasificados,
+                    Estadios = estadios,
+                    ConfiguracionTorneo = config,
+                    FechaUltimoPartidoFaseGrupos = EstadoTorneo.Fixture!.Partidos.Max(p => p.Fecha)
+                });
             Toast.Exito("16avos de final generados correctamente.");
         }
         catch (Exception ex) { _error = ex.Message; }

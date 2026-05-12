@@ -8,4 +8,5 @@ public class ContextoGeneracionCruces
     public ClasificadosFaseGrupos Clasificados { get; set; } = null!;
     public List<Estadio> Estadios { get; set; } = new();
     public ConfiguracionTorneo ConfiguracionTorneo { get; set; } = null!;
+    public DateTime? FechaUltimoPartidoFaseGrupos { get; set; }
 }

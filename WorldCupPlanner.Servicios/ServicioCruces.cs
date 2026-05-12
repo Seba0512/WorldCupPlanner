@@ -47,7 +47,8 @@ public class ServicioCruces
             Partidos = partidos,
             Clasificados = sorteo.Clasificados,
             Estadios = sorteo.Estadios,
-            ConfiguracionTorneo = sorteo.ConfiguracionTorneo
+            ConfiguracionTorneo = sorteo.ConfiguracionTorneo,
+            FechaUltimoPartidoFaseGrupos = sorteo.FechaUltimoPartidoFaseGrupos
         };
     }
 
@@ -88,8 +89,7 @@ public class ServicioCruces
         };
         ReordenarVisitantesParaEvitarMismoGrupo(cruceEquipos);
 
-        var fechaInicioDeFase = contexto.ConfiguracionTorneo.FechaInicioTorneo.Date
-            .AddDays(contexto.ConfiguracionTorneo.SeparacionEntreFechas);
+        var fechaInicioDeFase = ObtenerFechaInicioPrimeraRonda(contexto);
 
         for (int i = 0; i < primeros.Count; i++)
         {
@@ -118,8 +118,7 @@ public class ServicioCruces
         };
         ReordenarVisitantesParaEvitarMismoGrupo(cruceEquipos);
 
-        var fechaInicioDeFase = contexto.ConfiguracionTorneo.FechaInicioTorneo.Date
-            .AddDays(contexto.ConfiguracionTorneo.SeparacionEntreFechas);
+        var fechaInicioDeFase = ObtenerFechaInicioPrimeraRonda(contexto);
 
         for (int i = 0; i < primerosRestantes.Count; i++)
         {
@@ -141,8 +140,7 @@ public class ServicioCruces
     {
         ReordenarEquiposParaEvitarCrucesInternosDelMismoGrupo(segundosRestantes, contexto.Clasificados);
 
-        var fechaInicioDeFase = contexto.ConfiguracionTorneo.FechaInicioTorneo.Date
-            .AddDays(contexto.ConfiguracionTorneo.SeparacionEntreFechas);
+        var fechaInicioDeFase = ObtenerFechaInicioPrimeraRonda(contexto);
 
         for (int i = 0; i < segundosRestantes.Count; i += PasoEntreParesDeEquipos)
         {
@@ -169,6 +167,14 @@ public class ServicioCruces
             Fecha = datos.Fecha,
             Fase = datos.Fase
         };
+    }
+
+    private DateTime ObtenerFechaInicioPrimeraRonda(ContextoGeneracionCruces contexto)
+    {
+        var fechaBase = contexto.FechaUltimoPartidoFaseGrupos?.Date
+            ?? contexto.ConfiguracionTorneo.FechaInicioTorneo.Date;
+
+        return fechaBase.AddDays(contexto.ConfiguracionTorneo.SeparacionEntreFechas);
     }
 
     private List<Equipo> MezclarEquiposConFisherYates(List<Equipo> equipos, Random random)
