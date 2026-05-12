@@ -118,9 +118,11 @@ public class ServicioClasificacion
 
         posicionLocal.GolesAFavor += golesLocal;
         posicionLocal.GolesEnContra += golesVisitante;
+        posicionLocal.PartidosJugados++;
 
         posicionVisitante.GolesAFavor += golesVisitante;
         posicionVisitante.GolesEnContra += golesLocal;
+        posicionVisitante.PartidosJugados++;
 
         ActualizarPuntos(posicionLocal, posicionVisitante, partido);
     }
@@ -136,15 +138,21 @@ public class ServicioClasificacion
         if (golesLocal > golesVisitante)
         {
             posicionLocal.Puntos += PuntosPorVictoria;
+            posicionLocal.PartidosGanados++;
+            posicionVisitante.PartidosPerdidos++;
         }
         else if (golesVisitante > golesLocal)
         {
             posicionVisitante.Puntos += PuntosPorVictoria;
+            posicionVisitante.PartidosGanados++;
+            posicionLocal.PartidosPerdidos++;
         }
         else
         {
             posicionLocal.Puntos += PuntosPorEmpate;
             posicionVisitante.Puntos += PuntosPorEmpate;
+            posicionLocal.PartidosEmpatados++;
+            posicionVisitante.PartidosEmpatados++;
         }
     }
 

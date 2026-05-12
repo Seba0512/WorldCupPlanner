@@ -164,6 +164,62 @@ else
         <!-- Partidos del grupo activo -->
         @if (GrupoSeleccionado != null)
         {
+            <div class="table-card mb-3">
+                <div class="table-card-header">
+                    <span class="table-card-title">Tabla de posiciones — Grupo @GrupoSeleccionado.Etiqueta</span>
+                    <span style="font-size:12px; color:var(--text-secondary)">4 equipos</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-dark table-sm mb-0" style="font-size:13px; vertical-align:middle;">
+                        <thead>
+                            <tr style="color:var(--text-secondary); text-transform:uppercase; font-size:11px; letter-spacing:0.04em;">
+                                <th style="width:72px;">Posición</th>
+                                <th>Equipo</th>
+                                <th class="text-center">PJ</th>
+                                <th class="text-center">PG</th>
+                                <th class="text-center">PE</th>
+                                <th class="text-center">PP</th>
+                                <th class="text-center">GF</th>
+                                <th class="text-center">GC</th>
+                                <th class="text-center">DG</th>
+                                <th class="text-center">Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                var posicionActual = 1;
+                            }
+                            @foreach (var posicion in TablaGrupoSeleccionado)
+                            {
+                                var numeroPosicion = posicionActual++;
+                                <tr style="@ObtenerEstiloFilaPosicion(numeroPosicion)">
+                                    <td>
+                                        <span style="font-weight:700;">@numeroPosicion</span>
+                                        @if (numeroPosicion <= 2)
+                                        {
+                                            <span class="badge badge-green" style="margin-left:6px;">Clasifica</span>
+                                        }
+                                        else if (numeroPosicion == 3)
+                                        {
+                                            <span class="badge badge-muted" style="margin-left:6px;">3°</span>
+                                        }
+                                    </td>
+                                    <td style="font-weight:700;">@posicion.Equipo.Nombre</td>
+                                    <td class="text-center">@posicion.PartidosJugados</td>
+                                    <td class="text-center">@posicion.PartidosGanados</td>
+                                    <td class="text-center">@posicion.PartidosEmpatados</td>
+                                    <td class="text-center">@posicion.PartidosPerdidos</td>
+                                    <td class="text-center">@posicion.GolesAFavor</td>
+                                    <td class="text-center">@posicion.GolesEnContra</td>
+                                    <td class="text-center">@posicion.DiferenciaGoles</td>
+                                    <td class="text-center" style="font-weight:800;">@posicion.Puntos</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="table-card mb-4">
                 <div class="table-card-header">
                     <span class="table-card-title">Grupo @GrupoSeleccionado.Etiqueta</span>
@@ -472,6 +528,13 @@ else
     private Grupo? GrupoSeleccionado =>
         EstadoTorneo.Fixture?.Grupos.FirstOrDefault(g => g.Etiqueta == _grupoActivo);
 
+    private IEnumerable<PosicionEquipo> TablaGrupoSeleccionado =>
+        GrupoSeleccionado == null
+            ? Enumerable.Empty<PosicionEquipo>()
+            : ServicioClasificacion.CalcularTabla(
+                GrupoSeleccionado,
+                ServicioConfiguracionTorneo.ObtenerConfiguracionActual());
+
     private string EtapaActivaEtiqueta =>
         EtapasDisponibles.FirstOrDefault(e => e.Fase == _etapaActiva)?.Etiqueta ?? string.Empty;
 
@@ -496,6 +559,17 @@ else
             "Home"                                                 => EtapasDisponibles[0].Fase,
             "End"                                                  => EtapasDisponibles[^1].Fase,
             _                                                      => _etapaActiva,
+        };
+    }
+
+    private string ObtenerEstiloFilaPosicion(int posicion)
+    {
+        return posicion switch
+        {
+            1 => "background:rgba(34,197,94,0.14); border-left:3px solid rgba(34,197,94,0.8);",
+            2 => "background:rgba(34,197,94,0.08); border-left:3px solid rgba(34,197,94,0.55);",
+            3 => "background:rgba(148,163,184,0.06);",
+            _ => string.Empty
         };
     }
 

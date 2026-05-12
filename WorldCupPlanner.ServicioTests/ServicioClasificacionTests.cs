@@ -44,6 +44,57 @@ public class ServicioClasificacionTests
         Assert.AreEqual(0, ObtenerPuntos(tabla, equipo4));
     }
 
+    [TestMethod]
+    public void CalcularTabla_ConResultadosDeGrupo_CalculaEstadisticasCompletas()
+    {
+        // Arrange
+        var servicioClasificacion = new ServicioClasificacion();
+
+        var equipo1 = CrearEquipo("Equipo1");
+        var equipo2 = CrearEquipo("Equipo2");
+        var equipo3 = CrearEquipo("Equipo3");
+        var equipo4 = CrearEquipo("Equipo4");
+
+        var grupo = new Grupo("A", new List<Equipo>
+        {
+            equipo1,
+            equipo2,
+            equipo3,
+            equipo4
+        });
+
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo4, 2, 0));
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo3, 1, 1));
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo3, 0, 0));
+        grupo.Partidos.Add(CrearPartido(equipo2, equipo4, 3, 1));
+        grupo.Partidos.Add(CrearPartido(equipo1, equipo2, 1, 0));
+        grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 2, 1));
+
+        // Act
+        var tabla = servicioClasificacion.CalcularTabla(grupo);
+        var posicionEquipo1 = tabla.Single(p => p.Equipo == equipo1);
+        var posicionEquipo2 = tabla.Single(p => p.Equipo == equipo2);
+
+        // Assert
+        Assert.AreEqual(3, posicionEquipo1.PartidosJugados);
+        Assert.AreEqual(2, posicionEquipo1.PartidosGanados);
+        Assert.AreEqual(1, posicionEquipo1.PartidosEmpatados);
+        Assert.AreEqual(0, posicionEquipo1.PartidosPerdidos);
+        Assert.AreEqual(3, posicionEquipo1.GolesAFavor);
+        Assert.AreEqual(0, posicionEquipo1.GolesEnContra);
+        Assert.AreEqual(3, posicionEquipo1.DiferenciaGoles);
+        Assert.AreEqual(7, posicionEquipo1.Puntos);
+
+        Assert.AreEqual(3, posicionEquipo2.PartidosJugados);
+        Assert.AreEqual(1, posicionEquipo2.PartidosGanados);
+        Assert.AreEqual(1, posicionEquipo2.PartidosEmpatados);
+        Assert.AreEqual(1, posicionEquipo2.PartidosPerdidos);
+        Assert.AreEqual(4, posicionEquipo2.GolesAFavor);
+        Assert.AreEqual(3, posicionEquipo2.GolesEnContra);
+        Assert.AreEqual(1, posicionEquipo2.DiferenciaGoles);
+        Assert.AreEqual(4, posicionEquipo2.Puntos);
+    }
+
     private Equipo CrearEquipo(string nombre)
     {
         return CrearEquipo(nombre, Confederacion.UEFA);
