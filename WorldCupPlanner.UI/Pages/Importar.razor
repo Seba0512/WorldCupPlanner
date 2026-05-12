@@ -1,0 +1,138 @@
+@page "/importar"
+@inject ServicioEquipo ServicioEquipo
+
+<PageTitle>Importar equipos — WorldCupPlanner 2026</PageTitle>
+
+<PageHeader Titulo="Importar equipos" UrlVolver="/equipos" TextoVolver="Volver a equipos" />
+
+<div class="form-section">
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger">
+            <span class="oi oi-warning" aria-hidden="true"></span> @_error
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(_exito))
+    {
+        <div class="alert alert-success">
+            <span class="oi oi-check" aria-hidden="true"></span> @_exito
+        </div>
+    }
+
+    @if (_erroresImportacion.Count > 0)
+    {
+        <div class="alert alert-warning">
+            <strong>Filas con error:</strong>
+            <ul class="mb-0 mt-1">
+                @foreach (var item in _erroresImportacion)
+                {
+                    <li>@item</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="form-group">
+        <label class="form-label">Archivo CSV</label>
+        <InputFile class="form-control" accept=".csv" OnChange="SeleccionarArchivo" />
+        <span class="form-hint">Encabezados requeridos: <code>Nombre,Confederacion,RankingFIFA</code></span>
+    </div>
+
+    <div class="d-flex gap-2 mt-2">
+        <button type="button" class="btn btn-primary" disabled="@(_archivo == null)" @onclick="EjecutarImportacion">
+            <span class="oi oi-data-transfer-upload" aria-hidden="true"></span> Importar
+        </button>
+        <a href="/equipos" class="btn btn-secondary">Cancelar</a>
+    </div>
+</div>
+
+@code {
+    private const long MaxTamanioArchivoBytes = 5 * 1024 * 1024;
+    private const int ColumnasEsperadas = 3;
+    private const int IndiceNombre = 0;
+    private const int IndiceConfederacion = 1;
+    private const int IndiceRanking = 2;
+    private const string EncabezadoEsperado = "Nombre,Confederacion,RankingFIFA";
+
+    private IBrowserFile? _archivo;
+    private string _error = string.Empty;
+    private string _exito = string.Empty;
+    private List<string> _erroresImportacion = new();
+
+    private void SeleccionarArchivo(InputFileChangeEventArgs e)
+    {
+        _archivo = e.File;
+        _error = string.Empty;
+        _exito = string.Empty;
+        _erroresImportacion = new();
+    }
+
+    private async Task EjecutarImportacion()
+    {
+        if (_archivo == null) return;
+
+        _error = string.Empty;
+        _exito = string.Empty;
+        _erroresImportacion = new();
+
+        using var stream = _archivo.OpenReadStream(MaxTamanioArchivoBytes);
+        using var reader = new StreamReader(stream);
+
+        var encabezado = await reader.ReadLineAsync();
+        if (encabezado?.Trim() != EncabezadoEsperado)
+        {
+            _error = $"Encabezado inválido. Se esperaba: {EncabezadoEsperado}";
+            return;
+        }
+
+        var importados = 0;
+        var numeroLinea = 1;
+        while (!reader.EndOfStream)
+        {
+            var linea = await reader.ReadLineAsync();
+            numeroLinea++;
+            if (string.IsNullOrWhiteSpace(linea)) continue;
+            if (ProcesarLinea(linea, numeroLinea)) importados++;
+        }
+
+        _exito = $"{importados} equipo(s) importado(s) correctamente.";
+    }
+
+    private bool ProcesarLinea(string linea, int numeroLinea)
+    {
+        var columnas = linea.Split(',');
+        if (columnas.Length != ColumnasEsperadas)
+        {
+            _erroresImportacion.Add($"Línea {numeroLinea}: se esperaban {ColumnasEsperadas} columnas.");
+            return false;
+        }
+
+        var nombre = columnas[IndiceNombre].Trim();
+        var confederacionTexto = columnas[IndiceConfederacion].Trim();
+        var rankingTexto = columnas[IndiceRanking].Trim();
+
+        if (!Enum.TryParse<Confederacion>(confederacionTexto, ignoreCase: true, out var confederacion))
+        {
+            _erroresImportacion.Add($"Línea {numeroLinea} ({nombre}): confederación inválida \"{confederacionTexto}\".");
+            return false;
+        }
+
+        if (!int.TryParse(rankingTexto, out var ranking))
+        {
+            _erroresImportacion.Add($"Línea {numeroLinea} ({nombre}): RankingFIFA debe ser un número entero.");
+            return false;
+        }
+
+        try
+        {
+            ServicioEquipo.Agregar(new Equipo { Nombre = nombre, Confederacion = confederacion, RankingFIFA = ranking });
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _erroresImportacion.Add($"Línea {numeroLinea} ({nombre}): {ex.Message}");
+            return false;
+        }
+    }
+}
