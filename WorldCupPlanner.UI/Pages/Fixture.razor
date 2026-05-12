@@ -606,7 +606,7 @@ else
     {
         if (partido == null || !PuedeSimularPartido(partido))
         {
-            _error = "Solo se puede simular un partido pendiente de la fase actual.";
+            _error = "Solo se puede simular el próximo partido pendiente del calendario.";
             return;
         }
 
@@ -662,7 +662,7 @@ else
             && EsEtapaActivaSimulable
             && PerteneceAEtapaActiva(partido)
             && !partido.EstaJugado()
-            && ObtenerPartidosSimulablesAhora().Contains(partido);
+            && ReferenceEquals(partido, ObtenerProximoPartidoSimulable());
     }
 
     private bool PuedeSimularJornadaOFecha()
@@ -831,6 +831,14 @@ else
         return jornadaPendiente.HasValue
             ? ObtenerPartidosPendientesDeJornada(jornadaPendiente.Value)
             : new List<Partido>();
+    }
+
+    private Partido? ObtenerProximoPartidoSimulable()
+    {
+        return ObtenerPartidosSimulablesAhora()
+            .OrderBy(p => p.Fecha)
+            .ThenBy(p => p.Id)
+            .FirstOrDefault();
     }
 
     private int? ObtenerJornadaPendienteActual()
