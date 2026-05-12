@@ -10,6 +10,7 @@
 @inject ConfiguracionTorneo ConfiguracionTorneo
 @inject SesionServicio SesionServicio
 @inject ToastServicio Toast
+@inject NavigationManager NavigationManager
 
 <PageTitle>Fixture — WorldCupPlanner 2026</PageTitle>
 
@@ -96,6 +97,12 @@
                 <button type="button" class="btn btn-primary w-100" @onclick="GenerarFixture">
                     <span class="oi oi-cog" aria-hidden="true"></span> Generar Fixture
                 </button>
+                @if (EstadoTorneo.FixtureAnterior != null)
+                {
+                    <a href="/fixture/anterior" class="btn btn-secondary w-100 mt-2">
+                        <span class="oi oi-eye" aria-hidden="true"></span> Ver torneo anterior
+                    </a>
+                }
             </div>
         </div>
         <div class="col-lg-6">
@@ -129,7 +136,43 @@ else
         </div>
     </div>
 
-    <!-- Navegación por etapas del torneo -->
+    @if (TorneoEstaFinalizado)
+    {
+        <div class="alert alert-success mb-3">
+            <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                <div>
+                    <strong>¡Torneo finalizado!</strong>
+                    — Campeón: <strong>@PartidoFinal!.Ganador()!.Nombre</strong>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" @onclick="CrearNuevoTorneo">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Crear nuevo torneo
+                </button>
+            </div>
+        </div>
+    }
+
+    <div class="table-card mb-3">
+        <div class="table-card-header">
+            <span class="table-card-title">Configuración usada para generar el fixture</span>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Parámetro</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Fecha inicio torneo</td><td>@ConfiguracionUsadaParaFixture.FechaInicioTorneo.ToString("yyyy-MM-dd")</td></tr>
+                <tr><td>Semilla fixture</td><td>@ConfiguracionUsadaParaFixture.SemillaFixture</td></tr>
+                <tr><td>Semilla completar</td><td>@ConfiguracionUsadaParaFixture.SemillaCompletar</td></tr>
+                <tr><td>Semilla cruces</td><td>@ConfiguracionUsadaParaFixture.SemillaCrucesFase</td></tr>
+                <tr><td>Semilla simulacion</td><td>@ConfiguracionUsadaParaFixture.SemillaSimulation</td></tr>
+                <tr><td>Max partidos por dia</td><td>@ConfiguracionUsadaParaFixture.MaxPartidosPorDia</td></tr>
+                <tr><td>Separacion entre fechas (dias)</td><td>@ConfiguracionUsadaParaFixture.SeparacionEntreFechas</td></tr>
+            </tbody>
+        </table>
+    </div>
     <div class="stage-tabs" role="tablist" aria-label="Etapas del torneo">
         @foreach (var etapa in EtapasDisponibles)
         {
@@ -144,7 +187,8 @@ else
         }
     </div>
 
-    <!-- Contenido de la etapa seleccionada -->
+
+    
     @if (_etapaActiva == FaseTorneo.FaseDeGrupos)
     {
         <!-- Tabs de grupos -->
@@ -552,6 +596,21 @@ else
     private Partido? PartidoTercerPuesto =>
         EstadoTorneo.PartidosEliminatorios.FirstOrDefault(p => p.Fase == FaseTorneo.TercerPuesto);
 
+    private ConfiguracionTorneo ConfiguracionUsadaParaFixture =>
+        ServicioConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
+
+    private bool TorneoEstaFinalizado =>
+        PartidoFinal != null && PartidoFinal.EstaJugado();
+
+    private void CrearNuevoTorneo()
+    {
+        EstadoTorneo.FixtureAnterior = EstadoTorneo.Fixture;
+        EstadoTorneo.TorneoFinalizado = true;
+        EstadoTorneo.Fixture = null;
+        EstadoTorneo.PartidosEliminatorios = new();
+        NavigationManager.NavigateTo("/fixture");
+    }
+
     private void SeleccionarEtapa(FaseTorneo fase)
     {
         _etapaActiva = fase;
@@ -596,6 +655,7 @@ else
             EstadoTorneo.PartidosEliminatorios = new();
             ServicioEquipo.RegistrarFixtureGenerado(EstadoTorneo.Fixture);
             ServicioEstadio.RegistrarFixtureGenerado(EstadoTorneo.Fixture);
+            ServicioConfiguracionTorneo.RegistrarFixtureGenerado(config);
             SincronizarJornadaActivaConPendiente();
             Toast.Exito("Fixture generado correctamente.");
         }

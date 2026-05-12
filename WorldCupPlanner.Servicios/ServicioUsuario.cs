@@ -31,6 +31,7 @@ public class ServicioUsuario
     {
         if (solicitante != null)
             _autorizacion.VerificarEsAdministrador(solicitante);
+        ValidarQuedaAlMenosUnAdministrador(usuario);
         actualizacion ??= new ActualizacionUsuario();
         var usuarioActual = BuscarUsuarioExistenteOLanzarExcepcion(usuario);
         var campos = AplicarActualizacionesDeCampos(usuarioActual, actualizacion);
@@ -106,6 +107,16 @@ public class ServicioUsuario
     public Usuario? ObtenerPorEmail(string email)
     {
         return _repositorio.ObtenerPorEmail(email);
+    }
+
+    private void ValidarQuedaAlMenosUnAdministrador(Usuario usuarioAfectado)
+    {
+        if (usuarioAfectado.TieneRol(RolUsuario.AdministradorDelSistema)) return;
+        var hayOtroAdmin = _repositorio.Buscar(u =>
+            !ReferenceEquals(u, usuarioAfectado) &&
+            u.TieneRol(RolUsuario.AdministradorDelSistema)).Any();
+        if (!hayOtroAdmin)
+            throw new InvalidOperationException("Debe haber al menos un administrador en el sistema.");
     }
 
     private void ValidarEmailUnico(string email)

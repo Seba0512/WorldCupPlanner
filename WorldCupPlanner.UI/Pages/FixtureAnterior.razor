@@ -1,0 +1,132 @@
+@page "/fixture/anterior"
+@inject EstadoTorneo EstadoTorneo
+@inject ServicioClasificacion ServicioClasificacion
+
+<PageTitle>Torneo anterior — WorldCupPlanner 2026</PageTitle>
+
+<PageHeader Titulo="Torneo anterior" Subtitulo="Fase de grupos — solo lectura" UrlVolver="/fixture" TextoVolver="Volver al fixture" />
+
+@if (EstadoTorneo.FixtureAnterior == null)
+{
+    <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <div class="empty-state-title">No hay torneo anterior</div>
+        <div class="empty-state-text">Aún no se ha finalizado ningún torneo.</div>
+        <a href="/fixture" class="btn btn-primary">Ir al fixture</a>
+    </div>
+}
+else
+{
+    <div class="group-tabs" role="tablist" aria-label="Grupos de la fase de grupos">
+        @foreach (var grupo in EstadoTorneo.FixtureAnterior.Grupos)
+        {
+            <button class="group-tab @(_grupoActivo == grupo.Etiqueta ? "active" : "")"
+                    role="tab"
+                    aria-selected="@(_grupoActivo == grupo.Etiqueta ? "true" : "false")"
+                    tabindex="@(_grupoActivo == grupo.Etiqueta ? 0 : -1)"
+                    @onclick="() => _grupoActivo = grupo.Etiqueta">
+                Grupo @grupo.Etiqueta
+            </button>
+        }
+    </div>
+
+    @if (GrupoSeleccionado != null)
+    {
+        <div class="table-card mb-3">
+            <div class="table-card-header">
+                <span class="table-card-title">Tabla de posiciones — Grupo @GrupoSeleccionado.Etiqueta</span>
+                <span style="font-size:12px; color:var(--text-secondary)">4 equipos</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-dark table-sm mb-0" style="font-size:13px; vertical-align:middle;">
+                    <thead>
+                        <tr style="color:var(--text-secondary); text-transform:uppercase; font-size:11px; letter-spacing:0.04em;">
+                            <th style="width:72px;">Posición</th>
+                            <th>Equipo</th>
+                            <th class="text-center">PJ</th>
+                            <th class="text-center">PG</th>
+                            <th class="text-center">PE</th>
+                            <th class="text-center">PP</th>
+                            <th class="text-center">GF</th>
+                            <th class="text-center">GC</th>
+                            <th class="text-center">DG</th>
+                            <th class="text-center">Pts</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var (posicion, numeroPosicion) in TablaGrupoSeleccionado.Select((p, i) => (p, i + 1)))
+                        {
+                            <tr>
+                                <td>
+                                    <span style="font-weight:700;">@numeroPosicion</span>
+                                    @if (numeroPosicion <= 2)
+                                    {
+                                        <span class="badge badge-green" style="margin-left:6px;">Clasifica</span>
+                                    }
+                                    else if (numeroPosicion == 3)
+                                    {
+                                        <span class="badge badge-muted" style="margin-left:6px;">3°</span>
+                                    }
+                                </td>
+                                <td style="font-weight:700;">@posicion.Equipo.Nombre</td>
+                                <td class="text-center">@posicion.PartidosJugados</td>
+                                <td class="text-center">@posicion.PartidosGanados</td>
+                                <td class="text-center">@posicion.PartidosEmpatados</td>
+                                <td class="text-center">@posicion.PartidosPerdidos</td>
+                                <td class="text-center">@posicion.GolesAFavor</td>
+                                <td class="text-center">@posicion.GolesEnContra</td>
+                                <td class="text-center">@posicion.DiferenciaGoles</td>
+                                <td class="text-center" style="font-weight:800;">@posicion.Puntos</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="table-card mb-4">
+            <div class="table-card-header">
+                <span class="table-card-title">Grupo @GrupoSeleccionado.Etiqueta</span>
+                <span style="font-size:12px; color:var(--text-secondary)">@GrupoSeleccionado.Partidos.Count partidos</span>
+            </div>
+            @foreach (var partido in GrupoSeleccionado.Partidos)
+            {
+                <div class="match-card">
+                    <div class="match-team @(partido.EstaJugado() && partido.Ganador() == partido.EquipoLocal ? "match-winner" : "")">
+                        @partido.EquipoLocal?.Nombre
+                    </div>
+                    <div class="match-score">
+                        @if (partido.EstaJugado())
+                        {
+                            <span class="score-box">@partido.GolesLocal</span>
+                            <span class="score-sep">—</span>
+                            <span class="score-box">@partido.GolesVisitante</span>
+                        }
+                        else
+                        {
+                            <span style="font-size:12px; color:var(--text-muted)">vs</span>
+                        }
+                    </div>
+                    <div class="match-team right @(partido.EstaJugado() && partido.Ganador() == partido.EquipoVisitante ? "match-winner" : "")">
+                        @partido.EquipoVisitante?.Nombre
+                    </div>
+                    <div class="match-meta" style="margin-left:12px; text-align:right; min-width:110px">
+                        @partido.Fecha.ToString("dd/MM/yy HH:mm")
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    private string _grupoActivo = "A";
+
+    private Grupo? GrupoSeleccionado =>
+        EstadoTorneo.FixtureAnterior?.Grupos.FirstOrDefault(g => g.Etiqueta == _grupoActivo);
+
+    private IEnumerable<PosicionEquipo> TablaGrupoSeleccionado =>
+        GrupoSeleccionado == null
+            ? Enumerable.Empty<PosicionEquipo>()
+            : ServicioClasificacion.CalcularTabla(GrupoSeleccionado);
+}

@@ -2,10 +2,20 @@
 @inject ServicioAuditoria ServicioAuditoria
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 
 <PageTitle>Auditoría — WorldCupPlanner 2026</PageTitle>
 
-<PageHeader Titulo="Auditoría" Subtitulo="Registro de acciones del sistema" />
+<PageHeader Titulo="Auditoría" Subtitulo="Registro de acciones del sistema">
+    <AccionesContent>
+        @if (_registros.Any())
+        {
+            <button class="btn btn-secondary btn-sm" @onclick="DescargarLog">
+                <span class="oi oi-data-transfer-download" aria-hidden="true"></span> Descargar .txt
+            </button>
+        }
+    </AccionesContent>
+</PageHeader>
 
 <div class="table-card">
     @if (!_registros.Any())
@@ -57,6 +67,13 @@
     {
         if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
         _registros = ServicioAuditoria.ObtenerTodos();
+    }
+
+    private async Task DescargarLog()
+    {
+        var lineas = _registros.Select(r => $"{r.Timestamp} | {r.Usuario} | {r.Accion} | {r.Detalle}");
+        var contenido = string.Join("\n", lineas);
+        await JS.InvokeVoidAsync("descargarArchivo", contenido, "logs_auditoria.txt");
     }
 
     private static string FormatearTimestamp(string iso)

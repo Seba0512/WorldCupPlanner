@@ -99,15 +99,15 @@
         try
         {
             if (_usuario == null) return;
+            if (_esAdmin) _usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+            else _usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
+            if (_esEditor) _usuario.AgregarRol(RolUsuario.Editor);
+            else _usuario.RemoverRol(RolUsuario.Editor);
             ServicioUsuario.ActualizarUsuario(_usuario, new ActualizacionUsuario
             {
                 Nombre = _nombre, Apellido = _apellido,
                 Email = _email, FechaNacimiento = _fechaNacimiento.ToString("MM-dd-yyyy")
             });
-            if (_esAdmin) _usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-            else _usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
-            if (_esEditor) _usuario.AgregarRol(RolUsuario.Editor);
-            else _usuario.RemoverRol(RolUsuario.Editor);
             Toast.Exito("Usuario actualizado correctamente.");
             NavigationManager.NavigateTo("/usuarios");
         }
