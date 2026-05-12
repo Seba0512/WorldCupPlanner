@@ -274,4 +274,25 @@ public class ServicioSimulacionTests
 
         Assert.IsTrue(golesLocalesFuertes > golesLocalesDebiles);
     }
+
+    [TestMethod]
+    public void SimularResultados_MismoPartidoSoloODentroDeLista_DebeGenerarMismoResultado()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var partidos = CrearPartidosSinResultado(3);
+        var partidoSimuladoSolo = CrearPartidosSinResultado(3)[2];
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 4
+        };
+
+        // Act
+        servicioSimulacion.SimularResultados(new List<Partido> { partidoSimuladoSolo }, configuracionTorneo);
+        servicioSimulacion.SimularResultados(partidos, configuracionTorneo);
+
+        // Assert
+        Assert.AreEqual(partidoSimuladoSolo.GolesLocal, partidos[2].GolesLocal);
+        Assert.AreEqual(partidoSimuladoSolo.GolesVisitante, partidos[2].GolesVisitante);
+    }
 }

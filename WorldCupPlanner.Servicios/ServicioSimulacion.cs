@@ -6,6 +6,7 @@ namespace WorldCupPlanner.Servicios;
 
 public class ServicioSimulacion
 {
+    private const int MultiplicadorSemillaPartido = 397;
     private const int GolesMinimos = 0;
     private const int GolesMaximosExclusivo = 6;
     private const int GolesBaseMaximosExclusivo = 4;
@@ -18,14 +19,14 @@ public class ServicioSimulacion
         List<Partido> partidos,
         ConfiguracionTorneo configuracionTorneo)
     {
-        var random = new Random(configuracionTorneo.SemillaSimulation);
-
         foreach (var partido in partidos)
         {
             if (partido.EstaJugado())
             {
                 continue;
             }
+
+            var random = CrearRandomParaPartido(partido, configuracionTorneo);
 
             partido.GolesLocal = GenerarGoles(partido.EquipoLocal, random);
             partido.GolesVisitante = GenerarGoles(partido.EquipoVisitante, random);
@@ -35,6 +36,20 @@ public class ServicioSimulacion
                 DesempatarPartido(partido);
             }
         }
+    }
+
+    private Random CrearRandomParaPartido(
+        Partido partido,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        return new Random(ObtenerSemillaPartido(partido, configuracionTorneo));
+    }
+
+    private int ObtenerSemillaPartido(
+        Partido partido,
+        ConfiguracionTorneo configuracionTorneo)
+    {
+        return unchecked(configuracionTorneo.SemillaSimulation * MultiplicadorSemillaPartido + partido.Id);
     }
 
     private bool EsFaseEliminatoria(Partido partido)

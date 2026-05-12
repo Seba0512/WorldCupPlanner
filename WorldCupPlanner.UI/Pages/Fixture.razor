@@ -34,9 +34,30 @@
                     }
                 </button>
             }
-            <button class="btn btn-warning btn-sm" @onclick="SimularResultados">
-                <span class="oi oi-cog" aria-hidden="true"></span> Simular resultados
-            </button>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Opciones de simulación">
+                @if (_etapaActiva == FaseTorneo.FaseDeGrupos)
+                {
+                    <select class="form-select form-select-sm"
+                            style="width:auto"
+                            @bind="_jornadaActiva"
+                            disabled="@(!EsEtapaActivaSimulable)">
+                        <option value="@JornadaUno">Jornada 1</option>
+                        <option value="@JornadaDos">Jornada 2</option>
+                        <option value="@JornadaTres">Jornada 3</option>
+                    </select>
+                }
+                <button class="btn btn-warning"
+                        disabled="@(!PuedeSimularJornadaOFecha())"
+                        @onclick="SimularJornadaOFecha">
+                    <span class="oi oi-clock" aria-hidden="true"></span>
+                    @(_etapaActiva == FaseTorneo.FaseDeGrupos ? "Simular jornada" : "Simular fecha")
+                </button>
+                <button class="btn btn-warning"
+                        disabled="@(!PuedeSimularFaseActiva())"
+                        @onclick="SimularFaseActiva">
+                    <span class="oi oi-cog" aria-hidden="true"></span> Simular fase
+                </button>
+            </div>
         }
     </AccionesContent>
 </PageHeader>
@@ -172,6 +193,13 @@ else
                         <div class="match-meta" style="margin-left:12px; text-align:right; min-width:110px">
                             @partido.Fecha.ToString("dd/MM/yy HH:mm")
                         </div>
+                        <button type="button"
+                                class="btn btn-warning btn-sm"
+                                disabled="@(!PuedeSimularPartido(partido))"
+                                style="margin-left:8px; flex-shrink:0"
+                                @onclick="() => SimularPartido(partido)">
+                            Simular partido
+                        </button>
                         <a href="/partidos/@partido.Id/editar" class="btn btn-success btn-sm" style="margin-left:8px; flex-shrink:0">
                             <span class="oi oi-pencil" aria-hidden="true"></span>
                         </a>
@@ -273,6 +301,13 @@ else
                             }
                         </div>
 
+                        <button type="button"
+                                class="btn btn-warning btn-sm"
+                                disabled="@(!PuedeSimularPartido(PartidoFinal))"
+                                style="margin-left:8px; flex-shrink:0;"
+                                @onclick="() => SimularPartido(PartidoFinal)">
+                            Simular partido
+                        </button>
                         <a href="/partidos/@PartidoFinal.Id/editar"
                            class="btn btn-success btn-sm"
                            style="margin-left:8px; flex-shrink:0;">
@@ -334,6 +369,13 @@ else
                         <div class="match-meta" style="margin-left:12px; min-width:110px; text-align:right;">
                             @PartidoTercerPuesto.Fecha.ToString("dd/MM/yy HH:mm")
                         </div>
+                        <button type="button"
+                                class="btn btn-warning btn-sm"
+                                disabled="@(!PuedeSimularPartido(PartidoTercerPuesto))"
+                                style="margin-left:8px; flex-shrink:0;"
+                                @onclick="() => SimularPartido(PartidoTercerPuesto)">
+                            Simular partido
+                        </button>
                         <a href="/partidos/@PartidoTercerPuesto.Id/editar"
                            class="btn btn-success btn-sm"
                            style="margin-left:8px; flex-shrink:0;">
@@ -386,6 +428,13 @@ else
                         <div class="match-meta" style="margin-left:12px; min-width:110px; text-align:right">
                             @partido.Fecha.ToString("dd/MM/yy HH:mm")
                         </div>
+                        <button type="button"
+                                class="btn btn-warning btn-sm"
+                                disabled="@(!PuedeSimularPartido(partido))"
+                                style="margin-left:8px; flex-shrink:0"
+                                @onclick="() => SimularPartido(partido)">
+                            Simular partido
+                        </button>
                         <a href="/partidos/@partido.Id/editar" class="btn btn-success btn-sm" style="margin-left:8px; flex-shrink:0">
                             <span class="oi oi-pencil" aria-hidden="true"></span>
                         </a>
@@ -397,9 +446,15 @@ else
 }
 
 @code {
+    private const int JornadaUno = 1;
+    private const int JornadaDos = 2;
+    private const int JornadaTres = 3;
+    private const int CantidadPartidosPorJornadaGrupo = 2;
+
     private string _error = string.Empty;
     private string _grupoActivo = "A";
     private FaseTorneo _etapaActiva = FaseTorneo.FaseDeGrupos;
+    private int _jornadaActiva = JornadaUno;
     private bool _generando = false;
 
     private record EtapaTorneo(FaseTorneo Fase, string Etiqueta);
@@ -460,17 +515,204 @@ else
         catch (Exception ex) { _error = ex.Message; }
     }
 
-    private void SimularResultados()
+    private void SimularPartido(Partido? partido)
+    {
+        if (partido == null || !PuedeSimularPartido(partido))
+        {
+            _error = "Solo se puede simular un partido pendiente de la fase actual.";
+            return;
+        }
+
+        SimularPartidos(new List<Partido> { partido }, "Partido simulado correctamente.");
+    }
+
+    private void SimularJornadaOFecha()
+    {
+        var partidos = ObtenerPartidosJornadaOFechaActual();
+        var mensaje = _etapaActiva == FaseTorneo.FaseDeGrupos
+            ? "Jornada simulada correctamente."
+            : "Fecha simulada correctamente.";
+
+        SimularPartidos(partidos, mensaje);
+    }
+
+    private void SimularFaseActiva()
+    {
+        SimularPartidos(
+            ObtenerPartidosPendientesEtapaActiva(),
+            "Fase simulada correctamente.");
+    }
+
+    private void SimularPartidos(List<Partido> partidos, string mensajeExito)
     {
         _error = string.Empty;
+
+        if (!partidos.Any())
+        {
+            _error = "No hay partidos pendientes para simular en la fase actual.";
+            return;
+        }
+
         try
         {
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
-            var partidos = EstadoTorneo.Fixture!.Partidos.Concat(EstadoTorneo.PartidosEliminatorios).ToList();
             ServicioSimulacion.SimularResultados(partidos, config);
-            Toast.Exito("Resultados simulados correctamente.");
+            Toast.Exito(mensajeExito);
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private bool EsEtapaActivaSimulable =>
+        ObtenerFaseActualSimulable() == _etapaActiva;
+
+    private bool PuedeSimularPartido(Partido? partido)
+    {
+        return partido != null
+            && EsEtapaActivaSimulable
+            && PerteneceAEtapaActiva(partido)
+            && !partido.EstaJugado();
+    }
+
+    private bool PuedeSimularJornadaOFecha()
+    {
+        return ObtenerPartidosJornadaOFechaActual().Any();
+    }
+
+    private bool PuedeSimularFaseActiva()
+    {
+        return ObtenerPartidosPendientesEtapaActiva().Any();
+    }
+
+    private FaseTorneo? ObtenerFaseActualSimulable()
+    {
+        if (EstadoTorneo.Fixture == null)
+        {
+            return null;
+        }
+
+        if (EstadoTorneo.Fixture.Partidos.Any(p => !p.EstaJugado()))
+        {
+            return FaseTorneo.FaseDeGrupos;
+        }
+
+        var fasesEliminatorias = new[]
+        {
+            FaseTorneo.PrimeraRondaEliminatoria,
+            FaseTorneo.Octavos,
+            FaseTorneo.Cuartos,
+            FaseTorneo.Semifinal
+        };
+
+        foreach (var fase in fasesEliminatorias)
+        {
+            if (EstadoTorneo.PartidosEliminatorios.Any(p => p.Fase == fase && !p.EstaJugado()))
+            {
+                return fase;
+            }
+        }
+
+        if (EstadoTorneo.PartidosEliminatorios.Any(p =>
+                (p.Fase == FaseTorneo.Final || p.Fase == FaseTorneo.TercerPuesto)
+                && !p.EstaJugado()))
+        {
+            return FaseTorneo.Final;
+        }
+
+        return null;
+    }
+
+    private bool PerteneceAEtapaActiva(Partido partido)
+    {
+        if (_etapaActiva == FaseTorneo.Final)
+        {
+            return partido.Fase == FaseTorneo.Final || partido.Fase == FaseTorneo.TercerPuesto;
+        }
+
+        return partido.Fase == _etapaActiva;
+    }
+
+    private List<Partido> ObtenerPartidosPendientesEtapaActiva()
+    {
+        if (!EsEtapaActivaSimulable)
+        {
+            return new List<Partido>();
+        }
+
+        return ObtenerPartidosEtapaActiva()
+            .Where(p => !p.EstaJugado())
+            .ToList();
+    }
+
+    private List<Partido> ObtenerPartidosJornadaOFechaActual()
+    {
+        if (!EsEtapaActivaSimulable)
+        {
+            return new List<Partido>();
+        }
+
+        return _etapaActiva == FaseTorneo.FaseDeGrupos
+            ? ObtenerPartidosPendientesDeJornada(_jornadaActiva)
+            : ObtenerPartidosPendientesDePrimeraFechaActual();
+    }
+
+    private List<Partido> ObtenerPartidosEtapaActiva()
+    {
+        if (EstadoTorneo.Fixture == null)
+        {
+            return new List<Partido>();
+        }
+
+        if (_etapaActiva == FaseTorneo.FaseDeGrupos)
+        {
+            return EstadoTorneo.Fixture.Partidos;
+        }
+
+        if (_etapaActiva == FaseTorneo.Final)
+        {
+            return EstadoTorneo.PartidosEliminatorios
+                .Where(p => p.Fase == FaseTorneo.Final || p.Fase == FaseTorneo.TercerPuesto)
+                .ToList();
+        }
+
+        return EstadoTorneo.PartidosEliminatorios
+            .Where(p => p.Fase == _etapaActiva)
+            .ToList();
+    }
+
+    private List<Partido> ObtenerPartidosPendientesDeJornada(int jornada)
+    {
+        if (EstadoTorneo.Fixture == null)
+        {
+            return new List<Partido>();
+        }
+
+        var indiceInicial = (jornada - JornadaUno) * CantidadPartidosPorJornadaGrupo;
+
+        return EstadoTorneo.Fixture.Grupos
+            .SelectMany(g => g.Partidos
+                .Skip(indiceInicial)
+                .Take(CantidadPartidosPorJornadaGrupo))
+            .Where(p => !p.EstaJugado())
+            .ToList();
+    }
+
+    private List<Partido> ObtenerPartidosPendientesDePrimeraFechaActual()
+    {
+        var pendientes = ObtenerPartidosPendientesEtapaActiva();
+
+        if (!pendientes.Any())
+        {
+            return new List<Partido>();
+        }
+
+        var fecha = pendientes.Min(p => p.Fecha.Date);
+
+        return pendientes
+            .Where(p => p.Fecha.Date == fecha)
+            .ToList();
     }
 
     private bool FaseYaGenerada(FaseTorneo fase)
