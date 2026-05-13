@@ -8,4 +8,5 @@ public class EstadoTorneo
     public List<Partido> PartidosEliminatorios { get; set; } = new();
     public bool TorneoFinalizado { get; set; }
     public Fixture? FixtureAnterior { get; set; }
+    public List<Partido> PartidosEliminatoriosAnteriores { get; set; } = new();
 }

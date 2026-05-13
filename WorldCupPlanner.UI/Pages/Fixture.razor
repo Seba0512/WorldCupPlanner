@@ -605,6 +605,7 @@ else
     private void CrearNuevoTorneo()
     {
         EstadoTorneo.FixtureAnterior = EstadoTorneo.Fixture;
+        EstadoTorneo.PartidosEliminatoriosAnteriores = EstadoTorneo.PartidosEliminatorios;
         EstadoTorneo.TorneoFinalizado = true;
         EstadoTorneo.Fixture = null;
         EstadoTorneo.PartidosEliminatorios = new();

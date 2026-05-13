@@ -1270,7 +1270,31 @@ a:hover { color: var(--accent-blue-dark); }
     50%       { opacity: 0.6; transform: scale(0.8); }
 }
 
-/* ── 21. BOOTSTRAP OVERRIDES ───────────────────────────── */
+/* ── 21. TAB ANIMATIONS & SCROLL VARIANT ──────────────── */
+@keyframes tab-content-enter {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.tab-content-animated {
+    animation: tab-content-enter 0.2s ease;
+}
+
+/* Horizontal-scroll variant for stage-tabs on small screens */
+.stage-tabs-scroll {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+    padding-bottom: 20px;
+}
+
+.stage-tabs-scroll::-webkit-scrollbar { height: 4px; }
+.stage-tabs-scroll::-webkit-scrollbar-track { background: transparent; }
+.stage-tabs-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+/* ── 22. BOOTSTRAP OVERRIDES ───────────────────────────── */
 .table { --bs-table-bg: transparent; color: var(--text-primary); }
 .table > :not(caption) > * > * { background-color: transparent; color: var(--text-primary); border-bottom-color: var(--border-subtle); }
 .table-hover > tbody > tr:hover > * { background-color: rgba(255,255,255,0.03); color: var(--text-primary); }

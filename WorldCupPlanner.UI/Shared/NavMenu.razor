@@ -1,5 +1,6 @@
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
+@inject EstadoTorneo EstadoTorneo
 @implements IDisposable
 
 <aside class="sidebar">
@@ -35,6 +36,14 @@
                 <span class="oi oi-data-transfer-upload" aria-hidden="true"></span>
                 Importar
             </NavLink>
+
+            @if (EstadoTorneo.FixtureAnterior != null)
+            {
+                <NavLink class="sidebar-link" href="/fixture/anterior">
+                    <span class="oi oi-clock" aria-hidden="true"></span>
+                    Torneo anterior
+                </NavLink>
+            }
 
             @if (SesionServicio.EsAdministrador)
             {

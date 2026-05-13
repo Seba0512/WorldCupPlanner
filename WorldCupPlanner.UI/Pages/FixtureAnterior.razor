@@ -4,7 +4,7 @@
 
 <PageTitle>Torneo anterior — WorldCupPlanner 2026</PageTitle>
 
-<PageHeader Titulo="Torneo anterior" Subtitulo="Fase de grupos — solo lectura" UrlVolver="/fixture" TextoVolver="Volver al fixture" />
+<PageHeader Titulo="Torneo anterior" Subtitulo="Torneo anterior — solo lectura" UrlVolver="/fixture" TextoVolver="Volver al fixture" />
 
 @if (EstadoTorneo.FixtureAnterior == null)
 {
@@ -17,110 +17,408 @@
 }
 else
 {
-    <div class="group-tabs" role="tablist" aria-label="Grupos de la fase de grupos">
-        @foreach (var grupo in EstadoTorneo.FixtureAnterior.Grupos)
+    @if (Campeon != null)
+    {
+        <div class="alert" style="background:linear-gradient(135deg,rgba(244,185,66,0.12),rgba(244,185,66,0.04));
+                                  border-color:rgba(244,185,66,0.3) !important; color:var(--accent-gold) !important;
+                                  margin-bottom:20px; font-size:15px; font-weight:600;">
+            <span style="font-size:22px; line-height:1; flex-shrink:0;">🏆</span>
+            <span>Campeón del torneo: <strong>@Campeon.Nombre</strong></span>
+        </div>
+    }
+
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:22px; flex-wrap:wrap;">
+        <span class="badge badge-muted" style="gap:5px;">
+            <span class="oi oi-eye" aria-hidden="true"></span>
+            Solo lectura
+        </span>
+        <span style="font-size:13px; color:var(--text-muted);">
+            Consulta histórica del torneo finalizado — no se pueden editar ni simular partidos.
+        </span>
+    </div>
+
+    <div class="stage-tabs stage-tabs-scroll" role="tablist" aria-label="Etapas del torneo anterior">
+        @foreach (var etapa in EtapasDisponibles)
         {
-            <button class="group-tab @(_grupoActivo == grupo.Etiqueta ? "active" : "")"
+            <button class="stage-tab @(_etapaActiva == etapa.Fase ? "active" : "")"
                     role="tab"
-                    aria-selected="@(_grupoActivo == grupo.Etiqueta ? "true" : "false")"
-                    tabindex="@(_grupoActivo == grupo.Etiqueta ? 0 : -1)"
-                    @onclick="() => _grupoActivo = grupo.Etiqueta">
-                Grupo @grupo.Etiqueta
+                    aria-selected="@(_etapaActiva == etapa.Fase ? "true" : "false")"
+                    tabindex="@(_etapaActiva == etapa.Fase ? 0 : -1)"
+                    @onclick="() => SeleccionarEtapa(etapa.Fase)">
+                @etapa.Etiqueta
             </button>
         }
     </div>
 
-    @if (GrupoSeleccionado != null)
-    {
-        <div class="table-card mb-3">
-            <div class="table-card-header">
-                <span class="table-card-title">Tabla de posiciones — Grupo @GrupoSeleccionado.Etiqueta</span>
-                <span style="font-size:12px; color:var(--text-secondary)">4 equipos</span>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-dark table-sm mb-0" style="font-size:13px; vertical-align:middle;">
-                    <thead>
-                        <tr style="color:var(--text-secondary); text-transform:uppercase; font-size:11px; letter-spacing:0.04em;">
-                            <th style="width:72px;">Posición</th>
-                            <th>Equipo</th>
-                            <th class="text-center">PJ</th>
-                            <th class="text-center">PG</th>
-                            <th class="text-center">PE</th>
-                            <th class="text-center">PP</th>
-                            <th class="text-center">GF</th>
-                            <th class="text-center">GC</th>
-                            <th class="text-center">DG</th>
-                            <th class="text-center">Pts</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var (posicion, numeroPosicion) in TablaGrupoSeleccionado.Select((p, i) => (p, i + 1)))
-                        {
-                            <tr>
-                                <td>
-                                    <span style="font-weight:700;">@numeroPosicion</span>
-                                    @if (numeroPosicion <= 2)
-                                    {
-                                        <span class="badge badge-green" style="margin-left:6px;">Clasifica</span>
-                                    }
-                                    else if (numeroPosicion == 3)
-                                    {
-                                        <span class="badge badge-muted" style="margin-left:6px;">3°</span>
-                                    }
-                                </td>
-                                <td style="font-weight:700;">@posicion.Equipo.Nombre</td>
-                                <td class="text-center">@posicion.PartidosJugados</td>
-                                <td class="text-center">@posicion.PartidosGanados</td>
-                                <td class="text-center">@posicion.PartidosEmpatados</td>
-                                <td class="text-center">@posicion.PartidosPerdidos</td>
-                                <td class="text-center">@posicion.GolesAFavor</td>
-                                <td class="text-center">@posicion.GolesEnContra</td>
-                                <td class="text-center">@posicion.DiferenciaGoles</td>
-                                <td class="text-center" style="font-weight:800;">@posicion.Puntos</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div @key="_etapaActiva" class="tab-content-animated">
 
-        <div class="table-card mb-4">
-            <div class="table-card-header">
-                <span class="table-card-title">Grupo @GrupoSeleccionado.Etiqueta</span>
-                <span style="font-size:12px; color:var(--text-secondary)">@GrupoSeleccionado.Partidos.Count partidos</span>
+        @if (_etapaActiva == FaseTorneo.FaseDeGrupos)
+        {
+            <div class="group-tabs" role="tablist" aria-label="Grupos de la fase de grupos">
+                @foreach (var grupo in EstadoTorneo.FixtureAnterior.Grupos)
+                {
+                    <button class="group-tab @(_grupoActivo == grupo.Etiqueta ? "active" : "")"
+                            role="tab"
+                            aria-selected="@(_grupoActivo == grupo.Etiqueta ? "true" : "false")"
+                            tabindex="@(_grupoActivo == grupo.Etiqueta ? 0 : -1)"
+                            @onclick="() => _grupoActivo = grupo.Etiqueta">
+                        Grupo @grupo.Etiqueta
+                    </button>
+                }
             </div>
-            @foreach (var partido in GrupoSeleccionado.Partidos)
+
+            @if (GrupoSeleccionado != null)
             {
-                <div class="match-card">
-                    <div class="match-team @(partido.EstaJugado() && partido.Ganador() == partido.EquipoLocal ? "match-winner" : "")">
-                        @partido.EquipoLocal?.Nombre
+                <div @key="(_etapaActiva, _grupoActivo)" class="tab-content-animated">
+
+                    <div class="table-card mb-3">
+                        <div class="table-card-header">
+                            <span class="table-card-title">Tabla de posiciones — Grupo @GrupoSeleccionado.Etiqueta</span>
+                            <span style="font-size:12px; color:var(--text-secondary)">4 equipos</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-dark table-sm mb-0" style="font-size:13px; vertical-align:middle;">
+                                <thead>
+                                    <tr style="color:var(--text-secondary); text-transform:uppercase; font-size:11px; letter-spacing:0.04em;">
+                                        <th style="width:72px;">Posición</th>
+                                        <th>Equipo</th>
+                                        <th class="text-center">PJ</th>
+                                        <th class="text-center">PG</th>
+                                        <th class="text-center">PE</th>
+                                        <th class="text-center">PP</th>
+                                        <th class="text-center">GF</th>
+                                        <th class="text-center">GC</th>
+                                        <th class="text-center">DG</th>
+                                        <th class="text-center">Pts</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var (posicion, numeroPosicion) in TablaGrupoSeleccionado.Select((p, i) => (p, i + 1)))
+                                    {
+                                        <tr style="@ObtenerEstiloFilaPosicion(numeroPosicion)">
+                                            <td>
+                                                <span style="font-weight:700;">@numeroPosicion</span>
+                                                @if (numeroPosicion <= 2)
+                                                {
+                                                    <span class="badge badge-green" style="margin-left:6px;">Clasificó</span>
+                                                }
+                                                else if (numeroPosicion == 3)
+                                                {
+                                                    <span class="badge badge-muted" style="margin-left:6px;">3°</span>
+                                                }
+                                            </td>
+                                            <td style="font-weight:700;">@posicion.Equipo.Nombre</td>
+                                            <td class="text-center">@posicion.PartidosJugados</td>
+                                            <td class="text-center">@posicion.PartidosGanados</td>
+                                            <td class="text-center">@posicion.PartidosEmpatados</td>
+                                            <td class="text-center">@posicion.PartidosPerdidos</td>
+                                            <td class="text-center">@posicion.GolesAFavor</td>
+                                            <td class="text-center">@posicion.GolesEnContra</td>
+                                            <td class="text-center">@posicion.DiferenciaGoles</td>
+                                            <td class="text-center" style="font-weight:800;">@posicion.Puntos</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="match-score">
-                        @if (partido.EstaJugado())
+
+                    <div class="table-card mb-4">
+                        <div class="table-card-header">
+                            <span class="table-card-title">Partidos — Grupo @GrupoSeleccionado.Etiqueta</span>
+                            <span style="font-size:12px; color:var(--text-secondary)">@GrupoSeleccionado.Partidos.Count partidos</span>
+                        </div>
+                        @foreach (var partido in GrupoSeleccionado.Partidos.OrderBy(p => p.Fecha))
                         {
-                            <span class="score-box">@partido.GolesLocal</span>
-                            <span class="score-sep">—</span>
-                            <span class="score-box">@partido.GolesVisitante</span>
+                            <div class="match-card">
+                                <div class="match-team" style="color:@(partido.EstaJugado() && partido.Ganador() == partido.EquipoLocal ? "var(--accent-gold)" : "var(--text-primary)")">
+                                    <div>@partido.EquipoLocal?.Nombre</div>
+                                    @if (partido.EstaJugado() && partido.EsEmpate())
+                                    {
+                                        <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-top:2px;">Empate</div>
+                                    }
+                                </div>
+                                <div class="match-score">
+                                    @if (partido.EstaJugado())
+                                    {
+                                        <span class="score-box" style="color:@(partido.Ganador() == partido.EquipoLocal ? "var(--accent-gold)" : "var(--text-primary)")">@partido.GolesLocal</span>
+                                        <span class="score-sep">—</span>
+                                        <span class="score-box" style="color:@(partido.Ganador() == partido.EquipoVisitante ? "var(--accent-gold)" : "var(--text-primary)")">@partido.GolesVisitante</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="font-size:12px; color:var(--text-muted)">vs</span>
+                                    }
+                                </div>
+                                <div class="match-team right" style="color:@(partido.EstaJugado() && partido.Ganador() == partido.EquipoVisitante ? "var(--accent-gold)" : "var(--text-primary)")">
+                                    <div>@partido.EquipoVisitante?.Nombre</div>
+                                </div>
+                                <div class="match-meta" style="margin-left:12px; text-align:right; min-width:120px;">
+                                    <div>@partido.Fecha.ToString("dd/MM/yy HH:mm")</div>
+                                    @if (partido.Estadio != null)
+                                    {
+                                        <div style="margin-top:2px; font-size:10px; color:var(--text-muted);">@partido.Estadio.Nombre</div>
+                                    }
+                                </div>
+                            </div>
                         }
-                        else
-                        {
-                            <span style="font-size:12px; color:var(--text-muted)">vs</span>
-                        }
                     </div>
-                    <div class="match-team right @(partido.EstaJugado() && partido.Ganador() == partido.EquipoVisitante ? "match-winner" : "")">
-                        @partido.EquipoVisitante?.Nombre
-                    </div>
-                    <div class="match-meta" style="margin-left:12px; text-align:right; min-width:110px">
-                        @partido.Fecha.ToString("dd/MM/yy HH:mm")
-                    </div>
+
                 </div>
             }
-        </div>
-    }
+        }
+        else if (_etapaActiva == FaseTorneo.Final)
+        {
+            @if (PartidoFinalAnterior == null && PartidoTercerPuestoAnterior == null)
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">🏆</div>
+                    <div class="empty-state-title">Sin datos de final</div>
+                    <div class="empty-state-text">No hay registros de la final para este torneo anterior.</div>
+                </div>
+            }
+            else
+            {
+                @if (PartidoFinalAnterior != null)
+                {
+                    <div class="table-card mb-4"
+                         style="border-color:rgba(244,185,66,0.35); box-shadow:var(--shadow-gold);">
+                        <div class="table-card-header"
+                             style="background:linear-gradient(135deg,rgba(244,185,66,0.12),rgba(244,185,66,0.04));
+                                    border-bottom-color:rgba(244,185,66,0.2);">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:22px; line-height:1">🏆</span>
+                                <div>
+                                    <div class="table-card-title"
+                                         style="color:var(--accent-gold); font-size:17px; letter-spacing:0.02em;">
+                                        Gran Final
+                                    </div>
+                                    <div style="font-size:11px; color:var(--text-muted); font-weight:600;
+                                                text-transform:uppercase; letter-spacing:0.08em; margin-top:2px;">
+                                        World Cup 2026
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="badge badge-gold">Resultado final</span>
+                        </div>
+
+                        <div class="match-card" style="padding:28px 20px; gap:16px;">
+                            <div style="flex:1; text-align:left;">
+                                <div style="font-family:var(--font-heading); font-size:18px; font-weight:700;
+                                            color:@(PartidoFinalAnterior.EstaJugado() && PartidoFinalAnterior.Ganador() == PartidoFinalAnterior.EquipoLocal
+                                                     ? "var(--accent-gold)" : "var(--text-primary)");">
+                                    @(PartidoFinalAnterior.EquipoLocal?.Nombre ?? "—")
+                                </div>
+                                @if (PartidoFinalAnterior.EstaJugado() && PartidoFinalAnterior.Ganador() == PartidoFinalAnterior.EquipoLocal)
+                                {
+                                    <div style="font-size:10px; font-weight:700; text-transform:uppercase;
+                                                letter-spacing:0.1em; color:var(--accent-gold); margin-top:4px;">
+                                        🥇 Campeón
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="match-score" style="min-width:100px; flex-direction:column; gap:4px;">
+                                @if (PartidoFinalAnterior.EstaJugado())
+                                {
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        <span class="score-box"
+                                              style="font-size:32px; color:var(--accent-gold); min-width:36px;">
+                                            @PartidoFinalAnterior.GolesLocal
+                                        </span>
+                                        <span class="score-sep" style="font-size:18px;">—</span>
+                                        <span class="score-box"
+                                              style="font-size:32px; color:var(--accent-gold); min-width:36px;">
+                                            @PartidoFinalAnterior.GolesVisitante
+                                        </span>
+                                    </div>
+                                }
+                                <div style="font-size:11px; color:var(--text-muted); white-space:nowrap;">
+                                    @PartidoFinalAnterior.Fecha.ToString("dd/MM/yy HH:mm")
+                                </div>
+                                @if (PartidoFinalAnterior.Estadio != null)
+                                {
+                                    <div style="font-size:10px; color:var(--text-muted); white-space:nowrap;">
+                                        @PartidoFinalAnterior.Estadio.Nombre
+                                    </div>
+                                }
+                            </div>
+
+                            <div style="flex:1; text-align:right;">
+                                <div style="font-family:var(--font-heading); font-size:18px; font-weight:700;
+                                            color:@(PartidoFinalAnterior.EstaJugado() && PartidoFinalAnterior.Ganador() == PartidoFinalAnterior.EquipoVisitante
+                                                     ? "var(--accent-gold)" : "var(--text-primary)");">
+                                    @(PartidoFinalAnterior.EquipoVisitante?.Nombre ?? "—")
+                                </div>
+                                @if (PartidoFinalAnterior.EstaJugado() && PartidoFinalAnterior.Ganador() == PartidoFinalAnterior.EquipoVisitante)
+                                {
+                                    <div style="font-size:10px; font-weight:700; text-transform:uppercase;
+                                                letter-spacing:0.1em; color:var(--accent-gold); margin-top:4px;">
+                                        🥇 Campeón
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (PartidoFinalAnterior != null && PartidoTercerPuestoAnterior != null)
+                {
+                    <div style="display:flex; align-items:center; gap:16px; margin:32px 0 24px;">
+                        <div style="flex:1; height:1px; background:var(--border-default);"></div>
+                        <span style="font-family:var(--font-heading); font-size:11px; font-weight:700;
+                                     color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em;
+                                     white-space:nowrap;">
+                            Tercer Puesto
+                        </span>
+                        <div style="flex:1; height:1px; background:var(--border-default);"></div>
+                    </div>
+                }
+
+                @if (PartidoTercerPuestoAnterior != null)
+                {
+                    <div class="table-card">
+                        <div class="table-card-header">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="font-size:18px; line-height:1">🥉</span>
+                                <span class="table-card-title">Tercer Puesto</span>
+                            </div>
+                            <span class="badge badge-muted">3° lugar</span>
+                        </div>
+                        <div class="match-card">
+                            <div class="match-team"
+                                 style="color:@(PartidoTercerPuestoAnterior.EstaJugado() && PartidoTercerPuestoAnterior.Ganador() == PartidoTercerPuestoAnterior.EquipoLocal
+                                                ? "var(--text-primary)" : "var(--text-secondary)");">
+                                @(PartidoTercerPuestoAnterior.EquipoLocal?.Nombre ?? "—")
+                                @if (PartidoTercerPuestoAnterior.EstaJugado() && PartidoTercerPuestoAnterior.Ganador() == PartidoTercerPuestoAnterior.EquipoLocal)
+                                {
+                                    <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent-green); margin-top:2px;">🥉 3° Puesto</div>
+                                }
+                            </div>
+                            <div class="match-score">
+                                @if (PartidoTercerPuestoAnterior.EstaJugado())
+                                {
+                                    <span class="score-box">@PartidoTercerPuestoAnterior.GolesLocal</span>
+                                    <span class="score-sep">—</span>
+                                    <span class="score-box">@PartidoTercerPuestoAnterior.GolesVisitante</span>
+                                }
+                                else
+                                {
+                                    <span style="font-size:12px; color:var(--text-muted)">vs</span>
+                                }
+                            </div>
+                            <div class="match-team right"
+                                 style="color:@(PartidoTercerPuestoAnterior.EstaJugado() && PartidoTercerPuestoAnterior.Ganador() == PartidoTercerPuestoAnterior.EquipoVisitante
+                                                ? "var(--text-primary)" : "var(--text-secondary)");">
+                                @if (PartidoTercerPuestoAnterior.EstaJugado() && PartidoTercerPuestoAnterior.Ganador() == PartidoTercerPuestoAnterior.EquipoVisitante)
+                                {
+                                    <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent-green); margin-top:2px; text-align:right;">🥉 3° Puesto</div>
+                                }
+                                @(PartidoTercerPuestoAnterior.EquipoVisitante?.Nombre ?? "—")
+                            </div>
+                            <div class="match-meta" style="margin-left:12px; min-width:120px; text-align:right;">
+                                <div>@PartidoTercerPuestoAnterior.Fecha.ToString("dd/MM/yy HH:mm")</div>
+                                @if (PartidoTercerPuestoAnterior.Estadio != null)
+                                {
+                                    <div style="margin-top:2px; font-size:10px; color:var(--text-muted);">@PartidoTercerPuestoAnterior.Estadio.Nombre</div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }
+        else
+        {
+            @if (!PartidosEtapaActiva.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚽</div>
+                    <div class="empty-state-title">Sin datos para esta etapa</div>
+                    <div class="empty-state-text">No hay partidos registrados para @EtapaActivaEtiqueta en el torneo anterior.</div>
+                </div>
+            }
+            else
+            {
+                <div class="table-card">
+                    <div class="table-card-header">
+                        <span class="table-card-title">@EtapaActivaEtiqueta</span>
+                        <span class="badge badge-blue">@PartidosEtapaActiva.Count partidos</span>
+                    </div>
+                    @foreach (var partido in PartidosEtapaActiva.OrderBy(p => p.Fecha))
+                    {
+                        <div class="match-card">
+                            <div class="match-team"
+                                 style="color:@(partido.EstaJugado() && partido.Ganador() == partido.EquipoLocal ? "var(--accent-gold)" : "var(--text-primary)")">
+                                <div>@(partido.EquipoLocal?.Nombre ?? "—")</div>
+                                @if (partido.EstaJugado() && partido.Ganador() == partido.EquipoLocal)
+                                {
+                                    <div style="font-size:10px; font-weight:700; text-transform:uppercase;
+                                                letter-spacing:0.05em; color:var(--accent-green); margin-top:2px;">
+                                        ✓ Avanzó
+                                    </div>
+                                }
+                            </div>
+                            <div class="match-score">
+                                @if (partido.EstaJugado())
+                                {
+                                    <span class="score-box"
+                                          style="color:@(partido.Ganador() == partido.EquipoLocal ? "var(--accent-gold)" : "var(--text-primary)")">
+                                        @partido.GolesLocal
+                                    </span>
+                                    <span class="score-sep">—</span>
+                                    <span class="score-box"
+                                          style="color:@(partido.Ganador() == partido.EquipoVisitante ? "var(--accent-gold)" : "var(--text-primary)")">
+                                        @partido.GolesVisitante
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span style="font-size:12px; color:var(--text-muted)">vs</span>
+                                }
+                            </div>
+                            <div class="match-team right"
+                                 style="color:@(partido.EstaJugado() && partido.Ganador() == partido.EquipoVisitante ? "var(--accent-gold)" : "var(--text-primary)")">
+                                @if (partido.EstaJugado() && partido.Ganador() == partido.EquipoVisitante)
+                                {
+                                    <div style="font-size:10px; font-weight:700; text-transform:uppercase;
+                                                letter-spacing:0.05em; color:var(--accent-green); margin-top:2px; text-align:right;">
+                                        ✓ Avanzó
+                                    </div>
+                                }
+                                <div>@(partido.EquipoVisitante?.Nombre ?? "—")</div>
+                            </div>
+                            <div class="match-meta" style="margin-left:12px; text-align:right; min-width:120px;">
+                                <div>@partido.Fecha.ToString("dd/MM/yy HH:mm")</div>
+                                @if (partido.Estadio != null)
+                                {
+                                    <div style="margin-top:2px; font-size:10px; color:var(--text-muted);">@partido.Estadio.Nombre</div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+    </div>
 }
 
 @code {
+    private record EtapaTorneo(FaseTorneo Fase, string Etiqueta);
+
     private string _grupoActivo = "A";
+    private FaseTorneo _etapaActiva = FaseTorneo.FaseDeGrupos;
+
+    private static readonly List<EtapaTorneo> EtapasDisponibles = new()
+    {
+        new(FaseTorneo.FaseDeGrupos,             "Fase de grupos"),
+        new(FaseTorneo.PrimeraRondaEliminatoria, "16avos"),
+        new(FaseTorneo.Octavos,                  "8vos"),
+        new(FaseTorneo.Cuartos,                  "4tos"),
+        new(FaseTorneo.Semifinal,                "Semifinal"),
+        new(FaseTorneo.Final,                    "Final"),
+    };
 
     private Grupo? GrupoSeleccionado =>
         EstadoTorneo.FixtureAnterior?.Grupos.FirstOrDefault(g => g.Etiqueta == _grupoActivo);
@@ -129,4 +427,32 @@ else
         GrupoSeleccionado == null
             ? Enumerable.Empty<PosicionEquipo>()
             : ServicioClasificacion.CalcularTabla(GrupoSeleccionado);
+
+    private string EtapaActivaEtiqueta =>
+        EtapasDisponibles.FirstOrDefault(e => e.Fase == _etapaActiva)?.Etiqueta ?? string.Empty;
+
+    private List<Partido> PartidosEtapaActiva =>
+        EstadoTorneo.PartidosEliminatoriosAnteriores.Where(p => p.Fase == _etapaActiva).ToList();
+
+    private Partido? PartidoFinalAnterior =>
+        EstadoTorneo.PartidosEliminatoriosAnteriores.FirstOrDefault(p => p.Fase == FaseTorneo.Final);
+
+    private Partido? PartidoTercerPuestoAnterior =>
+        EstadoTorneo.PartidosEliminatoriosAnteriores.FirstOrDefault(p => p.Fase == FaseTorneo.TercerPuesto);
+
+    private Equipo? Campeon =>
+        PartidoFinalAnterior?.EstaJugado() == true ? PartidoFinalAnterior.Ganador() : null;
+
+    private void SeleccionarEtapa(FaseTorneo fase)
+    {
+        _etapaActiva = fase;
+    }
+
+    private string ObtenerEstiloFilaPosicion(int posicion) => posicion switch
+    {
+        1 => "background:rgba(34,197,94,0.14); border-left:3px solid rgba(34,197,94,0.8);",
+        2 => "background:rgba(34,197,94,0.08); border-left:3px solid rgba(34,197,94,0.55);",
+        3 => "background:rgba(148,163,184,0.06);",
+        _ => string.Empty
+    };
 }
