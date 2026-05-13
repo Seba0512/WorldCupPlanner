@@ -6,15 +6,28 @@ namespace WorldCupPlanner.Servicios;
 
 public class ServicioConfiguracionTorneo
 {
+    private readonly ServicioAuditoria? _auditoria;
     private ConfiguracionTorneo _configuracionActual = new();
     private ConfiguracionTorneo? _configuracionUsadaParaFixture;
+
+    public ServicioConfiguracionTorneo(ServicioAuditoria? auditoria = null)
+    {
+        _auditoria = auditoria;
+    }
+
+    public bool EsConfiguracionModificable => _configuracionUsadaParaFixture == null;
 
     public void ModificarConfiguracion(Usuario usuario, ConfiguracionTorneo nuevaConfiguracion)
     {
         ValidarUsuarioAdministrador(usuario);
         ValidarConfiguracionNoBloqueada();
-
         _configuracionActual = CopiarConfiguracion(nuevaConfiguracion);
+        _auditoria?.Registrar(
+            $"{usuario.Nombre} {usuario.Apellido}",
+            "Modificación de configuración del torneo",
+            $"SemillaFixture={nuevaConfiguracion.SemillaFixture}, SemillaCompletar={nuevaConfiguracion.SemillaCompletar}, " +
+            $"SemillaCrucesFase={nuevaConfiguracion.SemillaCrucesFase}, SemillaSimulation={nuevaConfiguracion.SemillaSimulation}, " +
+            $"FechaInicio={nuevaConfiguracion.FechaInicioTorneo:yyyy-MM-dd}, MaxPartidosPorDia={nuevaConfiguracion.MaxPartidosPorDia}");
     }
 
     public ConfiguracionTorneo ObtenerConfiguracionActual()

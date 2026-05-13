@@ -7,7 +7,6 @@
 @inject EstadoTorneo EstadoTorneo
 @inject ServicioSimulacion ServicioSimulacion
 @inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
-@inject ConfiguracionTorneo ConfiguracionTorneo
 @inject SesionServicio SesionServicio
 @inject ToastServicio Toast
 @inject NavigationManager NavigationManager
@@ -90,9 +89,23 @@
                     Generá el fixture completo de la fase de grupos. Necesitás exactamente 48 equipos registrados y al menos 4 estadios. Si faltan equipos, completalos primero desde la sección <strong>Equipos</strong>.
                 </p>
                 <div class="form-group" style="text-align:left; margin-bottom:16px">
-                    <label class="form-label">Semilla del fixture</label>
-                    <input type="number" class="form-control" @bind="ConfiguracionTorneo.SemillaFixture" />
-                    <span class="form-hint">Determina el orden de los bombos.</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <label class="form-label" style="margin:0">Configuración activa</label>
+                        @if (SesionServicio.EsAdministrador)
+                        {
+                            <a href="/configuracion" class="btn btn-link btn-sm" style="font-size:12px; padding:0;">
+                                <span class="oi oi-cog" aria-hidden="true"></span> Editar
+                            </a>
+                        }
+                    </div>
+                    @{
+                        var configActual = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
+                    }
+                    <div style="font-size:13px; color:var(--text-secondary);">
+                        Semilla: <strong>@configActual.SemillaFixture</strong> —
+                        Inicio: <strong>@configActual.FechaInicioTorneo.ToString("yyyy-MM-dd")</strong> —
+                        Máx. @configActual.MaxPartidosPorDia partidos/día
+                    </div>
                 </div>
                 <button type="button" class="btn btn-primary w-100" @onclick="GenerarFixture">
                     <span class="oi oi-cog" aria-hidden="true"></span> Generar Fixture

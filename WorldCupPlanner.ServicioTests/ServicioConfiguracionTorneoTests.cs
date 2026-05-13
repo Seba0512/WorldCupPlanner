@@ -145,6 +145,60 @@ public class ServicioConfiguracionTorneoTests
         Assert.AreEqual(10, configuracionNoMutada.SemillaFixture);
     }
 
+    [TestMethod]
+    public void EsConfiguracionModificable_SinFixtureGenerado_DevuelveTrue()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.IsTrue(servicioConfiguracion.EsConfiguracionModificable);
+    }
+
+    [TestMethod]
+    public void EsConfiguracionModificable_ConFixtureGenerado_DevuelveFalse()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        servicioConfiguracion.RegistrarFixtureGenerado(new ConfiguracionTorneo());
+
+        // Act & Assert
+        Assert.IsFalse(servicioConfiguracion.EsConfiguracionModificable);
+    }
+
+    [TestMethod]
+    public void ModificarConfiguracion_ConAdministrador_RegistraEntradaDeAuditoria()
+    {
+        // Arrange
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var servicioConfiguracion = new ServicioConfiguracionTorneo(auditoria);
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var nuevaConfiguracion = new ConfiguracionTorneo { SemillaFixture = 42 };
+
+        // Act
+        servicioConfiguracion.ModificarConfiguracion(administrador, nuevaConfiguracion);
+
+        // Assert
+        Assert.AreEqual(1, repoAuditoria.Entradas.Count);
+        StringAssert.Contains(repoAuditoria.Entradas[0].Accion, "configuración del torneo");
+    }
+
+    [TestMethod]
+    public void ModificarConfiguracion_SinAuditoria_NoLanzaExcepcion()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var nuevaConfiguracion = new ConfiguracionTorneo { SemillaFixture = 5 };
+
+        // Act — no debe lanzar aunque no haya auditoría inyectada
+        servicioConfiguracion.ModificarConfiguracion(administrador, nuevaConfiguracion);
+
+        // Assert
+        Assert.AreEqual(5, servicioConfiguracion.ObtenerConfiguracionActual().SemillaFixture);
+    }
+
     private static Usuario CrearUsuarioConRol(RolUsuario rol)
     {
         var usuario = new Usuario(new DatosUsuario
