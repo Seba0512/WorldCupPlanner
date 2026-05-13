@@ -994,6 +994,117 @@ public sealed class ServicioUsuarioTests
         Assert.IsFalse(usuario.TieneRol(RolUsuario.Editor));
     }
 
+    // --- Último administrador ---
+
+    [TestMethod]
+    public void EliminarUsuario_UltimoAdministrador_LanzaExcepcion()
+    {
+        // Arrange
+        var admin = CrearUsuarioValido("admin@example.com");
+        admin.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarUsuario(admin);
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            _servicio.EliminarUsuario(admin));
+    }
+
+    [TestMethod]
+    public void EliminarUsuario_UltimoAdministrador_MensajeDeErrorEspecifico()
+    {
+        // Arrange
+        var admin = CrearUsuarioValido("admin@example.com");
+        admin.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarUsuario(admin);
+
+        // Act
+        var ex = Assert.ThrowsException<InvalidOperationException>(() =>
+            _servicio.EliminarUsuario(admin));
+
+        // Assert
+        Assert.AreEqual("No es posible eliminar el último administrador del sistema.", ex.Message);
+    }
+
+    [TestMethod]
+    public void EliminarUsuario_UltimoAdministrador_RegistraIntentoEnAuditoria()
+    {
+        // Arrange
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var servicio = new ServicioUsuario(repositorio, auditoria);
+        var admin = CrearUsuarioValido("admin@example.com");
+        admin.AgregarRol(RolUsuario.AdministradorDelSistema);
+        servicio.AgregarUsuario(admin);
+        repoAuditoria.Entradas.Clear();
+
+        // Act
+        try { servicio.EliminarUsuario(admin); } catch (InvalidOperationException) { }
+
+        // Assert
+        Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "INTENTO_ELIMINAR_ULTIMO_ADMIN"),
+            "Debe registrarse en auditoría el intento de eliminar al último administrador.");
+    }
+
+    [TestMethod]
+    public void EliminarUsuario_ConMultiplesAdministradores_PermiteEliminarUno()
+    {
+        // Arrange
+        var admin1 = CrearUsuarioValido("admin1@example.com");
+        admin1.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarUsuario(admin1);
+        var admin2 = CrearUsuarioValido("admin2@example.com");
+        admin2.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarUsuario(admin2);
+
+        // Act
+        _servicio.EliminarUsuario(admin1);
+
+        // Assert
+        var usuarios = _servicio.ObtenerTodosLosUsuarios();
+        Assert.AreEqual(1, usuarios.Count);
+        Assert.IsTrue(usuarios[0].TieneRol(RolUsuario.AdministradorDelSistema));
+    }
+
+    [TestMethod]
+    public void GestionarRoles_RemoverUltimoAdmin_NoCorrompeRolesDelUsuario()
+    {
+        // Arrange
+        var admin = CrearUsuarioValido("admin@example.com");
+        admin.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarUsuario(admin);
+
+        // Act
+        try { _servicio.GestionarRoles(admin, new[] { RolUsuario.Editor }); } catch (InvalidOperationException) { }
+
+        // Assert — la excepción se lanzó ANTES de mutar la entidad
+        Assert.IsTrue(admin.TieneRol(RolUsuario.AdministradorDelSistema),
+            "El rol Administrador no debe haberse removido cuando la operación fue bloqueada.");
+        Assert.IsFalse(admin.TieneRol(RolUsuario.Editor),
+            "No debe haberse agregado el rol Editor cuando la operación fue bloqueada.");
+    }
+
+    [TestMethod]
+    public void GestionarRoles_RemoverUltimoAdmin_RegistraIntentoEnAuditoria()
+    {
+        // Arrange
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var servicio = new ServicioUsuario(repositorio, auditoria);
+        var admin = CrearUsuarioValido("admin@example.com");
+        admin.AgregarRol(RolUsuario.AdministradorDelSistema);
+        servicio.AgregarUsuario(admin);
+        repoAuditoria.Entradas.Clear();
+
+        // Act
+        try { servicio.GestionarRoles(admin, new[] { RolUsuario.Editor }); } catch (InvalidOperationException) { }
+
+        // Assert
+        Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "INTENTO_QUITAR_ROL_ADMIN_ULTIMO"),
+            "Debe registrarse en auditoría el intento de quitar el rol al último administrador.");
+    }
+
     private static Usuario CrearUsuarioConRol(RolUsuario rol)
     {
         var usuario = CrearUsuarioValido($"{rol.ToString().ToLower()}@example.com");

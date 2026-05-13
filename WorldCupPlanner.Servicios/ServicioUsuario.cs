@@ -105,8 +105,23 @@ public class ServicioUsuario
     {
         if (solicitante != null)
             _autorizacion.VerificarEsAdministrador(solicitante);
+        ValidarNoEsUltimoAdministrador(usuario, ejecutadoPor);
         _repositorio.Eliminar(usuario);
         _auditoria.Registrar(ejecutadoPor ?? "sistema", "BAJA_USUARIO", $"Usuario eliminado: {usuario.Email}");
+    }
+
+    private void ValidarNoEsUltimoAdministrador(Usuario usuario, string? ejecutadoPor = null)
+    {
+        if (!usuario.TieneRol(RolUsuario.AdministradorDelSistema)) return;
+        var hayOtroAdmin = _repositorio.Buscar(u =>
+            !ReferenceEquals(u, usuario) &&
+            u.TieneRol(RolUsuario.AdministradorDelSistema)).Any();
+        if (!hayOtroAdmin)
+        {
+            _auditoria.Registrar(ejecutadoPor ?? "sistema", "INTENTO_ELIMINAR_ULTIMO_ADMIN",
+                $"Intento de eliminar al último administrador: {usuario.Email}");
+            throw new InvalidOperationException("No es posible eliminar el último administrador del sistema.");
+        }
     }
 
     public List<Usuario> ObtenerTodosLosUsuarios(Usuario? solicitante = null)
@@ -127,6 +142,8 @@ public class ServicioUsuario
         if (!rolesDeseados.Any())
             throw new InvalidOperationException("El usuario debe tener al menos un rol.");
 
+        ValidarQuedaAlMenosUnAdministrador(usuario, rolesDeseados, ejecutadoPor);
+
         var rolesActuales = usuario.ObtenerRoles().ToList();
         foreach (var rol in rolesDeseados.Where(r => !rolesActuales.Contains(r)))
             usuario.AgregarRol(rol);
@@ -134,20 +151,24 @@ public class ServicioUsuario
         foreach (var rol in rolesActuales.Where(r => !rolesDeseados.Contains(r)))
             usuario.RemoverRol(rol);
 
-        ValidarQuedaAlMenosUnAdministrador(usuario);
         _repositorio.Actualizar(usuario);
         _auditoria.Registrar(ejecutadoPor ?? usuario.Email, "CAMBIO_ROLES",
             $"Roles actualizados para {usuario.Email}: {string.Join(", ", rolesDeseados)}");
     }
 
-    private void ValidarQuedaAlMenosUnAdministrador(Usuario usuarioAfectado)
+    private void ValidarQuedaAlMenosUnAdministrador(Usuario usuarioAfectado, List<RolUsuario> rolesNuevos, string? ejecutadoPor = null)
     {
-        if (usuarioAfectado.TieneRol(RolUsuario.AdministradorDelSistema)) return;
+        if (!usuarioAfectado.TieneRol(RolUsuario.AdministradorDelSistema)) return;
+        if (rolesNuevos.Contains(RolUsuario.AdministradorDelSistema)) return;
         var hayOtroAdmin = _repositorio.Buscar(u =>
             !ReferenceEquals(u, usuarioAfectado) &&
             u.TieneRol(RolUsuario.AdministradorDelSistema)).Any();
         if (!hayOtroAdmin)
-            throw new InvalidOperationException("Debe haber al menos un administrador en el sistema.");
+        {
+            _auditoria.Registrar(ejecutadoPor ?? usuarioAfectado.Email, "INTENTO_QUITAR_ROL_ADMIN_ULTIMO",
+                $"Intento de quitar rol Administrador al último administrador: {usuarioAfectado.Email}");
+            throw new InvalidOperationException("Debe existir al menos un usuario con rol Administrador.");
+        }
     }
 
     private void ValidarEmailUnico(string email, string? ejecutadoPor = null)
