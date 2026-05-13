@@ -1,12 +1,23 @@
 @page "/equipos"
 @inject ServicioEquipo ServicioEquipo
 @inject EstadoTorneo EstadoTorneo
-@inject ConfiguracionTorneo ConfiguracionTorneo
+@inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
 
 <PageTitle>Equipos — WorldCupPlanner 2026</PageTitle>
+
+@if (!string.IsNullOrEmpty(_errorCarga))
+{
+    <div class="alert alert-danger mb-3">
+        <span class="oi oi-warning" aria-hidden="true"></span>
+        <strong>Error al cargar los equipos:</strong> @_errorCarga
+        <button class="btn btn-sm btn-outline-light ms-3" @onclick="Reintentar">
+            <span class="oi oi-reload" aria-hidden="true"></span> Reintentar
+        </button>
+    </div>
+}
 
 <ConfirmDialog @bind-Visible="_confirmarEliminar"
                Titulo="Eliminar equipo"
@@ -108,7 +119,7 @@
                 </p>
                 <div class="form-group">
                     <label class="form-label">Semilla de generación</label>
-                    <input type="number" class="form-control" @bind="ConfiguracionTorneo.SemillaCompletar" />
+                    <input type="number" class="form-control" @bind="_semillaCompletar" />
                     <span class="form-hint">Misma semilla = mismos equipos generados</span>
                 </div>
                 @if (!string.IsNullOrEmpty(_mensajeCompletar))
@@ -129,6 +140,8 @@
     private Equipo? _equipoAEliminar;
     private bool _confirmarEliminar;
     private string _mensajeCompletar = string.Empty;
+    private string _errorCarga = string.Empty;
+    private int _semillaCompletar;
 
     private static readonly Dictionary<Confederacion, int> CuposMaximos = new()
     {
@@ -146,15 +159,33 @@
             NavigationManager.NavigateTo("/");
             return;
         }
+        _semillaCompletar = ServicioConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
         CargarDatos();
     }
 
     private void CargarDatos()
     {
-        _equipos = ServicioEquipo.Buscar(_ => true);
-        _cuposPorConfederacion = CuposMaximos.ToDictionary(
-            kvp => kvp.Key,
-            kvp => (_equipos.Count(e => e.Confederacion == kvp.Key), kvp.Value));
+        _errorCarga = string.Empty;
+        try
+        {
+            _equipos = ServicioEquipo.Buscar(_ => true);
+            _cuposPorConfederacion = CuposMaximos.ToDictionary(
+                kvp => kvp.Key,
+                kvp => (_equipos.Count(e => e.Confederacion == kvp.Key), kvp.Value));
+        }
+        catch (Exception ex)
+        {
+            _errorCarga = ex.Message;
+            _equipos = new();
+            _cuposPorConfederacion = CuposMaximos.ToDictionary(
+                kvp => kvp.Key,
+                kvp => (0, kvp.Value));
+        }
+    }
+
+    private void Reintentar()
+    {
+        CargarDatos();
     }
 
     private void PedirConfirmacion(Equipo equipo)
@@ -180,7 +211,7 @@
     {
         try
         {
-            var generados = ServicioEquipo.CompletarEquipos(ConfiguracionTorneo.SemillaCompletar);
+            var generados = ServicioEquipo.CompletarEquipos(_semillaCompletar);
             CargarDatos();
             _mensajeCompletar = generados.Count > 0
                 ? $"Se generaron {generados.Count} equipos ficticios correctamente."
