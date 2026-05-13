@@ -825,6 +825,124 @@ public sealed class ServicioUsuarioTests
         Assert.AreEqual(1, _servicio.ObtenerTodosLosUsuarios().Count);
     }
 
+    // --- GestionarRoles ---
+
+    [TestMethod]
+    public void GestionarRoles_CambiarAEditor_ActualizaRolesCorrectamente()
+    {
+        // Arrange — dos admins con emails distintos para evitar colisión
+        var admin1 = CrearUsuarioValido("admin1@example.com");
+        admin1.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarUsuario(admin1);
+        var admin2 = CrearUsuarioValido("admin2@example.com");
+        admin2.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarUsuario(admin2);
+
+        // Act
+        _servicio.GestionarRoles(admin1, new[] { RolUsuario.Editor });
+
+        // Assert
+        Assert.IsFalse(admin1.TieneRol(RolUsuario.AdministradorDelSistema));
+        Assert.IsTrue(admin1.TieneRol(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void GestionarRoles_RemoverUltimoAdmin_LanzaExcepcion()
+    {
+        // Arrange
+        var admin = CrearUsuarioValido("admin@example.com");
+        admin.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarUsuario(admin);
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            _servicio.GestionarRoles(admin, new[] { RolUsuario.Editor }));
+    }
+
+    [TestMethod]
+    public void GestionarRoles_SinNingunRol_LanzaExcepcion()
+    {
+        // Arrange
+        var admin = CrearUsuarioValido("admin@example.com");
+        admin.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarUsuario(admin);
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            _servicio.GestionarRoles(admin, Enumerable.Empty<RolUsuario>()));
+    }
+
+    [TestMethod]
+    public void GestionarRoles_RegistraCambioEnAuditoria()
+    {
+        // Arrange
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var servicio = new ServicioUsuario(repositorio, auditoria);
+        var admin1 = CrearUsuarioValido("admin1@example.com");
+        admin1.AgregarRol(RolUsuario.AdministradorDelSistema);
+        servicio.AgregarUsuario(admin1);
+        var admin2 = CrearUsuarioValido("admin2@example.com");
+        admin2.AgregarRol(RolUsuario.AdministradorDelSistema);
+        servicio.AgregarUsuario(admin2);
+        repoAuditoria.Entradas.Clear();
+
+        // Act
+        servicio.GestionarRoles(admin1, new[] { RolUsuario.Editor });
+
+        // Assert
+        Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "CAMBIO_ROLES"));
+    }
+
+    // --- Rol por defecto ---
+
+    [TestMethod]
+    public void AgregarUsuario_SinRoles_AsignaRolEditorPorDefecto()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+
+        // Act
+        _servicio.AgregarUsuario(usuario);
+
+        // Assert
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void AgregarUsuario_SinRoles_RegistraAsignacionRolDefectoEnAuditoria()
+    {
+        // Arrange
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var servicio = new ServicioUsuario(repositorio, auditoria);
+        var usuario = CrearUsuarioValido("juan@example.com");
+
+        // Act
+        servicio.AgregarUsuario(usuario);
+
+        // Assert
+        Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "ASIGNACION_ROL_DEFECTO"),
+            "Debe registrarse en auditoría la asignación del rol Editor por defecto.");
+    }
+
+    [TestMethod]
+    public void AgregarUsuario_ConRolExplicito_NoAgregaRolEditorAdicional()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("admin@example.com");
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+
+        // Act
+        _servicio.AgregarUsuario(usuario);
+
+        // Assert
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
+        Assert.IsFalse(usuario.TieneRol(RolUsuario.Editor));
+    }
+
     private static Usuario CrearUsuarioConRol(RolUsuario rol)
     {
         var usuario = CrearUsuarioValido($"{rol.ToString().ToLower()}@example.com");

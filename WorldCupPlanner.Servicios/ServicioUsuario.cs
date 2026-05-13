@@ -23,15 +23,23 @@ public class ServicioUsuario
         if (solicitante != null)
             _autorizacion.VerificarEsAdministrador(solicitante);
         ValidarEmailUnico(usuario.Email);
+        AsignarRolEditorSiNoTieneRoles(usuario, ejecutadoPor);
         _repositorio.Agregar(usuario);
         _auditoria.Registrar(ejecutadoPor ?? "sistema", "ALTA_USUARIO", $"Usuario creado: {usuario.Email}");
+    }
+
+    private void AsignarRolEditorSiNoTieneRoles(Usuario usuario, string? ejecutadoPor)
+    {
+        if (usuario.ObtenerRoles().Any()) return;
+        usuario.AgregarRol(RolUsuario.Editor);
+        _auditoria.Registrar(ejecutadoPor ?? "sistema", "ASIGNACION_ROL_DEFECTO",
+            $"Rol Editor asignado por defecto a: {usuario.Email}");
     }
 
     public void ActualizarUsuario(Usuario usuario, ActualizacionUsuario? actualizacion = null, Usuario? solicitante = null)
     {
         if (solicitante != null)
             _autorizacion.VerificarEsAdministrador(solicitante);
-        ValidarQuedaAlMenosUnAdministrador(usuario);
         actualizacion ??= new ActualizacionUsuario();
         var usuarioActual = BuscarUsuarioExistenteOLanzarExcepcion(usuario);
         var campos = AplicarActualizacionesDeCampos(usuarioActual, actualizacion);
@@ -107,6 +115,25 @@ public class ServicioUsuario
     public Usuario? ObtenerPorEmail(string email)
     {
         return _repositorio.ObtenerPorEmail(email);
+    }
+
+    public void GestionarRoles(Usuario usuario, IEnumerable<RolUsuario> nuevosRoles, string? ejecutadoPor = null)
+    {
+        var rolesDeseados = nuevosRoles.ToList();
+        if (!rolesDeseados.Any())
+            throw new InvalidOperationException("El usuario debe tener al menos un rol.");
+
+        var rolesActuales = usuario.ObtenerRoles().ToList();
+        foreach (var rol in rolesDeseados.Where(r => !rolesActuales.Contains(r)))
+            usuario.AgregarRol(rol);
+
+        foreach (var rol in rolesActuales.Where(r => !rolesDeseados.Contains(r)))
+            usuario.RemoverRol(rol);
+
+        ValidarQuedaAlMenosUnAdministrador(usuario);
+        _repositorio.Actualizar(usuario);
+        _auditoria.Registrar(ejecutadoPor ?? usuario.Email, "CAMBIO_ROLES",
+            $"Roles actualizados para {usuario.Email}: {string.Join(", ", rolesDeseados)}");
     }
 
     private void ValidarQuedaAlMenosUnAdministrador(Usuario usuarioAfectado)

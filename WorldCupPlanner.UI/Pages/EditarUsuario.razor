@@ -99,10 +99,10 @@
         try
         {
             if (_usuario == null) return;
-            if (_esAdmin) _usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-            else _usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
-            if (_esEditor) _usuario.AgregarRol(RolUsuario.Editor);
-            else _usuario.RemoverRol(RolUsuario.Editor);
+            var nuevosRoles = new List<RolUsuario>();
+            if (_esAdmin) nuevosRoles.Add(RolUsuario.AdministradorDelSistema);
+            if (_esEditor) nuevosRoles.Add(RolUsuario.Editor);
+            ServicioUsuario.GestionarRoles(_usuario, nuevosRoles);
             ServicioUsuario.ActualizarUsuario(_usuario, new ActualizacionUsuario
             {
                 Nombre = _nombre, Apellido = _apellido,

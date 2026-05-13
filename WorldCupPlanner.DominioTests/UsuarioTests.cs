@@ -363,9 +363,10 @@ public class UsuarioTests
     [TestMethod]
     public void RemoverRol_ConRolExistente_DebeRemoverse()
     {
-        // Arrange
+        // Arrange — el usuario necesita al menos dos roles para poder remover uno
         var usuario = CrearUsuarioValido();
         usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+        usuario.AgregarRol(RolUsuario.Editor);
 
         // Act
         usuario.RemoverRol(RolUsuario.AdministradorDelSistema);
