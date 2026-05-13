@@ -12,8 +12,20 @@ public class ServicioImportacionLegible
     private const int IndiceConfederacion = 1;
     private const int IndiceRankingFIFA = 2;
 
-    public ResultadoImportacion Importar(Stream csv, ServicioEquipo servicioEquipo)
+    private readonly ServicioAuditoria? _auditoria;
+    private readonly ServicioAutorizacion _autorizacion;
+
+    public ServicioImportacionLegible(ServicioAuditoria? auditoria = null, ServicioAutorizacion? autorizacion = null)
     {
+        _auditoria = auditoria;
+        _autorizacion = autorizacion ?? new ServicioAutorizacion();
+    }
+
+    public ResultadoImportacion Importar(Stream csv, ServicioEquipo servicioEquipo, Usuario? solicitante = null)
+    {
+        if (solicitante != null)
+            _autorizacion.VerificarEsEditorOAdministrador(solicitante);
+
         using var lector = new StreamReader(csv);
         var errores = new List<string>();
 
@@ -21,6 +33,11 @@ public class ServicioImportacionLegible
             return new ResultadoImportacion(0, errores);
 
         var exitosos = ContarImportacionesExitosas(lector, servicioEquipo, errores);
+
+        var nombreUsuario = solicitante?.Email ?? "Sistema";
+        _auditoria?.Registrar(nombreUsuario, "Importacion",
+            $"Equipos importados: {exitosos}, Errores: {errores.Count}");
+
         return new ResultadoImportacion(exitosos, errores);
     }
 

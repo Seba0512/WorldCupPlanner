@@ -1,14 +1,54 @@
 @page "/importar"
 @inject ServicioImportacionLegible ServicioImportacionLegible
 @inject ServicioEquipo ServicioEquipo
+@inject EstadoTorneo EstadoTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 
 <PageTitle>Importar equipos — WorldCupPlanner 2026</PageTitle>
 
-<PageHeader Titulo="Importar equipos" UrlVolver="/equipos" TextoVolver="Volver a equipos" />
+<PageHeader Titulo="Importar equipos CSV" UrlVolver="/equipos" TextoVolver="Volver a equipos" />
 
-<div class="form-section">
+<!-- Estado del torneo -->
+<div class="row g-2 mb-4">
+    <div class="col-auto">
+        <div class="glass-card" style="padding:10px 20px; text-align:center; min-width:100px;">
+            <div style="font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted)">Equipos</div>
+            <div style="font-family:var(--font-heading); font-size:24px; font-weight:700; color:var(--text-primary)">@_equipos.Count <span style="font-size:14px; color:var(--text-muted)">/ 48</span></div>
+        </div>
+    </div>
+    <div class="col-auto">
+        <div class="glass-card" style="padding:10px 20px; text-align:center; min-width:100px;">
+            <div style="font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted)">Faltan</div>
+            <div style="font-family:var(--font-heading); font-size:24px; font-weight:700; color:@(_equiposFaltantes == 0 ? "var(--color-success)" : "var(--text-primary)")">@_equiposFaltantes</div>
+        </div>
+    </div>
+    <div class="col-auto">
+        <div class="glass-card" style="padding:10px 20px; text-align:center; min-width:160px;">
+            <div style="font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted)">Estado</div>
+            <div style="margin-top:4px"><span class="badge @_estadoBadgeClase" style="font-size:12px">@_estadoTexto</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- Cupos por confederación -->
+<div class="row g-2 mb-4">
+    @foreach (var conf in _cuposPorConfederacion)
+    {
+        var lleno = conf.Value.registrados >= conf.Value.cupo;
+        <div class="col-auto">
+            <div class="glass-card" style="padding:8px 14px; text-align:center; min-width:80px; @(lleno ? "opacity:.6" : "")">
+                <div style="font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted)">@conf.Key</div>
+                <div style="font-family:var(--font-heading); font-size:16px; font-weight:700; color:@(lleno ? "var(--color-success)" : "var(--text-primary)")">@conf.Value.registrados</div>
+                <div style="font-size:11px; color:var(--text-secondary)">/ @conf.Value.cupo</div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Sección de importación -->
+<div class="form-section" style="max-width:640px;">
+
     @if (!string.IsNullOrEmpty(_error))
     {
         <div class="alert alert-danger">
@@ -21,12 +61,20 @@
         <div class="alert @(_resultado.Exitosos > 0 ? "alert-success" : "alert-warning")">
             <span class="oi oi-check" aria-hidden="true"></span>
             <strong>@_resultado.Exitosos</strong> equipo(s) importado(s) correctamente.
+            @if (_equiposFaltantes > 0)
+            {
+                <span> Faltan <strong>@_equiposFaltantes</strong> equipos para completar el torneo.</span>
+            }
+            else
+            {
+                <span> <strong>El torneo está completo y listo para generar el fixture.</strong></span>
+            }
         </div>
 
         @if (_resultado.Errores.Count > 0)
         {
             <div class="alert alert-danger">
-                <strong>Filas con error:</strong>
+                <strong>@_resultado.Errores.Count fila(s) con error:</strong>
                 <ul class="mb-0 mt-1">
                     @foreach (var mensajeDeError in _resultado.Errores)
                     {
@@ -40,16 +88,47 @@
     <div class="form-group">
         <label class="form-label">Archivo CSV</label>
         <InputFile class="form-control" accept=".csv" OnChange="SeleccionarArchivo" />
-        <span class="form-hint">Encabezados requeridos: <code>Nombre,Confederacion,RankingFIFA</code></span>
+        <span class="form-hint">
+            Encabezado requerido: <code>Nombre,Confederacion,RankingFIFA</code><br />
+            Confederaciones válidas: <code>UEFA, CONMEBOL, CONCACAF, CAF, AFC, OFC</code><br />
+            Ranking FIFA: número entero entre 300 y 2500. Tamaño máximo: 5 MB.
+        </span>
     </div>
 
     <div class="d-flex gap-2 mt-2">
-        <button type="button" class="btn btn-primary" disabled="@(_archivoSeleccionado == null)" @onclick="EjecutarImportacion">
-            <span class="oi oi-data-transfer-upload" aria-hidden="true"></span> Importar
+        <button type="button" class="btn btn-primary" disabled="@(_archivoSeleccionado == null || _importando)" @onclick="EjecutarImportacion">
+            @if (_importando)
+            {
+                <span class="oi oi-loop-circular" aria-hidden="true"></span>
+                <span> Importando...</span>
+            }
+            else
+            {
+                <span class="oi oi-data-transfer-upload" aria-hidden="true"></span>
+                <span> Importar</span>
+            }
         </button>
         <a href="/equipos" class="btn btn-secondary">Cancelar</a>
     </div>
 </div>
+
+<!-- Opciones para continuar si el torneo está incompleto -->
+@if (_equiposFaltantes > 0)
+{
+    <div class="table-card mt-4" style="max-width:640px;">
+        <div class="table-card-header">
+            <span class="table-card-title">Otras formas de agregar equipos</span>
+        </div>
+        <div style="padding:16px; display:flex; gap:12px; flex-wrap:wrap;">
+            <a href="/equipos/crear" class="btn btn-secondary btn-sm">
+                <span class="oi oi-plus" aria-hidden="true"></span> Agregar manualmente
+            </a>
+            <a href="/equipos" class="btn btn-warning btn-sm">
+                <span class="oi oi-cog" aria-hidden="true"></span> Completar automáticamente
+            </a>
+        </div>
+    </div>
+}
 
 @code {
     private const long TamanioMaximoArchivoBytes = 5 * 1024 * 1024;
@@ -57,10 +136,51 @@
     private IBrowserFile? _archivoSeleccionado;
     private ResultadoImportacion? _resultado;
     private string _error = string.Empty;
+    private bool _importando;
+
+    private List<Equipo> _equipos = new();
+    private int _equiposFaltantes;
+    private string _estadoTexto = string.Empty;
+    private string _estadoBadgeClase = string.Empty;
+
+    private static readonly Dictionary<Confederacion, int> CuposMaximos = new()
+    {
+        { Confederacion.UEFA, 16 }, { Confederacion.CAF, 9 },
+        { Confederacion.CONCACAF, 7 }, { Confederacion.CONMEBOL, 7 },
+        { Confederacion.AFC, 8 }, { Confederacion.OFC, 1 }
+    };
+
+    private Dictionary<Confederacion, (int registrados, int cupo)> _cuposPorConfederacion = new();
 
     protected override void OnInitialized()
     {
         if (!SesionServicio.HaySesion) NavigationManager.NavigateTo("/login");
+        ActualizarEstado();
+    }
+
+    private void ActualizarEstado()
+    {
+        _equipos = ServicioEquipo.Buscar(_ => true);
+        _equiposFaltantes = Math.Max(0, 48 - _equipos.Count);
+        _cuposPorConfederacion = CuposMaximos.ToDictionary(
+            kvp => kvp.Key,
+            kvp => (_equipos.Count(e => e.Confederacion == kvp.Key), kvp.Value));
+
+        if (EstadoTorneo.Fixture != null)
+        {
+            _estadoTexto = "Fixture generado";
+            _estadoBadgeClase = "badge-success";
+        }
+        else if (_equipos.Count >= 48)
+        {
+            _estadoTexto = "Listo para generar fixture";
+            _estadoBadgeClase = "badge-warning";
+        }
+        else
+        {
+            _estadoTexto = "Incompleto";
+            _estadoBadgeClase = "badge-muted";
+        }
     }
 
     private void SeleccionarArchivo(InputFileChangeEventArgs e)
@@ -75,6 +195,7 @@
         if (_archivoSeleccionado == null) return;
         _error = string.Empty;
         _resultado = null;
+        _importando = true;
 
         try
         {
@@ -82,11 +203,16 @@
             using var memoryStream = new MemoryStream();
             await browserStream.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
-            _resultado = ServicioImportacionLegible.Importar(memoryStream, ServicioEquipo);
+            _resultado = ServicioImportacionLegible.Importar(memoryStream, ServicioEquipo, SesionServicio.UsuarioActual);
+            ActualizarEstado();
         }
         catch (Exception ex)
         {
             _error = ex.Message;
+        }
+        finally
+        {
+            _importando = false;
         }
     }
 }
