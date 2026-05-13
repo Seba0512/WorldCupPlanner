@@ -98,10 +98,10 @@ else if (!SesionServicio.EsAdministrador)
                     <span class="form-hint">Determina el orden de los bombos.</span>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Semilla completar</label>
+                    <label class="form-label">Semilla de generación automática</label>
                     <input type="number" class="form-control" @bind="_formulario.SemillaCompletar"
                            disabled="@(!PuedeEditar)" />
-                    <span class="form-hint">Para generación automática de equipos ficticios.</span>
+                    <span class="form-hint">La misma semilla genera siempre los mismos equipos y rankings ficticios.</span>
                 </div>
             </div>
 
@@ -174,7 +174,7 @@ else if (!SesionServicio.EsAdministrador)
                         <tr><td>Separación fechas</td><td>@usada.SeparacionEntreFechas días</td></tr>
                         <tr><td>Sep. entre partidos</td><td>@usada.SeparacionHorasEntrePartidos h</td></tr>
                         <tr><td>Semilla fixture</td><td>@usada.SemillaFixture</td></tr>
-                        <tr><td>Semilla completar</td><td>@usada.SemillaCompletar</td></tr>
+                        <tr><td>Semilla gen. automática</td><td>@usada.SemillaCompletar</td></tr>
                         <tr><td>Semilla cruces</td><td>@usada.SemillaCrucesFase</td></tr>
                         <tr><td>Semilla simulación</td><td>@usada.SemillaSimulation</td></tr>
                     </tbody>

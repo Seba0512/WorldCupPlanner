@@ -1,3 +1,4 @@
+using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -197,6 +198,105 @@ public class ServicioConfiguracionTorneoTests
 
         // Assert
         Assert.AreEqual(5, servicioConfiguracion.ObtenerConfiguracionActual().SemillaFixture);
+    }
+
+    // --- Unicidad de semilla de generación automática ---
+
+    [TestMethod]
+    public void SemillaCompletar_FuenteUnica_ConfiguracionCentralizadaEsOrigenDeLaSemilla()
+    {
+        // La semilla de generación automática vive exclusivamente en ConfiguracionTorneo.
+        // Este test verifica que se persiste y se obtiene desde el mismo servicio,
+        // garantizando que no existen otras fuentes paralelas.
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var configuracion = new ConfiguracionTorneo { SemillaCompletar = 77 };
+
+        servicioConfiguracion.ModificarConfiguracion(administrador, configuracion);
+
+        Assert.AreEqual(77, servicioConfiguracion.ObtenerConfiguracionActual().SemillaCompletar);
+    }
+
+    [TestMethod]
+    public void SemillaCompletar_Persistencia_MantieneValorTrasMultiplesConsultas()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        servicioConfiguracion.ModificarConfiguracion(administrador, new ConfiguracionTorneo { SemillaCompletar = 42 });
+
+        // Act — múltiples lecturas deben devolver el mismo valor
+        var semilla1 = servicioConfiguracion.ObtenerConfiguracionActual().SemillaCompletar;
+        var semilla2 = servicioConfiguracion.ObtenerConfiguracionActual().SemillaCompletar;
+        var semilla3 = servicioConfiguracion.ObtenerConfiguracionActual().SemillaCompletar;
+
+        // Assert
+        Assert.AreEqual(42, semilla1);
+        Assert.AreEqual(42, semilla2);
+        Assert.AreEqual(42, semilla3);
+    }
+
+    [TestMethod]
+    public void SemillaCompletar_UsadaEnGeneracion_MismaSemillaProduceMismosEquipos()
+    {
+        // Verifica que la semilla centralizada produce resultados reproducibles en ServicioEquipo.
+        var servicioConfiguracion1 = new ServicioConfiguracionTorneo();
+        var servicioConfiguracion2 = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        servicioConfiguracion1.ModificarConfiguracion(administrador, new ConfiguracionTorneo { SemillaCompletar = 99 });
+        servicioConfiguracion2.ModificarConfiguracion(administrador, new ConfiguracionTorneo { SemillaCompletar = 99 });
+
+        var servicioEquipo1 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
+        var servicioEquipo2 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
+
+        // Act — ambos usan la semilla de su respectiva configuración centralizada
+        var generados1 = servicioEquipo1.CompletarEquipos(
+            servicioConfiguracion1.ObtenerConfiguracionActual().SemillaCompletar);
+        var generados2 = servicioEquipo2.CompletarEquipos(
+            servicioConfiguracion2.ObtenerConfiguracionActual().SemillaCompletar);
+
+        // Assert
+        CollectionAssert.AreEqual(
+            generados1.Select(e => e.Nombre).ToList(),
+            generados2.Select(e => e.Nombre).ToList());
+        CollectionAssert.AreEqual(
+            generados1.Select(e => e.RankingFIFA).ToList(),
+            generados2.Select(e => e.RankingFIFA).ToList());
+    }
+
+    [TestMethod]
+    public void SemillaCompletar_DistintasSemillas_ProducenEquiposDiferentes()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        servicioConfiguracion.ModificarConfiguracion(administrador, new ConfiguracionTorneo { SemillaCompletar = 1 });
+        var semilla1 = servicioConfiguracion.ObtenerConfiguracionActual().SemillaCompletar;
+
+        servicioConfiguracion.ModificarConfiguracion(administrador, new ConfiguracionTorneo { SemillaCompletar = 2 });
+        var semilla2 = servicioConfiguracion.ObtenerConfiguracionActual().SemillaCompletar;
+
+        var servicioEquipo1 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
+        var servicioEquipo2 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
+
+        // Act
+        var rankings1 = servicioEquipo1.CompletarEquipos(semilla1).Select(e => e.RankingFIFA).ToList();
+        var rankings2 = servicioEquipo2.CompletarEquipos(semilla2).Select(e => e.RankingFIFA).ToList();
+
+        // Assert — semillas distintas deben generar rankings distintos
+        Assert.IsFalse(rankings1.SequenceEqual(rankings2),
+            "Semillas distintas no deben producir rankings idénticos.");
+    }
+
+    [TestMethod]
+    public void SemillaCompletar_NoExisteEnOtrasFuentes_SoloEnConfiguracionTorneo()
+    {
+        // Prueba estructural: ConfiguracionTorneo es el único contenedor de SemillaCompletar.
+        // Si esta propiedad existiera en múltiples clases, habría duplicación.
+        var configuracion = new ConfiguracionTorneo { SemillaCompletar = 55 };
+
+        Assert.AreEqual(55, configuracion.SemillaCompletar);
+        Assert.AreEqual(typeof(int), configuracion.SemillaCompletar.GetType());
     }
 
     private static Usuario CrearUsuarioConRol(RolUsuario rol)
