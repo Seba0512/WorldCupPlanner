@@ -408,6 +408,69 @@ public sealed class ServicioUsuarioTests
     }
 
     [TestMethod]
+    public void CambiarContrasenia_ConMismaContraseniaActual_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("MismaPass@123");
+
+        // Act & Assert
+        Assert.ThrowsException<InvalidOperationException>(() =>
+            _servicio.CambiarContrasenia(usuario, "MismaPass@123", "MismaPass@123")
+        );
+    }
+
+    [TestMethod]
+    public void CambiarContrasenia_ConMismaContraseniaActual_MensajeDeErrorAmigable()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("MismaPass@123");
+
+        // Act
+        var ex = Assert.ThrowsException<InvalidOperationException>(() =>
+            _servicio.CambiarContrasenia(usuario, "MismaPass@123", "MismaPass@123")
+        );
+
+        // Assert
+        Assert.AreEqual("La nueva contraseña debe ser diferente de la contraseña actual.", ex.Message);
+    }
+
+    [TestMethod]
+    public void CambiarContrasenia_ConMismaContraseniaActual_RegistraIntentoEnAuditoria()
+    {
+        // Arrange
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var servicio = new ServicioUsuario(repositorio, auditoria);
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("MismaPass@123");
+
+        // Act
+        try { servicio.CambiarContrasenia(usuario, "MismaPass@123", "MismaPass@123"); } catch (InvalidOperationException) { }
+
+        // Assert
+        Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "CAMBIO_CONTRASENIA_RECHAZADO"),
+            "Debe registrarse en auditoría el intento de reutilizar la contraseña actual.");
+    }
+
+    [TestMethod]
+    public void CambiarContrasenia_ConMismaContraseniaActual_NoModificaLaContrasenia()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("MismaPass@123");
+
+        // Act
+        try { _servicio.CambiarContrasenia(usuario, "MismaPass@123", "MismaPass@123"); } catch (InvalidOperationException) { }
+
+        // Assert — la contraseña original debe seguir siendo válida
+        Assert.IsTrue(usuario.VerificarContrasenia("MismaPass@123"),
+            "La contraseña no debe haber cambiado tras un intento rechazado.");
+    }
+
+    [TestMethod]
     public void Login_ConEmailYContraseniaCorrectos_DevuelveUsuario()
     {
         // Arrange
@@ -1103,6 +1166,109 @@ public sealed class ServicioUsuarioTests
         // Assert
         Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "INTENTO_QUITAR_ROL_ADMIN_ULTIMO"),
             "Debe registrarse en auditoría el intento de quitar el rol al último administrador.");
+    }
+
+    // --- ReiniciarContrasenia forzarCambio ---
+
+    [TestMethod]
+    public void ReiniciarContrasenia_ConForzarCambio_MarcaUsuarioParaCambioForzado()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("ViejaPass@123");
+        _servicio.AgregarUsuario(usuario);
+        var admin = CrearUsuarioValido("admin@example.com");
+        admin.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarUsuario(admin);
+
+        // Act
+        _servicio.ReiniciarContrasenia(usuario, admin, forzarCambio: true);
+
+        // Assert
+        Assert.IsTrue(usuario.DebeCambiarContrasenia,
+            "El flag DebeCambiarContrasenia debe ser true cuando se reinicia con cambio forzado.");
+    }
+
+    [TestMethod]
+    public void ReiniciarContrasenia_SinForzarCambio_NoMarcaUsuarioParaCambio()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("ViejaPass@123");
+        _servicio.AgregarUsuario(usuario);
+        var admin = CrearUsuarioValido("admin@example.com");
+        admin.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarUsuario(admin);
+
+        // Act
+        _servicio.ReiniciarContrasenia(usuario, admin, forzarCambio: false);
+
+        // Assert
+        Assert.IsFalse(usuario.DebeCambiarContrasenia,
+            "El flag DebeCambiarContrasenia debe permanecer false cuando no se fuerza el cambio.");
+    }
+
+    [TestMethod]
+    public void ReiniciarContrasenia_DevuelveContraseniaTemporalEnTextoPlano()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("ViejaPass@123");
+        _servicio.AgregarUsuario(usuario);
+        var admin = CrearUsuarioValido("admin@example.com");
+        admin.AgregarRol(RolUsuario.AdministradorDelSistema);
+        _servicio.AgregarUsuario(admin);
+
+        // Act
+        var contraseniaTemporal = _servicio.ReiniciarContrasenia(usuario, admin);
+
+        // Assert
+        Assert.IsFalse(string.IsNullOrEmpty(contraseniaTemporal),
+            "ReiniciarContrasenia debe retornar la contraseña temporal en texto plano.");
+        Assert.IsTrue(usuario.VerificarContrasenia(contraseniaTemporal),
+            "La contraseña retornada debe coincidir con la almacenada en el usuario.");
+    }
+
+    [TestMethod]
+    public void ReiniciarContrasenia_ConForzarCambio_RegistraDetalleEnAuditoria()
+    {
+        // Arrange
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var servicio = new ServicioUsuario(repositorio, auditoria);
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("ViejaPass@123");
+        servicio.AgregarUsuario(usuario);
+        var admin = CrearUsuarioValido("admin@example.com");
+        admin.AgregarRol(RolUsuario.AdministradorDelSistema);
+        servicio.AgregarUsuario(admin);
+        repoAuditoria.Entradas.Clear();
+
+        // Act
+        servicio.ReiniciarContrasenia(usuario, admin, forzarCambio: true);
+
+        // Assert
+        var entrada = repoAuditoria.Entradas.FirstOrDefault(e => e.Accion == "REINICIO_CONTRASENIA");
+        Assert.IsNotNull(entrada, "Debe registrarse REINICIO_CONTRASENIA en auditoría.");
+        StringAssert.Contains(entrada.Detalle, "cambio forzado",
+            "El detalle de auditoría debe indicar que se forzó el cambio.");
+    }
+
+    [TestMethod]
+    public void CambiarContrasenia_ConCambioForzadoPrevio_LimpiaFlagDebeCambiarContrasenia()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("ViejaPass@123");
+        usuario.MarcarParaCambioForzado();
+
+        // Act
+        _servicio.CambiarContrasenia(usuario, "ViejaPass@123", "NuevaPass@456");
+
+        // Assert
+        Assert.IsFalse(usuario.DebeCambiarContrasenia,
+            "Cambiar contraseña debe limpiar el flag de cambio forzado.");
     }
 
     private static Usuario CrearUsuarioConRol(RolUsuario rol)

@@ -184,29 +184,42 @@ public class ServicioUsuario
     }
 
     private const int AnioBaseMundial = 2026;
+    private static string GenerarTextoContraseniaDefecto(int seed = 0) => $"TempPass@{AnioBaseMundial + seed}";
 
     public void GenerarContraseniaDefecto(Usuario usuario, int seed = 0)
     {
-        var contraseniaDefecto = $"TempPass@{AnioBaseMundial + seed}";
-        usuario.EstablecerContrasenia(contraseniaDefecto);
+        usuario.EstablecerContrasenia(GenerarTextoContraseniaDefecto(seed));
     }
 
-    public void ReiniciarContrasenia(Usuario usuario, Usuario administrador)
+    public string ReiniciarContrasenia(Usuario usuario, Usuario administrador, bool forzarCambio = false)
     {
         if (!administrador.TieneRol(RolUsuario.AdministradorDelSistema))
-        {
             throw new InvalidOperationException("Solo un administrador puede reiniciar contraseñas.");
-        }
 
-        GenerarContraseniaDefecto(usuario);
-        _auditoria.Registrar(administrador.Email, "REINICIO_CONTRASENIA", $"Contraseña reiniciada para: {usuario.Email}");
+        var contraseniaTemporal = GenerarTextoContraseniaDefecto();
+        usuario.EstablecerContrasenia(contraseniaTemporal);
+
+        if (forzarCambio)
+            usuario.MarcarParaCambioForzado();
+
+        var detalle = forzarCambio
+            ? $"Contraseña reiniciada para: {usuario.Email} (cambio forzado en próximo inicio)"
+            : $"Contraseña reiniciada para: {usuario.Email}";
+        _auditoria.Registrar(administrador.Email, "REINICIO_CONTRASENIA", detalle);
+
+        return contraseniaTemporal;
     }
 
     public void CambiarContrasenia(Usuario usuario, string contraseniaAnterior, string nuevaContrasenia)
     {
         if (!usuario.VerificarContrasenia(contraseniaAnterior))
-        {
             throw new InvalidOperationException("La contraseña actual es incorrecta.");
+
+        if (usuario.VerificarContrasenia(nuevaContrasenia))
+        {
+            _auditoria.Registrar(usuario.Email, "CAMBIO_CONTRASENIA_RECHAZADO",
+                $"Intento de reutilizar la contraseña actual: {usuario.Email}");
+            throw new InvalidOperationException("La nueva contraseña debe ser diferente de la contraseña actual.");
         }
 
         usuario.EstablecerContrasenia(nuevaContrasenia);

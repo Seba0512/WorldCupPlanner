@@ -598,6 +598,60 @@ public class UsuarioTests
         Assert.AreEqual(original.FechaNacimiento, copia.FechaNacimiento);
     }
 
+    // --- DebeCambiarContrasenia ---
+
+    [TestMethod]
+    public void DebeCambiarContrasenia_NuevoUsuario_EsFalsoPorDefecto()
+    {
+        // Arrange & Act
+        var usuario = CrearUsuarioValido();
+
+        // Assert
+        Assert.IsFalse(usuario.DebeCambiarContrasenia);
+    }
+
+    [TestMethod]
+    public void MarcarParaCambioForzado_EstableceFlagEnTrue()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.MarcarParaCambioForzado();
+
+        // Assert
+        Assert.IsTrue(usuario.DebeCambiarContrasenia);
+    }
+
+    [TestMethod]
+    public void EstablecerContrasenia_LimpieFlagDebeCambiarContrasenia()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        usuario.MarcarParaCambioForzado();
+
+        // Act
+        usuario.EstablecerContrasenia("NuevaPass@123");
+
+        // Assert
+        Assert.IsFalse(usuario.DebeCambiarContrasenia);
+    }
+
+    [TestMethod]
+    public void MarcarParaCambioForzado_LuegoEstablecerContrasenia_FlagQuedaFalso()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+
+        // Act
+        usuario.MarcarParaCambioForzado();
+        usuario.EstablecerContrasenia("NuevaPass@123");
+
+        // Assert
+        Assert.IsFalse(usuario.DebeCambiarContrasenia,
+            "Establecer contraseña debe limpiar el flag de cambio forzado.");
+    }
+
     private static Usuario CrearUsuarioValido()
     {
         return new Usuario(new DatosUsuario

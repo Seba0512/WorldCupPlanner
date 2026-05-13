@@ -22,6 +22,7 @@ public class Usuario
     public string Email { get; private set; }
     public DateTime FechaNacimiento { get; private set; }
     public string? ContraseniaCifrada => _contraseniaCifrada;
+    public bool DebeCambiarContrasenia { get; private set; }
 
     public Usuario(DatosUsuario datos)
     {
@@ -107,6 +108,12 @@ public class Usuario
     {
         ValidarContrasenia(contrasenia);
         _contraseniaCifrada = CifrarContrasenia(contrasenia);
+        DebeCambiarContrasenia = false;
+    }
+
+    public void MarcarParaCambioForzado()
+    {
+        DebeCambiarContrasenia = true;
     }
 
     private static void ValidarContrasenia(string contrasenia)

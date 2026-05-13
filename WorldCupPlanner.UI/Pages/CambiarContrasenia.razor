@@ -1,0 +1,122 @@
+@page "/cuenta/cambiar-contrasenia"
+@inject ServicioUsuario ServicioUsuario
+@inject SesionServicio SesionServicio
+@inject NavigationManager NavigationManager
+@inject ToastServicio Toast
+
+<PageTitle>Cambiar contraseña — WorldCupPlanner 2026</PageTitle>
+
+<PageHeader Titulo="Cambiar contraseña" UrlVolver="/" TextoVolver="Volver al inicio" />
+
+<div class="form-section">
+    @if (_esCambioForzado)
+    {
+        <div class="alert alert-warning">
+            <span class="oi oi-warning" aria-hidden="true"></span>
+            Tu contraseña ha sido reiniciada por un administrador. Debés definir una nueva contraseña antes de continuar.
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="alert alert-danger">
+            <span class="oi oi-warning" aria-hidden="true"></span> @_error
+        </div>
+    }
+
+    <div class="form-group">
+        <label class="form-label">Contraseña actual</label>
+        <div class="password-input-wrapper">
+            <input type="@(_verActual ? "text" : "password")" class="form-control"
+                   @bind-value="_contraseniaActual" @bind-value:event="oninput"
+                   placeholder="••••••••" />
+            <button type="button" class="password-toggle-btn" @onclick="() => _verActual = !_verActual">
+                @(_verActual ? "Ocultar" : "Ver")
+            </button>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Nueva contraseña</label>
+        <div class="password-input-wrapper">
+            <input type="@(_verNueva ? "text" : "password")" class="form-control"
+                   @bind-value="_nuevaContrasenia" @bind-value:event="oninput"
+                   placeholder="••••••••" />
+            <button type="button" class="password-toggle-btn" @onclick="() => _verNueva = !_verNueva">
+                @(_verNueva ? "Ocultar" : "Ver")
+            </button>
+        </div>
+        <RequisitosContrasenia Contrasenia="@_nuevaContrasenia" />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Confirmar nueva contraseña</label>
+        <div class="password-input-wrapper">
+            <input type="@(_verConfirmar ? "text" : "password")" class="form-control @(_confirmarConError ? "is-invalid" : string.Empty)"
+                   @bind-value="_confirmarContrasenia" @bind-value:event="oninput"
+                   placeholder="••••••••" />
+            <button type="button" class="password-toggle-btn" @onclick="() => _verConfirmar = !_verConfirmar">
+                @(_verConfirmar ? "Ocultar" : "Ver")
+            </button>
+        </div>
+        @if (_confirmarConError)
+        {
+            <div class="form-hint" style="color: #f87171">Las contraseñas no coinciden.</div>
+        }
+    </div>
+
+    <div class="d-flex gap-2 mt-2">
+        <button type="button" class="btn btn-primary" @onclick="Guardar">
+            <span class="oi oi-check" aria-hidden="true"></span> Cambiar contraseña
+        </button>
+        @if (!_esCambioForzado)
+        {
+            <a href="/" class="btn btn-secondary">Cancelar</a>
+        }
+    </div>
+</div>
+
+@code {
+    private string _contraseniaActual = string.Empty;
+    private string _nuevaContrasenia = string.Empty;
+    private string _confirmarContrasenia = string.Empty;
+    private bool _verActual;
+    private bool _verNueva;
+    private bool _verConfirmar;
+    private string _error = string.Empty;
+    private bool _confirmarConError;
+    private bool _esCambioForzado;
+
+    protected override void OnInitialized()
+    {
+        if (!SesionServicio.HaySesion)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+        _esCambioForzado = SesionServicio.UsuarioActual!.DebeCambiarContrasenia;
+    }
+
+    private void Guardar()
+    {
+        _error = string.Empty;
+        _confirmarConError = false;
+
+        if (_nuevaContrasenia != _confirmarContrasenia)
+        {
+            _confirmarConError = true;
+            return;
+        }
+
+        try
+        {
+            ServicioUsuario.CambiarContrasenia(SesionServicio.UsuarioActual!, _contraseniaActual, _nuevaContrasenia);
+            Toast.Exito("Contraseña cambiada correctamente.");
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+}

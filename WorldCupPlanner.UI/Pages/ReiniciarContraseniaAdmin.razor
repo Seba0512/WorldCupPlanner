@@ -1,0 +1,100 @@
+@page "/usuarios/{Email}/reiniciar-contrasenia"
+@inject ServicioUsuario ServicioUsuario
+@inject SesionServicio SesionServicio
+@inject NavigationManager NavigationManager
+@inject ToastServicio Toast
+
+<PageTitle>Reiniciar contraseña — WorldCupPlanner 2026</PageTitle>
+
+<PageHeader Titulo="Reiniciar contraseña" UrlVolver="/usuarios" TextoVolver="Volver a usuarios" />
+
+<div class="form-section">
+    @if (_usuario == null)
+    {
+        <div class="alert alert-danger">
+            <span class="oi oi-warning" aria-hidden="true"></span> Usuario no encontrado.
+        </div>
+    }
+    else if (_reinicioRealizado)
+    {
+        <div class="alert alert-success">
+            <span class="oi oi-check" aria-hidden="true"></span>
+            La contraseña de <strong>@_usuario.Nombre @_usuario.Apellido</strong> fue reiniciada correctamente.
+        </div>
+        <div class="form-group" style="margin-top: 16px">
+            <label class="form-label">Contraseña temporal generada</label>
+            <div class="password-input-wrapper">
+                <input type="@(_verTemporal ? "text" : "password")" class="form-control"
+                       value="@_contraseniaTemporal" readonly />
+                <button type="button" class="password-toggle-btn" @onclick="() => _verTemporal = !_verTemporal">
+                    @(_verTemporal ? "Ocultar" : "Ver")
+                </button>
+            </div>
+            <span class="form-hint">Compartí esta contraseña con el usuario de forma segura. No se volverá a mostrar.</span>
+        </div>
+        @if (_forzarCambio)
+        {
+            <div class="alert alert-warning" style="margin-top: 12px">
+                <span class="oi oi-info" aria-hidden="true"></span>
+                El usuario deberá cambiar su contraseña en el próximo inicio de sesión.
+            </div>
+        }
+        <div style="margin-top: 16px">
+            <a href="/usuarios" class="btn btn-primary">Volver a usuarios</a>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <span class="oi oi-warning" aria-hidden="true"></span>
+            Estás por reiniciar la contraseña de <strong>@_usuario.Nombre @_usuario.Apellido (@_usuario.Email)</strong>.
+            Se generará una contraseña temporal que el administrador deberá comunicar al usuario.
+        </div>
+
+        <div class="form-group">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="chkForzar" @bind="_forzarCambio" />
+                <label class="form-check-label" for="chkForzar">
+                    Forzar cambio de contraseña en el próximo inicio de sesión
+                </label>
+            </div>
+            <span class="form-hint">Si está marcado, el usuario no podrá operar en el sistema hasta que defina una nueva contraseña.</span>
+        </div>
+
+        <div class="d-flex gap-2 mt-2">
+            <button type="button" class="btn btn-danger" @onclick="Reiniciar">
+                <span class="oi oi-loop-circular" aria-hidden="true"></span> Reiniciar contraseña
+            </button>
+            <a href="/usuarios" class="btn btn-secondary">Cancelar</a>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Email { get; set; } = string.Empty;
+    private Usuario? _usuario;
+    private bool _forzarCambio = true;
+    private bool _reinicioRealizado;
+    private string _contraseniaTemporal = string.Empty;
+    private bool _verTemporal;
+
+    protected override void OnInitialized()
+    {
+        if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
+        _usuario = ServicioUsuario.ObtenerPorEmail(Email);
+    }
+
+    private void Reiniciar()
+    {
+        if (_usuario == null) return;
+        try
+        {
+            _contraseniaTemporal = ServicioUsuario.ReiniciarContrasenia(_usuario, SesionServicio.UsuarioActual!, _forzarCambio);
+            _reinicioRealizado = true;
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+    }
+}

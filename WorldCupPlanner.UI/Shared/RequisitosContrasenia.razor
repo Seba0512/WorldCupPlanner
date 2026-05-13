@@ -1,0 +1,40 @@
+@using System.Text.RegularExpressions
+
+@if (!string.IsNullOrEmpty(Contrasenia))
+{
+    <div class="password-requirements">
+        <p class="requirements-label">La contraseña debe cumplir:</p>
+        <ul class="requirements-list">
+            <li class="@(CumpleLongitud ? "req-ok" : "req-pending")">
+                <span class="oi @(CumpleLongitud ? "oi-check" : "oi-minus")" aria-hidden="true"></span>
+                Mínimo 8 caracteres
+            </li>
+            <li class="@(CumpleMayuscula ? "req-ok" : "req-pending")">
+                <span class="oi @(CumpleMayuscula ? "oi-check" : "oi-minus")" aria-hidden="true"></span>
+                Al menos una mayúscula
+            </li>
+            <li class="@(CumpleMinuscula ? "req-ok" : "req-pending")">
+                <span class="oi @(CumpleMinuscula ? "oi-check" : "oi-minus")" aria-hidden="true"></span>
+                Al menos una minúscula
+            </li>
+            <li class="@(CumpleNumero ? "req-ok" : "req-pending")">
+                <span class="oi @(CumpleNumero ? "oi-check" : "oi-minus")" aria-hidden="true"></span>
+                Al menos un número
+            </li>
+            <li class="@(CumpleEspecial ? "req-ok" : "req-pending")">
+                <span class="oi @(CumpleEspecial ? "oi-check" : "oi-minus")" aria-hidden="true"></span>
+                Al menos un carácter especial (@@, #, $, ., !, &amp;, *, -, _, +, =, ?)
+            </li>
+        </ul>
+    </div>
+}
+
+@code {
+    [Parameter] public string Contrasenia { get; set; } = string.Empty;
+
+    private bool CumpleLongitud => Contrasenia.Length >= 8;
+    private bool CumpleMayuscula => Regex.IsMatch(Contrasenia, @"[A-Z]");
+    private bool CumpleMinuscula => Regex.IsMatch(Contrasenia, @"[a-z]");
+    private bool CumpleNumero => Regex.IsMatch(Contrasenia, @"[0-9]");
+    private bool CumpleEspecial => Regex.IsMatch(Contrasenia, @"[@#$\.\!\&\*\-_\+=\?]");
+}

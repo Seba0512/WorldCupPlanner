@@ -52,7 +52,7 @@
         {
             var usuario = ServicioUsuario.Login(_email, _contrasenia);
             SesionServicio.IniciarSesion(usuario);
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo(usuario.DebeCambiarContrasenia ? "/cuenta/cambiar-contrasenia" : "/");
         }
         catch (Exception ex)
         {
