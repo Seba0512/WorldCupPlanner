@@ -33,7 +33,12 @@
 
     <div class="form-group">
         <label class="form-label">Correo electrónico</label>
-        <input type="email" class="form-control" @bind="_email" />
+        <input type="email" class="form-control @(_emailConError ? "is-invalid" : string.Empty)"
+               @bind="_email" @oninput="() => _emailConError = false" />
+        @if (_emailConError)
+        {
+            <div class="invalid-feedback">@_error</div>
+        }
     </div>
 
     <div class="form-group">
@@ -77,6 +82,7 @@
     private bool _esAdmin;
     private bool _esEditor;
     private string _error = string.Empty;
+    private bool _emailConError;
 
     protected override void OnInitialized()
     {
@@ -96,6 +102,8 @@
     private void Guardar()
     {
         _error = string.Empty;
+        _emailConError = false;
+        _email = _email.Trim();
         try
         {
             if (_usuario == null) return;
@@ -111,6 +119,7 @@
             Toast.Exito("Usuario actualizado correctamente.");
             NavigationManager.NavigateTo("/usuarios");
         }
+        catch (EntidadYaExistenteExcepcion ex) { _error = ex.Message; _emailConError = true; }
         catch (Exception ex) { _error = ex.Message; }
     }
 }

@@ -22,7 +22,7 @@ public class ServicioUsuario
     {
         if (solicitante != null)
             _autorizacion.VerificarEsAdministrador(solicitante);
-        ValidarEmailUnico(usuario.Email);
+        ValidarEmailUnico(usuario.Email, ejecutadoPor);
         AsignarRolEditorSiNoTieneRoles(usuario, ejecutadoPor);
         _repositorio.Agregar(usuario);
         _auditoria.Registrar(ejecutadoPor ?? "sistema", "ALTA_USUARIO", $"Usuario creado: {usuario.Email}");
@@ -62,11 +62,15 @@ public class ServicioUsuario
     {
         var campos = new List<string>();
 
-        if (actualizacion.Email != null && !actualizacion.Email.Equals(usuarioActual.Email, StringComparison.OrdinalIgnoreCase))
+        if (actualizacion.Email != null)
         {
-            ValidarEmailUnico(actualizacion.Email);
-            usuarioActual.ActualizarEmail(actualizacion.Email);
-            campos.Add($"email: {actualizacion.Email}");
+            var emailNuevo = actualizacion.Email.Trim();
+            if (!emailNuevo.Equals(usuarioActual.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                ValidarEmailUnico(emailNuevo, actualizacion.EjecutadoPor);
+                usuarioActual.ActualizarEmail(emailNuevo);
+                campos.Add($"email: {emailNuevo}");
+            }
         }
 
         if (actualizacion.Nombre != null)
@@ -146,12 +150,15 @@ public class ServicioUsuario
             throw new InvalidOperationException("Debe haber al menos un administrador en el sistema.");
     }
 
-    private void ValidarEmailUnico(string email)
+    private void ValidarEmailUnico(string email, string? ejecutadoPor = null)
     {
-        var usuarioExistente = _repositorio.ObtenerPorEmail(email);
+        var emailNormalizado = email.Trim();
+        var usuarioExistente = _repositorio.ObtenerPorEmail(emailNormalizado);
         if (usuarioExistente != null)
         {
-            throw new InvalidOperationException($"El email '{email}' ya está registrado en el sistema.");
+            _auditoria.Registrar(ejecutadoPor ?? emailNormalizado, "EMAIL_DUPLICADO_INTENTO",
+                $"Intento de uso de email ya registrado: {emailNormalizado}");
+            throw new EntidadYaExistenteExcepcion("El correo electrónico ingresado ya está en uso.");
         }
     }
 

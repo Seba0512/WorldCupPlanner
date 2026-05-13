@@ -43,7 +43,7 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(usuario1);
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() => _servicio.AgregarUsuario(usuario2));
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.AgregarUsuario(usuario2));
     }
 
     [TestMethod]
@@ -55,7 +55,43 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(usuario1);
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() => _servicio.AgregarUsuario(usuario2));
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.AgregarUsuario(usuario2));
+    }
+
+    [TestMethod]
+    public void AgregarUsuario_ConEmailDuplicado_MensajeDeErrorAmigable()
+    {
+        // Arrange
+        var usuario1 = CrearUsuarioValido("juan@example.com");
+        var usuario2 = CrearUsuarioValido("juan@example.com");
+        _servicio.AgregarUsuario(usuario1);
+
+        // Act
+        var ex = Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.AgregarUsuario(usuario2));
+
+        // Assert
+        Assert.AreEqual("El correo electrónico ingresado ya está en uso.", ex.Message);
+    }
+
+    [TestMethod]
+    public void AgregarUsuario_ConEmailDuplicado_RegistraIntentoEnAuditoria()
+    {
+        // Arrange
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var repositorio = new RepositorioUsuarioEnMemoria();
+        var servicio = new ServicioUsuario(repositorio, auditoria);
+        var usuario1 = CrearUsuarioValido("juan@example.com");
+        var usuario2 = CrearUsuarioValido("juan@example.com");
+        servicio.AgregarUsuario(usuario1);
+        repoAuditoria.Entradas.Clear();
+
+        // Act
+        try { servicio.AgregarUsuario(usuario2); } catch (EntidadYaExistenteExcepcion) { }
+
+        // Assert
+        Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "EMAIL_DUPLICADO_INTENTO"),
+            "Debe registrarse en auditoría el intento de registro con email duplicado.");
     }
 
     [TestMethod]
@@ -129,7 +165,7 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(usuario2);
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() =>
             _servicio.ActualizarUsuario(usuario2, new ActualizacionUsuario { Email = "juan@example.com" })
         );
     }
@@ -144,8 +180,23 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(usuario2);
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() =>
             _servicio.ActualizarUsuario(usuario2, new ActualizacionUsuario { Email = "juan@example.com" })
+        );
+    }
+
+    [TestMethod]
+    public void ActualizarUsuario_ConEmailConEspacios_SeNormalizaParaValidarDuplicados()
+    {
+        // Arrange
+        var usuario1 = CrearUsuarioValido("juan@example.com");
+        var usuario2 = CrearUsuarioValido("maria@example.com");
+        _servicio.AgregarUsuario(usuario1);
+        _servicio.AgregarUsuario(usuario2);
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() =>
+            _servicio.ActualizarUsuario(usuario2, new ActualizacionUsuario { Email = "  juan@example.com  " })
         );
     }
 
@@ -500,7 +551,7 @@ public sealed class ServicioUsuarioTests
         _servicio.Agregar(usuario1);
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() => _servicio.Agregar(usuario2));
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.Agregar(usuario2));
     }
 
     [TestMethod]
