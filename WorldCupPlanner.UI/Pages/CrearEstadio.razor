@@ -29,7 +29,10 @@
 
     <div class="form-group">
         <label class="form-label">Capacidad de público</label>
-        <input type="number" class="form-control" @bind="_estadio.Capacidad" min="20000" placeholder="Ej: 75000" />
+        <input type="number" class="form-control"
+               @bind:get="_capacidad"
+               @bind:set="v => { _capacidad = v; _estadio.Capacidad = v ?? 0; }"
+               min="20000" placeholder="Ej: 75000" />
         <span class="form-hint">Mínimo 20.000 espectadores.</span>
     </div>
 
@@ -50,6 +53,7 @@
 
 @code {
     private Estadio _estadio = new();
+    private int? _capacidad;
     private string _error = string.Empty;
 
     protected override void OnInitialized()

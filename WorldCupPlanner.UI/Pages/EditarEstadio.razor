@@ -28,7 +28,10 @@
 
     <div class="form-group">
         <label class="form-label">Capacidad de público</label>
-        <input type="number" class="form-control" @bind="_estadio.Capacidad" min="20000" />
+        <input type="number" class="form-control"
+               @bind:get="_capacidad"
+               @bind:set="v => { _capacidad = v; _estadio.Capacidad = v ?? 0; }"
+               min="20000" placeholder="Ej: 75000" />
         <span class="form-hint">Mínimo 20.000 espectadores.</span>
     </div>
 
@@ -48,6 +51,7 @@
 @code {
     [Parameter] public string Nombre { get; set; } = string.Empty;
     private Estadio _estadio = new();
+    private int? _capacidad;
     private string _error = string.Empty;
     private List<Estadio> _todosLosEstadios = [];
 
@@ -57,6 +61,7 @@
         _todosLosEstadios = ServicioEstadio.ObtenerEstadios();
         var original = _todosLosEstadios.First(e => e.Nombre == Nombre);
         _estadio = new Estadio { Nombre = original.Nombre, Ciudad = original.Ciudad, Capacidad = original.Capacidad, Descripcion = original.Descripcion };
+        _capacidad = original.Capacidad;
     }
 
     private void Guardar()
