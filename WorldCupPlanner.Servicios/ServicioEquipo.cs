@@ -82,6 +82,11 @@ namespace WorldCupPlanner.Servicios
             var rng = new Random(semilla);
             var generados = new List<Equipo>();
 
+            _auditoria?.Registrar(
+                solicitante != null ? $"{solicitante.Nombre} {solicitante.Apellido}" : "Sistema",
+                "Generación automática de equipos",
+                $"Semilla utilizada: {semilla}");
+
             foreach (var (confederacion, cupo) in CuposPorConfederacion)
             {
                 var inscritos = existentes.Count(e => e.Confederacion == confederacion);
@@ -97,6 +102,20 @@ namespace WorldCupPlanner.Servicios
                     };
                     Agregar(equipo);
                     generados.Add(equipo);
+                }
+
+                var generadosEnConfederacion = generados
+                    .Where(e => e.Confederacion == confederacion)
+                    .ToList();
+
+                if (generadosEnConfederacion.Count > 0)
+                {
+                    _auditoria?.Registrar(
+                        solicitante != null ? $"{solicitante.Nombre} {solicitante.Apellido}" : "Sistema",
+                        "Generación automática de equipos",
+                        $"Confederacion: {confederacion}, Generados: {generadosEnConfederacion.Count}, " +
+                        $"RankingMin: {generadosEnConfederacion.Min(e => e.RankingFIFA)}, " +
+                        $"RankingMax: {generadosEnConfederacion.Max(e => e.RankingFIFA)}");
                 }
             }
 
