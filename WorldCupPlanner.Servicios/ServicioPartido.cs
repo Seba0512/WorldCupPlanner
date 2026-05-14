@@ -37,7 +37,7 @@ public class ServicioPartido
 
     public void EditarEstadio(int idPartido, Estadio nuevoEstadio)
     {
-        if (!nuevoEstadio.EsValido())
+        if (nuevoEstadio == null || !nuevoEstadio.EsValido())
         {
             throw new EntidadInvalidaExcepcion("El estadio del partido no es valido.");
         }

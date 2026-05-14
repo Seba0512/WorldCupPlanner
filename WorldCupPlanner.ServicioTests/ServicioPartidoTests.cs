@@ -87,6 +87,20 @@ public class ServicioPartidoTests
     }
 
     [TestMethod]
+    public void EditarEstadio_ConEstadioNull_LanzaEntidadInvalidaExcepcion()
+    {
+        // Arrange
+        var repositorio = new RepositorioPartidoEnMemoria();
+        var partido = CrearPartido();
+        repositorio.Agregar(partido);
+        var servicioPartido = new ServicioPartido(repositorio);
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioPartido.EditarEstadio(partido.Id, null!));
+    }
+
+    [TestMethod]
     public void CargarResultado_ConGolesNegativos_DebeLanzarExcepcion()
     {
         // Arrange

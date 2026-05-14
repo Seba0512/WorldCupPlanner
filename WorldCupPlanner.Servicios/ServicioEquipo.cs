@@ -172,7 +172,9 @@ namespace WorldCupPlanner.Servicios
 
         private void ValidarNombreUnico(string nombre, string? excluir = null)
         {
-            if (_repositorio.Buscar(e => e.Nombre == nombre && e.Nombre != excluir).Count > 0)
+            if (_repositorio.Buscar(e =>
+                    string.Equals(e.Nombre, nombre, StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(e.Nombre, excluir, StringComparison.OrdinalIgnoreCase)).Count > 0)
                 throw new EntidadYaExistenteExcepcion("Ya existe un equipo con ese nombre.");
         }
 
