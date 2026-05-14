@@ -282,6 +282,113 @@ public class PartidoTests
     }
 
     [TestMethod]
+    public void Ganador_ConEmpateYGanadorPorPenalesLocal_RetornaEquipoLocal()
+    {
+        // Arrange
+        var equipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL };
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = equipoLocal,
+            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.Octavos,
+            GolesLocal = 1,
+            GolesVisitante = 1,
+            GanadorPorPenales = equipoLocal
+        };
+
+        // Act
+        var resultado = partido.Ganador();
+
+        // Assert
+        Assert.AreEqual(equipoLocal, resultado);
+    }
+
+    [TestMethod]
+    public void Ganador_ConEmpateYGanadorPorPenalesVisitante_RetornaEquipoVisitante()
+    {
+        // Arrange
+        var equipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL };
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            EquipoVisitante = equipoVisitante,
+            Fase = FaseTorneo.Final,
+            GolesLocal = 0,
+            GolesVisitante = 0,
+            GanadorPorPenales = equipoVisitante
+        };
+
+        // Act
+        var resultado = partido.Ganador();
+
+        // Assert
+        Assert.AreEqual(equipoVisitante, resultado);
+    }
+
+    [TestMethod]
+    public void FueDefinidoPorPenales_ConEmpateYGanadorAsignado_RetornaVerdadero()
+    {
+        // Arrange
+        var equipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL };
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = equipoLocal,
+            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.Semifinal,
+            GolesLocal = 2,
+            GolesVisitante = 2,
+            GanadorPorPenales = equipoLocal
+        };
+
+        // Act & Assert
+        Assert.IsTrue(partido.FueDefinidoPorPenales());
+    }
+
+    [TestMethod]
+    public void FueDefinidoPorPenales_ConVictoriaNormal_RetornaFalso()
+    {
+        // Arrange
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.Cuartos,
+            GolesLocal = 2,
+            GolesVisitante = 1
+        };
+
+        // Act & Assert
+        Assert.IsFalse(partido.FueDefinidoPorPenales());
+    }
+
+    [TestMethod]
+    public void FueDefinidoPorPenales_ConEmpateYSinGanadorAsignado_RetornaFalso()
+    {
+        // Arrange
+        var partido = new Partido
+        {
+            Fecha = DateTime.Now,
+            Estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 },
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            EquipoVisitante = new Equipo { Nombre = "Argentina", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            Fase = FaseTorneo.FaseDeGrupos,
+            GolesLocal = 1,
+            GolesVisitante = 1
+        };
+
+        // Act & Assert
+        Assert.IsFalse(partido.FueDefinidoPorPenales());
+    }
+
+    [TestMethod]
     public void Partido_ConGrupoAsignado_RetornaGrupo()
     {
         // Arrange

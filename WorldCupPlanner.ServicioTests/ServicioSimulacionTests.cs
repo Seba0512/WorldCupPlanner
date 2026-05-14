@@ -231,7 +231,7 @@ public class ServicioSimulacionTests
     }
 
     [TestMethod]
-    public void SimularResultados_ConPartidosEliminatorios_NoDebeGenerarEmpates()
+    public void SimularResultados_ConPartidosEliminatorios_TodosDienenGanador()
     {
         // Arrange
         var servicioSimulacion = new ServicioSimulacion();
@@ -247,7 +247,6 @@ public class ServicioSimulacionTests
 
         // Assert
         Assert.IsTrue(partidos.All(p => p.EstaJugado()));
-        Assert.IsTrue(partidos.All(p => !p.EsEmpate()));
         Assert.IsTrue(partidos.All(p => p.Ganador() != null));
     }
 
@@ -300,10 +299,10 @@ public class ServicioSimulacionTests
     }
 
     [TestMethod]
-    public void SimularResultados_ConEquiposDeRankingAltoEliminatorio_TodosLosCasosDeDesempateQuedan()
+    public void SimularResultados_ConEquiposDeRankingAltoEliminatorio_TodosTienenGanador()
     {
-        // Con 1000 partidos eliminatorios de equipos a ranking 2500 (bonus 2),
-        // la simulación debe cubrir el desempate decrementando visitante cuando local ya es 5.
+        // Con partidos eliminatorios de equipos ranking 2500 (bonus 2),
+        // todos los posibles empates deben resolverse por penales asignando GanadorPorPenales.
         var servicioSimulacion = new ServicioSimulacion();
         for (int semilla = 1; semilla <= 100; semilla++)
         {
@@ -319,8 +318,7 @@ public class ServicioSimulacionTests
 
             servicioSimulacion.SimularResultados(partidos, new ConfiguracionTorneo { SemillaSimulation = semilla });
 
-            Assert.IsTrue(partidos.All(p => !p.EsEmpate()), $"Semilla {semilla} dejó un empate");
-            Assert.IsTrue(partidos.All(p => p.GolesLocal <= 5 && p.GolesVisitante <= 5));
+            Assert.IsTrue(partidos.All(p => p.Ganador() != null), $"Semilla {semilla} dejó un partido sin ganador");
         }
     }
 
@@ -340,6 +338,29 @@ public class ServicioSimulacionTests
         var golesLocalBajo = partidosConRankingBajo.Sum(p => p.GolesLocal!.Value);
 
         Assert.IsTrue(golesLocalMedio > golesLocalBajo, "El ranking medio debe generar más goles que el ranking bajo");
+    }
+
+    [TestMethod]
+    public void SimularResultados_ConPartidoEliminatorioEmpatado_AsignaGanadorPorPenales()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var config = new ConfiguracionTorneo { SemillaSimulation = 999 };
+
+        // Buscar semilla que produzca empate en fase eliminatoria
+        Partido? partidoConEmpate = null;
+        for (int semilla = 1; semilla <= 200; semilla++)
+        {
+            var partidos = CrearPartidosEliminatoriosSinResultado(5);
+            servicioSimulacion.SimularResultados(partidos, new ConfiguracionTorneo { SemillaSimulation = semilla });
+            partidoConEmpate = partidos.FirstOrDefault(p => p.FueDefinidoPorPenales());
+            if (partidoConEmpate != null) break;
+        }
+
+        // Assert — al menos una semilla produjo un partido decidido por penales
+        Assert.IsNotNull(partidoConEmpate, "Ninguna semilla produjo un partido decidido por penales");
+        Assert.IsNotNull(partidoConEmpate!.GanadorPorPenales);
+        Assert.AreEqual(partidoConEmpate.GolesLocal, partidoConEmpate.GolesVisitante);
     }
 
     [TestMethod]
@@ -363,45 +384,52 @@ public class ServicioSimulacionTests
         Assert.AreEqual(partidoSimuladoSolo.GolesVisitante, partidos[2].GolesVisitante);
     }
     [TestMethod]
-    public void DesempatarPartido_ConLocalMenorAlMaximo_IncrementaGolesLocal()
+    public void DesempatarPartido_AsignaGanadorPorPenalesYMantieneGoles()
     {
         // Arrange
         var servicioSimulacion = new ServicioSimulacion();
         var partido = CrearPartidosEliminatoriosSinResultado(1)[0];
-        partido.GolesLocal = 3;
-        partido.GolesVisitante = 3;
+        partido.GolesLocal = 2;
+        partido.GolesVisitante = 2;
+        var random = new Random(1);
 
         var metodo = typeof(ServicioSimulacion).GetMethod(
             "DesempatarPartido",
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 
         // Act
-        metodo!.Invoke(servicioSimulacion, new object[] { partido });
+        metodo!.Invoke(servicioSimulacion, new object[] { partido, random });
 
         // Assert
-        Assert.AreEqual(4, partido.GolesLocal);
-        Assert.AreEqual(3, partido.GolesVisitante);
+        Assert.IsTrue(
+            ReferenceEquals(partido.GanadorPorPenales, partido.EquipoLocal) ||
+            ReferenceEquals(partido.GanadorPorPenales, partido.EquipoVisitante));
+        Assert.AreEqual(2, partido.GolesLocal);
+        Assert.AreEqual(2, partido.GolesVisitante);
     }
 
     [TestMethod]
-    public void DesempatarPartido_ConLocalEnMaximo_DecrementaGolesVisitante()
+    public void DesempatarPartido_ConSemillaFija_EsDeterministico()
     {
         // Arrange
         var servicioSimulacion = new ServicioSimulacion();
-        var partido = CrearPartidosEliminatoriosSinResultado(1)[0];
-        partido.GolesLocal = 5;
-        partido.GolesVisitante = 5;
+        var partido1 = CrearPartidosEliminatoriosSinResultado(1)[0];
+        var partido2 = CrearPartidosEliminatoriosSinResultado(1)[0];
+        partido1.GolesLocal = partido2.GolesLocal = 1;
+        partido1.GolesVisitante = partido2.GolesVisitante = 1;
 
         var metodo = typeof(ServicioSimulacion).GetMethod(
             "DesempatarPartido",
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 
-        // Act
-        metodo!.Invoke(servicioSimulacion, new object[] { partido });
+        // Act — misma semilla, mismo equipo debe ganar
+        metodo!.Invoke(servicioSimulacion, new object[] { partido1, new Random(42) });
+        metodo!.Invoke(servicioSimulacion, new object[] { partido2, new Random(42) });
 
         // Assert
-        Assert.AreEqual(5, partido.GolesLocal);
-        Assert.AreEqual(4, partido.GolesVisitante);
+        Assert.IsNotNull(partido1.GanadorPorPenales);
+        Assert.IsNotNull(partido2.GanadorPorPenales);
+        Assert.AreEqual(partido1.GanadorPorPenales!.Nombre, partido2.GanadorPorPenales!.Nombre);
     }
 
 }

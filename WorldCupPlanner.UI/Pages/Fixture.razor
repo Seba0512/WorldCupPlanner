@@ -371,6 +371,10 @@ else
                                             letter-spacing:0.1em; color:var(--accent-gold); margin-top:4px;">
                                     🥇 Campeón
                                 </div>
+                                @if (PartidoFinal.FueDefinidoPorPenales())
+                                {
+                                    <span class="badge badge-penalty" style="margin-top:4px;">Ganador por penales</span>
+                                }
                             }
                         </div>
 
@@ -388,6 +392,13 @@ else
                                         @PartidoFinal.GolesVisitante
                                     </span>
                                 </div>
+                                @if (PartidoFinal.FueDefinidoPorPenales())
+                                {
+                                    <span style="font-size:11px; color:rgb(251,146,60); font-weight:700;
+                                                 text-transform:uppercase; letter-spacing:0.06em; text-align:center;">
+                                        Penales
+                                    </span>
+                                }
                             }
                             else
                             {
@@ -411,6 +422,10 @@ else
                                             letter-spacing:0.1em; color:var(--accent-gold); margin-top:4px;">
                                     🥇 Campeón
                                 </div>
+                                @if (PartidoFinal.FueDefinidoPorPenales())
+                                {
+                                    <span class="badge badge-penalty" style="margin-top:4px;">Ganador por penales</span>
+                                }
                             }
                         </div>
 
@@ -457,27 +472,45 @@ else
                     </div>
 
                     <div class="match-card">
-                        <div class="match-team"
-                             style="color:@(PartidoTercerPuesto.EstaJugado() && PartidoTercerPuesto.Ganador() == PartidoTercerPuesto.EquipoLocal
-                                            ? "var(--text-primary)" : "var(--text-secondary)");">
-                            @(PartidoTercerPuesto.EquipoLocal?.Nombre ?? "Por definir")
+                        <div style="display:flex; flex-direction:column; min-width:0; flex:1;">
+                            <div class="match-team"
+                                 style="color:@(PartidoTercerPuesto.EstaJugado() && PartidoTercerPuesto.Ganador() == PartidoTercerPuesto.EquipoLocal
+                                                ? "var(--text-primary)" : "var(--text-secondary)");">
+                                @(PartidoTercerPuesto.EquipoLocal?.Nombre ?? "Por definir")
+                            </div>
+                            @if (PartidoTercerPuesto.FueDefinidoPorPenales() && ReferenceEquals(PartidoTercerPuesto.GanadorPorPenales, PartidoTercerPuesto.EquipoLocal))
+                            {
+                                <span class="badge badge-penalty" style="align-self:flex-start; margin-top:2px;">Ganador por penales</span>
+                            }
                         </div>
-                        <div class="match-score">
+                        <div class="match-score" style="flex-direction:column; gap:2px;">
                             @if (PartidoTercerPuesto.EstaJugado())
                             {
-                                <span class="score-box">@PartidoTercerPuesto.GolesLocal</span>
-                                <span class="score-sep">—</span>
-                                <span class="score-box">@PartidoTercerPuesto.GolesVisitante</span>
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    <span class="score-box">@PartidoTercerPuesto.GolesLocal</span>
+                                    <span class="score-sep">—</span>
+                                    <span class="score-box">@PartidoTercerPuesto.GolesVisitante</span>
+                                </div>
+                                @if (PartidoTercerPuesto.FueDefinidoPorPenales())
+                                {
+                                    <span style="font-size:10px; color:rgb(251,146,60); font-weight:600; text-transform:uppercase; letter-spacing:0.06em; text-align:center;">pen.</span>
+                                }
                             }
                             else
                             {
                                 <span style="font-size:12px; color:var(--text-muted)">vs</span>
                             }
                         </div>
-                        <div class="match-team right"
-                             style="color:@(PartidoTercerPuesto.EstaJugado() && PartidoTercerPuesto.Ganador() == PartidoTercerPuesto.EquipoVisitante
-                                            ? "var(--text-primary)" : "var(--text-secondary)");">
-                            @(PartidoTercerPuesto.EquipoVisitante?.Nombre ?? "Por definir")
+                        <div style="display:flex; flex-direction:column; min-width:0; flex:1; align-items:flex-end;">
+                            <div class="match-team right"
+                                 style="color:@(PartidoTercerPuesto.EstaJugado() && PartidoTercerPuesto.Ganador() == PartidoTercerPuesto.EquipoVisitante
+                                                ? "var(--text-primary)" : "var(--text-secondary)");">
+                                @(PartidoTercerPuesto.EquipoVisitante?.Nombre ?? "Por definir")
+                            </div>
+                            @if (PartidoTercerPuesto.FueDefinidoPorPenales() && ReferenceEquals(PartidoTercerPuesto.GanadorPorPenales, PartidoTercerPuesto.EquipoVisitante))
+                            {
+                                <span class="badge badge-penalty" style="margin-top:2px;">Ganador por penales</span>
+                            }
                         </div>
                         <div class="match-meta" style="margin-left:12px; min-width:110px; text-align:right;">
                             @PartidoTercerPuesto.Fecha.ToString("dd/MM/yy HH:mm")
@@ -520,23 +553,41 @@ else
                 @foreach (var partido in PartidosEtapaActiva)
                 {
                     <div class="match-card">
-                        <div class="match-team @(partido.EstaJugado() && partido.Ganador() == partido.EquipoLocal ? "match-winner" : "")">
-                            @(partido.EquipoLocal?.Nombre ?? "Por definir")
+                        <div style="display:flex; flex-direction:column; min-width:0; flex:1;">
+                            <div class="match-team @(partido.EstaJugado() && partido.Ganador() == partido.EquipoLocal ? "match-winner" : "")">
+                                @(partido.EquipoLocal?.Nombre ?? "Por definir")
+                            </div>
+                            @if (partido.FueDefinidoPorPenales() && ReferenceEquals(partido.GanadorPorPenales, partido.EquipoLocal))
+                            {
+                                <span class="badge badge-penalty" style="align-self:flex-start; margin-top:2px;">Ganador por penales</span>
+                            }
                         </div>
-                        <div class="match-score">
+                        <div class="match-score" style="flex-direction:column; gap:2px;">
                             @if (partido.EstaJugado())
                             {
-                                <span class="score-box">@partido.GolesLocal</span>
-                                <span class="score-sep">—</span>
-                                <span class="score-box">@partido.GolesVisitante</span>
+                                <div style="display:flex; align-items:center; gap:4px;">
+                                    <span class="score-box">@partido.GolesLocal</span>
+                                    <span class="score-sep">—</span>
+                                    <span class="score-box">@partido.GolesVisitante</span>
+                                </div>
+                                @if (partido.FueDefinidoPorPenales())
+                                {
+                                    <span style="font-size:10px; color:rgb(251,146,60); font-weight:600; text-transform:uppercase; letter-spacing:0.06em; text-align:center;">pen.</span>
+                                }
                             }
                             else
                             {
                                 <span style="font-size:12px; color:var(--text-muted)">vs</span>
                             }
                         </div>
-                        <div class="match-team right @(partido.EstaJugado() && partido.Ganador() == partido.EquipoVisitante ? "match-winner" : "")">
-                            @(partido.EquipoVisitante?.Nombre ?? "Por definir")
+                        <div style="display:flex; flex-direction:column; min-width:0; flex:1; align-items:flex-end;">
+                            <div class="match-team right @(partido.EstaJugado() && partido.Ganador() == partido.EquipoVisitante ? "match-winner" : "")">
+                                @(partido.EquipoVisitante?.Nombre ?? "Por definir")
+                            </div>
+                            @if (partido.FueDefinidoPorPenales() && ReferenceEquals(partido.GanadorPorPenales, partido.EquipoVisitante))
+                            {
+                                <span class="badge badge-penalty" style="margin-top:2px;">Ganador por penales</span>
+                            }
                         </div>
                         <div class="match-meta" style="margin-left:12px; min-width:110px; text-align:right">
                             @partido.Fecha.ToString("dd/MM/yy HH:mm")
@@ -988,16 +1039,16 @@ else
                     "Para generar los 16avos, todos los partidos de la fase de grupos deben estar jugados.",
                 FaseTorneo.Octavos => !FaseYaGenerada(FaseTorneo.PrimeraRondaEliminatoria)
                     ? "Primero debés generar la primera ronda eliminatoria (16avos)."
-                    : "Para generar los 8avos, todos los partidos de 16avos deben estar jugados y sin empates.",
+                    : "Para generar los 8avos, todos los partidos de 16avos deben estar jugados y con ganador definido.",
                 FaseTorneo.Cuartos => !FaseYaGenerada(FaseTorneo.Octavos)
                     ? "Primero debés generar los 8avos de final."
-                    : "Para generar los 4tos, todos los partidos de 8avos deben estar jugados y sin empates.",
+                    : "Para generar los 4tos, todos los partidos de 8avos deben estar jugados y con ganador definido.",
                 FaseTorneo.Semifinal => !FaseYaGenerada(FaseTorneo.Cuartos)
                     ? "Primero debés generar los cuartos de final."
-                    : "Para generar las semifinales, todos los partidos de 4tos deben estar jugados y sin empates.",
+                    : "Para generar las semifinales, todos los partidos de 4tos deben estar jugados y con ganador definido.",
                 FaseTorneo.Final => !FaseYaGenerada(FaseTorneo.Semifinal)
                     ? "Primero debés generar las semifinales."
-                    : "Para generar la final, todos los partidos de semifinales deben estar jugados y sin empates.",
+                    : "Para generar la final, todos los partidos de semifinales deben estar jugados y con ganador definido.",
                 _ => string.Empty
             };
         }

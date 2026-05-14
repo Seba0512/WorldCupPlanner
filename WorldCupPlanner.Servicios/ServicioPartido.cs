@@ -49,6 +49,8 @@ public class ServicioPartido
         _repositorioPartido?.Actualizar(partido);
     }
 
+    private const int MultiplicadorSemillaPenales = 523;
+
     public void CargarResultado(int idPartido, int golesLocal, int golesVisitante)
     {
         ValidarGoles(golesLocal, golesVisitante);
@@ -58,6 +60,19 @@ public class ServicioPartido
 
         partido.GolesLocal = golesLocal;
         partido.GolesVisitante = golesVisitante;
+        partido.GanadorPorPenales = null;
+        _repositorioPartido?.Actualizar(partido);
+    }
+
+    public void ResolverEmpateConPenales(int idPartido, int semilla)
+    {
+        var partido = ObtenerPartidoPorId(idPartido);
+
+        if (!partido.EsEmpate() || partido.Fase == FaseTorneo.FaseDeGrupos)
+            return;
+
+        var random = new Random(unchecked(semilla * MultiplicadorSemillaPenales + idPartido));
+        partido.GanadorPorPenales = random.Next(2) == 0 ? partido.EquipoLocal : partido.EquipoVisitante;
         _repositorioPartido?.Actualizar(partido);
     }
 

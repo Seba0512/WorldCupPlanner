@@ -1,6 +1,7 @@
 @page "/partidos/{Id:int}/editar"
 @inject ServicioPartido ServicioPartido
 @inject ServicioEstadio ServicioEstadio
+@inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
 
@@ -17,9 +18,17 @@ else
     <!-- Encabezado del partido -->
     <div class="glass-card" style="padding:20px; margin-bottom:24px; text-align:center;">
         <div style="display:flex; align-items:center; justify-content:center; gap:16px;">
-            <span style="font-family:var(--font-heading); font-size:18px; font-weight:700; flex:1; text-align:right">
-                @_partido.EquipoLocal?.Nombre
-            </span>
+            <div style="flex:1; text-align:right;">
+                <span style="font-family:var(--font-heading); font-size:18px; font-weight:700;">
+                    @_partido.EquipoLocal?.Nombre
+                </span>
+                @if (_partido.FueDefinidoPorPenales() && ReferenceEquals(_partido.GanadorPorPenales, _partido.EquipoLocal))
+                {
+                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:rgb(251,146,60); margin-top:3px;">
+                        Ganador por penales
+                    </div>
+                }
+            </div>
             <div style="display:flex; align-items:center; gap:8px; padding:8px 16px; background:var(--bg-raised); border-radius:var(--radius);">
                 @if (_partido.EstaJugado())
                 {
@@ -32,9 +41,17 @@ else
                     <span style="font-size:14px; color:var(--text-muted)">vs</span>
                 }
             </div>
-            <span style="font-family:var(--font-heading); font-size:18px; font-weight:700; flex:1; text-align:left">
-                @_partido.EquipoVisitante?.Nombre
-            </span>
+            <div style="flex:1; text-align:left;">
+                <span style="font-family:var(--font-heading); font-size:18px; font-weight:700;">
+                    @_partido.EquipoVisitante?.Nombre
+                </span>
+                @if (_partido.FueDefinidoPorPenales() && ReferenceEquals(_partido.GanadorPorPenales, _partido.EquipoVisitante))
+                {
+                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:rgb(251,146,60); margin-top:3px;">
+                        Ganador por penales
+                    </div>
+                }
+            </div>
         </div>
         @if (_partido.Grupo != null)
         {
@@ -42,7 +59,13 @@ else
         }
         else
         {
-            <div style="margin-top:8px"><span class="badge badge-blue">@MostrarFase(_partido.Fase)</span></div>
+            <div style="margin-top:8px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <span class="badge badge-blue">@MostrarFase(_partido.Fase)</span>
+                @if (_partido.FueDefinidoPorPenales())
+                {
+                    <span class="badge badge-penalty">Definido por penales</span>
+                }
+            </div>
         }
     </div>
 
@@ -60,6 +83,15 @@ else
         {
             <div class="alert alert-danger">
                 <span class="oi oi-warning" aria-hidden="true"></span> @_error
+            </div>
+        }
+
+        @if (_partido.Grupo == null)
+        {
+            <div class="alert alert-info" style="font-size:13px;">
+                <span class="oi oi-info" aria-hidden="true"></span>
+                Partido de fase eliminatoria: si el resultado es empate al finalizar el tiempo reglamentario,
+                el sistema asignará automáticamente un ganador por penales.
             </div>
         }
 
@@ -137,7 +169,11 @@ else
             ServicioPartido.EditarFecha(_partido.Id, _nuevaFecha);
             ServicioPartido.EditarEstadio(_partido.Id, estadio);
             if (_golesLocal.HasValue && _golesVisitante.HasValue)
+            {
                 ServicioPartido.CargarResultado(_partido.Id, _golesLocal.Value, _golesVisitante.Value);
+                var config = ServicioConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
+                ServicioPartido.ResolverEmpateConPenales(_partido.Id, config.SemillaSimulation);
+            }
             Toast.Exito("Partido actualizado correctamente.");
             NavigationManager.NavigateTo("/fixture");
         }

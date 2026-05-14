@@ -98,6 +98,10 @@ else
                                 @if (partido.EstaJugado())
                                 {
                                     <span>@partido.GolesLocal — @partido.GolesVisitante</span>
+                                    @if (partido.FueDefinidoPorPenales())
+                                    {
+                                        <span class="badge badge-penalty" style="margin-left:6px; font-size:10px;">(pen.)</span>
+                                    }
                                 }
                                 else
                                 {

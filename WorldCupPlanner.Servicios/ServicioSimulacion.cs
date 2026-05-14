@@ -33,7 +33,7 @@ public class ServicioSimulacion
 
             if (EsFaseEliminatoria(partido) && partido.EsEmpate())
             {
-                DesempatarPartido(partido);
+                DesempatarPartido(partido, random);
             }
         }
     }
@@ -85,15 +85,8 @@ public class ServicioSimulacion
         return 0;
     }
 
-    private void DesempatarPartido(Partido partido)
+    private void DesempatarPartido(Partido partido, Random random)
     {
-        if (partido.GolesLocal!.Value < GolesMaximosExclusivo - 1)
-        {
-            partido.GolesLocal = partido.GolesLocal.Value + 1;
-        }
-        else
-        {
-            partido.GolesVisitante = partido.GolesVisitante!.Value - 1;
-        }
+        partido.GanadorPorPenales = random.Next(2) == 0 ? partido.EquipoLocal : partido.EquipoVisitante;
     }
 }

@@ -29,12 +29,19 @@ namespace WorldCupPlanner.Dominio.Entidades
             if (!EstaJugado()) return null;
             if (GolesLocal > GolesVisitante) return EquipoLocal;
             if (GolesVisitante > GolesLocal) return EquipoVisitante;
-            return null;
+            return GanadorPorPenales;
         }
+
+        public Equipo? GanadorPorPenales { get; set; }
 
         public bool EsEmpate()
         {
             return EstaJugado() && GolesLocal == GolesVisitante;
+        }
+
+        public bool FueDefinidoPorPenales()
+        {
+            return EsEmpate() && GanadorPorPenales != null;
         }
     }
 }

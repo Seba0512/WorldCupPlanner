@@ -263,6 +263,102 @@ public class ServicioPartidoTests
         };
     }
 
+    [TestMethod]
+    public void CargarResultado_SiempreResetea_GanadorPorPenales()
+    {
+        // Arrange
+        var repositorio = new RepositorioPartidoEnMemoria();
+        var partido = CrearPartido(FaseTorneo.Octavos);
+        partido.GanadorPorPenales = partido.EquipoLocal;
+        repositorio.Agregar(partido);
+        var servicio = new ServicioPartido(repositorio);
+
+        // Act — cargamos resultado no empate, GanadorPorPenales debe quedar null
+        servicio.CargarResultado(partido.Id, 2, 1);
+
+        // Assert
+        Assert.IsNull(partido.GanadorPorPenales);
+    }
+
+    [TestMethod]
+    public void ResolverEmpateConPenales_EnFaseEliminatoriaConEmpate_AsignaGanadorPorPenales()
+    {
+        // Arrange
+        var repositorio = new RepositorioPartidoEnMemoria();
+        var partido = CrearPartido(FaseTorneo.Octavos);
+        partido.GolesLocal = 1;
+        partido.GolesVisitante = 1;
+        repositorio.Agregar(partido);
+        var servicio = new ServicioPartido(repositorio);
+
+        // Act
+        servicio.ResolverEmpateConPenales(partido.Id, semilla: 42);
+
+        // Assert
+        Assert.IsNotNull(partido.GanadorPorPenales);
+        Assert.IsTrue(
+            ReferenceEquals(partido.GanadorPorPenales, partido.EquipoLocal) ||
+            ReferenceEquals(partido.GanadorPorPenales, partido.EquipoVisitante));
+    }
+
+    [TestMethod]
+    public void ResolverEmpateConPenales_EnFaseDeGruposConEmpate_NoAsignaGanadorPorPenales()
+    {
+        // Arrange
+        var repositorio = new RepositorioPartidoEnMemoria();
+        var partido = CrearPartido(FaseTorneo.FaseDeGrupos);
+        partido.GolesLocal = 1;
+        partido.GolesVisitante = 1;
+        repositorio.Agregar(partido);
+        var servicio = new ServicioPartido(repositorio);
+
+        // Act
+        servicio.ResolverEmpateConPenales(partido.Id, semilla: 42);
+
+        // Assert
+        Assert.IsNull(partido.GanadorPorPenales);
+    }
+
+    [TestMethod]
+    public void ResolverEmpateConPenales_CuandoNoEsEmpate_NoAsignaGanadorPorPenales()
+    {
+        // Arrange
+        var repositorio = new RepositorioPartidoEnMemoria();
+        var partido = CrearPartido(FaseTorneo.Cuartos);
+        partido.GolesLocal = 2;
+        partido.GolesVisitante = 1;
+        repositorio.Agregar(partido);
+        var servicio = new ServicioPartido(repositorio);
+
+        // Act
+        servicio.ResolverEmpateConPenales(partido.Id, semilla: 42);
+
+        // Assert
+        Assert.IsNull(partido.GanadorPorPenales);
+    }
+
+    [TestMethod]
+    public void ResolverEmpateConPenales_ConMismaSemilla_EsDeterministico()
+    {
+        // Arrange
+        var repositorio = new RepositorioPartidoEnMemoria();
+        var partido = CrearPartido(FaseTorneo.Semifinal);
+        partido.GolesLocal = 0;
+        partido.GolesVisitante = 0;
+        repositorio.Agregar(partido);
+        var servicio = new ServicioPartido(repositorio);
+
+        // Act
+        servicio.ResolverEmpateConPenales(partido.Id, semilla: 7);
+        var ganador1 = partido.GanadorPorPenales;
+        partido.GanadorPorPenales = null;
+        servicio.ResolverEmpateConPenales(partido.Id, semilla: 7);
+        var ganador2 = partido.GanadorPorPenales;
+
+        // Assert
+        Assert.AreEqual(ganador1, ganador2);
+    }
+
     // --- Constructor con EstadoTorneo ---
 
     [TestMethod]
