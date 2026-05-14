@@ -29,20 +29,6 @@ Usar mensajes de commit con este estilo:
 [REFACTOR] refactor: descripcion de la mejora interna
 ````
 
-No agregar funcionalidad nueva durante un refactor.
-No cambiar tests durante GREEN salvo que un test anterior contradiga explícitamente la letra del obligatorio. Si eso ocurre, explicar por qué se ajusta el test.
-
-## Forma de trabajar los TDD
-
-Cuando Seba pida “siguiente TDD”, Copilot debe:
-
-1. Elegir el siguiente requerimiento pendiente de las responsabilidades de Seba.
-2. Indicar claramente qué regla de la letra se está cubriendo.
-3. Proponer primero el test RED.
-4. Luego proponer el GREEN mínimo.
-5. Luego proponer el REFACTOR, solo si corresponde.
-6. No adelantar funcionalidades grandes que no correspondan al TDD actual.
-
 Importante:
 
 Solo el requerimiento de **Generación de Fixture** exige evidenciar explícitamente el ciclo RED / GREEN / REFACTOR en commits separados o claramente identificables.
@@ -629,98 +615,6 @@ Antes de cambiar código:
 
 El trabajo está dividido entre tres integrantes. Copilot debe respetar esta división para no mezclar responsabilidades ni modificar clases que no correspondan sin necesidad.
 
-### Seba
-
-Seba trabaja principalmente en:
-
-* `Grupo`
-* `Fixture`
-* `ConfiguracionTorneo`
-* `ServicioFixture`
-* `GrupoTests`
-* `ConfiguracionTorneoTests`
-* `ServicioFixtureTests`
-
-Responsabilidades principales de Seba:
-
-* validación de grupos;
-* generación de grupos A-L;
-* distribución de equipos en grupos;
-* reglas de confederación dentro de grupos;
-* generación del fixture de fase de grupos;
-* generación de partidos de fase de grupos;
-* fechas, horarios y calendario de partidos;
-* asignación de estadios por rotación;
-* uso de `SemillaFixture`;
-* lógica relacionada con parámetros de configuración del torneo.
-
-Seba puede necesitar usar clases como `Equipo`, `Estadio` y `Partido`, pero no necesariamente es el responsable principal de implementarlas, salvo que sea necesario para integrar su parte.
-
-Seba puede necesitar usar o integrar `RepositorioGrupoEnMemoria` y `RepositorioPartidoEnMemoria` si la generación, consulta o listado de fixture empieza a persistir grupos o partidos en memoria.
-
-### Nacho
-
-Nacho trabaja principalmente en:
-
-* `Equipo`
-* `Estadio`
-* `Partido`
-* `Normalizar` o `NormalizadorTexto`
-* `EquipoTests`
-* `EstadioTests`
-* `PartidoTests`
-* `NormalizarTests`
-* `ServicioEquipo`
-* `ServicioEstadio`
-* `ServicioEquipoTests`
-* `ServicioEstadioTests`
-* `RepositorioEquipoEnMemoria`
-* `RepositorioEstadioEnMemoria`
-
-Responsabilidades principales de Nacho:
-
-* validaciones de equipos;
-* cupos y reglas propias de equipos;
-* validaciones de estadios;
-* alta, edición y eliminación de equipos;
-* alta, edición y eliminación de estadios;
-* normalización de texto;
-* datos y validaciones de partidos;
-* carga de resultados de partidos;
-* cálculo de ganador o empate;
-* restricciones propias de partido;
-* uso de repositorios en memoria para equipos y estadios.
-
-Las clases de Nacho pueden ser usadas por `ServicioFixture`, pero Copilot no debe modificar su lógica salvo que sea estrictamente necesario para integración o para cumplir una regla de la letra.
-
-### Juan Manuel / Ferre
-
-Juan Manuel, también identificado como Ferre, trabaja principalmente en:
-
-* `Usuario`
-* `Rol`
-* `LoginAuditoria` o `AuditoriaLog`
-* `TipoAccion`
-* `ServicioUsuario`
-* `ServicioAuditoria`
-* pipeline de GitHub Actions
-* tests relacionados con usuarios, roles, auditoría y CI/CD
-
-Responsabilidades principales de Juan Manuel / Ferre:
-
-* gestión de usuarios;
-* validación de datos de usuario;
-* contraseñas seguras y cifradas;
-* roles no excluyentes;
-* auditoría de acciones del sistema;
-* registro de generación de fixture;
-* registro de uso de semillas;
-* registro de modificaciones de partidos;
-* configuración del pipeline de GitHub Actions;
-* automatización de tests en CI.
-
-Copilot debe tener en cuenta que la generación de fixture deberá integrarse más adelante con auditoría, pero no debe implementar auditoría dentro de `ServicioFixture` si todavía no se está trabajando ese TDD.
-
 ---
 
 ## Limpiezas técnicas pendientes conocidas
@@ -733,20 +627,6 @@ Actualmente existen algunas limpiezas menores pendientes:
 * Mantener los tests de normalización en `WorldCupPlanner.ServicioTests/NormalizarTest.cs` y no volver a mezclarlos dentro de `ServicioEquipoTests`.
 
 Estas limpiezas deben hacerse como refactors pequeños y controlados, sin cambiar comportamiento.
-
-## Seguimiento temporal de faltantes
-
-El archivo `FaltantesObligatorio.md` es una lista operativa temporal para coordinar trabajo pendiente. No forma parte de la entrega final.
-
-Cuando todos los puntos de `FaltantesObligatorio.md` estén completados, eliminar ese archivo del repositorio antes de entregar o commitear la versión final.
-
-## Nota personal para el Agent
-
-Este archivo es tu brújula. Consúltalo en cada cambio de código. Cualquier duda sobre estructura, nombres, comportamiento esperado o restricciones, refúgiate aquí. Seba o el usuario contará con que conozcas estas reglas y las apliques consistentemente.
-
-**IMPORTANTE**: Respeta siempre la división de trabajo entre Seba, Nacho y Ferre. No modifiques código de otra persona sin una razón explícita que lo requiera. Si necesitas ajustar algo que no es de tu responsabilidad, consulta primero o hace el cambio mínimo necesario con justificación clara.
-
-## Regla final
 
 Si existe conflicto entre este archivo y la letra oficial del obligatorio, prevalece siempre la letra oficial del PDF.
 
