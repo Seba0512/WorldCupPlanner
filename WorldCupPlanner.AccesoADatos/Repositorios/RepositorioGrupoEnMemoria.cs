@@ -1,5 +1,6 @@
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
@@ -18,7 +19,7 @@ public class RepositorioGrupoEnMemoria : IRepositorio<Grupo>
 
         if (indice == -1)
         {
-            throw new InvalidOperationException("El grupo no existe.");
+            throw new EntidadInexistenteExcepcion("El grupo no existe.");
         }
 
         _grupos[indice] = grupo;

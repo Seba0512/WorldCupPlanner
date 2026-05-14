@@ -19,11 +19,6 @@ public class ServicioFixture
     private const int CantidadJornadasPorGrupo = 3;
     private const int CantidadPartidosPorJornadaDeGrupo = 2;
 
-    private const int EquipoUno = 0;
-    private const int EquipoDos = 1;
-    private const int EquipoTres = 2;
-    private const int EquipoCuatro = 3;
-
     private const char PrimeraEtiquetaGrupo = 'A';
     private const char UltimaEtiquetaGrupo = 'L';
 
@@ -301,22 +296,22 @@ public class ServicioFixture
     private void AgregarPartidosJornada1(Grupo grupo, DateTime fechaBase, ContextoGeneracionFixture contexto)
     {
         var (partido1, partido2) = ObtenerFechasJornada1(contexto.ConfiguracionTorneo, fechaBase);
-        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { IndiceEquipoLocal = EquipoUno, IndiceEquipoVisitante = EquipoCuatro, Fecha = partido1 }, contexto);
-        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { IndiceEquipoLocal = EquipoDos, IndiceEquipoVisitante = EquipoTres, Fecha = partido2 }, contexto);
+        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { PosicionEquipoLocal = PosicionEnGrupo.Primera, PosicionEquipoVisitante = PosicionEnGrupo.Cuarta, Fecha = partido1 }, contexto);
+        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { PosicionEquipoLocal = PosicionEnGrupo.Segunda, PosicionEquipoVisitante = PosicionEnGrupo.Tercera, Fecha = partido2 }, contexto);
     }
 
     private void AgregarPartidosJornada2(Grupo grupo, DateTime fechaBase, ContextoGeneracionFixture contexto)
     {
         var (partido1, partido2) = ObtenerFechasJornada2(contexto.ConfiguracionTorneo, fechaBase);
-        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { IndiceEquipoLocal = EquipoUno, IndiceEquipoVisitante = EquipoTres, Fecha = partido1 }, contexto);
-        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { IndiceEquipoLocal = EquipoDos, IndiceEquipoVisitante = EquipoCuatro, Fecha = partido2 }, contexto);
+        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { PosicionEquipoLocal = PosicionEnGrupo.Primera, PosicionEquipoVisitante = PosicionEnGrupo.Tercera, Fecha = partido1 }, contexto);
+        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { PosicionEquipoLocal = PosicionEnGrupo.Segunda, PosicionEquipoVisitante = PosicionEnGrupo.Cuarta, Fecha = partido2 }, contexto);
     }
 
     private void AgregarPartidosJornada3(Grupo grupo, DateTime fechaBase, ContextoGeneracionFixture contexto)
     {
         var fechaJornada3 = ObtenerFechasJornada3(contexto.ConfiguracionTorneo, fechaBase);
-        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { IndiceEquipoLocal = EquipoUno, IndiceEquipoVisitante = EquipoDos, Fecha = fechaJornada3 }, contexto);
-        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { IndiceEquipoLocal = EquipoTres, IndiceEquipoVisitante = EquipoCuatro, Fecha = fechaJornada3 }, contexto);
+        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { PosicionEquipoLocal = PosicionEnGrupo.Primera, PosicionEquipoVisitante = PosicionEnGrupo.Segunda, Fecha = fechaJornada3 }, contexto);
+        AgregarPartidoDeGrupo(grupo, new ContextoCruceGrupo { PosicionEquipoLocal = PosicionEnGrupo.Tercera, PosicionEquipoVisitante = PosicionEnGrupo.Cuarta, Fecha = fechaJornada3 }, contexto);
     }
 
     private void AgregarPartidoDeGrupo(Grupo grupo, ContextoCruceGrupo cruce, ContextoGeneracionFixture contexto)
@@ -332,8 +327,8 @@ public class ServicioFixture
         return new DatosPartidoDeGrupo
         {
             Grupo = grupo,
-            EquipoLocal = grupo.Equipos[cruce.IndiceEquipoLocal],
-            EquipoVisitante = grupo.Equipos[cruce.IndiceEquipoVisitante],
+            EquipoLocal = grupo.Equipos[(int)cruce.PosicionEquipoLocal],
+            EquipoVisitante = grupo.Equipos[(int)cruce.PosicionEquipoVisitante],
             Fecha = cruce.Fecha,
             Estadio = ObtenerEstadioParaPartido(contexto.EstadiosOrdenados, contexto.IndicePartidoGlobal),
             Id = ObtenerSiguienteIdPartido(contexto.IndicePartidoGlobal)

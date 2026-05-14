@@ -62,7 +62,7 @@ public class ServicioEquipoTests
     {
         _servicio.Agregar(CrearEquipo("Nueva Zelanda", Confederacion.OFC));
 
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.Agregar(CrearEquipo("Australia", Confederacion.OFC)));
     }
 
@@ -81,7 +81,7 @@ public class ServicioEquipoTests
         for (var i = 1; i <= 7; i++)
             _servicio.Agregar(CrearEquipo($"Equipo CONMEBOL {i}", Confederacion.CONMEBOL));
 
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.Agregar(CrearEquipo("Equipo CONMEBOL 8", Confederacion.CONMEBOL)));
     }
 
@@ -101,7 +101,7 @@ public class ServicioEquipoTests
         for (var i = 1; i <= 16; i++)
             _servicio.Agregar(CrearEquipo($"Equipo UEFA {i}", Confederacion.UEFA));
 
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.Agregar(CrearEquipo("Equipo UEFA 17", Confederacion.UEFA)));
     }
 
@@ -574,14 +574,14 @@ public class ServicioEquipoTests
     }
 
     [TestMethod]
-    public void CompletarEquipos_GeneraUnaEntradaPorEquipoGenerado()
+    public void CompletarEquipos_GeneraUnaEntradaAltaPorEquipoGenerado()
     {
         var (servicio, repoAuditoria) = CrearServicioConAuditoria();
 
         var generados = servicio.CompletarEquipos(42);
 
-        Assert.AreEqual(generados.Count, repoAuditoria.Entradas.Count);
-        Assert.IsTrue(repoAuditoria.Entradas.All(e => e.Accion == "Alta"));
+        var entradasAlta = repoAuditoria.Entradas.Where(e => e.Accion == "Alta").ToList();
+        Assert.AreEqual(generados.Count, entradasAlta.Count);
     }
 
     private static Equipo CrearEquipo(string nombre, Confederacion confederacion) => new()

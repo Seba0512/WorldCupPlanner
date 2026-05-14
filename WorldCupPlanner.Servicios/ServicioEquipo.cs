@@ -12,15 +12,8 @@ namespace WorldCupPlanner.Servicios
         private readonly ServicioAutorizacion _autorizacion;
         private Fixture? _fixtureGenerado;
 
-        private static readonly Dictionary<Confederacion, int> CuposPorConfederacion = new()
-        {
-            { Confederacion.UEFA,     16 },
-            { Confederacion.CONMEBOL,  7 },
-            { Confederacion.CONCACAF,  7 },
-            { Confederacion.CAF,       9 },
-            { Confederacion.AFC,       8 },
-            { Confederacion.OFC,       1 },
-        };
+        private static IReadOnlyDictionary<Confederacion, int> CuposPorConfederacion =>
+            ReglasConfederacion.CuposPorConfederacion;
 
         public ServicioEquipo(IRepositorio<Equipo> repositorio, ServicioAuditoria? auditoria = null, ServicioAutorizacion? autorizacion = null)
         {

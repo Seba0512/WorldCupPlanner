@@ -1,5 +1,6 @@
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
@@ -18,7 +19,7 @@ public class RepositorioPartidoEnMemoria : IRepositorio<Partido>
 
         if (indice == -1)
         {
-            throw new InvalidOperationException("El partido no existe.");
+            throw new EntidadInexistenteExcepcion("El partido no existe.");
         }
 
         _partidos[indice] = partido;

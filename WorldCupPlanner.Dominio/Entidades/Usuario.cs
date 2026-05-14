@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Dominio.Entidades;
 
@@ -186,7 +187,7 @@ public class Usuario
     public void RemoverRol(RolUsuario rolUsuario)
     {
         if (_roles.Count == 1 && _roles.Contains(rolUsuario))
-            throw new InvalidOperationException("El usuario debe tener al menos un rol.");
+            throw new EntidadInvalidaExcepcion("El usuario debe tener al menos un rol.");
         _roles.Remove(rolUsuario);
     }
 

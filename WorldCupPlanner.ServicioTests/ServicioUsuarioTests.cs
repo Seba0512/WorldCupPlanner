@@ -376,7 +376,7 @@ public sealed class ServicioUsuarioTests
         noAdmin.AgregarRol(RolUsuario.Editor);
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() => _servicio.ReiniciarContrasenia(usuario, noAdmin));
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() => _servicio.ReiniciarContrasenia(usuario, noAdmin));
     }
 
     [TestMethod]
@@ -402,7 +402,7 @@ public sealed class ServicioUsuarioTests
         usuario.EstablecerContrasenia("ViejaPass@123");
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.CambiarContrasenia(usuario, "IncorrectPass@999", "NuevaPass@456")
         );
     }
@@ -415,7 +415,7 @@ public sealed class ServicioUsuarioTests
         usuario.EstablecerContrasenia("MismaPass@123");
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.CambiarContrasenia(usuario, "MismaPass@123", "MismaPass@123")
         );
     }
@@ -428,7 +428,7 @@ public sealed class ServicioUsuarioTests
         usuario.EstablecerContrasenia("MismaPass@123");
 
         // Act
-        var ex = Assert.ThrowsException<InvalidOperationException>(() =>
+        var ex = Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.CambiarContrasenia(usuario, "MismaPass@123", "MismaPass@123")
         );
 
@@ -448,7 +448,7 @@ public sealed class ServicioUsuarioTests
         usuario.EstablecerContrasenia("MismaPass@123");
 
         // Act
-        try { servicio.CambiarContrasenia(usuario, "MismaPass@123", "MismaPass@123"); } catch (InvalidOperationException) { }
+        try { servicio.CambiarContrasenia(usuario, "MismaPass@123", "MismaPass@123"); } catch (EntidadInvalidaExcepcion) { }
 
         // Assert
         Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "CAMBIO_CONTRASENIA_RECHAZADO"),
@@ -463,7 +463,7 @@ public sealed class ServicioUsuarioTests
         usuario.EstablecerContrasenia("MismaPass@123");
 
         // Act
-        try { _servicio.CambiarContrasenia(usuario, "MismaPass@123", "MismaPass@123"); } catch (InvalidOperationException) { }
+        try { _servicio.CambiarContrasenia(usuario, "MismaPass@123", "MismaPass@123"); } catch (EntidadInvalidaExcepcion) { }
 
         // Assert — la contraseña original debe seguir siendo válida
         Assert.IsTrue(usuario.VerificarContrasenia("MismaPass@123"),
@@ -490,7 +490,7 @@ public sealed class ServicioUsuarioTests
     public void Login_ConEmailNoExistente_LanzaExcepcion()
     {
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.Login("noexiste@example.com", "Pass@12345")
         );
     }
@@ -504,7 +504,7 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(usuario);
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.Login("juan@example.com", "IncorrectPass@999")
         );
     }
@@ -969,7 +969,7 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(admin);
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.GestionarRoles(admin, new[] { RolUsuario.Editor }));
     }
 
@@ -982,7 +982,7 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(admin);
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.GestionarRoles(admin, Enumerable.Empty<RolUsuario>()));
     }
 
@@ -1068,7 +1068,7 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(admin);
 
         // Act & Assert
-        Assert.ThrowsException<InvalidOperationException>(() =>
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.EliminarUsuario(admin));
     }
 
@@ -1081,7 +1081,7 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(admin);
 
         // Act
-        var ex = Assert.ThrowsException<InvalidOperationException>(() =>
+        var ex = Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.EliminarUsuario(admin));
 
         // Assert
@@ -1102,7 +1102,7 @@ public sealed class ServicioUsuarioTests
         repoAuditoria.Entradas.Clear();
 
         // Act
-        try { servicio.EliminarUsuario(admin); } catch (InvalidOperationException) { }
+        try { servicio.EliminarUsuario(admin); } catch (EntidadInvalidaExcepcion) { }
 
         // Assert
         Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "INTENTO_ELIMINAR_ULTIMO_ADMIN"),
@@ -1138,7 +1138,7 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(admin);
 
         // Act
-        try { _servicio.GestionarRoles(admin, new[] { RolUsuario.Editor }); } catch (InvalidOperationException) { }
+        try { _servicio.GestionarRoles(admin, new[] { RolUsuario.Editor }); } catch (EntidadInvalidaExcepcion) { }
 
         // Assert — la excepción se lanzó ANTES de mutar la entidad
         Assert.IsTrue(admin.TieneRol(RolUsuario.AdministradorDelSistema),
@@ -1161,7 +1161,7 @@ public sealed class ServicioUsuarioTests
         repoAuditoria.Entradas.Clear();
 
         // Act
-        try { servicio.GestionarRoles(admin, new[] { RolUsuario.Editor }); } catch (InvalidOperationException) { }
+        try { servicio.GestionarRoles(admin, new[] { RolUsuario.Editor }); } catch (EntidadInvalidaExcepcion) { }
 
         // Assert
         Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "INTENTO_QUITAR_ROL_ADMIN_ULTIMO"),

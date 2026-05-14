@@ -120,7 +120,7 @@ public class ServicioUsuario
         {
             _auditoria.Registrar(ejecutadoPor ?? "sistema", "INTENTO_ELIMINAR_ULTIMO_ADMIN",
                 $"Intento de eliminar al último administrador: {usuario.Email}");
-            throw new InvalidOperationException("No es posible eliminar el último administrador del sistema.");
+            throw new EntidadInvalidaExcepcion("No es posible eliminar el último administrador del sistema.");
         }
     }
 
@@ -140,7 +140,7 @@ public class ServicioUsuario
     {
         var rolesDeseados = nuevosRoles.ToList();
         if (!rolesDeseados.Any())
-            throw new InvalidOperationException("El usuario debe tener al menos un rol.");
+            throw new EntidadInvalidaExcepcion("El usuario debe tener al menos un rol.");
 
         ValidarQuedaAlMenosUnAdministrador(usuario, rolesDeseados, ejecutadoPor);
 
@@ -167,7 +167,7 @@ public class ServicioUsuario
         {
             _auditoria.Registrar(ejecutadoPor ?? usuarioAfectado.Email, "INTENTO_QUITAR_ROL_ADMIN_ULTIMO",
                 $"Intento de quitar rol Administrador al último administrador: {usuarioAfectado.Email}");
-            throw new InvalidOperationException("Debe existir al menos un usuario con rol Administrador.");
+            throw new EntidadInvalidaExcepcion("Debe existir al menos un usuario con rol Administrador.");
         }
     }
 
@@ -194,7 +194,7 @@ public class ServicioUsuario
     public string ReiniciarContrasenia(Usuario usuario, Usuario administrador, bool forzarCambio = false)
     {
         if (!administrador.TieneRol(RolUsuario.AdministradorDelSistema))
-            throw new InvalidOperationException("Solo un administrador puede reiniciar contraseñas.");
+            throw new AccesoDenegadoExcepcion("Solo un administrador puede reiniciar contraseñas.");
 
         var contraseniaTemporal = GenerarTextoContraseniaDefecto();
         usuario.EstablecerContrasenia(contraseniaTemporal);
@@ -213,13 +213,13 @@ public class ServicioUsuario
     public void CambiarContrasenia(Usuario usuario, string contraseniaAnterior, string nuevaContrasenia)
     {
         if (!usuario.VerificarContrasenia(contraseniaAnterior))
-            throw new InvalidOperationException("La contraseña actual es incorrecta.");
+            throw new EntidadInvalidaExcepcion("La contraseña actual es incorrecta.");
 
         if (usuario.VerificarContrasenia(nuevaContrasenia))
         {
             _auditoria.Registrar(usuario.Email, "CAMBIO_CONTRASENIA_RECHAZADO",
                 $"Intento de reutilizar la contraseña actual: {usuario.Email}");
-            throw new InvalidOperationException("La nueva contraseña debe ser diferente de la contraseña actual.");
+            throw new EntidadInvalidaExcepcion("La nueva contraseña debe ser diferente de la contraseña actual.");
         }
 
         usuario.EstablecerContrasenia(nuevaContrasenia);
@@ -233,7 +233,7 @@ public class ServicioUsuario
         if (usuario == null || !usuario.VerificarContrasenia(contrasenia))
         {
             _auditoria.Registrar(email, "LOGIN_FALLIDO", $"Intento fallido para: {email}");
-            throw new InvalidOperationException("Email o contraseña incorrectos.");
+            throw new EntidadInvalidaExcepcion("Email o contraseña incorrectos.");
         }
 
         _auditoria.Registrar(usuario.Email, "LOGIN_EXITOSO", $"Login exitoso: {email}");

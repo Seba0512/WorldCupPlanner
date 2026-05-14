@@ -115,7 +115,7 @@ public class RepositoriosEnMemoriaTests
         var repositorio = new RepositorioUsuarioEnMemoria();
         var usuario = CrearUsuarioValido("juan@example.com");
 
-        Assert.ThrowsException<InvalidOperationException>(() => repositorio.Actualizar(usuario));
+        Assert.ThrowsException<EntidadInexistenteExcepcion>(() => repositorio.Actualizar(usuario));
     }
 
     [TestMethod]
@@ -222,7 +222,7 @@ public class RepositoriosEnMemoriaTests
         var repositorio = new RepositorioEquipoEnMemoria();
         var equipo = CrearEquipoValido("Uruguay");
 
-        Assert.ThrowsException<InvalidOperationException>(() => repositorio.Actualizar(equipo));
+        Assert.ThrowsException<EntidadInexistenteExcepcion>(() => repositorio.Actualizar(equipo));
     }
 
     [TestMethod]
@@ -271,7 +271,7 @@ public class RepositoriosEnMemoriaTests
         var repositorio = new RepositorioEstadioEnMemoria();
         var estadio = CrearEstadioValido("Estadio Centenario");
 
-        Assert.ThrowsException<InvalidOperationException>(() => repositorio.Actualizar(estadio));
+        Assert.ThrowsException<EntidadInexistenteExcepcion>(() => repositorio.Actualizar(estadio));
     }
 
     [TestMethod]
@@ -343,7 +343,7 @@ public class RepositoriosEnMemoriaTests
         var repositorio = new RepositorioGrupoEnMemoria();
         var grupo = new Grupo("A");
 
-        Assert.ThrowsException<InvalidOperationException>(() => repositorio.Actualizar(grupo));
+        Assert.ThrowsException<EntidadInexistenteExcepcion>(() => repositorio.Actualizar(grupo));
     }
 
     [TestMethod]
@@ -415,7 +415,7 @@ public class RepositoriosEnMemoriaTests
         var repositorio = new RepositorioPartidoEnMemoria();
         var partido = CrearPartidoValido();
 
-        Assert.ThrowsException<InvalidOperationException>(() => repositorio.Actualizar(partido));
+        Assert.ThrowsException<EntidadInexistenteExcepcion>(() => repositorio.Actualizar(partido));
     }
 
     [TestMethod]
