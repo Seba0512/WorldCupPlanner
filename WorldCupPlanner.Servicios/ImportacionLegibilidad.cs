@@ -76,6 +76,12 @@ public class ServicioImportacionLegible
         }
 
         var nombre = columnas[IndiceNombre].Trim();
+        if (string.IsNullOrEmpty(nombre))
+        {
+            contexto.Errores.Add($"Línea {contexto.NumeroDeLinea}: Nombre no puede estar vacío.");
+            return null;
+        }
+
         var confederacion = ParsearConfederacion(columnas[IndiceConfederacion].Trim(), contexto, nombre);
         if (confederacion == null) return null;
 
