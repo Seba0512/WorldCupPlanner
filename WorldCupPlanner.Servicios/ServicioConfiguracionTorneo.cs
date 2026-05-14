@@ -21,6 +21,7 @@ public class ServicioConfiguracionTorneo
     {
         ValidarUsuarioAdministrador(usuario);
         ValidarConfiguracionNoBloqueada();
+        ValidarSemillasNoNegativas(nuevaConfiguracion);
         _configuracionActual = CopiarConfiguracion(nuevaConfiguracion);
         _auditoria?.Registrar(
             $"{usuario.Nombre} {usuario.Apellido}",
@@ -65,6 +66,17 @@ public class ServicioConfiguracionTorneo
         {
             throw new EntidadInvalidaExcepcion(
                 "No se puede modificar la configuración después de generado el fixture.");
+        }
+    }
+
+    private void ValidarSemillasNoNegativas(ConfiguracionTorneo configuracion)
+    {
+        if (configuracion.SemillaFixture < 0 ||
+            configuracion.SemillaCompletar < 0 ||
+            configuracion.SemillaCrucesFase < 0 ||
+            configuracion.SemillaSimulation < 0)
+        {
+            throw new EntidadInvalidaExcepcion("Las semillas deben ser enteros mayores o iguales a cero.");
         }
     }
 

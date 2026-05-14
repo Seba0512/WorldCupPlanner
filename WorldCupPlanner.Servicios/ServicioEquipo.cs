@@ -74,6 +74,7 @@ namespace WorldCupPlanner.Servicios
         {
             if (solicitante != null)
                 _autorizacion.VerificarEsAdministrador(solicitante);
+            ValidarSemillaNoNegativa(semilla);
             var existentes = _repositorio.Buscar(_ => true);
             if (existentes.Count >= MaximoEquipos)
                 return [];
@@ -94,6 +95,12 @@ namespace WorldCupPlanner.Servicios
             }
 
             return generados;
+        }
+
+        private void ValidarSemillaNoNegativa(int semilla)
+        {
+            if (semilla < 0)
+                throw new EntidadInvalidaExcepcion("La semilla de generación automática debe ser mayor o igual a cero.");
         }
 
         private List<Equipo> GenerarEquiposParaConfederacion(

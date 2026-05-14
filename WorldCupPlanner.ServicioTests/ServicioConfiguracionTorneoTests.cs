@@ -46,6 +46,19 @@ public class ServicioConfiguracionTorneoTests
     }
 
     [TestMethod]
+    public void ModificarConfiguracion_ConSemillaCompletarNegativa_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var nuevaConfiguracion = new ConfiguracionTorneo { SemillaCompletar = -1 };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioConfiguracion.ModificarConfiguracion(administrador, nuevaConfiguracion));
+    }
+
+    [TestMethod]
     public void ModificarConfiguracion_ConFixtureGenerado_DebeLanzarExcepcion()
     {
         // Arrange

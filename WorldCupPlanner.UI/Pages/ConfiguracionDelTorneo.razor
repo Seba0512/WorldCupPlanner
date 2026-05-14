@@ -94,14 +94,14 @@ else if (!SesionServicio.EsAdministrador)
                 <div class="col-md-6">
                     <label class="form-label">Semilla fixture</label>
                     <input type="number" class="form-control" @bind="_formulario.SemillaFixture"
-                           disabled="@(!PuedeEditar)" />
+                           disabled="@(!PuedeEditar)" min="0" step="1" />
                     <span class="form-hint">Determina el orden de los bombos.</span>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Semilla de generación automática</label>
                     <input type="number" class="form-control" @bind="_formulario.SemillaCompletar"
-                           disabled="@(!PuedeEditar)" />
-                    <span class="form-hint">La misma semilla genera siempre los mismos equipos y rankings ficticios.</span>
+                           disabled="@(!PuedeEditar)" min="0" step="1" />
+                    <span class="form-hint">La misma semilla genera siempre los mismos equipos y rankings ficticios al completar.</span>
                 </div>
             </div>
 
@@ -109,13 +109,13 @@ else if (!SesionServicio.EsAdministrador)
                 <div class="col-md-6">
                     <label class="form-label">Semilla cruces de fase</label>
                     <input type="number" class="form-control" @bind="_formulario.SemillaCrucesFase"
-                           disabled="@(!PuedeEditar)" />
+                           disabled="@(!PuedeEditar)" min="0" step="1" />
                     <span class="form-hint">Sorteo de cruces eliminatorios.</span>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Semilla simulación</label>
                     <input type="number" class="form-control" @bind="_formulario.SemillaSimulation"
-                           disabled="@(!PuedeEditar)" />
+                           disabled="@(!PuedeEditar)" min="0" step="1" />
                     <span class="form-hint">Simulación de resultados de partidos.</span>
                 </div>
             </div>
@@ -150,7 +150,7 @@ else if (!SesionServicio.EsAdministrador)
                     <span class="table-card-title">Información</span>
                 </div>
                 <div style="padding:16px; font-size:13px; color:var(--text-secondary); line-height:1.7">
-                    <p><strong>Semillas:</strong> Valores enteros que garantizan reproducibilidad en sorteos y generación automática. Semilla <em>0</em> usa el valor por defecto del sistema.</p>
+                    <p><strong>Semillas:</strong> Valores enteros no negativos que garantizan reproducibilidad en sorteos y generación automática. Semilla <em>0</em> usa el valor por defecto del sistema.</p>
                     <p><strong>Bloqueo automático:</strong> Al generar el fixture, esta configuración queda bloqueada para garantizar consistencia y trazabilidad del torneo.</p>
                     <p><strong>Permisos:</strong> Solo los administradores pueden modificar estos parámetros.</p>
                 </div>

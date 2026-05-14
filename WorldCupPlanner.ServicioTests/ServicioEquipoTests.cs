@@ -814,6 +814,14 @@ public class ServicioEquipoTests
     }
 
     [TestMethod]
+    public void CompletarEquipos_ConSemillaNegativa_LanzaExcepcion()
+    {
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            _servicio.CompletarEquipos(-1));
+    }
+
+    [TestMethod]
     public void EditarEquipo_CambiandoConfederacion_ValidaCupoNuevaConfederacion()
     {
         // Arrange
