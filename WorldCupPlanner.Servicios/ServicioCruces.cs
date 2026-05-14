@@ -271,8 +271,10 @@ public class ServicioCruces
     public List<Partido> GenerarOctavos(
         List<Partido> partidosPrimeraRonda,
         List<Estadio> estadios,
-        ConfiguracionTorneo configuracionTorneo)
+        ConfiguracionTorneo configuracionTorneo,
+        IReadOnlyList<Partido>? existentes = null)
     {
+        ValidarFaseNoGenerada(existentes, FaseTorneo.Octavos, "octavos");
         ValidarPartidosDeFaseAnterior(
             partidosPrimeraRonda,
             new ContextoValidacionFase
@@ -308,8 +310,10 @@ public class ServicioCruces
     public List<Partido> GenerarCuartos(
         List<Partido> octavos,
         List<Estadio> estadios,
-        ConfiguracionTorneo configuracionTorneo)
+        ConfiguracionTorneo configuracionTorneo,
+        IReadOnlyList<Partido>? existentes = null)
     {
+        ValidarFaseNoGenerada(existentes, FaseTorneo.Cuartos, "cuartos");
         ValidarPartidosDeFaseAnterior(
             octavos,
             new ContextoValidacionFase
@@ -344,8 +348,10 @@ public class ServicioCruces
     public List<Partido> GenerarSemifinales(
         List<Partido> cuartos,
         List<Estadio> estadios,
-        ConfiguracionTorneo configuracionTorneo)
+        ConfiguracionTorneo configuracionTorneo,
+        IReadOnlyList<Partido>? existentes = null)
     {
+        ValidarFaseNoGenerada(existentes, FaseTorneo.Semifinal, "semifinales");
         ValidarPartidosDeFaseAnterior(
             cuartos,
             new ContextoValidacionFase

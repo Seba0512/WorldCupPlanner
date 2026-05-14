@@ -55,6 +55,29 @@ public class ServicioEquipoTests
     }
 
     [TestMethod]
+    public void Agregar_NombreDuplicadoDistintaMayuscula_LanzaExcepcion()
+    {
+        // Arrange
+        _servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() =>
+            _servicio.Agregar(CrearEquipo("URUGUAY", Confederacion.CONMEBOL)));
+    }
+
+    [TestMethod]
+    public void EditarEquipo_NombreDuplicadoDistintaMayuscula_LanzaExcepcion()
+    {
+        // Arrange
+        _servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
+        _servicio.Agregar(CrearEquipo("Argentina", Confederacion.CONMEBOL));
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() =>
+            _servicio.EditarEquipo(CrearEquipo("uruguay", Confederacion.CONMEBOL), "Argentina"));
+    }
+
+    [TestMethod]
     public void Agregar_EquipoInvalido_LanzaExcepcion()
     {
         // Arrange

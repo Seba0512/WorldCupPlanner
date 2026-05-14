@@ -1705,6 +1705,60 @@ public class ServicioCrucesTests
     }
 
     [TestMethod]
+    public void GenerarOctavos_CuandoOctavosYaExisten_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var partidosPrimeraRonda = CrearPartidosPrimeraRondaJugados(16);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+        var existentes = new List<Partido>
+        {
+            new Partido { Id = 89, Fase = FaseTorneo.Octavos }
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarOctavos(partidosPrimeraRonda, estadios, configuracionTorneo, existentes));
+    }
+
+    [TestMethod]
+    public void GenerarCuartos_CuandoCuartosYaExisten_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var octavos = CrearPartidosOctavosJugados(8);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+        var existentes = new List<Partido>
+        {
+            new Partido { Id = 97, Fase = FaseTorneo.Cuartos }
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarCuartos(octavos, estadios, configuracionTorneo, existentes));
+    }
+
+    [TestMethod]
+    public void GenerarSemifinales_CuandoSemifinalesYaExisten_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var cuartos = CrearPartidosCuartosJugados(4);
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo();
+        var existentes = new List<Partido>
+        {
+            new Partido { Id = 101, Fase = FaseTorneo.Semifinal }
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.GenerarSemifinales(cuartos, estadios, configuracionTorneo, existentes));
+    }
+
+    [TestMethod]
     public void GenerarTercerPuesto_CuandoTercerPuestoYaExiste_DebeLanzarExcepcion()
     {
         // Arrange
