@@ -81,28 +81,13 @@ public class ServicioCruces
         List<Equipo> terceros,
         ContextoGeneracionCruces contexto)
     {
-        var cruceEquipos = new ContextoCruceEquipos
+        ReordenarVisitantesParaEvitarMismoGrupo(new ContextoCruceEquipos
         {
             Locales = primeros,
             Visitantes = terceros,
             Clasificados = contexto.Clasificados
-        };
-        ReordenarVisitantesParaEvitarMismoGrupo(cruceEquipos);
-
-        var fechaInicioDeFase = ObtenerFechaInicioPrimeraRonda(contexto);
-
-        for (int i = 0; i < primeros.Count; i++)
-        {
-            contexto.Partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
-            {
-                Id = PrimerIdPrimeraRondaEliminatoria + contexto.Partidos.Count,
-                EquipoLocal = primeros[i],
-                EquipoVisitante = terceros[i],
-                Estadio = contexto.Estadios[contexto.Partidos.Count % contexto.Estadios.Count],
-                Fecha = CalcularFechaPartidoEliminatorio(fechaInicioDeFase, contexto.Partidos.Count, contexto.ConfiguracionTorneo),
-                Fase = FaseTorneo.PrimeraRondaEliminatoria
-            }));
-        }
+        });
+        AgregarCrucesEntreListas(primeros, terceros, contexto);
     }
 
     private void AgregarCrucesPrimerosRestantesContraSegundosDeMenorRendimiento(
@@ -110,28 +95,13 @@ public class ServicioCruces
         List<Equipo> segundosDeMenorRendimiento,
         ContextoGeneracionCruces contexto)
     {
-        var cruceEquipos = new ContextoCruceEquipos
+        ReordenarVisitantesParaEvitarMismoGrupo(new ContextoCruceEquipos
         {
             Locales = primerosRestantes,
             Visitantes = segundosDeMenorRendimiento,
             Clasificados = contexto.Clasificados
-        };
-        ReordenarVisitantesParaEvitarMismoGrupo(cruceEquipos);
-
-        var fechaInicioDeFase = ObtenerFechaInicioPrimeraRonda(contexto);
-
-        for (int i = 0; i < primerosRestantes.Count; i++)
-        {
-            contexto.Partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
-            {
-                Id = PrimerIdPrimeraRondaEliminatoria + contexto.Partidos.Count,
-                EquipoLocal = primerosRestantes[i],
-                EquipoVisitante = segundosDeMenorRendimiento[i],
-                Estadio = contexto.Estadios[contexto.Partidos.Count % contexto.Estadios.Count],
-                Fecha = CalcularFechaPartidoEliminatorio(fechaInicioDeFase, contexto.Partidos.Count, contexto.ConfiguracionTorneo),
-                Fase = FaseTorneo.PrimeraRondaEliminatoria
-            }));
-        }
+        });
+        AgregarCrucesEntreListas(primerosRestantes, segundosDeMenorRendimiento, contexto);
     }
 
     private void AgregarCrucesSegundosRestantesMinimos(
@@ -139,16 +109,24 @@ public class ServicioCruces
         ContextoGeneracionCruces contexto)
     {
         ReordenarEquiposParaEvitarCrucesInternosDelMismoGrupo(segundosRestantes, contexto.Clasificados);
+        var locales = segundosRestantes.Where((_, i) => i % PasoEntreParesDeEquipos == 0).ToList();
+        var visitantes = segundosRestantes.Where((_, i) => i % PasoEntreParesDeEquipos != 0).ToList();
+        AgregarCrucesEntreListas(locales, visitantes, contexto);
+    }
 
+    private void AgregarCrucesEntreListas(
+        List<Equipo> locales,
+        List<Equipo> visitantes,
+        ContextoGeneracionCruces contexto)
+    {
         var fechaInicioDeFase = ObtenerFechaInicioPrimeraRonda(contexto);
-
-        for (int i = 0; i < segundosRestantes.Count; i += PasoEntreParesDeEquipos)
+        for (int i = 0; i < locales.Count; i++)
         {
             contexto.Partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
             {
                 Id = PrimerIdPrimeraRondaEliminatoria + contexto.Partidos.Count,
-                EquipoLocal = segundosRestantes[i],
-                EquipoVisitante = segundosRestantes[i + 1],
+                EquipoLocal = locales[i],
+                EquipoVisitante = visitantes[i],
                 Estadio = contexto.Estadios[contexto.Partidos.Count % contexto.Estadios.Count],
                 Fecha = CalcularFechaPartidoEliminatorio(fechaInicioDeFase, contexto.Partidos.Count, contexto.ConfiguracionTorneo),
                 Fase = FaseTorneo.PrimeraRondaEliminatoria

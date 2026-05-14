@@ -81,7 +81,6 @@ namespace WorldCupPlanner.Servicios
 
             var rng = new Random(semilla);
             var generados = new List<Equipo>();
-
             _auditoria?.Registrar(
                 solicitante != null ? $"{solicitante.Nombre} {solicitante.Apellido}" : "Sistema",
                 "Generación automática de equipos",
@@ -90,36 +89,51 @@ namespace WorldCupPlanner.Servicios
             foreach (var (confederacion, cupo) in CuposPorConfederacion)
             {
                 var inscritos = existentes.Count(e => e.Confederacion == confederacion);
-                for (var i = inscritos; i < cupo; i++)
-                {
-                    var rankingGenerado = rng.Next(RankingMinimoFicticio, RankingMaximoFicticioExclusivo);
-                    var rankingFinal = Math.Clamp(rankingGenerado, RankingMinimoFicticio, RankingMaximoFicticioExclusivo - 1);
-                    var equipo = new Equipo
-                    {
-                        Nombre = GenerarNombre(confederacion),
-                        RankingFIFA = rankingFinal,
-                        Confederacion = confederacion
-                    };
-                    Agregar(equipo);
-                    generados.Add(equipo);
-                }
-
-                var generadosEnConfederacion = generados
-                    .Where(e => e.Confederacion == confederacion)
-                    .ToList();
-
-                if (generadosEnConfederacion.Count > 0)
-                {
-                    _auditoria?.Registrar(
-                        solicitante != null ? $"{solicitante.Nombre} {solicitante.Apellido}" : "Sistema",
-                        "Generación automática de equipos",
-                        $"Confederacion: {confederacion}, Generados: {generadosEnConfederacion.Count}, " +
-                        $"RankingMin: {generadosEnConfederacion.Min(e => e.RankingFIFA)}, " +
-                        $"RankingMax: {generadosEnConfederacion.Max(e => e.RankingFIFA)}");
-                }
+                var generadosEnConfederacion = GenerarEquiposParaConfederacion(confederacion, cupo, inscritos, rng);
+                generados.AddRange(generadosEnConfederacion);
+                RegistrarAuditoriaConfederacion(confederacion, generadosEnConfederacion, solicitante);
             }
 
             return generados;
+        }
+
+        private List<Equipo> GenerarEquiposParaConfederacion(
+            Confederacion confederacion,
+            int cupo,
+            int inscritos,
+            Random rng)
+        {
+            var generados = new List<Equipo>();
+            for (var i = inscritos; i < cupo; i++)
+            {
+                var ranking = Math.Clamp(
+                    rng.Next(RankingMinimoFicticio, RankingMaximoFicticioExclusivo),
+                    RankingMinimoFicticio,
+                    RankingMaximoFicticioExclusivo - 1);
+                var equipo = new Equipo
+                {
+                    Nombre = GenerarNombre(confederacion),
+                    RankingFIFA = ranking,
+                    Confederacion = confederacion
+                };
+                Agregar(equipo);
+                generados.Add(equipo);
+            }
+            return generados;
+        }
+
+        private void RegistrarAuditoriaConfederacion(
+            Confederacion confederacion,
+            List<Equipo> generados,
+            Usuario? solicitante)
+        {
+            if (generados.Count == 0) return;
+            _auditoria?.Registrar(
+                solicitante != null ? $"{solicitante.Nombre} {solicitante.Apellido}" : "Sistema",
+                "Generación automática de equipos",
+                $"Confederacion: {confederacion}, Generados: {generados.Count}, " +
+                $"RankingMin: {generados.Min(e => e.RankingFIFA)}, " +
+                $"RankingMax: {generados.Max(e => e.RankingFIFA)}");
         }
 
         public void Eliminar(Equipo equipo, Usuario? solicitante = null)
@@ -170,7 +184,7 @@ namespace WorldCupPlanner.Servicios
             var cupo = CuposPorConfederacion[equipo.Confederacion!.Value];
             var inscritos = _repositorio.Buscar(e => e.Confederacion == equipo.Confederacion).Count;
             if (inscritos >= cupo)
-                throw new InvalidOperationException(
+                throw new EntidadInvalidaExcepcion(
                     $"La confederación {equipo.Confederacion!.Value} ya alcanzó su cupo máximo de {cupo} equipos.");
         }
 

@@ -1,5 +1,4 @@
 using WorldCupPlanner.AccesoADatos.Interfaces;
-using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -11,11 +10,6 @@ public class ServicioPartido
     private readonly IRepositorio<Partido>? _repositorioPartido;
     private readonly EstadoTorneo? _estadoTorneo;
     private readonly HashSet<FaseTorneo> _fasesBloqueadas = new();
-
-    public ServicioPartido()
-    {
-        _repositorioPartido = new RepositorioPartidoEnMemoria();
-    }
 
     public ServicioPartido(IRepositorio<Partido> repositorioPartido)
     {
