@@ -62,9 +62,11 @@ public class ServicioFixture
         List<Equipo> equipos,
         Fixture fixtureActual,
         List<Estadio> estadios,
-        ConfiguracionTorneo configuracionTorneo)
+        ConfiguracionTorneo configuracionTorneo,
+        IReadOnlyList<Partido>? partidosEliminatorios = null)
     {
         ValidarFixtureSinResultados(fixtureActual);
+        ValidarSinFasesEliminatorias(partidosEliminatorios);
 
         return GenerarFixture(equipos, estadios, configuracionTorneo);
     }
@@ -72,10 +74,15 @@ public class ServicioFixture
     private void ValidarFixtureSinResultados(Fixture fixture)
     {
         if (fixture.Partidos.Any(p => p.EstaJugado()))
-        {
             throw new EntidadInvalidaExcepcion(
                 "No se puede regenerar el fixture si ya hay resultados cargados.");
-        }
+    }
+
+    private void ValidarSinFasesEliminatorias(IReadOnlyList<Partido>? partidosEliminatorios)
+    {
+        if (partidosEliminatorios != null && partidosEliminatorios.Any())
+            throw new EntidadInvalidaExcepcion(
+                "No se puede regenerar el fixture si ya se generaron fases eliminatorias.");
     }
 
     private void ValidarCantidadEquipos(List<Equipo> equipos)

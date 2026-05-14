@@ -653,6 +653,76 @@ public class ServicioFixtureTests
     }
 
     [TestMethod]
+    public void RegenerarFixture_ConPartidosEliminatoriosGenerados_LanzaExcepcion()
+    {
+        // Arrange
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioFixture = new ServicioFixture();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracion = new ConfiguracionTorneo { SemillaFixture = 1 };
+        var fixtureActual = servicioFixture.GenerarFixture(equipos, estadios, configuracion);
+        var partidosEliminatorios = new List<Partido>
+        {
+            new Partido { Id = 73, Fase = FaseTorneo.PrimeraRondaEliminatoria }
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioFixture.RegenerarFixture(
+                equipos,
+                fixtureActual,
+                estadios,
+                configuracion,
+                partidosEliminatorios));
+    }
+
+    [TestMethod]
+    public void RegenerarFixture_SinPartidosEliminatorios_GeneraFixtureCorrectamente()
+    {
+        // Arrange
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioFixture = new ServicioFixture();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracion = new ConfiguracionTorneo { SemillaFixture = 1 };
+        var fixtureActual = servicioFixture.GenerarFixture(equipos, estadios, configuracion);
+
+        // Act
+        var fixtureRegenerado = servicioFixture.RegenerarFixture(
+            equipos,
+            fixtureActual,
+            estadios,
+            configuracion,
+            new List<Partido>());
+
+        // Assert
+        Assert.AreEqual(12, fixtureRegenerado.Grupos.Count);
+        Assert.AreEqual(72, fixtureRegenerado.Partidos.Count);
+    }
+
+    [TestMethod]
+    public void RegenerarFixture_ConPartidosEliminatoriosNull_GeneraFixtureCorrectamente()
+    {
+        // Arrange
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioFixture = new ServicioFixture();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracion = new ConfiguracionTorneo { SemillaFixture = 1 };
+        var fixtureActual = servicioFixture.GenerarFixture(equipos, estadios, configuracion);
+
+        // Act
+        var fixtureRegenerado = servicioFixture.RegenerarFixture(
+            equipos,
+            fixtureActual,
+            estadios,
+            configuracion,
+            null);
+
+        // Assert
+        Assert.AreEqual(12, fixtureRegenerado.Grupos.Count);
+        Assert.AreEqual(72, fixtureRegenerado.Partidos.Count);
+    }
+
+    [TestMethod]
     public void GenerarFixture_DebeAsignarIdsIncrementalesALosPartidos()
     {
         // Arrange
