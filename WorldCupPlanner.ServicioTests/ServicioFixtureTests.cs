@@ -503,6 +503,51 @@ public class ServicioFixtureTests
     }
 
     [TestMethod]
+    public void GenerarFixture_ConMaxPartidosPorDiaCero_LanzaExcepcion()
+    {
+        // Arrange
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioFixture = new ServicioFixture();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1, MaxPartidosPorDia = 0 };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo));
+    }
+
+    [TestMethod]
+    public void GenerarFixture_ConMaxPartidosPorDiaNegativo_LanzaExcepcion()
+    {
+        // Arrange
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioFixture = new ServicioFixture();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1, MaxPartidosPorDia = -1 };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo));
+    }
+
+    [TestMethod]
+    public void GenerarFixture_ConMaxPartidosPorDiaExactamenteDos_GeneraFixtureCorrectamente()
+    {
+        // Arrange
+        var equipos = CrearEquiposValidosSinConflictosDeConfederacion();
+        var servicioFixture = new ServicioFixture();
+        var estadios = CrearEstadiosValidos(4);
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaFixture = 1, MaxPartidosPorDia = 2 };
+
+        // Act
+        var fixture = servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
+
+        // Assert
+        Assert.IsNotNull(fixture);
+        Assert.AreEqual(12, fixture.Grupos.Count);
+    }
+
+    [TestMethod]
     public void PuedeAsignarseEquipoAGrupo_ConEquipoInvalido_RetornaFalso()
     {
         // Arrange
