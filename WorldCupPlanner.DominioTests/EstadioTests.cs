@@ -18,7 +18,7 @@ public class EstadioTests
         // Assert
         Assert.IsFalse(resultado);
     }
-    
+
     [TestMethod]
     public void Estadio_NombreExcede80Caracteres_EsInvalido()
     {
@@ -29,12 +29,14 @@ public class EstadioTests
             Ciudad = "Montevideo",
             Capacidad = 20000
         };
+
         // Act
         var resultado = estadio.EsValido();
+
         // Assert
         Assert.IsFalse(resultado);
     }
-    
+
     [TestMethod]
     public void Estadio_CiudadVacia_EsInvalido()
     {
@@ -45,11 +47,14 @@ public class EstadioTests
             Ciudad = "",
             Capacidad = 20000
         };
+
         // Act
         var resultado = estadio.EsValido();
+
         // Assert
         Assert.IsFalse(resultado);
     }
+
     [TestMethod]
     public void Estadio_CiudadExcede60Caracteres_EsInvalido()
     {
@@ -60,12 +65,14 @@ public class EstadioTests
             Ciudad = new string('A', 61),
             Capacidad = 20000
         };
+
         // Act
         var resultado = estadio.EsValido();
+
         // Assert
         Assert.IsFalse(resultado);
     }
-    
+
     [TestMethod]
     public void Estadio_CapacidadMenorA20000_EsInvalido()
     {
@@ -76,12 +83,14 @@ public class EstadioTests
             Ciudad = "Montevideo",
             Capacidad = 19999
         };
+
         // Act
         var resultado = estadio.EsValido();
+
         // Assert
         Assert.IsFalse(resultado);
     }
-    
+
     [TestMethod]
     public void Estadio_DescripcionExcede400Caracteres_EsInvalido()
     {
@@ -93,8 +102,10 @@ public class EstadioTests
             Capacidad = 20000,
             Descripcion = new string('A', 401)
         };
+
         // Act
         var resultado = estadio.EsValido();
+
         // Assert
         Assert.IsFalse(resultado);
     }
@@ -110,8 +121,10 @@ public class EstadioTests
             Capacidad = 20000,
             Descripcion = null
         };
+
         // Act
         var resultado = estadio.EsValido();
+
         // Assert
         Assert.IsTrue(resultado);
     }
@@ -127,8 +140,10 @@ public class EstadioTests
             Capacidad = 20000,
             Descripcion = "Estadio histórico de Uruguay"
         };
+
         // Act
         var resultado = estadio.EsValido();
+
         // Assert
         Assert.IsTrue(resultado);
     }
@@ -143,8 +158,10 @@ public class EstadioTests
             Ciudad = "Montevideo",
             Capacidad = 20000
         };
+
         // Act
         var resultado = estadio.EsValido();
+
         // Assert
         Assert.IsFalse(resultado);
     }
@@ -159,8 +176,10 @@ public class EstadioTests
             Ciudad = "   ",
             Capacidad = 20000
         };
+
         // Act
         var resultado = estadio.EsValido();
+
         // Assert
         Assert.IsFalse(resultado);
     }

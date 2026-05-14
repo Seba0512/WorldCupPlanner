@@ -33,18 +33,23 @@ public class ServicioEquipoTests
     [TestMethod]
     public void Agregar_EquipoValido_SeAgregaCorrectamente()
     {
+        // Arrange
         var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
 
+        // Act
         _servicio.Agregar(equipo);
 
+        // Assert
         Assert.AreEqual(1, _servicio.Buscar(_ => true).Count);
     }
 
     [TestMethod]
     public void Agregar_NombreDuplicado_LanzaExcepcion()
     {
+        // Arrange
         _servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
 
+        // Act & Assert
         Assert.ThrowsException<EntidadYaExistenteExcepcion>(() =>
             _servicio.Agregar(new Equipo { Nombre = "Uruguay", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL }));
     }
@@ -52,16 +57,20 @@ public class ServicioEquipoTests
     [TestMethod]
     public void Agregar_EquipoInvalido_LanzaExcepcion()
     {
+        // Arrange
         var equipo = new Equipo { Nombre = "", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL };
 
+        // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.Agregar(equipo));
     }
 
     [TestMethod]
     public void Agregar_CupoLlenoOFC_LanzaExcepcion()
     {
+        // Arrange
         _servicio.Agregar(CrearEquipo("Nueva Zelanda", Confederacion.OFC));
 
+        // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.Agregar(CrearEquipo("Australia", Confederacion.OFC)));
     }
@@ -69,18 +78,22 @@ public class ServicioEquipoTests
     [TestMethod]
     public void Agregar_UltimoEquipoDentroDelCupo_SeAgregaCorrectamente()
     {
+        // Arrange & Act
         for (var i = 1; i <= 7; i++)
             _servicio.Agregar(CrearEquipo($"Equipo CONMEBOL {i}", Confederacion.CONMEBOL));
 
+        // Assert
         Assert.AreEqual(7, _servicio.Buscar(_ => true).Count);
     }
 
     [TestMethod]
     public void Agregar_CupoLlenoCONMEBOL_LanzaExcepcion()
     {
+        // Arrange
         for (var i = 1; i <= 7; i++)
             _servicio.Agregar(CrearEquipo($"Equipo CONMEBOL {i}", Confederacion.CONMEBOL));
 
+        // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.Agregar(CrearEquipo("Equipo CONMEBOL 8", Confederacion.CONMEBOL)));
     }
@@ -88,19 +101,24 @@ public class ServicioEquipoTests
     [TestMethod]
     public void Agregar_CupoLlenoEnUnaConfederacion_NoAfectaOtraConfederacion()
     {
+        // Arrange
         _servicio.Agregar(CrearEquipo("Nueva Zelanda", Confederacion.OFC));
 
+        // Act
         _servicio.Agregar(CrearEquipo("España", Confederacion.UEFA));
 
+        // Assert
         Assert.AreEqual(2, _servicio.Buscar(_ => true).Count);
     }
 
     [TestMethod]
     public void Agregar_CupoLlenoUEFA_LanzaExcepcion()
     {
+        // Arrange
         for (var i = 1; i <= 16; i++)
             _servicio.Agregar(CrearEquipo($"Equipo UEFA {i}", Confederacion.UEFA));
 
+        // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             _servicio.Agregar(CrearEquipo("Equipo UEFA 17", Confederacion.UEFA)));
     }
@@ -108,67 +126,82 @@ public class ServicioEquipoTests
     [TestMethod]
     public void EditarEquipo_EquipoInvalido_LanzaExcepcion()
     {
+        // Arrange
         var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
         _servicio.Agregar(equipo);
         equipo.Nombre = "";
 
+        // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.EditarEquipo(equipo, "Uruguay"));
     }
 
     [TestMethod]
     public void EditarEquipo_EquipoNoExistente_LanzaExcepcion()
     {
+        // Arrange
         var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
 
+        // Act & Assert
         Assert.ThrowsException<EntidadInexistenteExcepcion>(() => _servicio.EditarEquipo(equipo, "Uruguay"));
     }
 
     [TestMethod]
     public void EditarEquipo_NombreDuplicado_LanzaExcepcion()
     {
+        // Arrange
         var equipo1 = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
         var equipo2 = CrearEquipo("Argentina", Confederacion.CONMEBOL);
         _servicio.Agregar(equipo1);
         _servicio.Agregar(equipo2);
         equipo2.Nombre = "Uruguay";
 
+        // Act & Assert
         Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.EditarEquipo(equipo2, "Argentina"));
     }
 
     [TestMethod]
     public void Actualizar_EquipoExistente_PersisteCambios()
     {
+        // Arrange
         var equipo = CrearEquipo("España", Confederacion.UEFA);
         _servicio.Agregar(equipo);
         equipo.RankingFIFA = 500;
 
+        // Act
         _servicio.Actualizar(equipo);
 
+        // Assert
         Assert.AreEqual(500, _servicio.Buscar(e => e.Nombre == "España").First().RankingFIFA);
     }
 
     [TestMethod]
     public void Actualizar_EquipoNoExistente_LanzaExcepcion()
     {
+        // Arrange
         var equipo = CrearEquipo("España", Confederacion.UEFA);
 
+        // Act & Assert
         Assert.ThrowsException<EntidadInexistenteExcepcion>(() => _servicio.Actualizar(equipo));
     }
 
     [TestMethod]
     public void Actualizar_EquipoNulo_LanzaExcepcion()
     {
+        // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.Actualizar(null!));
     }
 
     [TestMethod]
     public void Eliminar_EquipoExistente_SeEliminaCorrectamente()
     {
+        // Arrange
         var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
         _servicio.Agregar(equipo);
 
+        // Act
         _servicio.Eliminar(equipo);
 
+        // Assert
         Assert.AreEqual(0, _servicio.Buscar(_ => true).Count);
     }
 
@@ -255,30 +288,38 @@ public class ServicioEquipoTests
     [TestMethod]
     public void Buscar_ConPredicadoCoincidente_DevuelveEquiposCorrespondientes()
     {
+        // Arrange
         _servicio.Agregar(CrearEquipo("España", Confederacion.UEFA));
         _servicio.Agregar(CrearEquipo("Francia", Confederacion.UEFA));
         _servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
 
+        // Act
         var resultado = _servicio.Buscar(e => e.Confederacion == Confederacion.UEFA);
 
+        // Assert
         Assert.AreEqual(2, resultado.Count);
     }
 
     [TestMethod]
     public void Buscar_SinCoincidencias_DevuelveListaVacia()
     {
+        // Arrange
         _servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
 
+        // Act
         var resultado = _servicio.Buscar(e => e.Confederacion == Confederacion.OFC);
 
+        // Assert
         Assert.AreEqual(0, resultado.Count);
     }
 
     [TestMethod]
     public void CompletarEquipos_RepositorioVacio_Genera48Equipos()
     {
+        // Act
         var generados = _servicio.CompletarEquipos(42);
 
+        // Assert
         Assert.AreEqual(48, _servicio.Buscar(_ => true).Count);
         Assert.AreEqual(48, generados.Count);
     }
@@ -286,32 +327,41 @@ public class ServicioEquipoTests
     [TestMethod]
     public void CompletarEquipos_RepositorioLleno_RetornaListaVacia()
     {
+        // Arrange
         _servicio.CompletarEquipos(42);
 
+        // Act
         var generados = _servicio.CompletarEquipos(42);
 
+        // Assert
         Assert.AreEqual(0, generados.Count);
     }
 
     [TestMethod]
     public void CompletarEquipos_ConEquiposExistentes_ComplementaHasta48()
     {
+        // Arrange
         _servicio.Agregar(CrearEquipo("España", Confederacion.UEFA));
         _servicio.Agregar(CrearEquipo("Argentina", Confederacion.CONMEBOL));
 
+        // Act
         _servicio.CompletarEquipos(42);
 
+        // Assert
         Assert.AreEqual(48, _servicio.Buscar(_ => true).Count);
     }
 
     [TestMethod]
     public void CompletarEquipos_MismaSemilla_GeneraMismosEquipos()
     {
+        // Arrange
         var servicio2 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
 
+        // Act
         var generados1 = _servicio.CompletarEquipos(42);
         var generados2 = servicio2.CompletarEquipos(42);
 
+        // Assert
         var nombres1 = generados1.Select(e => e.Nombre).ToList();
         var nombres2 = generados2.Select(e => e.Nombre).ToList();
         var rankings1 = generados1.Select(e => e.RankingFIFA).ToList();
@@ -324,11 +374,14 @@ public class ServicioEquipoTests
     [TestMethod]
     public void CompletarEquipos_DistintaSemilla_GeneraDistintosRankings()
     {
+        // Arrange
         var servicio2 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
 
+        // Act
         var generados1 = _servicio.CompletarEquipos(1);
         var generados2 = servicio2.CompletarEquipos(2);
 
+        // Assert
         var rankings1 = generados1.Select(e => e.RankingFIFA).ToList();
         var rankings2 = generados2.Select(e => e.RankingFIFA).ToList();
 
@@ -338,8 +391,10 @@ public class ServicioEquipoTests
     [TestMethod]
     public void CompletarEquipos_RespetaCuposPorConfederacion()
     {
+        // Act
         _servicio.CompletarEquipos(42);
 
+        // Assert
         Assert.AreEqual(16, _servicio.Buscar(e => e.Confederacion == Confederacion.UEFA).Count);
         Assert.AreEqual(7,  _servicio.Buscar(e => e.Confederacion == Confederacion.CONMEBOL).Count);
         Assert.AreEqual(7,  _servicio.Buscar(e => e.Confederacion == Confederacion.CONCACAF).Count);
@@ -351,8 +406,10 @@ public class ServicioEquipoTests
     [TestMethod]
     public void CompletarEquipos_NombresEnFormatoCorrecto()
     {
+        // Act
         var generados = _servicio.CompletarEquipos(42);
 
+        // Assert
         foreach (var equipo in generados)
         {
             var partes = equipo.Nombre.Split('_');
@@ -365,10 +422,13 @@ public class ServicioEquipoTests
     [TestMethod]
     public void CompletarEquipos_ContinuaNumeracionExistente()
     {
+        // Arrange
         _servicio.Agregar(CrearEquipo("UEFA_01", Confederacion.UEFA));
 
+        // Act
         _servicio.CompletarEquipos(42);
 
+        // Assert
         var nombresUefa = _servicio.Buscar(e => e.Confederacion == Confederacion.UEFA)
             .Select(e => e.Nombre)
             .ToList();
@@ -381,8 +441,10 @@ public class ServicioEquipoTests
     [TestMethod]
     public void CompletarEquipos_EvitaNombresDuplicados()
     {
+        // Act
         var generados = _servicio.CompletarEquipos(42);
 
+        // Assert
         var nombres = generados.Select(e => e.Nombre).ToList();
         var nombresUnicos = nombres.Distinct().ToList();
 
@@ -392,8 +454,10 @@ public class ServicioEquipoTests
     [TestMethod]
     public void CompletarEquipos_TodosLosEquiposGeneradosSonValidos()
     {
+        // Act
         var generados = _servicio.CompletarEquipos(42);
 
+        // Assert
         Assert.IsTrue(generados.All(e => e.EsValido()));
     }
 
@@ -490,10 +554,13 @@ public class ServicioEquipoTests
     [TestMethod]
     public void Agregar_EquipoValido_RegistraEntradaDeAuditoria()
     {
+        // Arrange
         var (servicio, repoAuditoria) = CrearServicioConAuditoria();
 
+        // Act
         servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
 
+        // Assert
         Assert.AreEqual(1, repoAuditoria.Entradas.Count);
         Assert.AreEqual("Alta", repoAuditoria.Entradas[0].Accion);
         StringAssert.Contains(repoAuditoria.Entradas[0].Detalle, "Uruguay");
@@ -502,8 +569,10 @@ public class ServicioEquipoTests
     [TestMethod]
     public void Agregar_EquipoInvalido_NoRegistraAuditoria()
     {
+        // Arrange
         var (servicio, repoAuditoria) = CrearServicioConAuditoria();
 
+        // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicio.Agregar(new Equipo { Nombre = "", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL }));
 
@@ -513,12 +582,15 @@ public class ServicioEquipoTests
     [TestMethod]
     public void EditarEquipo_EquipoValido_RegistraEntradaDeAuditoria()
     {
+        // Arrange
         var (servicio, repoAuditoria) = CrearServicioConAuditoria();
         servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
         repoAuditoria.Entradas.Clear();
 
+        // Act
         servicio.EditarEquipo(CrearEquipo("Uruguay Editado", Confederacion.CONMEBOL), "Uruguay");
 
+        // Assert
         Assert.AreEqual(1, repoAuditoria.Entradas.Count);
         Assert.AreEqual("Edicion", repoAuditoria.Entradas[0].Accion);
         StringAssert.Contains(repoAuditoria.Entradas[0].Detalle, "Uruguay");
@@ -528,10 +600,12 @@ public class ServicioEquipoTests
     [TestMethod]
     public void EditarEquipo_EquipoInvalido_NoRegistraAuditoria()
     {
+        // Arrange
         var (servicio, repoAuditoria) = CrearServicioConAuditoria();
         servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
         repoAuditoria.Entradas.Clear();
 
+        // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicio.EditarEquipo(new Equipo { Nombre = "", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL }, "Uruguay"));
 
@@ -541,13 +615,16 @@ public class ServicioEquipoTests
     [TestMethod]
     public void Eliminar_EquipoExistente_RegistraEntradaDeAuditoria()
     {
+        // Arrange
         var (servicio, repoAuditoria) = CrearServicioConAuditoria();
         var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
         servicio.Agregar(equipo);
         repoAuditoria.Entradas.Clear();
 
+        // Act
         servicio.Eliminar(equipo);
 
+        // Assert
         Assert.AreEqual(1, repoAuditoria.Entradas.Count);
         Assert.AreEqual("Baja", repoAuditoria.Entradas[0].Accion);
         StringAssert.Contains(repoAuditoria.Entradas[0].Detalle, "Uruguay");
@@ -556,30 +633,39 @@ public class ServicioEquipoTests
     [TestMethod]
     public void Agregar_SinAuditoria_NoLanzaExcepcion()
     {
+        // Arrange
         var servicio = new ServicioEquipo(new RepositorioEquipoEnMemoria());
 
+        // Act
         servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
 
+        // Assert
         Assert.AreEqual(1, servicio.Buscar(_ => true).Count);
     }
 
     [TestMethod]
     public void Auditoria_RegistraUsuarioSistema()
     {
+        // Arrange
         var (servicio, repoAuditoria) = CrearServicioConAuditoria();
 
+        // Act
         servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
 
+        // Assert
         Assert.AreEqual("Sistema", repoAuditoria.Entradas[0].Usuario);
     }
 
     [TestMethod]
     public void CompletarEquipos_GeneraUnaEntradaAltaPorEquipoGenerado()
     {
+        // Arrange
         var (servicio, repoAuditoria) = CrearServicioConAuditoria();
 
+        // Act
         var generados = servicio.CompletarEquipos(42);
 
+        // Assert
         var entradasAlta = repoAuditoria.Entradas.Where(e => e.Accion == "Alta").ToList();
         Assert.AreEqual(generados.Count, entradasAlta.Count);
     }

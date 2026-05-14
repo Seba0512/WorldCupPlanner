@@ -23,44 +23,44 @@ public class EquipoTests
     [TestMethod]
     public void Equipo_ConNombreMasDe60Caracteres_NoEsValido()
     {
-        //Arrange
+        // Arrange
         var equipo = new Equipo();
         equipo.Nombre = new string('A', 61);
-        
-        //Act
+
+        // Act
         var resultado = equipo.EsValido();
-        
-        //Assert
+
+        // Assert
         Assert.IsFalse(resultado);
     }
 
     [TestMethod]
     public void Equipo_ConRankingFIFAMenorA300_NoEsValido()
     {
-        //Arrange
+        // Arrange
         var equipo = new Equipo();
         equipo.Nombre = "Barcelona";
         equipo.RankingFIFA = 299;
-        
-        //Act
+
+        // Act
         var resultado = equipo.EsValido();
-        
-        //Assert
+
+        // Assert
         Assert.IsFalse(resultado);
     }
-    
+
     [TestMethod]
     public void Equipo_ConRankingFIFAMayorA2500_NoEsValido()
     {
-        //Arrange
+        // Arrange
         var equipo = new Equipo();
         equipo.Nombre = "Barcelona";
         equipo.RankingFIFA = 2501;
-        
-        //Act
+
+        // Act
         var resultado = equipo.EsValido();
-        
-        //Assert
+
+        // Assert
         Assert.IsFalse(resultado);
     }
     

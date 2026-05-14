@@ -287,7 +287,7 @@ public class ServicioFixture
 
     private void GenerarPartidosDelGrupo(Grupo grupo, ContextoGeneracionFixture contexto)
     {
-        var fechaBase = ObtenerFechaBaseDisponibleParaGrupo(contexto.ConfiguracionTorneo, contexto.CantidadPartidosPorDia);
+        var fechaBase = ObtenerFechaBaseDisponibleParaGrupo(contexto);
         AgregarPartidosJornada1(grupo, fechaBase, contexto);
         AgregarPartidosJornada2(grupo, fechaBase, contexto);
         AgregarPartidosJornada3(grupo, fechaBase, contexto);
@@ -318,8 +318,7 @@ public class ServicioFixture
     {
         var datos = CrearDatosPartidoDeGrupo(grupo, cruce, contexto);
         grupo.Partidos.Add(CrearPartidoDeGrupoConId(datos));
-        RegistrarPartidoEnDia(contexto.CantidadPartidosPorDia, cruce.Fecha);
-        contexto.IndicePartidoGlobal++;
+        contexto.RegistrarPartido(cruce.Fecha);
     }
 
     private DatosPartidoDeGrupo CrearDatosPartidoDeGrupo(Grupo grupo, ContextoCruceGrupo cruce, ContextoGeneracionFixture contexto)
@@ -344,13 +343,11 @@ public class ServicioFixture
         }
     }
 
-    private DateTime ObtenerFechaBaseDisponibleParaGrupo(
-        ConfiguracionTorneo configuracionTorneo,
-        Dictionary<DateTime, int> cantidadPartidosPorDia)
+    private DateTime ObtenerFechaBaseDisponibleParaGrupo(ContextoGeneracionFixture contexto)
     {
-        var fechaBase = configuracionTorneo.FechaInicioTorneo.Date;
+        var fechaBase = contexto.ConfiguracionTorneo.FechaInicioTorneo.Date;
 
-        while (!HayCupoParaJornadasDelGrupo(fechaBase, configuracionTorneo, cantidadPartidosPorDia))
+        while (!HayCupoParaJornadasDelGrupo(fechaBase, contexto))
         {
             fechaBase = fechaBase.AddDays(1);
         }
@@ -358,40 +355,20 @@ public class ServicioFixture
         return fechaBase;
     }
 
-    private bool HayCupoParaJornadasDelGrupo(
-        DateTime fechaBase,
-        ConfiguracionTorneo configuracionTorneo,
-        Dictionary<DateTime, int> cantidadPartidosPorDia)
+    private bool HayCupoParaJornadasDelGrupo(DateTime fechaBase, ContextoGeneracionFixture contexto)
     {
         for (int indiceJornada = 0; indiceJornada < CantidadJornadasPorGrupo; indiceJornada++)
         {
-            var fechaJornada = ObtenerFechaDeJornadaDelGrupo(fechaBase, configuracionTorneo, indiceJornada).Date;
+            var fechaJornada = ObtenerFechaDeJornadaDelGrupo(fechaBase, contexto.ConfiguracionTorneo, indiceJornada).Date;
 
-            if (ObtenerCantidadPartidosDelDia(cantidadPartidosPorDia, fechaJornada)
-                + CantidadPartidosPorJornadaDeGrupo > configuracionTorneo.MaxPartidosPorDia)
+            if (contexto.ObtenerPartidosDelDia(fechaJornada)
+                + CantidadPartidosPorJornadaDeGrupo > contexto.ConfiguracionTorneo.MaxPartidosPorDia)
             {
                 return false;
             }
         }
 
         return true;
-    }
-
-    private int ObtenerCantidadPartidosDelDia(
-        Dictionary<DateTime, int> cantidadPartidosPorDia,
-        DateTime fecha)
-    {
-        return cantidadPartidosPorDia.TryGetValue(fecha.Date, out var cantidad)
-            ? cantidad
-            : 0;
-    }
-
-    private void RegistrarPartidoEnDia(
-        Dictionary<DateTime, int> cantidadPartidosPorDia,
-        DateTime fecha)
-    {
-        var dia = fecha.Date;
-        cantidadPartidosPorDia[dia] = ObtenerCantidadPartidosDelDia(cantidadPartidosPorDia, dia) + 1;
     }
 
     private DateTime ObtenerFechaDeJornadaDelGrupo(DateTime fechaBase, ConfiguracionTorneo configuracionTorneo, int indiceJornada)
@@ -433,7 +410,7 @@ public class ServicioFixture
         );
     }
 
-    private Estadio ObtenerEstadioParaPartido(List<Estadio> estadiosOrdenados, int indicePartidoGlobal)
+    private Estadio ObtenerEstadioParaPartido(IReadOnlyList<Estadio> estadiosOrdenados, int indicePartidoGlobal)
     {
         return estadiosOrdenados[indicePartidoGlobal % estadiosOrdenados.Count];
     }

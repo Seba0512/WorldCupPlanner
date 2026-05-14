@@ -42,8 +42,6 @@ public class GrupoTests
         );
     }
 
-
-
     [TestMethod]
     public void Grupo_ConMasDeCuatroEquipos_DebeLanzarExcepcion()
     {
@@ -62,8 +60,6 @@ public class GrupoTests
             new Grupo("A", equipos)
         );
     }
-
-
 
     [TestMethod]
     public void Grupo_ConEtiquetaValida_YCuatroEquiposValidos_EsValido()

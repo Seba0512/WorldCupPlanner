@@ -18,9 +18,9 @@ public class Usuario
     private string? _contraseniaCifrada;
     private HashSet<RolUsuario> _roles;
 
-    public string Nombre { get; private set; }
-    public string Apellido { get; private set; }
-    public string Email { get; private set; }
+    public string Nombre { get; private set; } = string.Empty;
+    public string Apellido { get; private set; } = string.Empty;
+    public string Email { get; private set; } = string.Empty;
     public DateTime FechaNacimiento { get; private set; }
     public string? ContraseniaCifrada => _contraseniaCifrada;
     public bool DebeCambiarContrasenia { get; private set; }
