@@ -120,18 +120,14 @@
                 <div class="form-group">
                     <label class="form-label">Semilla de generación automática</label>
                     <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
-                        <input type="number"
-                               class="form-control"
-                               style="width:120px;"
-                               min="0"
-                               step="1"
-                               @bind="_semillaCompletar"
-                               disabled="@(!ServicioConfiguracionTorneo.EsConfiguracionModificable)" />
+                        <span style="font-family:var(--font-heading); font-size:18px; font-weight:700; color:var(--text-primary);">
+                            @ServicioConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar
+                        </span>
                         <a href="/configuracion" style="font-size:12px; color:var(--text-muted); white-space:nowrap;">
-                            <span class="oi oi-cog" aria-hidden="true"></span> Configurar
+                            <span class="oi oi-cog" aria-hidden="true"></span> Editar en Configuración
                         </a>
                     </div>
-                    <span class="form-hint">La misma semilla genera siempre los mismos equipos y rankings ficticios. Se aplica al completar equipos y no modifica equipos ya generados.</span>
+                    <span class="form-hint">La misma semilla genera siempre los mismos equipos y rankings ficticios. Configurá este valor en la sección <strong>Configuración del torneo</strong>.</span>
                 </div>
                 @if (!string.IsNullOrEmpty(_mensajeCompletar))
                 {
@@ -152,7 +148,6 @@
     private bool _confirmarEliminar;
     private string _mensajeCompletar = string.Empty;
     private string _errorCarga = string.Empty;
-    private int _semillaCompletar;
 
     private static readonly Dictionary<Confederacion, int> CuposMaximos = new()
     {
@@ -182,7 +177,6 @@
             _cuposPorConfederacion = CuposMaximos.ToDictionary(
                 kvp => kvp.Key,
                 kvp => (_equipos.Count(e => e.Confederacion == kvp.Key), kvp.Value));
-            _semillaCompletar = ServicioConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
         }
         catch (Exception ex)
         {
@@ -220,16 +214,10 @@
 
     private void Completar()
     {
-        if (_semillaCompletar < 0)
-        {
-            Toast.Error("La semilla de generación automática debe ser mayor o igual a cero.");
-            return;
-        }
-
         try
         {
-            GuardarSemillaCompletarSiCambio();
-            var generados = ServicioEquipo.CompletarEquipos(_semillaCompletar, SesionServicio.UsuarioActual);
+            var semilla = ServicioConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
+            var generados = ServicioEquipo.CompletarEquipos(semilla, SesionServicio.UsuarioActual);
             CargarDatos();
             _mensajeCompletar = generados.Count > 0
                 ? $"Se generaron {generados.Count} equipos ficticios correctamente."
@@ -237,15 +225,5 @@
             if (generados.Count > 0) Toast.Exito(_mensajeCompletar);
         }
         catch (Exception ex) { Toast.Error(ex.Message); }
-    }
-
-    private void GuardarSemillaCompletarSiCambio()
-    {
-        var configuracion = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
-        if (configuracion.SemillaCompletar == _semillaCompletar)
-            return;
-
-        configuracion.SemillaCompletar = _semillaCompletar;
-        ServicioConfiguracionTorneo.ModificarConfiguracion(SesionServicio.UsuarioActual!, configuracion);
     }
 }
