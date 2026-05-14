@@ -70,7 +70,7 @@
         _error = string.Empty;
         try
         {
-            ServicioEquipo.Agregar(_equipo);
+            ServicioEquipo.Agregar(_equipo, SesionServicio.UsuarioActual);
             Toast.Exito($"Equipo \"{_equipo.Nombre}\" creado correctamente.");
             NavigationManager.NavigateTo("/equipos");
         }

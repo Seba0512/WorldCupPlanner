@@ -299,6 +299,17 @@ public class ServicioConfiguracionTorneoTests
         Assert.AreEqual(typeof(int), configuracion.SemillaCompletar.GetType());
     }
 
+    [TestMethod]
+    public void ObtenerConfiguracionUsadaParaFixture_SinFixtureGenerado_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioConfiguracion.ObtenerConfiguracionUsadaParaFixture());
+    }
+
     private static Usuario CrearUsuarioConRol(RolUsuario rol)
     {
         var usuario = new Usuario(new DatosUsuario

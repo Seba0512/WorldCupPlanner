@@ -204,7 +204,7 @@
         if (_equipoAEliminar == null) return;
         try
         {
-            ServicioEquipo.Eliminar(_equipoAEliminar);
+            ServicioEquipo.Eliminar(_equipoAEliminar, SesionServicio.UsuarioActual);
             Toast.Exito($"Equipo \"{_equipoAEliminar.Nombre}\" eliminado.");
             _equipoAEliminar = null;
             CargarDatos();
@@ -217,7 +217,7 @@
         try
         {
             var semilla = ServicioConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
-            var generados = ServicioEquipo.CompletarEquipos(semilla);
+            var generados = ServicioEquipo.CompletarEquipos(semilla, SesionServicio.UsuarioActual);
             CargarDatos();
             _mensajeCompletar = generados.Count > 0
                 ? $"Se generaron {generados.Count} equipos ficticios correctamente."

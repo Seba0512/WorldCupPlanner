@@ -34,7 +34,10 @@ namespace WorldCupPlanner.Servicios
             ValidarNombreUnico(equipo.Nombre);
             ValidarCupoConfederacion(equipo);
             _repositorio.Agregar(equipo);
-            _auditoria?.Registrar("Sistema", "Alta", $"Equipo: {equipo.Nombre}, Confederacion: {equipo.Confederacion}, Ranking: {equipo.RankingFIFA}");
+            _auditoria?.Registrar(
+                solicitante != null ? $"{solicitante.Nombre} {solicitante.Apellido}" : "Sistema",
+                "Alta",
+                $"Equipo: {equipo.Nombre}, Confederacion: {equipo.Confederacion}, Ranking: {equipo.RankingFIFA}");
         }
 
         public void EditarEquipo(Equipo equipo, string nombreOriginal, Usuario? solicitante = null)
@@ -54,7 +57,10 @@ namespace WorldCupPlanner.Servicios
             existente.Confederacion = equipo.Confederacion;
             existente.RankingFIFA = equipo.RankingFIFA;
             _repositorio.Actualizar(existente);
-            _auditoria?.Registrar("Sistema", "Edicion", $"Original: {nombreOriginal} -> Nuevo: {equipo.Nombre}, Confederacion: {equipo.Confederacion}, Ranking: {equipo.RankingFIFA}");
+            _auditoria?.Registrar(
+                solicitante != null ? $"{solicitante.Nombre} {solicitante.Apellido}" : "Sistema",
+                "Edicion",
+                $"Original: {nombreOriginal} -> Nuevo: {equipo.Nombre}, Confederacion: {equipo.Confederacion}, Ranking: {equipo.RankingFIFA}");
         }
 
         public void Actualizar(Equipo equipo)
@@ -136,7 +142,10 @@ namespace WorldCupPlanner.Servicios
             ValidarEliminacionPermitida();
 
             _repositorio.Eliminar(equipo);
-            _auditoria?.Registrar("Sistema", "Baja", $"Equipo: {equipo.Nombre}, Confederacion: {equipo.Confederacion}");
+            _auditoria?.Registrar(
+                solicitante != null ? $"{solicitante.Nombre} {solicitante.Apellido}" : "Sistema",
+                "Baja",
+                $"Equipo: {equipo.Nombre}, Confederacion: {equipo.Confederacion}");
         }
 
         public bool FixtureYaFueGenerado => _fixtureGenerado != null;

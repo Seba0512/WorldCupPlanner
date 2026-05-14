@@ -73,7 +73,7 @@
         }
         try
         {
-            ServicioEstadio.EditarEstadio(Nombre, _estadio);
+            ServicioEstadio.EditarEstadio(Nombre, _estadio, SesionServicio.UsuarioActual);
             Toast.Exito("Estadio actualizado correctamente.");
             NavigationManager.NavigateTo("/estadios");
         }

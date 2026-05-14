@@ -92,7 +92,7 @@
         if (_estadioAEliminar == null) return;
         try
         {
-            ServicioEstadio.EliminarEstadio(_estadioAEliminar);
+            ServicioEstadio.EliminarEstadio(_estadioAEliminar, SesionServicio.UsuarioActual);
             Toast.Exito($"Estadio \"{_estadioAEliminar.Nombre}\" eliminado.");
             _estadioAEliminar = null;
             _estadios = ServicioEstadio.ObtenerEstadios();

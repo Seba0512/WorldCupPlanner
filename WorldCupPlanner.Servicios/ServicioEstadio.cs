@@ -27,7 +27,10 @@ public class ServicioEstadio
         if (_repositorioEstadio.Buscar(e => NombresIguales(e.Nombre, estadio.Nombre)).Count > 0)
             throw new EntidadYaExistenteExcepcion("Ya existe un estadio con ese nombre.");
         _repositorioEstadio.Agregar(estadio);
-        _auditoria?.Registrar("Sistema", "Alta", $"Estadio: {estadio.Nombre}, Ciudad: {estadio.Ciudad}, Capacidad: {estadio.Capacidad}");
+        _auditoria?.Registrar(
+            solicitante != null ? $"{solicitante.Nombre} {solicitante.Apellido}" : "Sistema",
+            "Alta",
+            $"Estadio: {estadio.Nombre}, Ciudad: {estadio.Ciudad}, Capacidad: {estadio.Capacidad}");
     }
 
     public void EditarEstadio(string nombreOriginal, Estadio estadio, Usuario? solicitante = null)
@@ -47,7 +50,10 @@ public class ServicioEstadio
         existente.Capacidad = estadio.Capacidad;
         existente.Descripcion = estadio.Descripcion;
         _repositorioEstadio.Actualizar(existente);
-        _auditoria?.Registrar("Sistema", "Edicion", $"Original: {nombreOriginal} -> Nuevo: {estadio.Nombre}, Ciudad: {estadio.Ciudad}, Capacidad: {estadio.Capacidad}");
+        _auditoria?.Registrar(
+            solicitante != null ? $"{solicitante.Nombre} {solicitante.Apellido}" : "Sistema",
+            "Edicion",
+            $"Original: {nombreOriginal} -> Nuevo: {estadio.Nombre}, Ciudad: {estadio.Ciudad}, Capacidad: {estadio.Capacidad}");
     }
 
     public void EliminarEstadio(Estadio estadio, Usuario? solicitante = null)
@@ -57,7 +63,10 @@ public class ServicioEstadio
         ValidarEstadioNoEstaEnFixture(estadio);
 
         _repositorioEstadio.Eliminar(estadio);
-        _auditoria?.Registrar("Sistema", "Baja", $"Estadio: {estadio.Nombre}, Ciudad: {estadio.Ciudad}");
+        _auditoria?.Registrar(
+            solicitante != null ? $"{solicitante.Nombre} {solicitante.Apellido}" : "Sistema",
+            "Baja",
+            $"Estadio: {estadio.Nombre}, Ciudad: {estadio.Ciudad}");
     }
 
     public void RegistrarFixtureGenerado(Fixture fixture)

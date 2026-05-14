@@ -63,7 +63,7 @@
         _error = string.Empty;
         try
         {
-            ServicioEquipo.EditarEquipo(_equipo, Nombre);
+            ServicioEquipo.EditarEquipo(_equipo, Nombre, SesionServicio.UsuarioActual);
             Toast.Exito($"Equipo actualizado correctamente.");
             NavigationManager.NavigateTo("/equipos");
         }

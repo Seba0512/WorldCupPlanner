@@ -813,6 +813,81 @@ public class ServicioEquipoTests
         Assert.AreEqual(48, generados.Count);
     }
 
+    [TestMethod]
+    public void EditarEquipo_CambiandoConfederacion_ValidaCupoNuevaConfederacion()
+    {
+        // Arrange
+        _servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
+        var editado = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.UEFA };
+
+        // Act
+        _servicio.EditarEquipo(editado, "Uruguay");
+
+        // Assert
+        Assert.AreEqual(Confederacion.UEFA, _servicio.Buscar(e => e.Nombre == "Uruguay").First().Confederacion);
+    }
+
+    [TestMethod]
+    public void Agregar_ConAuditoriaYSolicitante_RegistraUsuarioEnAuditoria()
+    {
+        // Arrange
+        var (servicio, repoAuditoria) = CrearServicioConAuditoria();
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+
+        // Act
+        servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL), solicitante: admin);
+
+        // Assert
+        Assert.AreEqual("Test User", repoAuditoria.Entradas[0].Usuario);
+    }
+
+    [TestMethod]
+    public void Eliminar_ConAuditoriaYSolicitante_RegistraUsuarioEnAuditoria()
+    {
+        // Arrange
+        var (servicio, repoAuditoria) = CrearServicioConAuditoria();
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+        servicio.Agregar(equipo);
+        repoAuditoria.Entradas.Clear();
+
+        // Act
+        servicio.Eliminar(equipo, solicitante: admin);
+
+        // Assert
+        Assert.AreEqual("Test User", repoAuditoria.Entradas[0].Usuario);
+    }
+
+    [TestMethod]
+    public void CompletarEquipos_ConAuditoriaYSolicitante_RegistraUsuarioEnAuditoria()
+    {
+        // Arrange
+        var (servicio, repoAuditoria) = CrearServicioConAuditoria();
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+
+        // Act
+        servicio.CompletarEquipos(42, solicitante: admin);
+
+        // Assert - la entrada inicial de generación registra al solicitante
+        Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Usuario == "Test User"));
+    }
+
+    [TestMethod]
+    public void EditarEquipo_ConAuditoriaYSolicitante_RegistraUsuarioEnAuditoria()
+    {
+        // Arrange
+        var (servicio, repoAuditoria) = CrearServicioConAuditoria();
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
+        repoAuditoria.Entradas.Clear();
+
+        // Act
+        servicio.EditarEquipo(CrearEquipo("Uruguay Editado", Confederacion.CONMEBOL), "Uruguay", solicitante: admin);
+
+        // Assert
+        Assert.AreEqual("Test User", repoAuditoria.Entradas[0].Usuario);
+    }
+
     private static Usuario CrearUsuarioConRol(RolUsuario rol)
     {
         var usuario = CrearUsuarioSinRoles();

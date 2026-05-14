@@ -91,6 +91,29 @@ public class PosicionEquipoTests
         Assert.AreEqual(1, posicion.GolesEnContra);
     }
 
+    [TestMethod]
+    public void PosicionEquipo_ContadoresDePartidos_SeEstablecenCorrectamente()
+    {
+        // Arrange & Act
+        var posicion = new PosicionEquipo
+        {
+            Equipo = CrearEquipo("Brasil"),
+            Grupo = new Grupo("C"),
+            PartidosJugados = 3,
+            PartidosGanados = 2,
+            PartidosEmpatados = 1,
+            PartidosPerdidos = 0,
+            Puntos = 7
+        };
+
+        // Assert
+        Assert.AreEqual(3, posicion.PartidosJugados);
+        Assert.AreEqual(2, posicion.PartidosGanados);
+        Assert.AreEqual(1, posicion.PartidosEmpatados);
+        Assert.AreEqual(0, posicion.PartidosPerdidos);
+        Assert.AreEqual(7, posicion.Puntos);
+    }
+
     private static Equipo CrearEquipo(string nombre)
     {
         return new Equipo { Nombre = nombre, RankingFIFA = 500, Confederacion = Confederacion.CONMEBOL };

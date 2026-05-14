@@ -62,7 +62,7 @@
         _error = string.Empty;
         try
         {
-            ServicioEstadio.AgregarEstadio(_estadio);
+            ServicioEstadio.AgregarEstadio(_estadio, SesionServicio.UsuarioActual);
             Toast.Exito($"Estadio \"{_estadio.Nombre}\" creado correctamente.");
             NavigationManager.NavigateTo("/estadios");
         }

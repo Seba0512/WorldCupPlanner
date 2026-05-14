@@ -443,6 +443,53 @@ public class ServicioEstadioTests
         Assert.AreEqual(0, _servicio.ObtenerEstadios().Count);
     }
 
+    [TestMethod]
+    public void AgregarEstadio_ConAuditoriaYSolicitante_RegistraUsuarioEnAuditoria()
+    {
+        // Arrange
+        var (servicio, repoAuditoria) = CrearServicioConAuditoria();
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+
+        // Act
+        servicio.AgregarEstadio(CrearEstadio(), solicitante: admin);
+
+        // Assert
+        Assert.AreEqual("Test User", repoAuditoria.Entradas[0].Usuario);
+    }
+
+    [TestMethod]
+    public void EditarEstadio_ConAuditoriaYSolicitante_RegistraUsuarioEnAuditoria()
+    {
+        // Arrange
+        var (servicio, repoAuditoria) = CrearServicioConAuditoria();
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        servicio.AgregarEstadio(CrearEstadio());
+        repoAuditoria.Entradas.Clear();
+
+        // Act
+        servicio.EditarEstadio("Estadio Centenario", CrearEstadio("Estadio Nuevo"), solicitante: admin);
+
+        // Assert
+        Assert.AreEqual("Test User", repoAuditoria.Entradas[0].Usuario);
+    }
+
+    [TestMethod]
+    public void EliminarEstadio_ConAuditoriaYSolicitante_RegistraUsuarioEnAuditoria()
+    {
+        // Arrange
+        var (servicio, repoAuditoria) = CrearServicioConAuditoria();
+        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var estadio = CrearEstadio();
+        servicio.AgregarEstadio(estadio);
+        repoAuditoria.Entradas.Clear();
+
+        // Act
+        servicio.EliminarEstadio(estadio, solicitante: admin);
+
+        // Assert
+        Assert.AreEqual("Test User", repoAuditoria.Entradas[0].Usuario);
+    }
+
     private static Usuario CrearUsuarioConRol(RolUsuario rol)
     {
         var usuario = CrearUsuarioSinRoles();

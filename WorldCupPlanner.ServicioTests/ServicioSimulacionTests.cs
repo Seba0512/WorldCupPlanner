@@ -276,6 +276,73 @@ public class ServicioSimulacionTests
     }
 
     [TestMethod]
+    public void SimularResultados_ConEquipoLocalNulo_DebeAsignarGolesComoSiTuvieraBonusCero()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var partido = new Partido
+        {
+            Id = 1,
+            EquipoLocal = null,
+            EquipoVisitante = CrearEquipo("Visitante", 300),
+            Estadio = CrearEstadio(),
+            Fecha = DateTime.Now,
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+        var configuracionTorneo = new ConfiguracionTorneo { SemillaSimulation = 1 };
+
+        // Act
+        servicioSimulacion.SimularResultados(new List<Partido> { partido }, configuracionTorneo);
+
+        // Assert — se deben asignar goles sin excepción; local sin bonus no supera 3
+        Assert.IsTrue(partido.GolesLocal.HasValue);
+        Assert.IsTrue(partido.GolesLocal <= 3);
+    }
+
+    [TestMethod]
+    public void SimularResultados_ConEquiposDeRankingAltoEliminatorio_TodosLosCasosDeDesempateQuedan()
+    {
+        // Con 1000 partidos eliminatorios de equipos a ranking 2500 (bonus 2),
+        // la simulación debe cubrir el desempate decrementando visitante cuando local ya es 5.
+        var servicioSimulacion = new ServicioSimulacion();
+        for (int semilla = 1; semilla <= 100; semilla++)
+        {
+            var partidos = Enumerable.Range(1, 10).Select(i => new Partido
+            {
+                Id = i,
+                EquipoLocal = CrearEquipo("Local" + i, 2500),
+                EquipoVisitante = CrearEquipo("Visitante" + i, 2500),
+                Estadio = CrearEstadio(),
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.Octavos
+            }).ToList();
+
+            servicioSimulacion.SimularResultados(partidos, new ConfiguracionTorneo { SemillaSimulation = semilla });
+
+            Assert.IsTrue(partidos.All(p => !p.EsEmpate()), $"Semilla {semilla} dejó un empate");
+            Assert.IsTrue(partidos.All(p => p.GolesLocal <= 5 && p.GolesVisitante <= 5));
+        }
+    }
+
+    [TestMethod]
+    public void SimularResultados_ConRankingMedio_AplicaBonusDe1()
+    {
+        // Equipos con ranking entre 1000 y 1799 reciben bonus 1
+        var servicioSimulacion = new ServicioSimulacion();
+        var partidosConRankingMedio = CrearPartidosConRankingLocalYVisitante(50, 1500, 300);
+        var partidosConRankingBajo = CrearPartidosConRankingLocalYVisitante(50, 300, 300);
+        var config = new ConfiguracionTorneo { SemillaSimulation = 1 };
+
+        servicioSimulacion.SimularResultados(partidosConRankingMedio, config);
+        servicioSimulacion.SimularResultados(partidosConRankingBajo, config);
+
+        var golesLocalMedio = partidosConRankingMedio.Sum(p => p.GolesLocal!.Value);
+        var golesLocalBajo = partidosConRankingBajo.Sum(p => p.GolesLocal!.Value);
+
+        Assert.IsTrue(golesLocalMedio > golesLocalBajo, "El ranking medio debe generar más goles que el ranking bajo");
+    }
+
+    [TestMethod]
     public void SimularResultados_MismoPartidoSoloODentroDeLista_DebeGenerarMismoResultado()
     {
         // Arrange
