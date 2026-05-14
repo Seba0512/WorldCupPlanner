@@ -182,7 +182,7 @@ namespace WorldCupPlanner.Servicios
         {
             var numero = 1;
             var nombre = $"{confederacion}_{numero:00}";
-            while (_repositorio.Buscar(e => e.Nombre == nombre).Count > 0)
+            while (_repositorio.Buscar(e => string.Equals(e.Nombre, nombre, StringComparison.OrdinalIgnoreCase)).Count > 0)
             {
                 numero++;
                 nombre = $"{confederacion}_{numero:00}";

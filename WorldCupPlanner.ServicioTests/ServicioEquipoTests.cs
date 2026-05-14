@@ -475,6 +475,20 @@ public class ServicioEquipoTests
     }
 
     [TestMethod]
+    public void CompletarEquipos_ConEquipoExistenteEnMinusculas_SaltaAlSiguienteNumero()
+    {
+        // Arrange — "uefa_01" coincide case-insensitivo con "UEFA_01" que GenerarNombre produciría
+        _servicio.Agregar(CrearEquipo("uefa_01", Confederacion.UEFA));
+
+        // Act — no debe lanzar excepción y debe saltear ese nombre
+        var generados = _servicio.CompletarEquipos(42);
+
+        // Assert — 16 UEFA en total (1 manual + 15 generados), sin colisión de case
+        Assert.AreEqual(16, _servicio.Buscar(e => e.Confederacion == Confederacion.UEFA).Count);
+        Assert.IsFalse(generados.Any(e => string.Equals(e.Nombre, "uefa_01", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    [TestMethod]
     public void CompletarEquipos_TodosLosEquiposGeneradosSonValidos()
     {
         // Act

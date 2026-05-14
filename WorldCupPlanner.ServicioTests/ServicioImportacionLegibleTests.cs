@@ -228,6 +228,39 @@ public class ServicioImportacionLegibleTests
     }
 
     [TestMethod]
+    public void Importar_NombreVacio_ReportaErrorEspecifico()
+    {
+        // Arrange
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA",
+            ",CONMEBOL,1000");
+
+        // Act
+        var resultado = _servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(0, resultado.Exitosos);
+        Assert.AreEqual(1, resultado.Errores.Count);
+        StringAssert.Contains(resultado.Errores[0], "Nombre");
+    }
+
+    [TestMethod]
+    public void Importar_RankingFIFAPorEncimaDelMaximo_ReportaError()
+    {
+        // Arrange
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA",
+            "Uruguay,CONMEBOL,99999");
+
+        // Act
+        var resultado = _servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(0, resultado.Exitosos);
+        Assert.AreEqual(1, resultado.Errores.Count);
+    }
+
+    [TestMethod]
     public void Importar_CSVConLineasVacias_LasIgnora()
     {
         // Arrange

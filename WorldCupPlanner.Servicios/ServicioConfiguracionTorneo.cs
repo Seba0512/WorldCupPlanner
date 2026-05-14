@@ -17,11 +17,14 @@ public class ServicioConfiguracionTorneo
 
     public bool EsConfiguracionModificable => _configuracionUsadaParaFixture == null;
 
+    private const int MinMaxPartidosPorDia = 2;
+
     public void ModificarConfiguracion(Usuario usuario, ConfiguracionTorneo nuevaConfiguracion)
     {
         ValidarUsuarioAdministrador(usuario);
         ValidarConfiguracionNoBloqueada();
         ValidarSemillasNoNegativas(nuevaConfiguracion);
+        ValidarParametrosNumericos(nuevaConfiguracion);
         _configuracionActual = CopiarConfiguracion(nuevaConfiguracion);
         _auditoria?.Registrar(
             $"{usuario.Nombre} {usuario.Apellido}",
@@ -67,6 +70,13 @@ public class ServicioConfiguracionTorneo
             throw new EntidadInvalidaExcepcion(
                 "No se puede modificar la configuración después de generado el fixture.");
         }
+    }
+
+    private void ValidarParametrosNumericos(ConfiguracionTorneo configuracion)
+    {
+        if (configuracion.MaxPartidosPorDia < MinMaxPartidosPorDia)
+            throw new EntidadInvalidaExcepcion(
+                $"MaxPartidosPorDia debe ser al menos {MinMaxPartidosPorDia}.");
     }
 
     private void ValidarSemillasNoNegativas(ConfiguracionTorneo configuracion)

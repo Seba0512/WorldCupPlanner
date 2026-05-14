@@ -59,6 +59,84 @@ public class ServicioConfiguracionTorneoTests
     }
 
     [TestMethod]
+    public void ModificarConfiguracion_ConMaxPartidosPorDiaMenorAlMinimo_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var nuevaConfiguracion = new ConfiguracionTorneo { MaxPartidosPorDia = 1 };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioConfiguracion.ModificarConfiguracion(administrador, nuevaConfiguracion));
+    }
+
+    [TestMethod]
+    public void ModificarConfiguracion_ConMaxPartidosPorDiaCero_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var nuevaConfiguracion = new ConfiguracionTorneo { MaxPartidosPorDia = 0 };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioConfiguracion.ModificarConfiguracion(administrador, nuevaConfiguracion));
+    }
+
+    [TestMethod]
+    public void ModificarConfiguracion_ConMaxPartidosPorDiaMinimo_NoLanzaExcepcion()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var nuevaConfiguracion = new ConfiguracionTorneo { MaxPartidosPorDia = 2 };
+
+        // Act & Assert — valor límite válido, no debe lanzar
+        servicioConfiguracion.ModificarConfiguracion(administrador, nuevaConfiguracion);
+        Assert.AreEqual(2, servicioConfiguracion.ObtenerConfiguracionActual().MaxPartidosPorDia);
+    }
+
+    [TestMethod]
+    public void ModificarConfiguracion_ConSemillaFixtureNegativa_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var nuevaConfiguracion = new ConfiguracionTorneo { SemillaFixture = -1 };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioConfiguracion.ModificarConfiguracion(administrador, nuevaConfiguracion));
+    }
+
+    [TestMethod]
+    public void ModificarConfiguracion_ConSemillaCrucesFaseNegativa_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var nuevaConfiguracion = new ConfiguracionTorneo { SemillaCrucesFase = -1 };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioConfiguracion.ModificarConfiguracion(administrador, nuevaConfiguracion));
+    }
+
+    [TestMethod]
+    public void ModificarConfiguracion_ConSemillaSimulationNegativa_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var nuevaConfiguracion = new ConfiguracionTorneo { SemillaSimulation = -1 };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioConfiguracion.ModificarConfiguracion(administrador, nuevaConfiguracion));
+    }
+
+    [TestMethod]
     public void ModificarConfiguracion_ConFixtureGenerado_DebeLanzarExcepcion()
     {
         // Arrange
