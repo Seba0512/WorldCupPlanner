@@ -1,3 +1,4 @@
+using System.Reflection;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -1676,6 +1677,31 @@ public class ServicioCrucesTests
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicioCruces.GenerarFinal(semifinales, estadios, configuracionTorneo, existentes)
         );
+    }
+
+    [TestMethod]
+    public void ObtenerPerdedor_ConPartidoSinGanador_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var servicioCruces = new ServicioCruces();
+        var partido = new Partido
+        {
+            EquipoLocal = new Equipo { Nombre = "Local", RankingFIFA = 1000, Confederacion = Confederacion.UEFA },
+            EquipoVisitante = new Equipo { Nombre = "Visitante", RankingFIFA = 900, Confederacion = Confederacion.CONMEBOL },
+            GolesLocal = 1,
+            GolesVisitante = 1,
+            Fase = FaseTorneo.Semifinal
+        };
+
+        var metodo = typeof(ServicioCruces).GetMethod(
+            "ObtenerPerdedor",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        // Act & Assert
+        var excepcion = Assert.ThrowsException<TargetInvocationException>(() =>
+            metodo!.Invoke(servicioCruces, new object[] { partido }));
+
+        Assert.IsInstanceOfType(excepcion.InnerException, typeof(EntidadInvalidaExcepcion));
     }
 
     [TestMethod]

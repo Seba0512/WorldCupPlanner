@@ -362,4 +362,46 @@ public class ServicioSimulacionTests
         Assert.AreEqual(partidoSimuladoSolo.GolesLocal, partidos[2].GolesLocal);
         Assert.AreEqual(partidoSimuladoSolo.GolesVisitante, partidos[2].GolesVisitante);
     }
+    [TestMethod]
+    public void DesempatarPartido_ConLocalMenorAlMaximo_IncrementaGolesLocal()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var partido = CrearPartidosEliminatoriosSinResultado(1)[0];
+        partido.GolesLocal = 3;
+        partido.GolesVisitante = 3;
+
+        var metodo = typeof(ServicioSimulacion).GetMethod(
+            "DesempatarPartido",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        // Act
+        metodo!.Invoke(servicioSimulacion, new object[] { partido });
+
+        // Assert
+        Assert.AreEqual(4, partido.GolesLocal);
+        Assert.AreEqual(3, partido.GolesVisitante);
+    }
+
+    [TestMethod]
+    public void DesempatarPartido_ConLocalEnMaximo_DecrementaGolesVisitante()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var partido = CrearPartidosEliminatoriosSinResultado(1)[0];
+        partido.GolesLocal = 5;
+        partido.GolesVisitante = 5;
+
+        var metodo = typeof(ServicioSimulacion).GetMethod(
+            "DesempatarPartido",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        // Act
+        metodo!.Invoke(servicioSimulacion, new object[] { partido });
+
+        // Assert
+        Assert.AreEqual(5, partido.GolesLocal);
+        Assert.AreEqual(4, partido.GolesVisitante);
+    }
+
 }

@@ -28,6 +28,7 @@ public class ServicioFixture
     {
         ValidarCantidadEquipos(equipos);
         ValidarCantidadEstadios(estadios);
+        ValidarMaxPartidosPorDia(configuracionTorneo);
 
         for (int offset = 0; offset < MaxIntentosGeneracionFixture; offset++)
         {
@@ -47,7 +48,7 @@ public class ServicioFixture
                 };
                 return CrearFixtureConDistribucionRoundRobin(equipos, estadios, config);
             }
-            catch (EntidadInvalidaExcepcion) when (offset < MaxIntentosGeneracionFixture - 1)
+            catch (EntidadInvalidaExcepcion)
             {
                 // la semilla actual genera un ordenamiento inválido, se prueba la siguiente
             }

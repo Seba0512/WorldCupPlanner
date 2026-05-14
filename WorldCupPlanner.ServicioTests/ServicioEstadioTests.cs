@@ -91,6 +91,41 @@ public class ServicioEstadioTests
     }
 
     [TestMethod]
+    public void EliminarEstadio_ConFixtureGeneradoPeroSinUsarEseEstadio_SeEliminaCorrectamente()
+    {
+        // Arrange
+        var estadioUsado = CrearEstadio("Estadio Usado");
+        var estadioAEliminar = CrearEstadio("Estadio Libre");
+        var fixture = CrearFixtureConEstadio(estadioUsado);
+        _servicio.AgregarEstadio(estadioUsado);
+        _servicio.AgregarEstadio(estadioAEliminar);
+        _servicio.RegistrarFixtureGenerado(fixture);
+
+        // Act
+        _servicio.EliminarEstadio(estadioAEliminar);
+
+        // Assert
+        Assert.AreEqual(1, _servicio.ObtenerEstadios().Count);
+        Assert.AreEqual(estadioUsado, _servicio.ObtenerEstadios()[0]);
+    }
+
+    [TestMethod]
+    public void EliminarEstadio_ConFixtureGeneradoYPartidoSinEstadio_SeEliminaCorrectamente()
+    {
+        // Arrange
+        var estadio = CrearEstadio("Estadio Libre");
+        var fixture = CrearFixtureConPartidoSinEstadio();
+        _servicio.AgregarEstadio(estadio);
+        _servicio.RegistrarFixtureGenerado(fixture);
+
+        // Act
+        _servicio.EliminarEstadio(estadio);
+
+        // Assert
+        Assert.AreEqual(0, _servicio.ObtenerEstadios().Count);
+    }
+
+    [TestMethod]
     public void EditarEstadio_EstadioValido_SeEditaCorrectamente()
     {
         var estadio = CrearEstadio();
@@ -335,6 +370,55 @@ public class ServicioEstadioTests
             Id = 1,
             Fecha = new DateTime(2026, 6, 1),
             Estadio = estadio,
+            EquipoLocal = equipoLocal,
+            EquipoVisitante = equipoVisitante,
+            Fase = FaseTorneo.FaseDeGrupos,
+            Grupo = grupo
+        });
+
+        return new Fixture
+        {
+            Grupos = { grupo }
+        };
+    }
+
+    private static Fixture CrearFixtureConPartidoSinEstadio()
+    {
+        var equipoLocal = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL
+        };
+        var equipoVisitante = new Equipo
+        {
+            Nombre = "Francia",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.UEFA
+        };
+        var grupo = new Grupo("A", new List<Equipo>
+        {
+            equipoLocal,
+            equipoVisitante,
+            new Equipo
+            {
+                Nombre = "Marruecos",
+                RankingFIFA = 1000,
+                Confederacion = Confederacion.CAF
+            },
+            new Equipo
+            {
+                Nombre = "Japon",
+                RankingFIFA = 1000,
+                Confederacion = Confederacion.AFC
+            }
+        });
+
+        grupo.Partidos.Add(new Partido
+        {
+            Id = 1,
+            Fecha = new DateTime(2026, 6, 1),
+            Estadio = null,
             EquipoLocal = equipoLocal,
             EquipoVisitante = equipoVisitante,
             Fase = FaseTorneo.FaseDeGrupos,

@@ -87,13 +87,13 @@ public class ServicioSimulacion
 
     private void DesempatarPartido(Partido partido)
     {
-        if (partido.GolesLocal < GolesMaximosExclusivo - 1)
+        if (partido.GolesLocal!.Value < GolesMaximosExclusivo - 1)
         {
-            partido.GolesLocal++;
+            partido.GolesLocal = partido.GolesLocal.Value + 1;
         }
         else
         {
-            partido.GolesVisitante--;
+            partido.GolesVisitante = partido.GolesVisitante!.Value - 1;
         }
     }
 }

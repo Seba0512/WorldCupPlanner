@@ -43,6 +43,18 @@ public class GrupoTests
     }
 
     [TestMethod]
+    public void Grupo_ConEtiquetaMenorA_A_DebeLanzarExcepcion()
+    {
+        // Arrange
+        string etiquetaFueraDeRango = "@";
+
+        // Act & Assert
+        Assert.ThrowsException<ArgumentException>(() =>
+            new Grupo(etiquetaFueraDeRango)
+        );
+    }
+
+    [TestMethod]
     public void Grupo_ConMasDeCuatroEquipos_DebeLanzarExcepcion()
     {
         // Arrange
