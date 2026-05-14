@@ -1,3 +1,4 @@
+using System.Reflection;
 using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
@@ -502,6 +503,67 @@ public class ServicioFixtureTests
     }
 
     [TestMethod]
+    public void PuedeAsignarseEquipoAGrupo_ConEquipoInvalido_RetornaFalso()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var grupo = new Grupo("A");
+        var equipoInvalido = new Equipo
+        {
+            Nombre = "",
+            RankingFIFA = 500,
+            Confederacion = Confederacion.UEFA
+        };
+
+        var metodo = typeof(ServicioFixture).GetMethod(
+            "PuedeAsignarseEquipoAGrupo",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        // Act
+        var resultado = (bool)metodo!.Invoke(servicioFixture, new object[] { equipoInvalido, grupo })!;
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void AsignarEquiposAGrupos_CuandoNoHayGrupoDisponible_DebeLanzarExcepcionConEstado()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var fixture = new Fixture();
+
+        for (char etiqueta = 'A'; etiqueta <= 'L'; etiqueta++)
+        {
+            var grupo = new Grupo(etiqueta.ToString());
+            grupo.Equipos.AddRange(new[]
+            {
+                CrearEquipoParaAsignacion($"{etiqueta}1", Confederacion.UEFA),
+                CrearEquipoParaAsignacion($"{etiqueta}2", Confederacion.UEFA),
+                CrearEquipoParaAsignacion($"{etiqueta}3", Confederacion.CONMEBOL),
+                CrearEquipoParaAsignacion($"{etiqueta}4", Confederacion.AFC)
+            });
+            fixture.Grupos.Add(grupo);
+        }
+
+        var equiposOrdenados = new List<Equipo>
+        {
+            CrearEquipoParaAsignacion("Extra", Confederacion.CAF)
+        };
+
+        var metodo = typeof(ServicioFixture).GetMethod(
+            "AsignarEquiposAGrupos",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        // Act & Assert
+        var excepcion = Assert.ThrowsException<TargetInvocationException>(() =>
+            metodo!.Invoke(servicioFixture, new object[] { fixture, equiposOrdenados }));
+
+        Assert.IsInstanceOfType(excepcion.InnerException, typeof(EntidadInvalidaExcepcion));
+        StringAssert.Contains(excepcion.InnerException!.Message, "Estado de grupos");
+    }
+
+    [TestMethod]
     public void RegenerarFixture_ConFixtureSinResultados_DebeGenerarNuevoFixture()
     {
         // Arrange
@@ -781,6 +843,11 @@ public class ServicioFixtureTests
             new Estadio { Nombre = "Estadio4", Ciudad = "Ciudad4", Capacidad = 30000 },
             new Estadio { Nombre = "Estadio2", Ciudad = "Ciudad2", Capacidad = 30000 }
         };
+    }
+
+    private Equipo CrearEquipoParaAsignacion(string nombre, Confederacion confederacion)
+    {
+        return new Equipo { Nombre = nombre, RankingFIFA = 500, Confederacion = confederacion };
     }
 
     private List<Equipo> CrearEquiposValidosSinConflictosDeConfederacion()

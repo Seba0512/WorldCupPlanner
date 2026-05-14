@@ -301,6 +301,43 @@ public class ServicioPartidoTests
     }
 
     [TestMethod]
+    public void BuscarPartidoPorId_ViaEstadoTorneo_ConFixtureSinCoincidenciaYEliminatorioExistente_RetornaEliminatorio()
+    {
+        // Arrange
+        var partidoFixture = CrearPartido(FaseTorneo.FaseDeGrupos);
+        var grupo = new Grupo("A");
+        grupo.Partidos.Add(partidoFixture);
+        var fixture = new Fixture();
+        fixture.Grupos.Add(grupo);
+
+        var partidoEliminatorio = CrearPartido(FaseTorneo.Octavos);
+        partidoEliminatorio.Id = 2;
+
+        var estadoTorneo = new EstadoTorneo { Fixture = fixture };
+        estadoTorneo.PartidosEliminatorios.Add(partidoEliminatorio);
+        var servicio = new ServicioPartido(estadoTorneo);
+
+        // Act
+        var resultado = servicio.BuscarPartidoPorId(partidoEliminatorio.Id);
+
+        // Assert
+        Assert.AreEqual(partidoEliminatorio, resultado);
+    }
+
+    [TestMethod]
+    public void BuscarPartidoPorId_ConEstadoTorneoNulo_RetornaNull()
+    {
+        // Arrange
+        var servicio = new ServicioPartido((EstadoTorneo)null!);
+
+        // Act
+        var resultado = servicio.BuscarPartidoPorId(99);
+
+        // Assert
+        Assert.IsNull(resultado);
+    }
+
+    [TestMethod]
     public void BuscarPartidoPorId_ViaEstadoTorneo_SinPartido_RetornaNull()
     {
         // Arrange
@@ -359,6 +396,19 @@ public class ServicioPartidoTests
         // Arrange
         var estadoTorneo = new EstadoTorneo();
         var servicio = new ServicioPartido(estadoTorneo);
+
+        // Act
+        var partidos = servicio.ObtenerPartidos();
+
+        // Assert
+        Assert.AreEqual(0, partidos.Count);
+    }
+
+    [TestMethod]
+    public void ObtenerPartidos_ConEstadoTorneoNulo_DevuelveListaVacia()
+    {
+        // Arrange
+        var servicio = new ServicioPartido((EstadoTorneo)null!);
 
         // Act
         var partidos = servicio.ObtenerPartidos();

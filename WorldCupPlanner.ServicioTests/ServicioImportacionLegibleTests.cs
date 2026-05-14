@@ -127,6 +127,21 @@ public class ServicioImportacionLegibleTests
     }
 
     [TestMethod]
+    public void Importar_CSVSinEncabezado_RetornaErrorDeEncabezado()
+    {
+        // Arrange
+        var csv = new MemoryStream(Array.Empty<byte>());
+
+        // Act
+        var resultado = _servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(0, resultado.Exitosos);
+        Assert.AreEqual(1, resultado.Errores.Count);
+        StringAssert.Contains(resultado.Errores[0], "Encabezado");
+    }
+
+    [TestMethod]
     public void Importar_CSVConDuplicadosInternos_SegundoRegistroFalla()
     {
         // Arrange

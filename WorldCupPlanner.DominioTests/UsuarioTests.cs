@@ -1,5 +1,6 @@
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.DominioTests;
 
@@ -388,6 +389,20 @@ public class UsuarioTests
 
         // Assert
         Assert.IsFalse(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void RemoverRol_CuandoEsElUnicoRol_DebeLanzarExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido();
+        usuario.AgregarRol(RolUsuario.Editor);
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            usuario.RemoverRol(RolUsuario.Editor)
+        );
         Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
     }
 
