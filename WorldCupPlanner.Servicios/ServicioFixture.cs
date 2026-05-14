@@ -272,8 +272,6 @@ public class ServicioFixture
         ConfiguracionTorneo configuracionTorneo,
         List<Estadio> estadios)
     {
-        ValidarMaxPartidosPorDia(configuracionTorneo);
-
         var contexto = new ContextoGeneracionFixture
         {
             EstadiosOrdenados = OrdenarEstadiosPorNombreNormalizado(estadios),
