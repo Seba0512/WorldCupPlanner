@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\WorldCupPlanner.Dominio\WorldCupPlanner.Dominio.csproj" />
-    <ProjectReference Include="..\WorldCupPlanner.AccesoADatos\WorldCupPlanner.AccesoADatos.csproj" />
+    <ProjectReference Include="..\WorldCupPlanner.Interfaces\WorldCupPlanner.Interfaces.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
