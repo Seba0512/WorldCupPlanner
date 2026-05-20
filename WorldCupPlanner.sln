@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.DominioTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.AccesoADatosTest", "WorldCupPlanner.AccesoADatosTest\WorldCupPlanner.AccesoADatosTest.csproj", "{F8EB7123-449A-4623-B65E-8A8632C459A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.Interfaces", "WorldCupPlanner.Interfaces\WorldCupPlanner.Interfaces.csproj", "{6D65F52C-6C94-48B9-B79A-278F18EBEB44}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.AccesoADatos.Interfaces", "WorldCupPlanner.AccesoADatos.Interfaces\WorldCupPlanner.AccesoADatos.Interfaces.csproj", "{6D65F52C-6C94-48B9-B79A-278F18EBEB44}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

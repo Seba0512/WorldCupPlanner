@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WorldCupPlanner.Dominio\WorldCupPlanner.Dominio.csproj" />
-    <ProjectReference Include="..\WorldCupPlanner.Interfaces\WorldCupPlanner.Interfaces.csproj" />
+    <ProjectReference Include="..\WorldCupPlanner.AccesoADatos.Interfaces\WorldCupPlanner.AccesoADatos.Interfaces.csproj" />
     <ProjectReference Include="..\WorldCupPlanner.Servicios\WorldCupPlanner.Servicios.csproj" />
     <ProjectReference Include="..\WorldCupPlanner.AccesoADatos\WorldCupPlanner.AccesoADatos.csproj" />
   </ItemGroup>
