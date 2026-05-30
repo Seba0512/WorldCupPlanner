@@ -22,7 +22,7 @@ public class UsuarioDTO
             FechaNacimiento = FechaNacimiento
         });
 
-        foreach (var rol in Roles ?? [])
+        foreach (var rol in Roles)
         {
             usuario.AgregarRol(rol);
         }

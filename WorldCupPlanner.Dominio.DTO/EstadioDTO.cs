@@ -6,7 +6,7 @@ public class EstadioDTO
 {
     public string Nombre { get; set; } = string.Empty;
     public string Ciudad { get; set; } = string.Empty;
-    public string? Direccion { get; set; } = string.Empty;
+    public string? Direccion { get; set; }
     public int Capacidad { get; set; }
     public string? Descripcion { get; set; }
 
