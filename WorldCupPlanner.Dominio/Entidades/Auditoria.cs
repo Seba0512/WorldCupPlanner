@@ -9,9 +9,14 @@ public class Auditoria
     public string Detalle { get; private set; }
 
     public Auditoria(int id, string usuario, string accion, string detalle)
+        : this(id, DateTime.UtcNow.ToString("o"), usuario, accion, detalle)
+    {
+    }
+
+    public Auditoria(int id, string timestamp, string usuario, string accion, string detalle)
     {
         Id = id;
-        Timestamp = DateTime.UtcNow.ToString("o"); // ISO-8601
+        Timestamp = timestamp;
         Usuario = usuario;
         Accion = accion;
         Detalle = detalle;
