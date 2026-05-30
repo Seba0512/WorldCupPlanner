@@ -1,0 +1,34 @@
+using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
+
+namespace WorldCupPlanner.Dominio.DTO;
+
+public class ReglasConfederacionDTO
+{
+    public List<CupoConfederacionDTO> CuposPorConfederacion { get; set; } = [];
+
+    public IReadOnlyDictionary<Confederacion, int> ToEntity()
+    {
+        return CuposPorConfederacion.ToDictionary(cupo => cupo.Confederacion, cupo => cupo.Cupos);
+    }
+
+    public static ReglasConfederacionDTO FromEntity()
+    {
+        return new ReglasConfederacionDTO
+        {
+            CuposPorConfederacion = ReglasConfederacion.CuposPorConfederacion
+                .Select(cupo => new CupoConfederacionDTO
+                {
+                    Confederacion = cupo.Key,
+                    Cupos = cupo.Value
+                })
+                .ToList()
+        };
+    }
+}
+
+public class CupoConfederacionDTO
+{
+    public Confederacion Confederacion { get; set; }
+    public int Cupos { get; set; }
+}
