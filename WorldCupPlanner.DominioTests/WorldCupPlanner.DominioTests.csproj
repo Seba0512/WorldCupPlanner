@@ -21,6 +21,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\WorldCupPlanner.Dominio\WorldCupPlanner.Dominio.csproj" />
+        <ProjectReference Include="..\WorldCupPlanner.Dominio.DTO\WorldCupPlanner.Dominio.DTO.csproj" />
     </ItemGroup>
 
 </Project>

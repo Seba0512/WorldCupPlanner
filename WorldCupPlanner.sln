@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.AccesoADato
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.AccesoADatos.Interfaces", "WorldCupPlanner.AccesoADatos.Interfaces\WorldCupPlanner.AccesoADatos.Interfaces.csproj", "{6D65F52C-6C94-48B9-B79A-278F18EBEB44}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldCupPlanner.Dominio.DTO", "WorldCupPlanner.Dominio.DTO\WorldCupPlanner.Dominio.DTO.csproj", "{3CFB01FE-2B5A-41FC-BF3F-3154719E2757}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,5 +62,9 @@ Global
 		{6D65F52C-6C94-48B9-B79A-278F18EBEB44}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D65F52C-6C94-48B9-B79A-278F18EBEB44}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D65F52C-6C94-48B9-B79A-278F18EBEB44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CFB01FE-2B5A-41FC-BF3F-3154719E2757}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CFB01FE-2B5A-41FC-BF3F-3154719E2757}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CFB01FE-2B5A-41FC-BF3F-3154719E2757}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CFB01FE-2B5A-41FC-BF3F-3154719E2757}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
