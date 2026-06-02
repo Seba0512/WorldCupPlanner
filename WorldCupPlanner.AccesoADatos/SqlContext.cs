@@ -9,6 +9,7 @@ namespace WorldCupPlanner.AccesoADatos
         public DbSet<Estadio> Estadios => Set<Estadio>();
         public DbSet<Usuario> Usuarios => Set<Usuario>();
         public DbSet<Auditoria> Auditorias => Set<Auditoria>();
+        public DbSet<Grupo> Grupos => Set<Grupo>();
 
         public SqlContext(DbContextOptions<SqlContext> options)
             : base(options)
@@ -111,6 +112,20 @@ namespace WorldCupPlanner.AccesoADatos
 
                 builder.Property(auditoria => auditoria.Detalle)
                     .IsRequired();
+            });
+
+            modelBuilder.Entity<Grupo>(builder =>
+            {
+                builder.ToTable("Grupos");
+
+                builder.HasKey(grupo => grupo.Etiqueta);
+
+                builder.Property(grupo => grupo.Etiqueta)
+                    .IsRequired()
+                    .HasMaxLength(1);
+
+                builder.Ignore(grupo => grupo.Equipos);
+                builder.Ignore(grupo => grupo.Partidos);
             });
         }
     }

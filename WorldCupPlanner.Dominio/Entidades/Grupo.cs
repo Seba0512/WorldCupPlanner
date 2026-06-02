@@ -23,6 +23,13 @@ public class Grupo
     public List<Equipo> Equipos { get; private set; }
     public List<Partido> Partidos { get; private set; }
 
+    private Grupo()
+    {
+        Etiqueta = string.Empty;
+        Equipos = new List<Equipo>();
+        Partidos = new List<Partido>();
+    }
+
     public Grupo(string etiqueta, List<Equipo>? equipos = null)
     {
         ValidarEtiqueta(etiqueta);

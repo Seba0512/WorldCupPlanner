@@ -89,6 +89,17 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                     b.ToTable("Estadios", (string)null);
                 });
 
+            modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Grupo", b =>
+                {
+                    b.Property<string>("Etiqueta")
+                        .HasMaxLength(1)
+                        .HasColumnType("nvarchar(1)");
+
+                    b.HasKey("Etiqueta");
+
+                    b.ToTable("Grupos", (string)null);
+                });
+
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Usuario", b =>
                 {
                     b.Property<string>("Email")

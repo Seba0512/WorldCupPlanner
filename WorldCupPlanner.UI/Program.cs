@@ -19,6 +19,7 @@ builder.Services.AddDbContext<SqlContext>(options =>
 builder.Services.AddScoped<IRepositorioConId<Auditoria>, RepositorioAuditoriaSql>();
 builder.Services.AddScoped<IRepositorio<Equipo>, RepositorioEquipoSql>();
 builder.Services.AddScoped<IRepositorio<Estadio>, RepositorioEstadioSql>();
+builder.Services.AddScoped<IRepositorio<Grupo>, RepositorioGrupoSql>();
 builder.Services.AddScoped<ServicioAuditoria>();
 builder.Services.AddScoped<ServicioEstadio>();
 builder.Services.AddScoped<ServicioEquipo>();
