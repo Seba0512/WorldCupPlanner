@@ -16,7 +16,7 @@ public class Usuario
     private const string PatronEspecial = @"[@#$\.\!\&\*\-_\+=\?]";
 
     private string? _contraseniaCifrada;
-    private HashSet<RolUsuario> _roles;
+    private HashSet<RolUsuario> _roles = [];
 
     public string Nombre { get; private set; } = string.Empty;
     public string Apellido { get; private set; } = string.Empty;
@@ -24,6 +24,20 @@ public class Usuario
     public DateTime FechaNacimiento { get; private set; }
     public string? ContraseniaCifrada => _contraseniaCifrada;
     public bool DebeCambiarContrasenia { get; private set; }
+
+    private string RolesSerializados
+    {
+        get => string.Join(",", _roles.Select(rol => rol.ToString()));
+        set => _roles = string.IsNullOrWhiteSpace(value)
+            ? []
+            : value.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(rol => Enum.Parse<RolUsuario>(rol))
+                .ToHashSet();
+    }
+
+    private Usuario()
+    {
+    }
 
     public Usuario(DatosUsuario datos)
     {

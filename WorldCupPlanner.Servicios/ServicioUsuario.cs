@@ -42,8 +42,9 @@ public class ServicioUsuario
             _autorizacion.VerificarEsAdministrador(solicitante);
         actualizacion ??= new ActualizacionUsuario();
         var usuarioActual = BuscarUsuarioExistenteOLanzarExcepcion(usuario);
+        var emailOriginal = usuarioActual.Email;
         var campos = AplicarActualizacionesDeCampos(usuarioActual, actualizacion);
-        _repositorio.Actualizar(usuarioActual);
+        GuardarActualizacionUsuario(usuarioActual, emailOriginal);
         _auditoria.Registrar(
             actualizacion.EjecutadoPor ?? usuarioActual.Email,
             "EDICION_USUARIO",
@@ -52,10 +53,25 @@ public class ServicioUsuario
 
     private Usuario BuscarUsuarioExistenteOLanzarExcepcion(Usuario usuario)
     {
-        var usuarioActual = _repositorio.Buscar(u => ReferenceEquals(u, usuario)).FirstOrDefault();
+        var usuarioActual = _repositorio.Buscar(u => ReferenceEquals(u, usuario)).FirstOrDefault()
+            ?? _repositorio.ObtenerPorEmail(usuario.Email);
         if (usuarioActual == null)
             throw new EntidadInvalidaExcepcion("El usuario no existe en el sistema.");
         return usuarioActual;
+    }
+
+    private void GuardarActualizacionUsuario(Usuario usuarioActual, string emailOriginal)
+    {
+        if (!emailOriginal.Equals(usuarioActual.Email, StringComparison.Ordinal))
+        {
+            var usuarioConEmailOriginal = _repositorio.ObtenerPorEmail(emailOriginal);
+            if (usuarioConEmailOriginal != null)
+                _repositorio.Eliminar(usuarioConEmailOriginal);
+            _repositorio.Agregar(usuarioActual);
+            return;
+        }
+
+        _repositorio.Actualizar(usuarioActual);
     }
 
     private List<string> AplicarActualizacionesDeCampos(Usuario usuarioActual, ActualizacionUsuario actualizacion)
@@ -202,6 +218,8 @@ public class ServicioUsuario
         if (forzarCambio)
             usuario.MarcarParaCambioForzado();
 
+        _repositorio.Actualizar(usuario);
+
         var detalle = forzarCambio
             ? $"Contraseña reiniciada para: {usuario.Email} (cambio forzado en próximo inicio)"
             : $"Contraseña reiniciada para: {usuario.Email}";
@@ -223,6 +241,8 @@ public class ServicioUsuario
         }
 
         usuario.EstablecerContrasenia(nuevaContrasenia);
+        if (_repositorio.ObtenerPorEmail(usuario.Email) != null)
+            _repositorio.Actualizar(usuario);
         _auditoria.Registrar(usuario.Email, "CAMBIO_CONTRASENIA", $"Contraseña cambiada para: {usuario.Email}");
     }
 

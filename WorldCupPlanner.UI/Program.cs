@@ -30,17 +30,20 @@ builder.Services.AddSingleton<ServicioConfiguracionTorneo>();
 builder.Services.AddSingleton<EstadoTorneo>();
 builder.Services.AddSingleton<ServicioPartido>(sp =>
     new ServicioPartido(sp.GetRequiredService<EstadoTorneo>()));
-builder.Services.AddSingleton<IRepositorioUsuario, RepositorioUsuarioEnMemoria>();
-builder.Services.AddSingleton<ServicioUsuario>();
+builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuarioSql>();
+builder.Services.AddScoped<ServicioUsuario>();
 builder.Services.AddSingleton<ServicioImportacionLegible>();
-builder.Services.AddSingleton<InicializadorDatos>();
+builder.Services.AddScoped<InicializadorDatos>();
 
 builder.Services.AddScoped<SesionServicio>();
 builder.Services.AddScoped<ToastServicio>();
 
 var app = builder.Build();
 
-app.Services.GetRequiredService<InicializadorDatos>().InicializarUsuariosSemilla();
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<InicializadorDatos>().InicializarUsuariosSemilla();
+}
 
 if (!app.Environment.IsDevelopment())
 {

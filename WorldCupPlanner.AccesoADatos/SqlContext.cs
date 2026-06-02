@@ -7,6 +7,7 @@ namespace WorldCupPlanner.AccesoADatos
     {
         public DbSet<Equipo> Equipos => Set<Equipo>();
         public DbSet<Estadio> Estadios => Set<Estadio>();
+        public DbSet<Usuario> Usuarios => Set<Usuario>();
 
         public SqlContext(DbContextOptions<SqlContext> options)
             : base(options)
@@ -57,6 +58,38 @@ namespace WorldCupPlanner.AccesoADatos
 
                 builder.Property(estadio => estadio.Descripcion)
                     .HasMaxLength(400);
+            });
+
+            modelBuilder.Entity<Usuario>(builder =>
+            {
+                builder.ToTable("Usuarios");
+
+                builder.HasKey(usuario => usuario.Email);
+
+                builder.Property(usuario => usuario.Email)
+                    .IsRequired()
+                    .HasMaxLength(320);
+
+                builder.Property(usuario => usuario.Nombre)
+                    .IsRequired();
+
+                builder.Property(usuario => usuario.Apellido)
+                    .IsRequired();
+
+                builder.Property(usuario => usuario.FechaNacimiento)
+                    .IsRequired();
+
+                builder.Property(usuario => usuario.DebeCambiarContrasenia)
+                    .IsRequired();
+
+                builder.Property<string?>("_contraseniaCifrada")
+                    .HasColumnName("ContraseniaCifrada")
+                    .HasMaxLength(100);
+
+                builder.Property<string>("RolesSerializados")
+                    .HasColumnName("Roles")
+                    .IsRequired()
+                    .HasMaxLength(200);
             });
         }
     }
