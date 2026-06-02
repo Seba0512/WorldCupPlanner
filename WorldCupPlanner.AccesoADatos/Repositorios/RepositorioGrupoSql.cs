@@ -18,6 +18,7 @@ public class RepositorioGrupoSql : IRepositorio<Grupo>
     {
         _context.Grupos.Add(grupo);
         _context.SaveChanges();
+        _context.ChangeTracker.Clear();
     }
 
     public void Actualizar(Grupo grupo)
@@ -41,6 +42,7 @@ public class RepositorioGrupoSql : IRepositorio<Grupo>
 
         _context.Grupos.Remove(existente);
         _context.SaveChanges();
+        _context.ChangeTracker.Clear();
     }
 
     public List<Grupo> Buscar(Func<Grupo, bool> predicado)

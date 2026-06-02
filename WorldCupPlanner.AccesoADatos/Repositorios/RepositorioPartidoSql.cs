@@ -16,9 +16,10 @@ public class RepositorioPartidoSql : IRepositorio<Partido>
 
     public void Agregar(Partido partido)
     {
-        AdjuntarReferencias(partido);
-        _context.Partidos.Add(partido);
-        _context.SaveChanges();
+        var partidoPersistible = CrearPartidoPersistible(partido);
+        _context.Partidos.Add(partidoPersistible);
+        AsignarClavesForaneas(partidoPersistible, partido);
+        GuardarCambios();
     }
 
     public void Actualizar(Partido partido)
@@ -31,17 +32,12 @@ public class RepositorioPartidoSql : IRepositorio<Partido>
             throw new EntidadInexistenteExcepcion("El partido no existe.");
         }
 
-        AdjuntarReferencias(partido);
         existente.Fecha = partido.Fecha;
-        existente.Estadio = partido.Estadio;
-        existente.EquipoLocal = partido.EquipoLocal;
-        existente.EquipoVisitante = partido.EquipoVisitante;
         existente.Fase = partido.Fase;
         existente.GolesLocal = partido.GolesLocal;
         existente.GolesVisitante = partido.GolesVisitante;
-        existente.Grupo = partido.Grupo;
-        existente.GanadorPorPenales = partido.GanadorPorPenales;
-        _context.SaveChanges();
+        AsignarClavesForaneas(existente, partido);
+        GuardarCambios();
     }
 
     public void Eliminar(Partido partido)
@@ -54,7 +50,7 @@ public class RepositorioPartidoSql : IRepositorio<Partido>
         }
 
         _context.Partidos.Remove(existente);
-        _context.SaveChanges();
+        GuardarCambios();
     }
 
     public List<Partido> Buscar(Func<Partido, bool> predicado)
@@ -71,56 +67,31 @@ public class RepositorioPartidoSql : IRepositorio<Partido>
             .ToList();
     }
 
-    private void AdjuntarReferencias(Partido partido)
+    private static Partido CrearPartidoPersistible(Partido partido)
     {
-        partido.Estadio = ObtenerReferenciaPersistida(
-            partido.Estadio,
-            _context.Estadios,
-            estadio => estadio.Nombre);
-
-        partido.EquipoLocal = ObtenerReferenciaPersistida(
-            partido.EquipoLocal,
-            _context.Equipos,
-            equipo => equipo.Nombre);
-
-        partido.EquipoVisitante = ObtenerReferenciaPersistida(
-            partido.EquipoVisitante,
-            _context.Equipos,
-            equipo => equipo.Nombre);
-
-        partido.GanadorPorPenales = ObtenerReferenciaPersistida(
-            partido.GanadorPorPenales,
-            _context.Equipos,
-            equipo => equipo.Nombre);
-
-        partido.Grupo = ObtenerReferenciaPersistida(
-            partido.Grupo,
-            _context.Grupos,
-            grupo => grupo.Etiqueta);
+        return new Partido
+        {
+            Id = partido.Id,
+            Fecha = partido.Fecha,
+            Fase = partido.Fase,
+            GolesLocal = partido.GolesLocal,
+            GolesVisitante = partido.GolesVisitante
+        };
     }
 
-    private TEntity? ObtenerReferenciaPersistida<TEntity, TKey>(
-        TEntity? entidad,
-        DbSet<TEntity> entidades,
-        Func<TEntity, TKey> obtenerClave)
-        where TEntity : class
-        where TKey : notnull
+    private void AsignarClavesForaneas(Partido partidoPersistible, Partido partidoConRelaciones)
     {
-        if (entidad == null)
-        {
-            return null;
-        }
+        var entrada = _context.Entry(partidoPersistible);
+        entrada.Property("EstadioNombre").CurrentValue = partidoConRelaciones.Estadio?.Nombre;
+        entrada.Property("EquipoLocalNombre").CurrentValue = partidoConRelaciones.EquipoLocal?.Nombre;
+        entrada.Property("EquipoVisitanteNombre").CurrentValue = partidoConRelaciones.EquipoVisitante?.Nombre;
+        entrada.Property("GanadorPorPenalesNombre").CurrentValue = partidoConRelaciones.GanadorPorPenales?.Nombre;
+        entrada.Property("GrupoEtiqueta").CurrentValue = partidoConRelaciones.Grupo?.Etiqueta;
+    }
 
-        var clave = obtenerClave(entidad);
-        var entidadLocal = entidades.Local.FirstOrDefault(e =>
-            EqualityComparer<TKey>.Default.Equals(obtenerClave(e), clave));
-
-        if (entidadLocal != null)
-        {
-            return entidadLocal;
-        }
-
-        _context.Attach(entidad);
-        return entidad;
+    private void GuardarCambios()
+    {
+        _context.SaveChanges();
+        _context.ChangeTracker.Clear();
     }
 }

@@ -62,6 +62,12 @@ public class ServicioUsuario
 
     private void GuardarActualizacionUsuario(Usuario usuarioActual, string emailOriginal)
     {
+        if (_repositorio is IRepositorioConClaveEditable<Usuario> repositorioConClaveEditable)
+        {
+            repositorioConClaveEditable.ActualizarClave(emailOriginal, usuarioActual);
+            return;
+        }
+
         if (!emailOriginal.Equals(usuarioActual.Email, StringComparison.Ordinal))
         {
             var usuarioConEmailOriginal = _repositorio.ObtenerPorEmail(emailOriginal);

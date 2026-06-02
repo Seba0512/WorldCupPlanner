@@ -53,7 +53,11 @@ namespace WorldCupPlanner.Servicios
             if (equipo.Confederacion != existente.Confederacion)
                 ValidarCupoConfederacion(equipo);
 
-            if (!string.Equals(nombreOriginal, equipo.Nombre, StringComparison.Ordinal))
+            if (_repositorio is IRepositorioConClaveEditable<Equipo> repositorioConClaveEditable)
+            {
+                repositorioConClaveEditable.ActualizarClave(nombreOriginal, equipo);
+            }
+            else if (!string.Equals(nombreOriginal, equipo.Nombre, StringComparison.Ordinal))
             {
                 _repositorio.Eliminar(existente);
                 _repositorio.Agregar(equipo);

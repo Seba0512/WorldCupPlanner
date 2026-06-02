@@ -49,7 +49,11 @@ public class ServicioEstadio
         if (conflicto != null)
             throw new EntidadYaExistenteExcepcion("Ya existe un estadio con ese nombre.");
 
-        if (!string.Equals(nombreOriginal, estadio.Nombre, StringComparison.Ordinal))
+        if (_repositorioEstadio is IRepositorioConClaveEditable<Estadio> repositorioConClaveEditable)
+        {
+            repositorioConClaveEditable.ActualizarClave(nombreOriginal, estadio);
+        }
+        else if (!string.Equals(nombreOriginal, estadio.Nombre, StringComparison.Ordinal))
         {
             _repositorioEstadio.Eliminar(existente);
             _repositorioEstadio.Agregar(estadio);

@@ -718,15 +718,24 @@ else
             var estadios = ServicioEstadio.ObtenerEstadios();
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
 
-            EstadoTorneo.Fixture = EstadoTorneo.Fixture == null
-                ? ServicioFixture.GenerarFixture(equipos, estadios, config)
-                : ServicioFixture.RegenerarFixture(
+            var esFixtureNuevo = EstadoTorneo.Fixture == null;
+            WorldCupPlanner.Dominio.Entidades.Fixture fixtureGenerado;
+
+            if (esFixtureNuevo)
+            {
+                fixtureGenerado = ServicioFixture.GenerarFixture(equipos, estadios, config);
+            }
+            else
+            {
+                fixtureGenerado = ServicioFixture.RegenerarFixture(
                     equipos,
-                    EstadoTorneo.Fixture,
+                    EstadoTorneo.Fixture!,
                     estadios,
                     config,
                     EstadoTorneo.PartidosEliminatorios);
+            }
 
+            EstadoTorneo.Fixture = fixtureGenerado;
             EstadoTorneo.PartidosEliminatorios = new();
             ServicioEquipo.RegistrarFixtureGenerado(EstadoTorneo.Fixture);
             ServicioEstadio.RegistrarFixtureGenerado(EstadoTorneo.Fixture);
