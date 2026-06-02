@@ -20,6 +20,7 @@ builder.Services.AddScoped<IRepositorioConId<Auditoria>, RepositorioAuditoriaSql
 builder.Services.AddScoped<IRepositorio<Equipo>, RepositorioEquipoSql>();
 builder.Services.AddScoped<IRepositorio<Estadio>, RepositorioEstadioSql>();
 builder.Services.AddScoped<IRepositorio<Grupo>, RepositorioGrupoSql>();
+builder.Services.AddScoped<IRepositorio<Partido>, RepositorioPartidoSql>();
 builder.Services.AddScoped<ServicioAuditoria>();
 builder.Services.AddScoped<ServicioEstadio>();
 builder.Services.AddScoped<ServicioEquipo>();
@@ -29,6 +30,7 @@ builder.Services.AddSingleton<ServicioCruces>();
 builder.Services.AddSingleton<ServicioSimulacion>();
 builder.Services.AddSingleton(_ => new ServicioConfiguracionTorneo());
 builder.Services.AddSingleton<EstadoTorneo>();
+builder.Services.AddScoped<ServicioPersistenciaFixture>();
 builder.Services.AddSingleton<ServicioPartido>(sp =>
     new ServicioPartido(sp.GetRequiredService<EstadoTorneo>()));
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuarioSql>();

@@ -7,6 +7,7 @@
 @inject EstadoTorneo EstadoTorneo
 @inject ServicioSimulacion ServicioSimulacion
 @inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
+@inject ServicioPersistenciaFixture ServicioPersistenciaFixture
 @inject SesionServicio SesionServicio
 @inject ToastServicio Toast
 @inject NavigationManager NavigationManager
@@ -730,6 +731,7 @@ else
             ServicioEquipo.RegistrarFixtureGenerado(EstadoTorneo.Fixture);
             ServicioEstadio.RegistrarFixtureGenerado(EstadoTorneo.Fixture);
             ServicioConfiguracionTorneo.RegistrarFixtureGenerado(config);
+            ServicioPersistenciaFixture.GuardarFixture(EstadoTorneo.Fixture);
             SincronizarJornadaActivaConPendiente();
             Toast.Exito("Fixture generado correctamente.");
         }
@@ -778,6 +780,7 @@ else
         {
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             ServicioSimulacion.SimularResultados(partidos, config);
+            ServicioPersistenciaFixture.GuardarPartidos(partidos);
             SincronizarJornadaActivaConPendiente();
             Toast.Exito(mensajeExito);
         }
@@ -1094,6 +1097,7 @@ else
                     ConfiguracionTorneo = config,
                     FechaUltimoPartidoFaseGrupos = EstadoTorneo.Fixture!.Partidos.Max(p => p.Fecha)
                 });
+            ServicioPersistenciaFixture.GuardarPartidos(EstadoTorneo.PartidosEliminatorios);
             Toast.Exito("16avos de final generados correctamente.");
         }
         catch (Exception ex) { _error = ex.Message; }
@@ -1108,6 +1112,7 @@ else
             var estadios = ServicioEstadio.ObtenerEstadios();
             var octavos = ServicioCruces.GenerarOctavos(PartidosDeFase(FaseTorneo.PrimeraRondaEliminatoria), estadios, config);
             EstadoTorneo.PartidosEliminatorios.AddRange(octavos);
+            ServicioPersistenciaFixture.GuardarPartidos(octavos);
             Toast.Exito("8avos de final generados correctamente.");
         }
         catch (Exception ex) { _error = ex.Message; }
@@ -1122,6 +1127,7 @@ else
             var estadios = ServicioEstadio.ObtenerEstadios();
             var cuartos = ServicioCruces.GenerarCuartos(PartidosDeFase(FaseTorneo.Octavos), estadios, config);
             EstadoTorneo.PartidosEliminatorios.AddRange(cuartos);
+            ServicioPersistenciaFixture.GuardarPartidos(cuartos);
             Toast.Exito("Cuartos de final generados correctamente.");
         }
         catch (Exception ex) { _error = ex.Message; }
@@ -1136,6 +1142,7 @@ else
             var estadios = ServicioEstadio.ObtenerEstadios();
             var semifinales = ServicioCruces.GenerarSemifinales(PartidosDeFase(FaseTorneo.Cuartos), estadios, config);
             EstadoTorneo.PartidosEliminatorios.AddRange(semifinales);
+            ServicioPersistenciaFixture.GuardarPartidos(semifinales);
             Toast.Exito("Semifinales generadas correctamente.");
         }
         catch (Exception ex) { _error = ex.Message; }
@@ -1157,6 +1164,7 @@ else
             var final = ServicioCruces.GenerarFinal(semifinales, estadios, config, existentes);
             EstadoTorneo.PartidosEliminatorios.Add(tercerPuesto);
             EstadoTorneo.PartidosEliminatorios.Add(final);
+            ServicioPersistenciaFixture.GuardarPartidos(new[] { tercerPuesto, final });
             Toast.Exito("Final y tercer puesto generados correctamente.");
         }
         catch (Exception ex) { _error = ex.Message; }

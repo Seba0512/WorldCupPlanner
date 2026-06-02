@@ -100,6 +100,59 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                     b.ToTable("Grupos", (string)null);
                 });
 
+            modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Partido", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EquipoLocalNombre")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("EquipoVisitanteNombre")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("EstadioNombre")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Fase")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("GanadorPorPenalesNombre")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<int?>("GolesLocal")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GolesVisitante")
+                        .HasColumnType("int");
+
+                    b.Property<string>("GrupoEtiqueta")
+                        .HasMaxLength(1)
+                        .HasColumnType("nvarchar(1)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EquipoLocalNombre");
+
+                    b.HasIndex("EquipoVisitanteNombre");
+
+                    b.HasIndex("EstadioNombre");
+
+                    b.HasIndex("GanadorPorPenalesNombre");
+
+                    b.HasIndex("GrupoEtiqueta");
+
+                    b.ToTable("Partidos", (string)null);
+                });
+
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Usuario", b =>
                 {
                     b.Property<string>("Email")
@@ -134,6 +187,44 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                     b.HasKey("Email");
 
                     b.ToTable("Usuarios", (string)null);
+                });
+
+            modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Partido", b =>
+                {
+                    b.HasOne("WorldCupPlanner.Dominio.Entidades.Equipo", "EquipoLocal")
+                        .WithMany()
+                        .HasForeignKey("EquipoLocalNombre")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("WorldCupPlanner.Dominio.Entidades.Equipo", "EquipoVisitante")
+                        .WithMany()
+                        .HasForeignKey("EquipoVisitanteNombre")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("WorldCupPlanner.Dominio.Entidades.Estadio", "Estadio")
+                        .WithMany()
+                        .HasForeignKey("EstadioNombre")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("WorldCupPlanner.Dominio.Entidades.Equipo", "GanadorPorPenales")
+                        .WithMany()
+                        .HasForeignKey("GanadorPorPenalesNombre")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("WorldCupPlanner.Dominio.Entidades.Grupo", "Grupo")
+                        .WithMany()
+                        .HasForeignKey("GrupoEtiqueta")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("EquipoLocal");
+
+                    b.Navigation("EquipoVisitante");
+
+                    b.Navigation("Estadio");
+
+                    b.Navigation("GanadorPorPenales");
+
+                    b.Navigation("Grupo");
                 });
 #pragma warning restore 612, 618
         }

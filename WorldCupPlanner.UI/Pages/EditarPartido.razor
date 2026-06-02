@@ -2,6 +2,7 @@
 @inject ServicioPartido ServicioPartido
 @inject ServicioEstadio ServicioEstadio
 @inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
+@inject ServicioPersistenciaFixture ServicioPersistenciaFixture
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
 
@@ -174,6 +175,7 @@ else
                 var config = ServicioConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
                 ServicioPartido.ResolverEmpateConPenales(_partido.Id, config.SemillaSimulation);
             }
+            ServicioPersistenciaFixture.GuardarPartidos(new[] { _partido });
             Toast.Exito("Partido actualizado correctamente.");
             NavigationManager.NavigateTo("/fixture");
         }

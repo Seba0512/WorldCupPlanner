@@ -10,6 +10,7 @@ namespace WorldCupPlanner.AccesoADatos
         public DbSet<Usuario> Usuarios => Set<Usuario>();
         public DbSet<Auditoria> Auditorias => Set<Auditoria>();
         public DbSet<Grupo> Grupos => Set<Grupo>();
+        public DbSet<Partido> Partidos => Set<Partido>();
 
         public SqlContext(DbContextOptions<SqlContext> options)
             : base(options)
@@ -126,6 +127,66 @@ namespace WorldCupPlanner.AccesoADatos
 
                 builder.Ignore(grupo => grupo.Equipos);
                 builder.Ignore(grupo => grupo.Partidos);
+            });
+
+            modelBuilder.Entity<Partido>(builder =>
+            {
+                builder.ToTable("Partidos");
+
+                builder.HasKey(partido => partido.Id);
+
+                builder.Property(partido => partido.Id)
+                    .ValueGeneratedNever();
+
+                builder.Property(partido => partido.Fecha)
+                    .IsRequired();
+
+                builder.Property(partido => partido.Fase)
+                    .HasConversion<string>()
+                    .IsRequired();
+
+                builder.Property(partido => partido.GolesLocal);
+                builder.Property(partido => partido.GolesVisitante);
+
+                builder.Property<string?>("EstadioNombre")
+                    .HasMaxLength(80);
+
+                builder.Property<string?>("EquipoLocalNombre")
+                    .HasMaxLength(60);
+
+                builder.Property<string?>("EquipoVisitanteNombre")
+                    .HasMaxLength(60);
+
+                builder.Property<string?>("GanadorPorPenalesNombre")
+                    .HasMaxLength(60);
+
+                builder.Property<string?>("GrupoEtiqueta")
+                    .HasMaxLength(1);
+
+                builder.HasOne(partido => partido.Estadio)
+                    .WithMany()
+                    .HasForeignKey("EstadioNombre")
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                builder.HasOne(partido => partido.EquipoLocal)
+                    .WithMany()
+                    .HasForeignKey("EquipoLocalNombre")
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                builder.HasOne(partido => partido.EquipoVisitante)
+                    .WithMany()
+                    .HasForeignKey("EquipoVisitanteNombre")
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                builder.HasOne(partido => partido.GanadorPorPenales)
+                    .WithMany()
+                    .HasForeignKey("GanadorPorPenalesNombre")
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                builder.HasOne(partido => partido.Grupo)
+                    .WithMany()
+                    .HasForeignKey("GrupoEtiqueta")
+                    .OnDelete(DeleteBehavior.NoAction);
             });
         }
     }
