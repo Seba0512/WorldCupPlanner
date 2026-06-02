@@ -30,7 +30,6 @@ public class RepositorioEstadioSql : IRepositorio<Estadio>
         }
 
         existente.Ciudad = estadio.Ciudad;
-        existente.Direccion = estadio.Direccion;
         existente.Capacidad = estadio.Capacidad;
         existente.Descripcion = estadio.Descripcion;
         _context.SaveChanges();

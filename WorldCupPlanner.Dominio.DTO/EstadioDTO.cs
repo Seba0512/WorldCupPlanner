@@ -6,7 +6,6 @@ public class EstadioDTO
 {
     public string Nombre { get; set; } = string.Empty;
     public string Ciudad { get; set; } = string.Empty;
-    public string? Direccion { get; set; } = string.Empty;
     public int Capacidad { get; set; }
     public string? Descripcion { get; set; }
 
@@ -16,7 +15,6 @@ public class EstadioDTO
         {
             Nombre = Nombre,
             Ciudad = Ciudad,
-            Direccion = Direccion,
             Capacidad = Capacidad,
             Descripcion = Descripcion
         };
@@ -30,7 +28,6 @@ public class EstadioDTO
         {
             Nombre = estadio.Nombre,
             Ciudad = estadio.Ciudad,
-            Direccion = estadio.Direccion,
             Capacidad = estadio.Capacidad,
             Descripcion = estadio.Descripcion
         };

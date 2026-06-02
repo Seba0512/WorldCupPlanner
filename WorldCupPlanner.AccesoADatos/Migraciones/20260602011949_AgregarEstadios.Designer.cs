@@ -60,9 +60,6 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
-                    b.Property<string>("Direccion")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Nombre");
 
                     b.ToTable("Estadios", (string)null);

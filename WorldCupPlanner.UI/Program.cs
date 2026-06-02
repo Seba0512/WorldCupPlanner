@@ -16,23 +16,23 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddDbContext<SqlContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddSingleton<IRepositorioConId<Auditoria>, RepositorioAuditoriaEnMemoria>();
+builder.Services.AddScoped<IRepositorioConId<Auditoria>, RepositorioAuditoriaSql>();
 builder.Services.AddScoped<IRepositorio<Equipo>, RepositorioEquipoSql>();
 builder.Services.AddScoped<IRepositorio<Estadio>, RepositorioEstadioSql>();
-builder.Services.AddSingleton<ServicioAuditoria>();
+builder.Services.AddScoped<ServicioAuditoria>();
 builder.Services.AddScoped<ServicioEstadio>();
 builder.Services.AddScoped<ServicioEquipo>();
 builder.Services.AddSingleton<ServicioFixture>();
 builder.Services.AddSingleton<ServicioClasificacion>();
 builder.Services.AddSingleton<ServicioCruces>();
 builder.Services.AddSingleton<ServicioSimulacion>();
-builder.Services.AddSingleton<ServicioConfiguracionTorneo>();
+builder.Services.AddSingleton(_ => new ServicioConfiguracionTorneo());
 builder.Services.AddSingleton<EstadoTorneo>();
 builder.Services.AddSingleton<ServicioPartido>(sp =>
     new ServicioPartido(sp.GetRequiredService<EstadoTorneo>()));
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuarioSql>();
 builder.Services.AddScoped<ServicioUsuario>();
-builder.Services.AddSingleton<ServicioImportacionLegible>();
+builder.Services.AddScoped<ServicioImportacionLegible>();
 builder.Services.AddScoped<InicializadorDatos>();
 
 builder.Services.AddScoped<SesionServicio>();

@@ -16,7 +16,6 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                 {
                     Nombre = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
                     Ciudad = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
-                    Direccion = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Capacidad = table.Column<int>(type: "int", nullable: false),
                     Descripcion = table.Column<string>(type: "nvarchar(400)", maxLength: 400, nullable: true)
                 },

@@ -22,6 +22,32 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Auditoria", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Detalle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Timestamp")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Auditorias", (string)null);
+                });
+
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Equipo", b =>
                 {
                     b.Property<string>("Nombre")
@@ -57,9 +83,6 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                     b.Property<string>("Descripcion")
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
-
-                    b.Property<string>("Direccion")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Nombre");
 

@@ -8,6 +8,7 @@ namespace WorldCupPlanner.AccesoADatos
         public DbSet<Equipo> Equipos => Set<Equipo>();
         public DbSet<Estadio> Estadios => Set<Estadio>();
         public DbSet<Usuario> Usuarios => Set<Usuario>();
+        public DbSet<Auditoria> Auditorias => Set<Auditoria>();
 
         public SqlContext(DbContextOptions<SqlContext> options)
             : base(options)
@@ -51,8 +52,6 @@ namespace WorldCupPlanner.AccesoADatos
                     .IsRequired()
                     .HasMaxLength(60);
 
-                builder.Property(estadio => estadio.Direccion);
-
                 builder.Property(estadio => estadio.Capacidad)
                     .IsRequired();
 
@@ -90,6 +89,28 @@ namespace WorldCupPlanner.AccesoADatos
                     .HasColumnName("Roles")
                     .IsRequired()
                     .HasMaxLength(200);
+            });
+
+            modelBuilder.Entity<Auditoria>(builder =>
+            {
+                builder.ToTable("Auditorias");
+
+                builder.HasKey(auditoria => auditoria.Id);
+
+                builder.Property(auditoria => auditoria.Id)
+                    .ValueGeneratedNever();
+
+                builder.Property(auditoria => auditoria.Timestamp)
+                    .IsRequired();
+
+                builder.Property(auditoria => auditoria.Usuario)
+                    .IsRequired();
+
+                builder.Property(auditoria => auditoria.Accion)
+                    .IsRequired();
+
+                builder.Property(auditoria => auditoria.Detalle)
+                    .IsRequired();
             });
         }
     }

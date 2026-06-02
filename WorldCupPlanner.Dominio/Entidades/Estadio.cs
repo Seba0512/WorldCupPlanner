@@ -4,7 +4,6 @@ namespace WorldCupPlanner.Dominio.Entidades
     {
         public string Nombre { get; set; } = "";
         public string Ciudad { get; set; } = "";
-        public string? Direccion { get; set; } = "";
         public int Capacidad { get; set; }
         public string? Descripcion { get; set; }
 
