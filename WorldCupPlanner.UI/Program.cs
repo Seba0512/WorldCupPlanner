@@ -18,9 +18,9 @@ builder.Services.AddDbContext<SqlContext>(options =>
 
 builder.Services.AddSingleton<IRepositorioConId<Auditoria>, RepositorioAuditoriaEnMemoria>();
 builder.Services.AddScoped<IRepositorio<Equipo>, RepositorioEquipoSql>();
-builder.Services.AddSingleton<IRepositorio<Estadio>, RepositorioEstadioEnMemoria>();
+builder.Services.AddScoped<IRepositorio<Estadio>, RepositorioEstadioSql>();
 builder.Services.AddSingleton<ServicioAuditoria>();
-builder.Services.AddSingleton<ServicioEstadio>();
+builder.Services.AddScoped<ServicioEstadio>();
 builder.Services.AddScoped<ServicioEquipo>();
 builder.Services.AddSingleton<ServicioFixture>();
 builder.Services.AddSingleton<ServicioClasificacion>();

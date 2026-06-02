@@ -42,14 +42,26 @@ public class ServicioEstadio
         var existente = _repositorioEstadio.Buscar(e => ReferenceEquals(e, estadio) || NombresIguales(e.Nombre, nombreOriginal)).FirstOrDefault();
         if (existente == null)
             throw new EntidadInvalidaExcepcion("El estadio no existe.");
-        var conflicto = _repositorioEstadio.Buscar(e => NombresIguales(e.Nombre, estadio.Nombre) && !ReferenceEquals(e, existente)).FirstOrDefault();
+        var conflicto = _repositorioEstadio.Buscar(e =>
+            NombresIguales(e.Nombre, estadio.Nombre) &&
+            !ReferenceEquals(e, existente) &&
+            !NombresIguales(e.Nombre, nombreOriginal)).FirstOrDefault();
         if (conflicto != null)
             throw new EntidadYaExistenteExcepcion("Ya existe un estadio con ese nombre.");
-        existente.Nombre = estadio.Nombre;
-        existente.Ciudad = estadio.Ciudad;
-        existente.Capacidad = estadio.Capacidad;
-        existente.Descripcion = estadio.Descripcion;
-        _repositorioEstadio.Actualizar(existente);
+
+        if (!string.Equals(nombreOriginal, estadio.Nombre, StringComparison.Ordinal))
+        {
+            _repositorioEstadio.Eliminar(existente);
+            _repositorioEstadio.Agregar(estadio);
+        }
+        else
+        {
+            existente.Ciudad = estadio.Ciudad;
+            existente.Capacidad = estadio.Capacidad;
+            existente.Descripcion = estadio.Descripcion;
+            _repositorioEstadio.Actualizar(existente);
+        }
+
         _auditoria?.Registrar(
             solicitante != null ? $"{solicitante.Nombre} {solicitante.Apellido}" : "Sistema",
             "Edicion",

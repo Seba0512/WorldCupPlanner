@@ -6,6 +6,7 @@ namespace WorldCupPlanner.AccesoADatos
     public class SqlContext : DbContext
     {
         public DbSet<Equipo> Equipos => Set<Equipo>();
+        public DbSet<Estadio> Estadios => Set<Estadio>();
 
         public SqlContext(DbContextOptions<SqlContext> options)
             : base(options)
@@ -33,6 +34,29 @@ namespace WorldCupPlanner.AccesoADatos
                 builder.Property(equipo => equipo.Confederacion)
                     .HasConversion<string>()
                     .IsRequired();
+            });
+
+            modelBuilder.Entity<Estadio>(builder =>
+            {
+                builder.ToTable("Estadios");
+
+                builder.HasKey(estadio => estadio.Nombre);
+
+                builder.Property(estadio => estadio.Nombre)
+                    .IsRequired()
+                    .HasMaxLength(80);
+
+                builder.Property(estadio => estadio.Ciudad)
+                    .IsRequired()
+                    .HasMaxLength(60);
+
+                builder.Property(estadio => estadio.Direccion);
+
+                builder.Property(estadio => estadio.Capacidad)
+                    .IsRequired();
+
+                builder.Property(estadio => estadio.Descripcion)
+                    .HasMaxLength(400);
             });
         }
     }
