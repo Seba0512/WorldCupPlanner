@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.EntityFrameworkCore;
+using WorldCupPlanner.AccesoADatos;
 using WorldCupPlanner.UI.Data;
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.AccesoADatos.Repositorios;
@@ -11,12 +13,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
+builder.Services.AddDbContext<SqlContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddSingleton<IRepositorioConId<Auditoria>, RepositorioAuditoriaEnMemoria>();
-builder.Services.AddSingleton<IRepositorio<Equipo>, RepositorioEquipoEnMemoria>();
+builder.Services.AddScoped<IRepositorio<Equipo>, RepositorioEquipoSql>();
 builder.Services.AddSingleton<IRepositorio<Estadio>, RepositorioEstadioEnMemoria>();
 builder.Services.AddSingleton<ServicioAuditoria>();
 builder.Services.AddSingleton<ServicioEstadio>();
-builder.Services.AddSingleton<ServicioEquipo>();
+builder.Services.AddScoped<ServicioEquipo>();
 builder.Services.AddSingleton<ServicioFixture>();
 builder.Services.AddSingleton<ServicioClasificacion>();
 builder.Services.AddSingleton<ServicioCruces>();

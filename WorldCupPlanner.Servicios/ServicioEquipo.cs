@@ -53,10 +53,18 @@ namespace WorldCupPlanner.Servicios
             if (equipo.Confederacion != existente.Confederacion)
                 ValidarCupoConfederacion(equipo);
 
-            existente.Nombre = equipo.Nombre;
-            existente.Confederacion = equipo.Confederacion;
-            existente.RankingFIFA = equipo.RankingFIFA;
-            _repositorio.Actualizar(existente);
+            if (!string.Equals(nombreOriginal, equipo.Nombre, StringComparison.Ordinal))
+            {
+                _repositorio.Eliminar(existente);
+                _repositorio.Agregar(equipo);
+            }
+            else
+            {
+                existente.Confederacion = equipo.Confederacion;
+                existente.RankingFIFA = equipo.RankingFIFA;
+                _repositorio.Actualizar(existente);
+            }
+
             _auditoria?.Registrar(
                 solicitante != null ? $"{solicitante.Nombre} {solicitante.Apellido}" : "Sistema",
                 "Edicion",
