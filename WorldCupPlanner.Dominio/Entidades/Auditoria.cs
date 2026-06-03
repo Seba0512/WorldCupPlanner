@@ -13,6 +13,11 @@ public class Auditoria
     {
     }
 
+    public Auditoria(string usuario, string accion, string detalle)
+        : this(0, DateTime.UtcNow.ToString("o"), usuario, accion, detalle)
+    {
+    }
+
     public Auditoria(int id, string timestamp, string usuario, string accion, string detalle)
     {
         Id = id;

@@ -1,0 +1,53 @@
+using Microsoft.EntityFrameworkCore;
+using WorldCupPlanner.AccesoADatos.Interfaces;
+using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Excepciones;
+
+namespace WorldCupPlanner.AccesoADatos.Repositorios;
+
+public class RepositorioUsuarioSql : IRepositorioUsuario
+{
+    private readonly SqlContext _contexto;
+
+    public RepositorioUsuarioSql(SqlContext contexto)
+    {
+        _contexto = contexto;
+    }
+
+    public void Agregar(Usuario usuario)
+    {
+        _contexto.Usuarios.Add(usuario);
+        _contexto.SaveChanges();
+    }
+
+    public void Actualizar(Usuario usuario)
+    {
+        var existe = _contexto.Usuarios.Any(u => u.Email == usuario.Email);
+        if (!existe)
+            throw new EntidadInexistenteExcepcion("El usuario no existe.");
+
+        _contexto.Usuarios.Update(usuario);
+        _contexto.SaveChanges();
+    }
+
+    public void Eliminar(Usuario usuario)
+    {
+        var existe = _contexto.Usuarios.Any(u => u.Email == usuario.Email);
+        if (!existe)
+            throw new EntidadInexistenteExcepcion("El usuario no existe.");
+
+        _contexto.Usuarios.Remove(usuario);
+        _contexto.SaveChanges();
+    }
+
+    public List<Usuario> Buscar(Func<Usuario, bool> predicado)
+    {
+        return _contexto.Usuarios.AsNoTracking().Where(predicado).ToList();
+    }
+
+    public Usuario? ObtenerPorEmail(string email)
+    {
+        return _contexto.Usuarios.AsNoTracking()
+            .FirstOrDefault(u => u.Email == email);
+    }
+}

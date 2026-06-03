@@ -5,20 +5,25 @@ using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Servicios;
+using Microsoft.EntityFrameworkCore;
+using WorldCupPlanner.AccesoADatos;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
-builder.Services.AddSingleton<IRepositorioConId<Auditoria>, RepositorioAuditoriaEnMemoria>();
-builder.Services.AddSingleton<IRepositorio<Equipo>, RepositorioEquipoEnMemoria>();
-builder.Services.AddSingleton<IRepositorio<Estadio>, RepositorioEstadioEnMemoria>();
+builder.Services.AddScoped<IRepositorioConId<Auditoria>, RepositorioAuditoriaSql>();
+builder.Services.AddScoped<IRepositorio<Equipo>, RepositorioEquipoSql>();
+builder.Services.AddScoped<IRepositorio<Estadio>, RepositorioEstadioSql>();
 builder.Services.AddSingleton<IRepositorio<Grupo>, RepositorioGrupoEnMemoria>();
 builder.Services.AddSingleton<IRepositorio<Partido>, RepositorioPartidoEnMemoria>();
 builder.Services.AddScoped<ServicioAuditoria>();
 builder.Services.AddScoped<ServicioEstadio>();
-builder.Services.AddScoped<ServicioEquipo>();
+builder.Services.AddScoped<ServicioEquipo>(sp =>
+    new ServicioEquipo(
+        sp.GetRequiredService<IRepositorio<Equipo>>(),
+        sp.GetRequiredService<ServicioAuditoria>()));
 builder.Services.AddSingleton<ServicioFixture>();
 builder.Services.AddSingleton<ServicioClasificacion>();
 builder.Services.AddSingleton<ServicioCruces>();
@@ -28,13 +33,15 @@ builder.Services.AddSingleton<EstadoTorneo>();
 builder.Services.AddScoped<ServicioPersistenciaFixture>();
 builder.Services.AddSingleton<ServicioPartido>(sp =>
     new ServicioPartido(sp.GetRequiredService<EstadoTorneo>()));
-builder.Services.AddSingleton<IRepositorioUsuario, RepositorioUsuarioEnMemoria>();
+builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuarioSql>();
 builder.Services.AddScoped<ServicioUsuario>();
 builder.Services.AddScoped<ServicioImportacionLegible>();
 builder.Services.AddScoped<InicializadorDatos>();
 
 builder.Services.AddScoped<SesionServicio>();
 builder.Services.AddScoped<ToastServicio>();
+builder.Services.AddDbContext<SqlContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 

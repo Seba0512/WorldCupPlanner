@@ -16,7 +16,7 @@ public class ServicioAuditoria
 
     public void Registrar(string usuario, string accion, string detalle = "")
     {
-        var entry = new Auditoria(_repo.SiguienteId(), usuario, accion, detalle);
+        var entry = new Auditoria(usuario, accion, detalle);
         _repo.Agregar(entry);
     }
 

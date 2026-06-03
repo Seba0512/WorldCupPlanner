@@ -25,7 +25,7 @@ public class Usuario
     public string? ContraseniaCifrada => _contraseniaCifrada;
     public bool DebeCambiarContrasenia { get; private set; }
 
-    private string RolesSerializados
+    protected string RolesSerializados
     {
         get => string.Join(",", _roles.Select(rol => rol.ToString()));
         set => _roles = string.IsNullOrWhiteSpace(value)

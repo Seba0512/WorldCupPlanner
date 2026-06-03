@@ -4,10 +4,11 @@ namespace WorldCupPlanner.Dominio.Entidades
 {
     public class Equipo
     {
-
+        public int Id { get; set; }
         public string Nombre { get; set; } = "";
         public int RankingFIFA { get; set; }
         public Confederacion? Confederacion { get; set; }
+
 
         public bool EsValido()
         {

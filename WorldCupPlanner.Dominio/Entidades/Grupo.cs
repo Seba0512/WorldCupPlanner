@@ -18,7 +18,7 @@ public class Grupo
         Confederacion.AFC,
         Confederacion.OFC
     };
-
+    public int Id { get; set; } 
     public string Etiqueta { get; private set; }
     public List<Equipo> Equipos { get; private set; }
     public List<Partido> Partidos { get; private set; }
