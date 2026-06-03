@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using Microsoft.EntityFrameworkCore;
-using WorldCupPlanner.AccesoADatos;
 using WorldCupPlanner.UI.Data;
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.AccesoADatos.Repositorios;
@@ -13,14 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
-builder.Services.AddDbContext<SqlContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddScoped<IRepositorioConId<Auditoria>, RepositorioAuditoriaSql>();
-builder.Services.AddScoped<IRepositorio<Equipo>, RepositorioEquipoSql>();
-builder.Services.AddScoped<IRepositorio<Estadio>, RepositorioEstadioSql>();
-builder.Services.AddScoped<IRepositorio<Grupo>, RepositorioGrupoSql>();
-builder.Services.AddScoped<IRepositorio<Partido>, RepositorioPartidoSql>();
+builder.Services.AddSingleton<IRepositorioConId<Auditoria>, RepositorioAuditoriaEnMemoria>();
+builder.Services.AddSingleton<IRepositorio<Equipo>, RepositorioEquipoEnMemoria>();
+builder.Services.AddSingleton<IRepositorio<Estadio>, RepositorioEstadioEnMemoria>();
+builder.Services.AddSingleton<IRepositorio<Grupo>, RepositorioGrupoEnMemoria>();
+builder.Services.AddSingleton<IRepositorio<Partido>, RepositorioPartidoEnMemoria>();
 builder.Services.AddScoped<ServicioAuditoria>();
 builder.Services.AddScoped<ServicioEstadio>();
 builder.Services.AddScoped<ServicioEquipo>();
@@ -33,7 +28,7 @@ builder.Services.AddSingleton<EstadoTorneo>();
 builder.Services.AddScoped<ServicioPersistenciaFixture>();
 builder.Services.AddSingleton<ServicioPartido>(sp =>
     new ServicioPartido(sp.GetRequiredService<EstadoTorneo>()));
-builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuarioSql>();
+builder.Services.AddSingleton<IRepositorioUsuario, RepositorioUsuarioEnMemoria>();
 builder.Services.AddScoped<ServicioUsuario>();
 builder.Services.AddScoped<ServicioImportacionLegible>();
 builder.Services.AddScoped<InicializadorDatos>();
