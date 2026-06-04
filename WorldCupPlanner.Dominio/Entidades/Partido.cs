@@ -23,6 +23,8 @@ namespace WorldCupPlanner.Dominio.Entidades
         {
             return GolesLocal.HasValue && GolesVisitante.HasValue;
         }
+        
+        public List<Incidencia> Incidencias { get; set; } = new();
 
         public Equipo? Ganador()
         {

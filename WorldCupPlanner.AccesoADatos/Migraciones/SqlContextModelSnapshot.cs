@@ -22,55 +22,92 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("GrupoEquipo", b =>
+                {
+                    b.Property<int>("EquiposId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GrupoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("EquiposId", "GrupoId");
+
+                    b.HasIndex("GrupoId");
+
+                    b.ToTable("GrupoEquipo");
+                });
+
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Auditoria", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Accion")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Detalle")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Timestamp")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Usuario")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Auditorias", (string)null);
+                    b.ToTable("Auditorias");
                 });
 
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Equipo", b =>
                 {
-                    b.Property<string>("Nombre")
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.Property<string>("Confederacion")
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Bandera")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Confederacion")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
 
                     b.Property<int>("RankingFIFA")
                         .HasColumnType("int");
 
-                    b.HasKey("Nombre");
+                    b.HasKey("Id");
 
-                    b.ToTable("Equipos", (string)null);
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("Equipos");
                 });
 
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Estadio", b =>
                 {
-                    b.Property<string>("Nombre")
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("Capacidad")
                         .HasColumnType("int");
@@ -84,49 +121,97 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
-                    b.HasKey("Nombre");
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
 
-                    b.ToTable("Estadios", (string)null);
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique();
+
+                    b.ToTable("Estadios");
                 });
 
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Grupo", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
                     b.Property<string>("Etiqueta")
+                        .IsRequired()
                         .HasMaxLength(1)
                         .HasColumnType("nvarchar(1)");
 
-                    b.HasKey("Etiqueta");
+                    b.HasKey("Id");
 
-                    b.ToTable("Grupos", (string)null);
+                    b.ToTable("Grupos");
+                });
+
+            modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Incidencia", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("EquipoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinutoDelPartido")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PartidoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(21)
+                        .HasColumnType("nvarchar(21)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EquipoId");
+
+                    b.HasIndex("PartidoId");
+
+                    b.ToTable("Incidencia");
+
+                    b.HasDiscriminator<string>("Tipo").HasValue("Incidencia");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Partido", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("EquipoLocalNombre")
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("EquipoVisitanteNombre")
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
+                    b.Property<int?>("EquipoLocalId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("EstadioNombre")
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                    b.Property<int?>("EquipoVisitanteId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Fase")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("EstadioId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Fase")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("GanadorPorPenalesNombre")
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
+                    b.Property<int?>("GanadorPorPenalesId")
+                        .HasColumnType("int");
 
                     b.Property<int?>("GolesLocal")
                         .HasColumnType("int");
@@ -134,44 +219,52 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                     b.Property<int?>("GolesVisitante")
                         .HasColumnType("int");
 
-                    b.Property<string>("GrupoEtiqueta")
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
+                    b.Property<int?>("GrupoId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EquipoLocalNombre");
+                    b.HasIndex("EquipoLocalId");
 
-                    b.HasIndex("EquipoVisitanteNombre");
+                    b.HasIndex("EquipoVisitanteId");
 
-                    b.HasIndex("EstadioNombre");
+                    b.HasIndex("EstadioId");
 
-                    b.HasIndex("GanadorPorPenalesNombre");
+                    b.HasIndex("GanadorPorPenalesId");
 
-                    b.HasIndex("GrupoEtiqueta");
+                    b.HasIndex("GrupoId");
 
-                    b.ToTable("Partidos", (string)null);
+                    b.ToTable("Partidos");
                 });
 
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Usuario", b =>
                 {
-                    b.Property<string>("Email")
-                        .HasMaxLength(320)
-                        .HasColumnType("nvarchar(320)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Apellido")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("DebeCambiarContrasenia")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("FechaNacimiento")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("RolesSerializados")
                         .IsRequired()
@@ -180,41 +273,87 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                         .HasColumnName("Roles");
 
                     b.Property<string>("_contraseniaCifrada")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("ContraseniaCifrada");
 
-                    b.HasKey("Email");
+                    b.HasKey("Id");
 
-                    b.ToTable("Usuarios", (string)null);
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.TarjetaAmarilla", b =>
+                {
+                    b.HasBaseType("WorldCupPlanner.Dominio.Entidades.Incidencia");
+
+                    b.HasDiscriminator().HasValue("TarjetaAmarilla");
+                });
+
+            modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.TarjetaRoja", b =>
+                {
+                    b.HasBaseType("WorldCupPlanner.Dominio.Entidades.Incidencia");
+
+                    b.HasDiscriminator().HasValue("TarjetaRoja");
+                });
+
+            modelBuilder.Entity("GrupoEquipo", b =>
+                {
+                    b.HasOne("WorldCupPlanner.Dominio.Entidades.Equipo", null)
+                        .WithMany()
+                        .HasForeignKey("EquiposId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WorldCupPlanner.Dominio.Entidades.Grupo", null)
+                        .WithMany()
+                        .HasForeignKey("GrupoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Incidencia", b =>
+                {
+                    b.HasOne("WorldCupPlanner.Dominio.Entidades.Equipo", "Equipo")
+                        .WithMany()
+                        .HasForeignKey("EquipoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WorldCupPlanner.Dominio.Entidades.Partido", null)
+                        .WithMany("Incidencias")
+                        .HasForeignKey("PartidoId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Equipo");
                 });
 
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Partido", b =>
                 {
                     b.HasOne("WorldCupPlanner.Dominio.Entidades.Equipo", "EquipoLocal")
                         .WithMany()
-                        .HasForeignKey("EquipoLocalNombre")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .HasForeignKey("EquipoLocalId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("WorldCupPlanner.Dominio.Entidades.Equipo", "EquipoVisitante")
                         .WithMany()
-                        .HasForeignKey("EquipoVisitanteNombre")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .HasForeignKey("EquipoVisitanteId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("WorldCupPlanner.Dominio.Entidades.Estadio", "Estadio")
                         .WithMany()
-                        .HasForeignKey("EstadioNombre")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .HasForeignKey("EstadioId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("WorldCupPlanner.Dominio.Entidades.Equipo", "GanadorPorPenales")
                         .WithMany()
-                        .HasForeignKey("GanadorPorPenalesNombre")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .HasForeignKey("GanadorPorPenalesId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("WorldCupPlanner.Dominio.Entidades.Grupo", "Grupo")
-                        .WithMany()
-                        .HasForeignKey("GrupoEtiqueta")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .WithMany("Partidos")
+                        .HasForeignKey("GrupoId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("EquipoLocal");
 
@@ -225,6 +364,16 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                     b.Navigation("GanadorPorPenales");
 
                     b.Navigation("Grupo");
+                });
+
+            modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Grupo", b =>
+                {
+                    b.Navigation("Partidos");
+                });
+
+            modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Partido", b =>
+                {
+                    b.Navigation("Incidencias");
                 });
 #pragma warning restore 612, 618
         }

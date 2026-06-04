@@ -8,6 +8,8 @@ namespace WorldCupPlanner.Dominio.Entidades
         public string Nombre { get; set; } = "";
         public int RankingFIFA { get; set; }
         public Confederacion? Confederacion { get; set; }
+        
+        public string Bandera { get; set; } = "";
 
 
         public bool EsValido()

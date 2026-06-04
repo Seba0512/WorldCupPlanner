@@ -24,6 +24,7 @@ namespace WorldCupPlanner.AccesoADatos
             ConfigurarGrupo(modelBuilder);
             ConfigurarPartido(modelBuilder);
             ConfigurarAuditoria(modelBuilder);
+            ConfigurarIncidencia(modelBuilder);
         }
 
         private static void ConfigurarUsuario(ModelBuilder modelBuilder)
@@ -125,6 +126,11 @@ namespace WorldCupPlanner.AccesoADatos
                     .HasForeignKey("GanadorPorPenalesId")
                     .OnDelete(DeleteBehavior.Restrict)
                     .IsRequired(false);
+                
+                entity.HasMany(p => p.Incidencias)
+                    .WithOne()
+                    .HasForeignKey("PartidoId")
+                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
 
@@ -138,6 +144,24 @@ namespace WorldCupPlanner.AccesoADatos
                 entity.Property(a => a.Usuario).IsRequired().HasMaxLength(200);
                 entity.Property(a => a.Accion).IsRequired().HasMaxLength(200);
                 entity.Property(a => a.Detalle).IsRequired().HasMaxLength(1000);
+            });
+        }
+        private static void ConfigurarIncidencia(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Incidencia>(entity =>
+            {
+                entity.HasKey(i => i.Id);
+                entity.Property(i => i.Id).ValueGeneratedOnAdd();
+                entity.Property(i => i.MinutoDelPartido).IsRequired();
+
+                entity.HasOne(i => i.Equipo)
+                    .WithMany()
+                    .HasForeignKey("EquipoId")
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasDiscriminator<string>("Tipo")
+                    .HasValue<TarjetaAmarilla>("TarjetaAmarilla")
+                    .HasValue<TarjetaRoja>("TarjetaRoja");
             });
         }
     }

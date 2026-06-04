@@ -1,6 +1,5 @@
 namespace WorldCupPlanner.Dominio.Entidades;
 
-public class TarjetaAmarilla
+public class TarjetaAmarilla : Incidencia
 {
-    
 }
