@@ -30,4 +30,36 @@ public class ServicioNotificacionTests
         Assert.AreEqual(1, notificaciones1.Count);
         Assert.AreEqual(1, notificaciones2.Count);
     }
+
+    [TestMethod]
+    public void GenerarNotificacionesResultado_CuandoNoHayPeriodistas_NoCreaNingunNotificacion()
+    {
+        // Arrange
+        var repositorio = new RepositorioNotificacionEnMemoria();
+        var servicio = new ServicioNotificacion(repositorio);
+        var partido = new Partido();
+
+        // Act
+        servicio.GenerarNotificacionesResultado(partido, new List<Usuario>());
+
+        // Assert
+        Assert.AreEqual(0, repositorio.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
+    public void GenerarNotificacionesResultado_CuandoUsuarioNoEsPeriodista_NoLeGeneraNotificacion()
+    {
+        // Arrange
+        var repositorio = new RepositorioNotificacionEnMemoria();
+        var servicio = new ServicioNotificacion(repositorio);
+        var partido = new Partido();
+        var editor = new Usuario(new DatosUsuario { Nombre = "Carlos", Apellido = "Gomez", Email = "carlos@test.com", FechaNacimiento = "01-01-1990" });
+        editor.AgregarRol(RolUsuario.Editor);
+
+        // Act
+        servicio.GenerarNotificacionesResultado(partido, new List<Usuario> { editor });
+
+        // Assert
+        Assert.AreEqual(0, repositorio.ObtenerPorUsuario(editor.Id).Count);
+    }
 }
