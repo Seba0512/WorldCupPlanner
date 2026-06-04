@@ -20,18 +20,20 @@ public class ServicioAutorizacion
         => VerificarPermiso(usuario, RolUsuario.Periodista);
 
     public void VerificarPuedeConsultarFixture(Usuario usuario)
-    {
-        if (!usuario.TieneRol(RolUsuario.Periodista) &&
-            !usuario.TieneRol(RolUsuario.Editor) &&
-            !usuario.TieneRol(RolUsuario.AdministradorDelSistema))
-            throw new AccesoDenegadoExcepcion(
-                "El usuario debe tener al menos el rol Periodista, Editor o Administrador del Sistema.");
-    }
+        => VerificarTieneAlgunRol(usuario,
+            RolUsuario.Periodista,
+            RolUsuario.Editor,
+            RolUsuario.AdministradorDelSistema);
 
     public void VerificarEsEditorOAdministrador(Usuario usuario)
+        => VerificarTieneAlgunRol(usuario,
+            RolUsuario.Editor,
+            RolUsuario.AdministradorDelSistema);
+
+    private void VerificarTieneAlgunRol(Usuario usuario, params RolUsuario[] roles)
     {
-        if (!usuario.TieneRol(RolUsuario.Editor) && !usuario.TieneRol(RolUsuario.AdministradorDelSistema))
+        if (!roles.Any(usuario.TieneRol))
             throw new AccesoDenegadoExcepcion(
-                "El usuario debe tener al menos el rol Editor o Administrador del Sistema.");
+                $"El usuario debe tener al menos uno de los roles: {string.Join(", ", roles)}.");
     }
 }
