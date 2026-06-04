@@ -1,5 +1,6 @@
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -14,7 +15,7 @@ public class ServicioNotificacion
 
     public void GenerarNotificacionesResultado(Partido partido, IEnumerable<Usuario> periodistas)
     {
-        foreach (var periodista in periodistas)
+        foreach (var periodista in periodistas.Where(u => u.TieneRol(RolUsuario.Periodista)))
         {
             _repositorio.Agregar(new Notificacion
             {
