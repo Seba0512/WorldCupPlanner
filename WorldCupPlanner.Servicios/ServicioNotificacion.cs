@@ -16,8 +16,7 @@ public class ServicioNotificacion
 
     public void MarcarComoLeida(int notificacionId, int usuarioId)
     {
-        var notificacion = _repositorio.Buscar(n => n.Id == notificacionId).FirstOrDefault()
-            ?? throw new EntidadInexistenteExcepcion("La notificación no existe.");
+        var notificacion = ObtenerNotificacionPorId(notificacionId);
 
         if (notificacion.UsuarioDestinatarioId != usuarioId)
             throw new AccesoDenegadoExcepcion("La notificación no pertenece al usuario.");
@@ -25,6 +24,10 @@ public class ServicioNotificacion
         notificacion.EsLeida = true;
         _repositorio.Actualizar(notificacion);
     }
+
+    private Notificacion ObtenerNotificacionPorId(int notificacionId)
+        => _repositorio.Buscar(n => n.Id == notificacionId).FirstOrDefault()
+            ?? throw new EntidadInexistenteExcepcion("La notificación no existe.");
 
     public List<Notificacion> ObtenerNoLeidas(int usuarioId)
         => _repositorio.Buscar(n => n.UsuarioDestinatarioId == usuarioId && !n.EsLeida);
