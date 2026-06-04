@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace WorldCupPlanner.AccesoADatos.Migrations
+namespace WorldCupPlanner.AccesoADatos.Migraciones
 {
     /// <inheritdoc />
     public partial class MigracionInicial : Migration

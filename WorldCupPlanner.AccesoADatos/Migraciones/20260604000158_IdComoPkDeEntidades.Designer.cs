@@ -9,11 +9,11 @@ using WorldCupPlanner.AccesoADatos;
 
 #nullable disable
 
-namespace WorldCupPlanner.AccesoADatos.Migrations
+namespace WorldCupPlanner.AccesoADatos.Migraciones
 {
     [DbContext(typeof(SqlContext))]
-    [Migration("20260603201850_RecreateAuditorias")]
-    partial class RecreateAuditorias
+    [Migration("20260604000158_IdComoPkDeEntidades")]
+    partial class IdComoPkDeEntidades
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -203,9 +203,11 @@ namespace WorldCupPlanner.AccesoADatos.Migrations
 
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Usuario", b =>
                 {
-                    b.Property<string>("Email")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Apellido")
                         .IsRequired()
@@ -214,6 +216,11 @@ namespace WorldCupPlanner.AccesoADatos.Migrations
 
                     b.Property<bool>("DebeCambiarContrasenia")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("FechaNacimiento")
                         .HasColumnType("datetime2");
@@ -233,7 +240,10 @@ namespace WorldCupPlanner.AccesoADatos.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ContraseniaCifrada");
 
-                    b.HasKey("Email");
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("Usuarios");
                 });

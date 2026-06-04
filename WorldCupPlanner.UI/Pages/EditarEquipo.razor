@@ -55,7 +55,7 @@
     {
         if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
         var original = ServicioEquipo.Buscar(e => e.Nombre == Nombre).First();
-        _equipo = new Equipo { Nombre = original.Nombre, Confederacion = original.Confederacion, RankingFIFA = original.RankingFIFA };
+        _equipo = new Equipo { Id = original.Id, Nombre = original.Nombre, Confederacion = original.Confederacion, RankingFIFA = original.RankingFIFA };
     }
 
     private void Guardar()

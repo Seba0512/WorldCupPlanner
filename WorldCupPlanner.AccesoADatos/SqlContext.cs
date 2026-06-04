@@ -30,11 +30,13 @@ namespace WorldCupPlanner.AccesoADatos
         {
             modelBuilder.Entity<Usuario>(entity =>
             {
-                entity.HasKey(u => u.Email);
+                entity.HasKey(u => u.Id);
 
+                entity.Property(u => u.Id).ValueGeneratedOnAdd();
                 entity.Property(u => u.Nombre).IsRequired().HasMaxLength(100);
                 entity.Property(u => u.Apellido).IsRequired().HasMaxLength(100);
                 entity.Property(u => u.Email).IsRequired().HasMaxLength(200);
+                entity.HasIndex(u => u.Email).IsUnique();
                 entity.Property(u => u.FechaNacimiento).IsRequired();
                 entity.Property(u => u.DebeCambiarContrasenia).IsRequired();
 

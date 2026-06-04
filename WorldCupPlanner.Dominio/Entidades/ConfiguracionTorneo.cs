@@ -11,6 +11,7 @@ public class ConfiguracionTorneo
     private const int MinutoInicioPorDefecto = 0;
     private const int SeparacionHorasEntrePartidosPorDefecto = 4;
 
+    public int Id { get; set; }
     public int SemillaFixture { get; set; }
     public int SemillaCompletar { get; set; }
     public int SemillaCrucesFase { get; set; }

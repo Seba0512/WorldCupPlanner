@@ -9,11 +9,11 @@ using WorldCupPlanner.AccesoADatos;
 
 #nullable disable
 
-namespace WorldCupPlanner.AccesoADatos.Migrations
+namespace WorldCupPlanner.AccesoADatos.Migraciones
 {
     [DbContext(typeof(SqlContext))]
-    [Migration("20260603192619_MigracionInicial")]
-    partial class MigracionInicial
+    [Migration("20260603201850_RecreateAuditorias")]
+    partial class RecreateAuditorias
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -43,7 +43,10 @@ namespace WorldCupPlanner.AccesoADatos.Migrations
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Auditoria", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Accion")
                         .IsRequired()

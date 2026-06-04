@@ -47,6 +47,7 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
+    scope.ServiceProvider.GetRequiredService<SqlContext>().Database.Migrate();
     scope.ServiceProvider.GetRequiredService<InicializadorDatos>().InicializarUsuariosSemilla();
 }
 

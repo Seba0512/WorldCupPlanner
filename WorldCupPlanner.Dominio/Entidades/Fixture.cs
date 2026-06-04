@@ -2,6 +2,7 @@
 
 public class Fixture
 {
+    public int Id { get; set; }
     public List<Grupo> Grupos { get; set; } = new List<Grupo>();
 
     public List<Partido> Partidos

@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace WorldCupPlanner.AccesoADatos.Migrations
+namespace WorldCupPlanner.AccesoADatos.Migraciones
 {
     public partial class RecreateAuditorias : Migration
     {
