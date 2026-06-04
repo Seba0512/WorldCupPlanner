@@ -4,6 +4,8 @@ using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
+// --- Notificaciones al cargar resultado ---
+
 namespace WorldCupPlanner.ServicioTests;
 
 [TestClass]
@@ -237,6 +239,27 @@ public class ServicioPartidoTests
 
         // Assert
         Assert.AreEqual(partido, resultado);
+    }
+
+    [TestMethod]
+    public void CargarResultado_CuandoResultadoValido_GeneraNotificacionesParaPeriodistas()
+    {
+        // Arrange
+        var repositorioPartido = new RepositorioPartidoEnMemoria();
+        var repositorioNotificacion = new RepositorioNotificacionEnMemoria();
+        var servicioNotificacion = new ServicioNotificacion(repositorioNotificacion);
+        var periodista = new Usuario(new DatosUsuario { Nombre = "Sebita", Apellido = "Luciardi", Email = "periodista@test.com", FechaNacimiento = "01-01-1990" });
+        periodista.AgregarRol(RolUsuario.Periodista);
+        var periodistas = new List<Usuario> { periodista };
+        var partido = CrearPartido();
+        repositorioPartido.Agregar(partido);
+        var servicioPartido = new ServicioPartido(repositorioPartido, servicioNotificacion, periodistas);
+
+        // Act
+        servicioPartido.CargarResultado(partido.Id, 2, 1);
+
+        // Assert
+        Assert.AreEqual(1, repositorioNotificacion.ObtenerPorUsuario(periodista.Id).Count);
     }
 
     private static Partido CrearPartido()
