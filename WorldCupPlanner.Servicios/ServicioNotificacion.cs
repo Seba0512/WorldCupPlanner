@@ -1,6 +1,7 @@
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -11,6 +12,18 @@ public class ServicioNotificacion
     public ServicioNotificacion(IRepositorioNotificacion repositorio)
     {
         _repositorio = repositorio;
+    }
+
+    public void MarcarComoLeida(int notificacionId, int usuarioId)
+    {
+        var notificacion = _repositorio.Buscar(n => n.Id == notificacionId).FirstOrDefault()
+            ?? throw new EntidadInexistenteExcepcion("La notificación no existe.");
+
+        if (notificacion.UsuarioDestinatarioId != usuarioId)
+            throw new AccesoDenegadoExcepcion("La notificación no pertenece al usuario.");
+
+        notificacion.EsLeida = true;
+        _repositorio.Actualizar(notificacion);
     }
 
     public void GenerarNotificacionesResultado(Partido partido, IEnumerable<Usuario> periodistas)
