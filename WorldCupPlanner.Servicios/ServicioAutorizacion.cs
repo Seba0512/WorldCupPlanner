@@ -19,6 +19,15 @@ public class ServicioAutorizacion
     public void VerificarEsPeriodista(Usuario usuario)
         => VerificarPermiso(usuario, RolUsuario.Periodista);
 
+    public void VerificarPuedeConsultarFixture(Usuario usuario)
+    {
+        if (!usuario.TieneRol(RolUsuario.Periodista) &&
+            !usuario.TieneRol(RolUsuario.Editor) &&
+            !usuario.TieneRol(RolUsuario.AdministradorDelSistema))
+            throw new AccesoDenegadoExcepcion(
+                "El usuario debe tener al menos el rol Periodista, Editor o Administrador del Sistema.");
+    }
+
     public void VerificarEsEditorOAdministrador(Usuario usuario)
     {
         if (!usuario.TieneRol(RolUsuario.Editor) && !usuario.TieneRol(RolUsuario.AdministradorDelSistema))
