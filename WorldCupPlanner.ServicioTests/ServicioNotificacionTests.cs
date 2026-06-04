@@ -111,6 +111,44 @@ public class ServicioNotificacionTests
         Assert.AreEqual(0, repositorio.ObtenerPorUsuario(editor.Id).Count);
     }
 
+
+
+    [TestMethod]
+    public void ObtenerNoLeidas_RetornaSoloLasNoLeidas()
+    {
+        // Arrange
+        var repositorio = new RepositorioNotificacionEnMemoria();
+        var servicio = new ServicioNotificacion(repositorio);
+        var usuario = CrearPeriodista("noLeidas@test.com");
+        repositorio.Agregar(new Notificacion { UsuarioDestinatarioId = usuario.Id, EsLeida = false });
+        repositorio.Agregar(new Notificacion { UsuarioDestinatarioId = usuario.Id, EsLeida = true });
+        repositorio.Agregar(new Notificacion { UsuarioDestinatarioId = usuario.Id, EsLeida = false });
+
+        // Act
+        var resultado = servicio.ObtenerNoLeidas(usuario.Id);
+
+        // Assert
+        Assert.AreEqual(2, resultado.Count);
+        Assert.IsTrue(resultado.All(n => !n.EsLeida));
+    }
+
+    [TestMethod]
+    public void ObtenerNoLeidas_CuandoTodasLeidas_RetornaListaVacia()
+    {
+        // Arrange
+        var repositorio = new RepositorioNotificacionEnMemoria();
+        var servicio = new ServicioNotificacion(repositorio);
+        var usuario = CrearPeriodista("todasLeidas@test.com");
+        repositorio.Agregar(new Notificacion { UsuarioDestinatarioId = usuario.Id, EsLeida = true });
+        repositorio.Agregar(new Notificacion { UsuarioDestinatarioId = usuario.Id, EsLeida = true });
+
+        // Act
+        var resultado = servicio.ObtenerNoLeidas(usuario.Id);
+
+        // Assert
+        Assert.AreEqual(0, resultado.Count);
+    }
+
     private static Usuario CrearPeriodista(string email)
     {
         var usuario = new Usuario(new DatosUsuario { Nombre = "Test", Apellido = "Test", Email = email, FechaNacimiento = "01-01-1990" });
