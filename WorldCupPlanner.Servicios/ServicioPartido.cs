@@ -10,10 +10,19 @@ public class ServicioPartido
     private readonly IRepositorio<Partido>? _repositorioPartido;
     private readonly EstadoTorneo? _estadoTorneo;
     private readonly HashSet<FaseTorneo> _fasesBloqueadas = new();
+    private readonly ServicioNotificacion? _servicioNotificacion;
+    private readonly IEnumerable<Usuario> _periodistas = [];
 
     public ServicioPartido(IRepositorio<Partido> repositorioPartido)
     {
         _repositorioPartido = repositorioPartido;
+    }
+
+    public ServicioPartido(IRepositorio<Partido> repositorioPartido, ServicioNotificacion servicioNotificacion, IEnumerable<Usuario> periodistas)
+    {
+        _repositorioPartido = repositorioPartido;
+        _servicioNotificacion = servicioNotificacion;
+        _periodistas = periodistas;
     }
 
     public ServicioPartido(EstadoTorneo estadoTorneo)
@@ -62,6 +71,7 @@ public class ServicioPartido
         partido.GolesVisitante = golesVisitante;
         partido.GanadorPorPenales = null;
         _repositorioPartido?.Actualizar(partido);
+        _servicioNotificacion?.GenerarNotificacionesResultado(partido, _periodistas);
     }
 
     public void ResolverEmpateConPenales(int idPartido, int semilla)
