@@ -119,6 +119,17 @@ public class ServicioAutorizacionTests
         _servicio.VerificarEsPeriodista(usuario);
     }
 
+    [TestMethod]
+    public void VerificarEsPeriodista_CuandoUsuarioEsEditor_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var usuario = CrearUsuarioConRol(RolUsuario.Editor);
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.VerificarEsPeriodista(usuario));
+    }
+
     // --- VerificarPermiso (método base) ---
 
     [TestMethod]
