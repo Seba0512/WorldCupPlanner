@@ -26,6 +26,9 @@ public class ServicioNotificacion
         _repositorio.Actualizar(notificacion);
     }
 
+    public List<Notificacion> ObtenerNoLeidas(int usuarioId)
+        => _repositorio.Buscar(n => n.UsuarioDestinatarioId == usuarioId && !n.EsLeida);
+
     public void GenerarNotificacionesResultado(Partido partido, IEnumerable<Usuario> periodistas)
     {
         foreach (var periodista in periodistas.Where(u => u.TieneRol(RolUsuario.Periodista)))
