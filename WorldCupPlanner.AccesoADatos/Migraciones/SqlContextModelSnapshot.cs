@@ -187,6 +187,33 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                     b.UseTphMappingStrategy();
                 });
 
+            modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Notificacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("EsLeida")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Mensaje")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UsuarioDestinatarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Notificaciones");
+                });
+
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Partido", b =>
                 {
                     b.Property<int>("Id")

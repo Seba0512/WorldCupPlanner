@@ -19,9 +19,13 @@
                     {
                         <span class="topbar-role-badge">Admin</span>
                     }
-                    else
+                    else if (SesionServicio.UsuarioActual?.TieneRol(RolUsuario.Editor) == true)
                     {
                         <span class="topbar-role-badge editor">Editor</span>
+                    }
+                    else
+                    {
+                        <span class="topbar-role-badge" style="background-color:#2d6a4f">Periodista</span>
                     }
                 </div>
             }

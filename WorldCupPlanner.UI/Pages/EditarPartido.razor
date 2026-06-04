@@ -1,6 +1,8 @@
 @page "/partidos/{Id:int}/editar"
 @inject ServicioPartido ServicioPartido
 @inject ServicioEstadio ServicioEstadio
+@inject ServicioNotificacion ServicioNotificacion
+@inject ServicioUsuario ServicioUsuario
 @inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
 @inject ServicioPersistenciaFixture ServicioPersistenciaFixture
 @inject NavigationManager NavigationManager
@@ -171,7 +173,9 @@ else
             ServicioPartido.EditarEstadio(_partido.Id, estadio);
             if (_golesLocal.HasValue && _golesVisitante.HasValue)
             {
-                ServicioPartido.CargarResultado(_partido.Id, _golesLocal.Value, _golesVisitante.Value);
+                var periodistas = ServicioUsuario.ObtenerTodosLosUsuarios()
+                    .Where(u => u.TieneRol(RolUsuario.Periodista));
+                ServicioPartido.CargarResultado(_partido.Id, _golesLocal.Value, _golesVisitante.Value, ServicioNotificacion, periodistas);
                 var config = ServicioConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
                 ServicioPartido.ResolverEmpateConPenales(_partido.Id, config.SemillaSimulation);
             }

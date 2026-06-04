@@ -74,6 +74,13 @@ public class ServicioPartido
         _servicioNotificacion?.GenerarNotificacionesResultado(partido, _periodistas);
     }
 
+    public void CargarResultado(int idPartido, int golesLocal, int golesVisitante, ServicioNotificacion servicioNotificacion, IEnumerable<Usuario> periodistas)
+    {
+        CargarResultado(idPartido, golesLocal, golesVisitante);
+        var partido = ObtenerPartidoPorId(idPartido);
+        servicioNotificacion.GenerarNotificacionesResultado(partido, periodistas);
+    }
+
     public void ResolverEmpateConPenales(int idPartido, int semilla)
     {
         var partido = ObtenerPartidoPorId(idPartido);

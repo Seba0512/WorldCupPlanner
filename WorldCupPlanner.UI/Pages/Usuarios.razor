@@ -50,8 +50,8 @@
                         <td>
                             @foreach (var rol in usuario.ObtenerRoles())
                             {
-                                <span class="badge @(rol == RolUsuario.AdministradorDelSistema ? "badge-blue" : "badge-gold")" style="margin-right:4px">
-                                    @(rol == RolUsuario.AdministradorDelSistema ? "Admin" : "Editor")
+                                <span class="badge @(rol == RolUsuario.AdministradorDelSistema ? "badge-blue" : rol == RolUsuario.Editor ? "badge-gold" : "badge-green")" style="margin-right:4px">
+                                    @(rol == RolUsuario.AdministradorDelSistema ? "Admin" : rol == RolUsuario.Editor ? "Editor" : "Periodista")
                                 </span>
                             }
                         </td>

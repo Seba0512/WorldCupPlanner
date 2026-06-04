@@ -11,6 +11,7 @@ namespace WorldCupPlanner.AccesoADatos
         public DbSet<Grupo> Grupos { get; set; }
         public DbSet<Partido> Partidos { get; set; }
         public DbSet<Auditoria> Auditorias { get; set; }
+        public DbSet<Notificacion> Notificaciones { get; set; }
 
         public SqlContext(DbContextOptions<SqlContext> options) : base(options)
         {
@@ -25,6 +26,7 @@ namespace WorldCupPlanner.AccesoADatos
             ConfigurarPartido(modelBuilder);
             ConfigurarAuditoria(modelBuilder);
             ConfigurarIncidencia(modelBuilder);
+            ConfigurarNotificacion(modelBuilder);
         }
 
         private static void ConfigurarUsuario(ModelBuilder modelBuilder)
@@ -33,7 +35,7 @@ namespace WorldCupPlanner.AccesoADatos
             {
                 entity.HasKey(u => u.Id);
 
-                entity.Property(u => u.Id).ValueGeneratedOnAdd();
+                entity.Property(u => u.Id).ValueGeneratedOnAdd().UseIdentityColumn();
                 entity.Property(u => u.Nombre).IsRequired().HasMaxLength(100);
                 entity.Property(u => u.Apellido).IsRequired().HasMaxLength(100);
                 entity.Property(u => u.Email).IsRequired().HasMaxLength(200);
@@ -146,6 +148,19 @@ namespace WorldCupPlanner.AccesoADatos
                 entity.Property(a => a.Detalle).IsRequired().HasMaxLength(1000);
             });
         }
+        private static void ConfigurarNotificacion(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Notificacion>(entity =>
+            {
+                entity.HasKey(n => n.Id);
+                entity.Property(n => n.Id).ValueGeneratedOnAdd().UseIdentityColumn();
+                entity.Property(n => n.Mensaje).IsRequired().HasMaxLength(500);
+                entity.Property(n => n.Timestamp).IsRequired();
+                entity.Property(n => n.UsuarioDestinatarioId).IsRequired();
+                entity.Property(n => n.EsLeida).IsRequired();
+            });
+        }
+
         private static void ConfigurarIncidencia(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Incidencia>(entity =>

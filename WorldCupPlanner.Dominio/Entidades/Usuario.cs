@@ -15,7 +15,7 @@ public class Usuario
     private const string PatronNumero = @"[0-9]";
     private const string PatronEspecial = @"[@#$\.\!\&\*\-_\+=\?]";
 
-    private static int _contadorId = 1;
+
 
     private string? _contraseniaCifrada;
     private HashSet<RolUsuario> _roles = [];
@@ -44,7 +44,7 @@ public class Usuario
 
     public Usuario(DatosUsuario datos)
     {
-        Id = _contadorId++;
+
         ValidarNombre(datos.Nombre);
         ValidarApellido(datos.Apellido);
         ValidarEmail(datos.Email);

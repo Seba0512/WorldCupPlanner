@@ -73,6 +73,13 @@
                 Editor
             </label>
         </div>
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="chkPeriodista" @bind="_esPeriodista" />
+            <label class="form-check-label" for="chkPeriodista">
+                <span class="badge badge-green" style="margin-right:6px">Periodista</span>
+                Periodista
+            </label>
+        </div>
     </div>
 
     <div class="d-flex gap-2 mt-2">
@@ -92,6 +99,7 @@
     private string _confirmarContrasenia = string.Empty;
     private bool _esAdmin;
     private bool _esEditor = true;
+    private bool _esPeriodista;
     private string _error = string.Empty;
     private bool _emailConError;
 
@@ -111,8 +119,9 @@
             var datos = new DatosUsuario { Nombre = _nombre, Apellido = _apellido, Email = _email, FechaNacimiento = _fechaNacimiento.ToString("MM-dd-yyyy") };
             var usuario = new Usuario(datos);
             usuario.EstablecerContrasenia(_contrasenia);
-            if (_esAdmin)  usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-            if (_esEditor) usuario.AgregarRol(RolUsuario.Editor);
+            if (_esAdmin)       usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
+            if (_esEditor)      usuario.AgregarRol(RolUsuario.Editor);
+            if (_esPeriodista)  usuario.AgregarRol(RolUsuario.Periodista);
             ServicioUsuario.AgregarUsuario(usuario);
             Toast.Exito($"Usuario \"{_nombre} {_apellido}\" creado correctamente.");
             NavigationManager.NavigateTo("/usuarios");

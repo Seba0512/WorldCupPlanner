@@ -35,6 +35,8 @@ builder.Services.AddSingleton<ServicioPartido>(sp =>
     new ServicioPartido(sp.GetRequiredService<EstadoTorneo>()));
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuarioSql>();
 builder.Services.AddScoped<ServicioUsuario>();
+builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacionSql>();
+builder.Services.AddScoped<ServicioNotificacion>();
 builder.Services.AddScoped<ServicioImportacionLegible>();
 builder.Services.AddScoped<InicializadorDatos>();
 
