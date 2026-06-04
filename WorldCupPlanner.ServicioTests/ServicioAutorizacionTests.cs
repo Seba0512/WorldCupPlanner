@@ -130,6 +130,28 @@ public class ServicioAutorizacionTests
             _servicio.VerificarEsPeriodista(usuario));
     }
 
+    [TestMethod]
+    public void VerificarEsPeriodista_CuandoUsuarioNoEsPeriodista_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var usuario = CrearUsuarioSinRoles();
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.VerificarEsPeriodista(usuario));
+    }
+
+    [TestMethod]
+    public void VerificarEsPeriodista_CuandoUsuarioEsAdministrador_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var usuario = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.VerificarEsPeriodista(usuario));
+    }
+
     // --- VerificarPermiso (método base) ---
 
     [TestMethod]
