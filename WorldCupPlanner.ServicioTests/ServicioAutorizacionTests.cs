@@ -152,6 +152,49 @@ public class ServicioAutorizacionTests
             _servicio.VerificarEsPeriodista(usuario));
     }
 
+    // --- VerificarPuedeConsultarFixture ---
+
+    [TestMethod]
+    public void VerificarPuedeConsultarFixture_CuandoUsuarioEsPeriodista_NoLanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioConRol(RolUsuario.Periodista);
+
+        // Act & Assert
+        _servicio.VerificarPuedeConsultarFixture(usuario);
+    }
+
+    [TestMethod]
+    public void VerificarPuedeConsultarFixture_CuandoUsuarioEsEditor_NoLanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioConRol(RolUsuario.Editor);
+
+        // Act & Assert
+        _servicio.VerificarPuedeConsultarFixture(usuario);
+    }
+
+    [TestMethod]
+    public void VerificarPuedeConsultarFixture_CuandoUsuarioEsAdministrador_NoLanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+
+        // Act & Assert
+        _servicio.VerificarPuedeConsultarFixture(usuario);
+    }
+
+    [TestMethod]
+    public void VerificarPuedeConsultarFixture_CuandoUsuarioSinRol_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var usuario = CrearUsuarioSinRoles();
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.VerificarPuedeConsultarFixture(usuario));
+    }
+
     // --- VerificarPermiso (método base) ---
 
     [TestMethod]
