@@ -3,6 +3,7 @@
 public enum RolUsuario
 {
     AdministradorDelSistema,
-    Editor
+    Editor,
+    Periodista
 }
 

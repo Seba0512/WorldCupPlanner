@@ -16,6 +16,9 @@ public class ServicioAutorizacion
     public void VerificarEsAdministrador(Usuario usuario)
         => VerificarPermiso(usuario, RolUsuario.AdministradorDelSistema);
 
+    public void VerificarEsPeriodista(Usuario usuario)
+        => VerificarPermiso(usuario, RolUsuario.Periodista);
+
     public void VerificarEsEditorOAdministrador(Usuario usuario)
     {
         if (!usuario.TieneRol(RolUsuario.Editor) && !usuario.TieneRol(RolUsuario.AdministradorDelSistema))
