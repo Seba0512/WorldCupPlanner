@@ -62,7 +62,7 @@ public class ServicioAutorizacionTests
         _servicio.VerificarEsAdministrador(usuario);
     }
 
-    // --- VerificarEsEditorOAdministrador ---
+
 
     [TestMethod]
     public void VerificarEsEditorOAdministrador_UsuarioEditor_NoLanzaExcepcion()
@@ -152,7 +152,7 @@ public class ServicioAutorizacionTests
             _servicio.VerificarEsPeriodista(usuario));
     }
 
-    // --- VerificarPuedeConsultarFixture ---
+
 
     [TestMethod]
     public void VerificarPuedeConsultarFixture_CuandoUsuarioEsPeriodista_NoLanzaExcepcion()
@@ -193,6 +193,30 @@ public class ServicioAutorizacionTests
         // Act & Assert
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
             _servicio.VerificarPuedeConsultarFixture(usuario));
+    }
+
+
+
+    [TestMethod]
+    public void VerificarEsAdministrador_CuandoUsuarioEsPeriodista_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var usuario = CrearUsuarioConRol(RolUsuario.Periodista);
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.VerificarEsAdministrador(usuario));
+    }
+
+    [TestMethod]
+    public void VerificarEsEditorOAdministrador_CuandoUsuarioEsPeriodista_LanzaAccesoDenegado()
+    {
+        // Arrange
+        var usuario = CrearUsuarioConRol(RolUsuario.Periodista);
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            _servicio.VerificarEsEditorOAdministrador(usuario));
     }
 
     // --- VerificarPermiso (método base) ---
