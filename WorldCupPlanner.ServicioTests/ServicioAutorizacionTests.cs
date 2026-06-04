@@ -107,6 +107,18 @@ public class ServicioAutorizacionTests
             _servicio.VerificarEsEditorOAdministrador(usuario));
     }
 
+    
+
+    [TestMethod]
+    public void VerificarEsPeriodista_CuandoUsuarioEsPeriodista_NoLanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioConRol(RolUsuario.Periodista);
+
+        // Act & Assert
+        _servicio.VerificarEsPeriodista(usuario);
+    }
+
     // --- VerificarPermiso (método base) ---
 
     [TestMethod]
