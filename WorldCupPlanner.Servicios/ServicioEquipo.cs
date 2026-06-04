@@ -66,6 +66,7 @@ namespace WorldCupPlanner.Servicios
             {
                 existente.Confederacion = equipo.Confederacion;
                 existente.RankingFIFA = equipo.RankingFIFA;
+                existente.Bandera = equipo.Bandera;
                 _repositorio.Actualizar(existente);
             }
 

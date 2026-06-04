@@ -3,6 +3,7 @@
 @inject ServicioEstadio ServicioEstadio
 @inject ServicioNotificacion ServicioNotificacion
 @inject ServicioUsuario ServicioUsuario
+@inject ServicioIncidencia ServicioIncidencia
 @inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
 @inject ServicioPersistenciaFixture ServicioPersistenciaFixture
 @inject NavigationManager NavigationManager
@@ -129,6 +130,57 @@ else
                 </div>
             </div>
 
+            <hr style="border-color: var(--border-subtle); margin: 20px 0;" />
+
+            <div class="form-group">
+                <label class="form-label">Tarjetas</label>
+
+                @if (_incidencias.Any())
+                {
+                    <div style="margin-bottom: 12px;">
+                        @foreach (var inc in _incidencias)
+                        {
+                            <div class="d-flex align-items-center gap-2" style="padding: 6px 0; border-bottom: 1px solid var(--border-subtle);">
+                                <span class="badge @(inc is TarjetaRoja ? "badge-danger" : "badge-gold")" style="min-width:70px; text-align:center;">
+                                    @(inc is TarjetaRoja ? "Roja" : "Amarilla")
+                                </span>
+                                <span style="flex:1; font-size:14px;">@inc.Equipo?.Nombre</span>
+                                <span style="font-size:13px; color:var(--text-secondary);">min. @inc.MinutoDelPartido</span>
+                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarTarjeta(inc.Id)">
+                                    <span class="oi oi-trash" aria-hidden="true"></span>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="row g-2 align-items-end">
+                    <div class="col-sm-3">
+                        <label class="form-label" style="font-size:13px;">Equipo</label>
+                        <select class="form-select form-select-sm" @bind="_equipoTarjeta">
+                            <option value="Local">@_partido.EquipoLocal?.Nombre (Local)</option>
+                            <option value="Visitante">@_partido.EquipoVisitante?.Nombre (Visitante)</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <label class="form-label" style="font-size:13px;">Minuto</label>
+                        <input type="number" class="form-control form-control-sm" @bind="_minutoTarjeta" min="1" max="90" />
+                    </div>
+                    <div class="col-sm-3">
+                        <label class="form-label" style="font-size:13px;">Tipo</label>
+                        <select class="form-select form-select-sm" @bind="_tipoTarjeta">
+                            <option value="Amarilla">Amarilla</option>
+                            <option value="Roja">Roja</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-4">
+                        <button type="button" class="btn btn-secondary btn-sm w-100" @onclick="AgregarTarjeta">
+                            <span class="oi oi-plus" aria-hidden="true"></span> Agregar tarjeta
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div class="d-flex gap-2 mt-2">
                 <button type="button" class="btn btn-primary" @onclick="Guardar">
                     <span class="oi oi-check" aria-hidden="true"></span> Guardar
@@ -148,6 +200,10 @@ else
     private int? _golesLocal;
     private int? _golesVisitante;
     private string _error = string.Empty;
+    private List<Incidencia> _incidencias = new();
+    private string _equipoTarjeta = "Local";
+    private int _minutoTarjeta = 1;
+    private TipoTarjeta _tipoTarjeta = TipoTarjeta.Amarilla;
 
     protected override void OnInitialized()
     {
@@ -159,6 +215,7 @@ else
             _nombreEstadio = _partido.Estadio?.Nombre ?? string.Empty;
             _golesLocal    = _partido.GolesLocal;
             _golesVisitante = _partido.GolesVisitante;
+            _incidencias   = ServicioIncidencia.ObtenerIncidencias(Id);
         }
     }
 
@@ -182,6 +239,31 @@ else
             ServicioPersistenciaFixture.GuardarPartidos(new[] { _partido });
             Toast.Exito("Partido actualizado correctamente.");
             NavigationManager.NavigateTo("/fixture");
+        }
+        catch (Exception ex) { _error = ex.Message; }
+    }
+
+    private void AgregarTarjeta()
+    {
+        if (_partido == null) return;
+        _error = string.Empty;
+        try
+        {
+            ServicioPersistenciaFixture.GuardarPartidos(new[] { _partido });
+            var equipo = _equipoTarjeta == "Local" ? _partido.EquipoLocal! : _partido.EquipoVisitante!;
+            ServicioIncidencia.AgregarTarjeta(_partido.Id, _tipoTarjeta, _minutoTarjeta, equipo);
+            _incidencias = ServicioIncidencia.ObtenerIncidencias(_partido.Id);
+        }
+        catch (Exception ex) { _error = ex.Message; }
+    }
+
+    private void EliminarTarjeta(int id)
+    {
+        _error = string.Empty;
+        try
+        {
+            ServicioIncidencia.EliminarIncidencia(id);
+            _incidencias = ServicioIncidencia.ObtenerIncidencias(_partido!.Id);
         }
         catch (Exception ex) { _error = ex.Message; }
     }

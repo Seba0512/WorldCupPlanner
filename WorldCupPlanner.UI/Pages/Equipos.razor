@@ -84,7 +84,15 @@
                 {
                     <tr>
                         <td style="color:var(--text-muted); width:40px">@i</td>
-                        <td style="font-weight:600">@equipo.Nombre</td>
+                        <td style="font-weight:600">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                @if (!string.IsNullOrEmpty(equipo.Bandera))
+                                {
+                                    <img src="@equipo.Bandera" alt="Bandera" style="height:20px; border-radius:2px;" />
+                                }
+                                <span>@equipo.Nombre</span>
+                            </div>
+                        </td>
                         <td><span class="badge badge-muted">@equipo.Confederacion</span></td>
                         <td style="font-family:var(--font-heading); font-weight:700">@equipo.RankingFIFA</td>
                         <td style="width:140px; text-align:right">

@@ -37,6 +37,8 @@ builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuarioSql>();
 builder.Services.AddScoped<ServicioUsuario>();
 builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacionSql>();
 builder.Services.AddScoped<ServicioNotificacion>();
+builder.Services.AddScoped<IRepositorioIncidencia, RepositorioIncidenciaSql>();
+builder.Services.AddScoped<ServicioIncidencia>();
 builder.Services.AddScoped<ServicioImportacionLegible>();
 builder.Services.AddScoped<InicializadorDatos>();
 

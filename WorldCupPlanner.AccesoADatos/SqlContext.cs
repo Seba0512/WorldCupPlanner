@@ -12,6 +12,7 @@ namespace WorldCupPlanner.AccesoADatos
         public DbSet<Partido> Partidos { get; set; }
         public DbSet<Auditoria> Auditorias { get; set; }
         public DbSet<Notificacion> Notificaciones { get; set; }
+        public DbSet<Incidencia> Incidencias { get; set; }
 
         public SqlContext(DbContextOptions<SqlContext> options) : base(options)
         {
@@ -129,10 +130,7 @@ namespace WorldCupPlanner.AccesoADatos
                     .OnDelete(DeleteBehavior.Restrict)
                     .IsRequired(false);
                 
-                entity.HasMany(p => p.Incidencias)
-                    .WithOne()
-                    .HasForeignKey("PartidoId")
-                    .OnDelete(DeleteBehavior.Cascade);
+                entity.Ignore(p => p.Incidencias);
             });
         }
 
@@ -165,9 +163,12 @@ namespace WorldCupPlanner.AccesoADatos
         {
             modelBuilder.Entity<Incidencia>(entity =>
             {
+                entity.ToTable("Incidencia");
                 entity.HasKey(i => i.Id);
                 entity.Property(i => i.Id).ValueGeneratedOnAdd();
                 entity.Property(i => i.MinutoDelPartido).IsRequired();
+                entity.Property(i => i.PartidoId).IsRequired(false);
+                entity.HasIndex(i => i.PartidoId);
 
                 entity.HasOne(i => i.Equipo)
                     .WithMany()

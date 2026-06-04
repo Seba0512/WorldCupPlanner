@@ -180,7 +180,7 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
 
                     b.HasIndex("PartidoId");
 
-                    b.ToTable("Incidencia");
+                    b.ToTable("Incidencia", (string)null);
 
                     b.HasDiscriminator<string>("Tipo").HasValue("Incidencia");
 
@@ -347,11 +347,6 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                         .HasForeignKey("EquipoId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("WorldCupPlanner.Dominio.Entidades.Partido", null)
-                        .WithMany("Incidencias")
-                        .HasForeignKey("PartidoId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.Navigation("Equipo");
                 });
 
@@ -396,11 +391,6 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Grupo", b =>
                 {
                     b.Navigation("Partidos");
-                });
-
-            modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Partido", b =>
-                {
-                    b.Navigation("Incidencias");
                 });
 #pragma warning restore 612, 618
         }

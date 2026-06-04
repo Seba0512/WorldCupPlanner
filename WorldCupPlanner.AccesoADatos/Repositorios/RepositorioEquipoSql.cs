@@ -40,6 +40,7 @@ public class RepositorioEquipoSql : IRepositorio<Equipo>, IRepositorioConClaveEd
         existente.Nombre = equipo.Nombre;
         existente.Confederacion = equipo.Confederacion;
         existente.RankingFIFA = equipo.RankingFIFA;
+        existente.Bandera = equipo.Bandera;
         _contexto.SaveChanges();
     }
 
