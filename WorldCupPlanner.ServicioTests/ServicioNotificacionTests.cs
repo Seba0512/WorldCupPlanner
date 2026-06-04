@@ -1,6 +1,7 @@
 using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
@@ -31,6 +32,53 @@ public class ServicioNotificacionTests
         Assert.AreEqual(1, notificaciones2.Count);
     }
 
+
+
+    [TestMethod]
+    public void MarcarComoLeida_CuandoNotificacionExiste_ActualizaEsLeidaATrue()
+    {
+        // Arrange
+        var repositorio = new RepositorioNotificacionEnMemoria();
+        var servicio = new ServicioNotificacion(repositorio);
+        var usuario = CrearPeriodista("leida@test.com");
+        var notificacion = new Notificacion { UsuarioDestinatarioId = usuario.Id };
+        repositorio.Agregar(notificacion);
+
+        // Act
+        servicio.MarcarComoLeida(notificacion.Id, usuario.Id);
+
+        // Assert
+        Assert.IsTrue(repositorio.ObtenerPorUsuario(usuario.Id).First().EsLeida);
+    }
+
+    [TestMethod]
+    public void MarcarComoLeida_CuandoNotificacionNoPertenecAlUsuario_LanzaExcepcion()
+    {
+        // Arrange
+        var repositorio = new RepositorioNotificacionEnMemoria();
+        var servicio = new ServicioNotificacion(repositorio);
+        var usuario = CrearPeriodista("duenio@test.com");
+        var otroUsuario = CrearPeriodista("otro@test.com");
+        var notificacion = new Notificacion { UsuarioDestinatarioId = usuario.Id };
+        repositorio.Agregar(notificacion);
+
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+            servicio.MarcarComoLeida(notificacion.Id, otroUsuario.Id));
+    }
+
+    [TestMethod]
+    public void MarcarComoLeida_CuandoNotificacionNoExiste_LanzaExcepcion()
+    {
+        // Arrange
+        var repositorio = new RepositorioNotificacionEnMemoria();
+        var servicio = new ServicioNotificacion(repositorio);
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInexistenteExcepcion>(() =>
+            servicio.MarcarComoLeida(999, 1));
+    }
+
     [TestMethod]
     public void GenerarNotificacionesResultado_CuandoNoHayPeriodistas_NoCreaNingunNotificacion()
     {
@@ -53,7 +101,7 @@ public class ServicioNotificacionTests
         var repositorio = new RepositorioNotificacionEnMemoria();
         var servicio = new ServicioNotificacion(repositorio);
         var partido = new Partido();
-        var editor = new Usuario(new DatosUsuario { Nombre = "Carlos", Apellido = "Gomez", Email = "carlos@test.com", FechaNacimiento = "01-01-1990" });
+        var editor = new Usuario(new DatosUsuario { Nombre = "Sebita", Apellido = "Luciardi", Email = "carlos@test.com", FechaNacimiento = "01-01-1990" });
         editor.AgregarRol(RolUsuario.Editor);
 
         // Act
@@ -61,5 +109,12 @@ public class ServicioNotificacionTests
 
         // Assert
         Assert.AreEqual(0, repositorio.ObtenerPorUsuario(editor.Id).Count);
+    }
+
+    private static Usuario CrearPeriodista(string email)
+    {
+        var usuario = new Usuario(new DatosUsuario { Nombre = "Test", Apellido = "Test", Email = email, FechaNacimiento = "01-01-1990" });
+        usuario.AgregarRol(RolUsuario.Periodista);
+        return usuario;
     }
 }
