@@ -107,7 +107,7 @@ namespace WorldCupPlanner.AccesoADatos
             modelBuilder.Entity<Partido>(entity =>
             {
                 entity.HasKey(p => p.Id);
-                entity.Property(p => p.Id).ValueGeneratedOnAdd();
+                entity.Property(p => p.Id).ValueGeneratedNever();
                 entity.Property(p => p.Fecha).IsRequired();
                 entity.Property(p => p.Fase).IsRequired();
 
