@@ -16,7 +16,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<IRepositorioConId<Auditoria>, RepositorioAuditoriaSql>();
 builder.Services.AddScoped<IRepositorio<Equipo>, RepositorioEquipoSql>();
 builder.Services.AddScoped<IRepositorio<Estadio>, RepositorioEstadioSql>();
-builder.Services.AddSingleton<IRepositorio<Grupo>, RepositorioGrupoEnMemoria>();
+builder.Services.AddScoped<IRepositorio<Grupo>, RepositorioGrupoSql>();
 builder.Services.AddSingleton<IRepositorio<Partido>, RepositorioPartidoEnMemoria>();
 builder.Services.AddScoped<ServicioAuditoria>();
 builder.Services.AddScoped<ServicioEstadio>();
