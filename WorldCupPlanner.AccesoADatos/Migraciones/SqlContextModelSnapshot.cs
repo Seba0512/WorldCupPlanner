@@ -70,6 +70,43 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                     b.ToTable("Auditorias");
                 });
 
+            modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.ConfiguracionTorneo", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaInicioTorneo")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("HoraInicioPartidos")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("MaxPartidosPorDia")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SemillaCompletar")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SemillaCrucesFase")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SemillaFixture")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SemillaSimulation")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SeparacionEntreFechas")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SeparacionHorasEntrePartidos")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ConfiguracionesTorneo");
+                });
+
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Equipo", b =>
                 {
                     b.Property<int>("Id")

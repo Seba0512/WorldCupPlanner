@@ -1,3 +1,4 @@
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -7,12 +8,20 @@ namespace WorldCupPlanner.Servicios;
 public class ServicioConfiguracionTorneo
 {
     private readonly ServicioAuditoria? _auditoria;
+    private readonly IRepositorioConfiguracionTorneo? _repositorio;
     private ConfiguracionTorneo _configuracionActual = new();
     private ConfiguracionTorneo? _configuracionUsadaParaFixture;
 
-    public ServicioConfiguracionTorneo(ServicioAuditoria? auditoria = null)
+    public ServicioConfiguracionTorneo(ServicioAuditoria? auditoria = null, IRepositorioConfiguracionTorneo? repositorio = null)
     {
         _auditoria = auditoria;
+        _repositorio = repositorio;
+
+        if (_repositorio != null)
+        {
+            _configuracionActual = _repositorio.ObtenerConfiguracionActual();
+            _configuracionUsadaParaFixture = _repositorio.ObtenerConfiguracionUsadaParaFixture();
+        }
     }
 
     public bool EsConfiguracionModificable => _configuracionUsadaParaFixture == null;
@@ -26,6 +35,7 @@ public class ServicioConfiguracionTorneo
         ValidarSemillasNoNegativas(nuevaConfiguracion);
         ValidarParametrosNumericos(nuevaConfiguracion);
         _configuracionActual = CopiarConfiguracion(nuevaConfiguracion);
+        _repositorio?.GuardarConfiguracionActual(_configuracionActual);
         _auditoria?.Registrar(
             $"{usuario.Nombre} {usuario.Apellido}",
             "Modificación de configuración del torneo",
@@ -42,6 +52,7 @@ public class ServicioConfiguracionTorneo
     public void RegistrarFixtureGenerado(ConfiguracionTorneo configuracionUsada)
     {
         _configuracionUsadaParaFixture = CopiarConfiguracion(configuracionUsada);
+        _repositorio?.GuardarConfiguracionUsadaParaFixture(_configuracionUsadaParaFixture);
     }
 
     public ConfiguracionTorneo ObtenerConfiguracionUsadaParaFixture()

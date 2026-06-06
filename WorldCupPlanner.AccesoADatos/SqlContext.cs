@@ -13,6 +13,7 @@ namespace WorldCupPlanner.AccesoADatos
         public DbSet<Auditoria> Auditorias { get; set; }
         public DbSet<Notificacion> Notificaciones { get; set; }
         public DbSet<Incidencia> Incidencias { get; set; }
+        public DbSet<ConfiguracionTorneo> ConfiguracionesTorneo { get; set; }
 
         public SqlContext(DbContextOptions<SqlContext> options) : base(options)
         {
@@ -28,6 +29,7 @@ namespace WorldCupPlanner.AccesoADatos
             ConfigurarAuditoria(modelBuilder);
             ConfigurarIncidencia(modelBuilder);
             ConfigurarNotificacion(modelBuilder);
+            ConfigurarConfiguracionTorneo(modelBuilder);
         }
 
         private static void ConfigurarUsuario(ModelBuilder modelBuilder)
@@ -156,6 +158,26 @@ namespace WorldCupPlanner.AccesoADatos
                 entity.Property(n => n.Timestamp).IsRequired();
                 entity.Property(n => n.UsuarioDestinatarioId).IsRequired();
                 entity.Property(n => n.EsLeida).IsRequired();
+            });
+        }
+
+        private static void ConfigurarConfiguracionTorneo(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ConfiguracionTorneo>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Id).ValueGeneratedNever();
+                entity.Property(c => c.SemillaFixture).IsRequired();
+                entity.Property(c => c.SemillaCompletar).IsRequired();
+                entity.Property(c => c.SemillaCrucesFase).IsRequired();
+                entity.Property(c => c.SemillaSimulation).IsRequired();
+                entity.Property(c => c.FechaInicioTorneo).IsRequired();
+                entity.Property(c => c.MaxPartidosPorDia).IsRequired();
+                entity.Property(c => c.SeparacionEntreFechas).IsRequired();
+                entity.Property(c => c.SeparacionHorasEntrePartidos).IsRequired();
+                entity.Property(c => c.HoraInicioPartidos)
+                    .IsRequired()
+                    .HasConversion(ts => ts.Ticks, ticks => new TimeSpan(ticks));
             });
         }
 
