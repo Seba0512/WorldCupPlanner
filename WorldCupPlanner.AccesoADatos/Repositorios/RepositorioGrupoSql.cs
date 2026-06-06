@@ -55,7 +55,10 @@ public class RepositorioGrupoSql : IRepositorio<Grupo>
     {
         return _contexto.Grupos
             .Include(g => g.Equipos)
-            .Include(g => g.Partidos)
+            .Include(g => g.Partidos).ThenInclude(p => p.EquipoLocal)
+            .Include(g => g.Partidos).ThenInclude(p => p.EquipoVisitante)
+            .Include(g => g.Partidos).ThenInclude(p => p.Estadio)
+            .Include(g => g.Partidos).ThenInclude(p => p.GanadorPorPenales)
             .AsNoTracking()
             .Where(predicado)
             .ToList();

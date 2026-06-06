@@ -1,5 +1,6 @@
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -57,6 +58,16 @@ public class ServicioPersistenciaFixture
             _repositorioGrupo.Agregar(grupo);
             etiquetasExistentes.Add(grupo.Etiqueta);
         }
+    }
+
+    public void CargarEnEstadoTorneo(EstadoTorneo estadoTorneo)
+    {
+        var grupos = _repositorioGrupo.Buscar(_ => true);
+        if (!grupos.Any()) return;
+
+        estadoTorneo.Fixture = new Fixture { Grupos = grupos };
+        estadoTorneo.PartidosEliminatorios = _repositorioPartido
+            .Buscar(p => p.Fase != FaseTorneo.FaseDeGrupos);
     }
 
     private static void CopiarDatosPartido(Partido origen, Partido destino)

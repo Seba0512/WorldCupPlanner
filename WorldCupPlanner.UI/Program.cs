@@ -54,6 +54,10 @@ using (var scope = app.Services.CreateScope())
 {
     scope.ServiceProvider.GetRequiredService<SqlContext>().Database.Migrate();
     scope.ServiceProvider.GetRequiredService<InicializadorDatos>().InicializarUsuariosSemilla();
+
+    var persistencia = scope.ServiceProvider.GetRequiredService<ServicioPersistenciaFixture>();
+    var estadoTorneo = app.Services.GetRequiredService<EstadoTorneo>();
+    persistencia.CargarEnEstadoTorneo(estadoTorneo);
 }
 
 if (!app.Environment.IsDevelopment())

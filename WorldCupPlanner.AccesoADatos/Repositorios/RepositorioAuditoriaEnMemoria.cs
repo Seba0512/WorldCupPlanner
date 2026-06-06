@@ -6,7 +6,7 @@ namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
 public class RepositorioAuditoriaEnMemoria : IRepositorioConId<Auditoria>
 {
-    private readonly List<Auditoria> _logs = new();
+    private readonly List<Auditoria> _logs = new(); 
     private int _contador;
 
     public int SiguienteId() => ++_contador;
