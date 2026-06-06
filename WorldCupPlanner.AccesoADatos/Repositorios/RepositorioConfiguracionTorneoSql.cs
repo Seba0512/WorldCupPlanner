@@ -43,7 +43,19 @@ public class RepositorioConfiguracionTorneoSql : IRepositorioConfiguracionTorneo
 
     private void GuardarConfiguracion(ConfiguracionTorneo configuracion, int id)
     {
-        configuracion.Id = id;
+        var entidad = new ConfiguracionTorneo
+        {
+            Id = id,
+            SemillaFixture = configuracion.SemillaFixture,
+            SemillaCompletar = configuracion.SemillaCompletar,
+            SemillaCrucesFase = configuracion.SemillaCrucesFase,
+            SemillaSimulation = configuracion.SemillaSimulation,
+            FechaInicioTorneo = configuracion.FechaInicioTorneo,
+            MaxPartidosPorDia = configuracion.MaxPartidosPorDia,
+            SeparacionEntreFechas = configuracion.SeparacionEntreFechas,
+            HoraInicioPartidos = configuracion.HoraInicioPartidos,
+            SeparacionHorasEntrePartidos = configuracion.SeparacionHorasEntrePartidos
+        };
 
         var local = _contexto.ConfiguracionesTorneo.Local.FirstOrDefault(c => c.Id == id);
         if (local != null)
@@ -52,9 +64,9 @@ public class RepositorioConfiguracionTorneoSql : IRepositorioConfiguracionTorneo
         var existe = _contexto.ConfiguracionesTorneo.AsNoTracking().Any(c => c.Id == id);
 
         if (existe)
-            _contexto.ConfiguracionesTorneo.Update(configuracion);
+            _contexto.ConfiguracionesTorneo.Update(entidad);
         else
-            _contexto.ConfiguracionesTorneo.Add(configuracion);
+            _contexto.ConfiguracionesTorneo.Add(entidad);
 
         _contexto.SaveChanges();
     }

@@ -17,8 +17,10 @@ public class ServicioNotificacionTests
         var servicio = new ServicioNotificacion(repositorio);
         var partido = new Partido();
         var periodista1 = new Usuario(new DatosUsuario { Nombre = "Juan", Apellido = "Perez", Email = "juan@test.com", FechaNacimiento = "01-01-1990" });
+        periodista1.Id = SiguienteIdUsuario();
         periodista1.AgregarRol(RolUsuario.Periodista);
         var periodista2 = new Usuario(new DatosUsuario { Nombre = "Ana", Apellido = "Lopez", Email = "ana@test.com", FechaNacimiento = "01-01-1990" });
+        periodista2.Id = SiguienteIdUsuario();
         periodista2.AgregarRol(RolUsuario.Periodista);
         var periodistas = new List<Usuario> { periodista1, periodista2 };
 
@@ -149,9 +151,13 @@ public class ServicioNotificacionTests
         Assert.AreEqual(0, resultado.Count);
     }
 
+    private static int _contadorId = 0;
+    private static int SiguienteIdUsuario() => Interlocked.Increment(ref _contadorId);
+
     private static Usuario CrearPeriodista(string email)
     {
         var usuario = new Usuario(new DatosUsuario { Nombre = "Test", Apellido = "Test", Email = email, FechaNacimiento = "01-01-1990" });
+        usuario.Id = SiguienteIdUsuario();
         usuario.AgregarRol(RolUsuario.Periodista);
         return usuario;
     }

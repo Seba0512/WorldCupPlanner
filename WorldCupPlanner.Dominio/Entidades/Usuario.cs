@@ -20,7 +20,7 @@ public class Usuario
     private string? _contraseniaCifrada;
     private HashSet<RolUsuario> _roles = [];
 
-    public int Id { get; private set; }
+    public int Id { get; set; }
     public string Nombre { get; private set; } = string.Empty;
     public string Apellido { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
