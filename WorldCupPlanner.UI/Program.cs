@@ -17,7 +17,7 @@ builder.Services.AddScoped<IRepositorioConId<Auditoria>, RepositorioAuditoriaSql
 builder.Services.AddScoped<IRepositorio<Equipo>, RepositorioEquipoSql>();
 builder.Services.AddScoped<IRepositorio<Estadio>, RepositorioEstadioSql>();
 builder.Services.AddScoped<IRepositorio<Grupo>, RepositorioGrupoSql>();
-builder.Services.AddSingleton<IRepositorio<Partido>, RepositorioPartidoEnMemoria>();
+builder.Services.AddScoped<IRepositorio<Partido>, RepositorioPartidoSql>();
 builder.Services.AddScoped<ServicioAuditoria>();
 builder.Services.AddScoped<ServicioEstadio>();
 builder.Services.AddScoped<ServicioEquipo>(sp =>
@@ -32,8 +32,8 @@ builder.Services.AddScoped<IRepositorioConfiguracionTorneo, RepositorioConfigura
 builder.Services.AddScoped<ServicioConfiguracionTorneo>();
 builder.Services.AddSingleton<EstadoTorneo>();
 builder.Services.AddScoped<ServicioPersistenciaFixture>();
-builder.Services.AddSingleton<ServicioPartido>(sp =>
-    new ServicioPartido(sp.GetRequiredService<EstadoTorneo>()));
+builder.Services.AddScoped<ServicioPartido>(sp =>
+    new ServicioPartido(sp.GetRequiredService<IRepositorio<Partido>>()));
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuarioSql>();
 builder.Services.AddScoped<ServicioUsuario>();
 builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacionSql>();
