@@ -298,6 +298,27 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                     b.ToTable("Partidos");
                 });
 
+            modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.TorneoArchivado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("GruposJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PartidosEliminatoriosJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TorneosArchivados");
+                });
+
             modelBuilder.Entity("WorldCupPlanner.Dominio.Entidades.Usuario", b =>
                 {
                     b.Property<int>("Id")

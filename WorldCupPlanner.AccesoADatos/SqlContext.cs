@@ -14,6 +14,7 @@ namespace WorldCupPlanner.AccesoADatos
         public DbSet<Notificacion> Notificaciones { get; set; }
         public DbSet<Incidencia> Incidencias { get; set; }
         public DbSet<ConfiguracionTorneo> ConfiguracionesTorneo { get; set; }
+        public DbSet<TorneoArchivado> TorneosArchivados { get; set; }
 
         public SqlContext(DbContextOptions<SqlContext> options) : base(options)
         {
@@ -30,6 +31,7 @@ namespace WorldCupPlanner.AccesoADatos
             ConfigurarIncidencia(modelBuilder);
             ConfigurarNotificacion(modelBuilder);
             ConfigurarConfiguracionTorneo(modelBuilder);
+            ConfigurarTorneoArchivado(modelBuilder);
         }
 
         private static void ConfigurarUsuario(ModelBuilder modelBuilder)
@@ -178,6 +180,17 @@ namespace WorldCupPlanner.AccesoADatos
                 entity.Property(c => c.HoraInicioPartidos)
                     .IsRequired()
                     .HasConversion(ts => ts.Ticks, ticks => new TimeSpan(ticks));
+            });
+        }
+
+        private static void ConfigurarTorneoArchivado(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<TorneoArchivado>(entity =>
+            {
+                entity.HasKey(t => t.Id);
+                entity.Property(t => t.Id).ValueGeneratedOnAdd();
+                entity.Property(t => t.GruposJson).IsRequired().HasColumnType("nvarchar(max)");
+                entity.Property(t => t.PartidosEliminatoriosJson).IsRequired().HasColumnType("nvarchar(max)");
             });
         }
 

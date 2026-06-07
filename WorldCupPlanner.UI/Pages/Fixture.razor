@@ -672,7 +672,7 @@ else
         EstadoTorneo.FixtureAnterior = EstadoTorneo.Fixture;
         EstadoTorneo.PartidosEliminatoriosAnteriores = EstadoTorneo.PartidosEliminatorios;
         EstadoTorneo.TorneoFinalizado = true;
-        ServicioPersistenciaFixture.LimpiarFixture();
+        ServicioPersistenciaFixture.ArchivarTorneoActual();
         EstadoTorneo.Fixture = null;
         EstadoTorneo.PartidosEliminatorios = new();
         NavigationManager.NavigateTo("/fixture");

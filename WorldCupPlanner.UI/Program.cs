@@ -29,6 +29,7 @@ builder.Services.AddSingleton<ServicioClasificacion>();
 builder.Services.AddSingleton<ServicioCruces>();
 builder.Services.AddSingleton<ServicioSimulacion>();
 builder.Services.AddScoped<IRepositorioConfiguracionTorneo, RepositorioConfiguracionTorneoSql>();
+builder.Services.AddScoped<IRepositorioTorneoArchivado, RepositorioTorneoArchivadoSql>();
 builder.Services.AddScoped<ServicioConfiguracionTorneo>();
 builder.Services.AddSingleton<EstadoTorneo>();
 builder.Services.AddScoped<ServicioPersistenciaFixture>();
