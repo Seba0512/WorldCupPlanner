@@ -20,6 +20,13 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
             migrationBuilder.DropIndex("IX_Partidos_GanadorPorPenalesId", "Partidos");
             migrationBuilder.DropIndex("IX_Partidos_GrupoId", "Partidos");
 
+            migrationBuilder.DropForeignKey("FK_Partidos_Equipos_EquipoLocalId", "Partidos");
+            migrationBuilder.DropForeignKey("FK_Partidos_Equipos_EquipoVisitanteId", "Partidos");
+            migrationBuilder.DropForeignKey("FK_Partidos_Equipos_GanadorPorPenalesId", "Partidos");
+            migrationBuilder.DropForeignKey("FK_Partidos_Estadios_EstadioId", "Partidos");
+            migrationBuilder.DropForeignKey("FK_Partidos_Grupos_GrupoId", "Partidos");
+            migrationBuilder.DropPrimaryKey("PK_Partidos", "Partidos");
+
             migrationBuilder.RenameTable(name: "Partidos", newName: "Partidos_Temp");
 
             migrationBuilder.CreateTable(
@@ -94,6 +101,13 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
             migrationBuilder.DropIndex("IX_Partidos_EstadioId", "Partidos");
             migrationBuilder.DropIndex("IX_Partidos_GanadorPorPenalesId", "Partidos");
             migrationBuilder.DropIndex("IX_Partidos_GrupoId", "Partidos");
+
+            migrationBuilder.DropForeignKey("FK_Partidos_Equipos_EquipoLocalId", "Partidos");
+            migrationBuilder.DropForeignKey("FK_Partidos_Equipos_EquipoVisitanteId", "Partidos");
+            migrationBuilder.DropForeignKey("FK_Partidos_Equipos_GanadorPorPenalesId", "Partidos");
+            migrationBuilder.DropForeignKey("FK_Partidos_Estadios_EstadioId", "Partidos");
+            migrationBuilder.DropForeignKey("FK_Partidos_Grupos_GrupoId", "Partidos");
+            migrationBuilder.DropPrimaryKey("PK_Partidos", "Partidos");
 
             migrationBuilder.RenameTable(name: "Partidos", newName: "Partidos_Temp");
 

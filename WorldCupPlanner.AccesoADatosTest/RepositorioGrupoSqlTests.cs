@@ -157,4 +157,45 @@ public class RepositorioGrupoSqlTests
         var grupos = repositorioVerificacion.Buscar(_ => true);
         Assert.AreEqual(4, grupos.Count);
     }
+
+    [TestMethod]
+    public void AgregarGrupo_DespuesDeEliminarConMismosEquipos_NoDebeDuplicarTracking()
+    {
+        // Arrange
+        using var contexto = CrearContexto(nameof(AgregarGrupo_DespuesDeEliminarConMismosEquipos_NoDebeDuplicarTracking));
+        var equipos = new List<Equipo>
+        {
+            CrearEquipo("Uruguay", Confederacion.CONMEBOL),
+            CrearEquipo("Argentina", Confederacion.CONMEBOL),
+            CrearEquipo("Francia"),
+            CrearEquipo("Espana")
+        };
+        contexto.Equipos.AddRange(equipos);
+        contexto.SaveChanges();
+
+        var repositorio = new RepositorioGrupoSql(contexto);
+        var grupoAnterior = new Grupo("A", equipos);
+        repositorio.Agregar(grupoAnterior);
+        repositorio.Eliminar(grupoAnterior);
+
+        var equiposDelNuevoTorneo = equipos
+            .Select(e => new Equipo
+            {
+                Id = e.Id,
+                Nombre = e.Nombre,
+                RankingFIFA = e.RankingFIFA,
+                Confederacion = e.Confederacion,
+                Bandera = e.Bandera
+            })
+            .ToList();
+        var grupoNuevo = new Grupo("B", equiposDelNuevoTorneo);
+
+        // Act
+        repositorio.Agregar(grupoNuevo);
+
+        // Assert
+        var grupos = repositorio.Buscar(g => g.Etiqueta == "B");
+        Assert.AreEqual(1, grupos.Count);
+        Assert.AreEqual(4, grupos[0].Equipos.Count);
+    }
 }

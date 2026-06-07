@@ -243,6 +243,23 @@ public class ServicioEquipoTests
     }
 
     [TestMethod]
+    public void Eliminar_DespuesDeLimpiarFixtureGenerado_SeEliminaCorrectamente()
+    {
+        // Arrange
+        var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+        var fixture = CrearFixtureConEquipo(equipo);
+        _servicio.Agregar(equipo);
+        _servicio.RegistrarFixtureGenerado(fixture);
+
+        // Act
+        _servicio.LimpiarFixtureGenerado();
+        _servicio.Eliminar(equipo);
+
+        // Assert
+        Assert.AreEqual(0, _servicio.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
     public void Eliminar_CuandoFixtureGenerado_EquipoNoEnFixture_DebeLanzarExcepcion()
     {
         // Arrange

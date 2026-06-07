@@ -16,43 +16,30 @@ public class RepositorioPartidoSql : IRepositorio<Partido>
 
     public void Agregar(Partido partido)
     {
-        AdjuntarSiDesvinculado(partido.Estadio);
-        AdjuntarSiDesvinculado(partido.EquipoLocal);
-        AdjuntarSiDesvinculado(partido.EquipoVisitante);
-        AdjuntarSiDesvinculado(partido.GanadorPorPenales);
-        if (partido.Grupo != null)
-            AdjuntarSiDesvinculado(partido.Grupo);
+        if (_contexto.Partidos.Any(p => p.Id == partido.Id))
+        {
+            Actualizar(partido);
+            return;
+        }
 
-        // Usar Entry().State en lugar de Add() para evitar que EF recorra el grafo
-        // y encuentre instancias duplicadas de entidades relacionadas ya rastreadas.
-        _contexto.Entry(partido).State = EntityState.Added;
-        _contexto.SaveChanges();
+        var persistido = CrearPartidoPersistible(partido);
+        _contexto.Partidos.Add(persistido);
+        AsignarRelaciones(persistido, partido);
+        GuardarCambios();
     }
 
     public void Actualizar(Partido partido)
     {
-        var existe = _contexto.Partidos.Any(p => p.Id == partido.Id);
-        if (!existe)
+        var existente = _contexto.Partidos.FirstOrDefault(p => p.Id == partido.Id);
+        if (existente == null)
             throw new EntidadInexistenteExcepcion("El partido no existe.");
 
-        DesvincularInstanciaLocal(partido.Id, partido);
-        AdjuntarSiDesvinculado(partido.Estadio);
-        AdjuntarSiDesvinculado(partido.EquipoLocal);
-        AdjuntarSiDesvinculado(partido.EquipoVisitante);
-        AdjuntarSiDesvinculado(partido.GanadorPorPenales);
-        if (partido.Grupo != null)
-            AdjuntarSiDesvinculado(partido.Grupo);
-
-        // Usar Entry().State en lugar de Update() para evitar que EF recorra el grafo
-        // y encuentre instancias duplicadas de entidades relacionadas ya rastreadas.
-        _contexto.Entry(partido).State = EntityState.Modified;
-
-        // EF no siempre resuelve shadow FKs opcionales al establecer estado directamente;
-        // se asignan explícitamente para garantizar que GanadorPorPenalesId se persista.
-        _contexto.Entry(partido).Property("GanadorPorPenalesId").CurrentValue =
-            partido.GanadorPorPenales?.Id;
-
-        _contexto.SaveChanges();
+        existente.Fecha = partido.Fecha;
+        existente.Fase = partido.Fase;
+        existente.GolesLocal = partido.GolesLocal;
+        existente.GolesVisitante = partido.GolesVisitante;
+        AsignarRelaciones(existente, partido);
+        GuardarCambios();
     }
 
     public void Eliminar(Partido partido)
@@ -62,7 +49,7 @@ public class RepositorioPartidoSql : IRepositorio<Partido>
             throw new EntidadInexistenteExcepcion("El partido no existe.");
 
         _contexto.Partidos.Remove(existente);
-        _contexto.SaveChanges();
+        GuardarCambios();
     }
 
     public List<Partido> Buscar(Func<Partido, bool> predicado)
@@ -79,41 +66,64 @@ public class RepositorioPartidoSql : IRepositorio<Partido>
             .ToList();
     }
 
-    private void AdjuntarSiDesvinculado<T>(T? entidad) where T : class
+    private static Partido CrearPartidoPersistible(Partido partido) => new()
     {
-        if (entidad == null) return;
-        // Si la misma instancia ya está rastreada, no hacer nada.
-        // Si está Detached, adjuntarla como Unchanged para que EF resuelva los FK sin insertarla.
-        var entry = _contexto.Entry(entidad);
-        if (entry.State == EntityState.Detached)
-        {
-            try { _contexto.Attach(entidad); }
-            catch (InvalidOperationException)
-            {
-                // Ya existe otra instancia con el mismo Id rastreada: ignorar,
-                // EF resolverá el shadow FK desde el Id del objeto de navegación.
-            }
-        }
+        Id = partido.Id,
+        Fecha = partido.Fecha,
+        Fase = partido.Fase,
+        GolesLocal = partido.GolesLocal,
+        GolesVisitante = partido.GolesVisitante
+    };
+
+    private void AsignarRelaciones(Partido destino, Partido origen)
+    {
+        var entrada = _contexto.Entry(destino);
+        entrada.Property("EstadioId").CurrentValue = ObtenerEstadioId(origen.Estadio);
+        entrada.Property("EquipoLocalId").CurrentValue = ObtenerEquipoId(origen.EquipoLocal);
+        entrada.Property("EquipoVisitanteId").CurrentValue = ObtenerEquipoId(origen.EquipoVisitante);
+        entrada.Property("GanadorPorPenalesId").CurrentValue = ObtenerEquipoId(origen.GanadorPorPenales);
+        entrada.Property("GrupoId").CurrentValue = ObtenerGrupoId(origen.Grupo);
     }
 
-    private void MarcarRelacionesComoSinCambios(Partido partido)
+    private int? ObtenerEquipoId(Equipo? equipo)
     {
-        if (partido.Estadio != null)
-            _contexto.Entry(partido.Estadio).State = EntityState.Unchanged;
-        if (partido.EquipoLocal != null)
-            _contexto.Entry(partido.EquipoLocal).State = EntityState.Unchanged;
-        if (partido.EquipoVisitante != null)
-            _contexto.Entry(partido.EquipoVisitante).State = EntityState.Unchanged;
-        if (partido.GanadorPorPenales != null)
-            _contexto.Entry(partido.GanadorPorPenales).State = EntityState.Unchanged;
-        if (partido.Grupo != null)
-            _contexto.Entry(partido.Grupo).State = EntityState.Unchanged;
+        if (equipo == null) return null;
+        if (equipo.Id > 0) return equipo.Id;
+
+        return _contexto.Equipos
+            .AsNoTracking()
+            .Where(e => e.Nombre == equipo.Nombre)
+            .Select(e => (int?)e.Id)
+            .FirstOrDefault();
     }
 
-    private void DesvincularInstanciaLocal(int id, Partido entidad)
+    private int? ObtenerEstadioId(Estadio? estadio)
     {
-        var local = _contexto.Partidos.Local.FirstOrDefault(p => p.Id == id);
-        if (local != null && !ReferenceEquals(local, entidad))
-            _contexto.Entry(local).State = EntityState.Detached;
+        if (estadio == null) return null;
+        if (estadio.Id > 0) return estadio.Id;
+
+        return _contexto.Estadios
+            .AsNoTracking()
+            .Where(e => e.Nombre == estadio.Nombre)
+            .Select(e => (int?)e.Id)
+            .FirstOrDefault();
+    }
+
+    private int? ObtenerGrupoId(Grupo? grupo)
+    {
+        if (grupo == null) return null;
+        if (grupo.Id > 0) return grupo.Id;
+
+        return _contexto.Grupos
+            .AsNoTracking()
+            .Where(g => g.Etiqueta == grupo.Etiqueta)
+            .Select(g => (int?)g.Id)
+            .FirstOrDefault();
+    }
+
+    private void GuardarCambios()
+    {
+        _contexto.SaveChanges();
+        _contexto.ChangeTracker.Clear();
     }
 }

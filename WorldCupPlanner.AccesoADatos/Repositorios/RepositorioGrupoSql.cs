@@ -16,32 +16,14 @@ public class RepositorioGrupoSql : IRepositorio<Grupo>
 
     public void Agregar(Grupo grupo)
     {
+        var persistido = new Grupo(grupo.Etiqueta);
         foreach (var equipo in grupo.Equipos)
-        {
-            if (_contexto.Entry(equipo).State == EntityState.Detached)
-                _contexto.Equipos.Attach(equipo);
-        }
+            persistido.Equipos.Add(ObtenerEquipoParaRelacion(equipo));
 
-        foreach (var partido in grupo.Partidos)
-        {
-            AdjuntarSiDesvinculado(partido.Estadio);
-            AdjuntarSiDesvinculado(partido.EquipoLocal);
-            AdjuntarSiDesvinculado(partido.EquipoVisitante);
-            AdjuntarSiDesvinculado(partido.GanadorPorPenales);
-        }
-
-        _contexto.Grupos.Add(grupo);
+        _contexto.Grupos.Add(persistido);
         _contexto.SaveChanges();
-    }
-
-    private void AdjuntarSiDesvinculado<T>(T? entidad) where T : class
-    {
-        if (entidad == null) return;
-        if (_contexto.Entry(entidad).State == EntityState.Detached)
-        {
-            try { _contexto.Attach(entidad); }
-            catch (InvalidOperationException) { }
-        }
+        grupo.Id = persistido.Id;
+        _contexto.ChangeTracker.Clear();
     }
 
     public void Actualizar(Grupo grupo)
@@ -50,13 +32,14 @@ public class RepositorioGrupoSql : IRepositorio<Grupo>
         if (!existe)
             throw new EntidadInexistenteExcepcion("El grupo no existe.");
 
-        DesvincularInstanciaLocal(grupo.Id, grupo);
-        _contexto.Grupos.Update(grupo);
+        var existente = ObtenerGrupoPersistido(grupo)!;
+        existente.Equipos.Clear();
 
         foreach (var equipo in grupo.Equipos)
-            _contexto.Entry(equipo).State = EntityState.Unchanged;
+            existente.Equipos.Add(ObtenerEquipoParaRelacion(equipo));
 
         _contexto.SaveChanges();
+        _contexto.ChangeTracker.Clear();
     }
 
     public void Eliminar(Grupo grupo)
@@ -67,6 +50,7 @@ public class RepositorioGrupoSql : IRepositorio<Grupo>
 
         _contexto.Grupos.Remove(existente);
         _contexto.SaveChanges();
+        _contexto.ChangeTracker.Clear();
     }
 
     public List<Grupo> Buscar(Func<Grupo, bool> predicado)
@@ -90,10 +74,28 @@ public class RepositorioGrupoSql : IRepositorio<Grupo>
         return _contexto.Grupos.Include(g => g.Equipos).FirstOrDefault(g => g.Etiqueta == grupo.Etiqueta);
     }
 
-    private void DesvincularInstanciaLocal(int id, Grupo entidad)
+    private Equipo ObtenerEquipoParaRelacion(Equipo equipo)
     {
-        var local = _contexto.Grupos.Local.FirstOrDefault(g => g.Id == id);
-        if (local != null && !ReferenceEquals(local, entidad))
-            _contexto.Entry(local).State = EntityState.Detached;
+        var local = equipo.Id > 0
+            ? _contexto.Equipos.Local.FirstOrDefault(e => e.Id == equipo.Id)
+            : _contexto.Equipos.Local.FirstOrDefault(e => e.Nombre == equipo.Nombre);
+        if (local != null)
+            return local;
+
+        var existente = equipo.Id > 0
+            ? _contexto.Equipos.FirstOrDefault(e => e.Id == equipo.Id)
+            : _contexto.Equipos.FirstOrDefault(e => e.Nombre == equipo.Nombre);
+        if (existente != null)
+            return existente;
+
+        var nuevo = new Equipo
+        {
+            Nombre = equipo.Nombre,
+            RankingFIFA = equipo.RankingFIFA,
+            Confederacion = equipo.Confederacion,
+            Bandera = equipo.Bandera
+        };
+        _contexto.Equipos.Add(nuevo);
+        return nuevo;
     }
 }

@@ -175,6 +175,11 @@ namespace WorldCupPlanner.Servicios
             _fixtureGenerado = fixture;
         }
 
+        public void LimpiarFixtureGenerado()
+        {
+            _fixtureGenerado = null;
+        }
+
         public List<Equipo> Buscar(Func<Equipo, bool> predicado) => _repositorio.Buscar(predicado);
 
         private void ValidarEquipo(Equipo equipo)

@@ -669,10 +669,15 @@ else
 
     private void CrearNuevoTorneo()
     {
+        _error = string.Empty;
+        _etapaActiva = FaseTorneo.FaseDeGrupos;
+        _jornadaActiva = JornadaUno;
         EstadoTorneo.FixtureAnterior = EstadoTorneo.Fixture;
         EstadoTorneo.PartidosEliminatoriosAnteriores = EstadoTorneo.PartidosEliminatorios;
         EstadoTorneo.TorneoFinalizado = true;
         ServicioPersistenciaFixture.ArchivarTorneoActual();
+        ServicioEquipo.LimpiarFixtureGenerado();
+        ServicioEstadio.LimpiarFixtureGenerado();
         EstadoTorneo.Fixture = null;
         EstadoTorneo.PartidosEliminatorios = new();
         NavigationManager.NavigateTo("/fixture");
@@ -1055,6 +1060,9 @@ else
     {
         get
         {
+            if (EstadoTorneo.Fixture == null)
+                return string.Empty;
+
             if (_etapaActiva == FaseTorneo.FaseDeGrupos || FaseYaGenerada(_etapaActiva) || PuedeGenerarFase(_etapaActiva))
                 return string.Empty;
 

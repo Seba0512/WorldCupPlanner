@@ -91,6 +91,20 @@ public class ServicioEstadioTests
     }
 
     [TestMethod]
+    public void EliminarEstadio_DespuesDeLimpiarFixtureGenerado_SeEliminaCorrectamente()
+    {
+        var estadio = CrearEstadio();
+        var fixture = CrearFixtureConEstadio(estadio);
+        _servicio.AgregarEstadio(estadio);
+        _servicio.RegistrarFixtureGenerado(fixture);
+
+        _servicio.LimpiarFixtureGenerado();
+        _servicio.EliminarEstadio(estadio);
+
+        Assert.AreEqual(0, _servicio.ObtenerEstadios().Count);
+    }
+
+    [TestMethod]
     public void EliminarEstadio_ConFixtureGeneradoPeroSinUsarEseEstadio_SeEliminaCorrectamente()
     {
         // Arrange

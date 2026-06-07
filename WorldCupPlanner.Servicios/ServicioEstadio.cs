@@ -90,6 +90,11 @@ public class ServicioEstadio
         _fixtureGenerado = fixture;
     }
 
+    public void LimpiarFixtureGenerado()
+    {
+        _fixtureGenerado = null;
+    }
+
     public List<Estadio> ObtenerEstadios()
     {
         return _repositorioEstadio.Buscar(_ => true);
