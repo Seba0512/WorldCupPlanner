@@ -90,6 +90,40 @@ public class ServicioPersistenciaFixtureTests
         Assert.AreSame(ganadorPorPenales, guardado.GanadorPorPenales);
     }
 
+    [TestMethod]
+    public void LimpiarFixture_ConDatosPrevios_EliminaGruposYPartidos()
+    {
+        // Arrange
+        var repositorioGrupo = new RepositorioGrupoEnMemoria();
+        var repositorioPartido = new RepositorioPartidoEnMemoria();
+        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido);
+        var grupo = new Grupo("A");
+        var partido = CrearPartido(1, grupo);
+        grupo.Partidos.Add(partido);
+        var fixture = new Fixture { Grupos = new List<Grupo> { grupo } };
+        servicio.GuardarFixture(fixture);
+
+        // Act
+        servicio.LimpiarFixture();
+
+        // Assert
+        Assert.AreEqual(0, repositorioGrupo.Buscar(_ => true).Count);
+        Assert.AreEqual(0, repositorioPartido.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
+    public void LimpiarFixture_SinDatosPrevios_NoLanzaExcepcion()
+    {
+        // Arrange
+        var repositorioGrupo = new RepositorioGrupoEnMemoria();
+        var repositorioPartido = new RepositorioPartidoEnMemoria();
+        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido);
+
+        // Act & Assert
+        servicio.LimpiarFixture();
+        Assert.AreEqual(0, repositorioGrupo.Buscar(_ => true).Count);
+    }
+
     private static Partido CrearPartido(int id, Grupo grupo)
     {
         return new Partido

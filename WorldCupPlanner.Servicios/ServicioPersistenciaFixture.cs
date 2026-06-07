@@ -60,6 +60,17 @@ public class ServicioPersistenciaFixture
         }
     }
 
+    public void LimpiarFixture()
+    {
+        var partidos = _repositorioPartido.Buscar(_ => true);
+        foreach (var partido in partidos)
+            _repositorioPartido.Eliminar(partido);
+
+        var grupos = _repositorioGrupo.Buscar(_ => true);
+        foreach (var grupo in grupos)
+            _repositorioGrupo.Eliminar(grupo);
+    }
+
     public void CargarEnEstadoTorneo(EstadoTorneo estadoTorneo)
     {
         var grupos = _repositorioGrupo.Buscar(_ => true);
