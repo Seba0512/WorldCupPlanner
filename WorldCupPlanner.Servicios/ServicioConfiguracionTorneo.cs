@@ -9,13 +9,18 @@ public class ServicioConfiguracionTorneo
 {
     private readonly ServicioAuditoria? _auditoria;
     private readonly IRepositorioConfiguracionTorneo? _repositorio;
+    private readonly EstadoTorneo? _estadoTorneo;
     private ConfiguracionTorneo _configuracionActual = new();
     private ConfiguracionTorneo? _configuracionUsadaParaFixture;
 
-    public ServicioConfiguracionTorneo(ServicioAuditoria? auditoria = null, IRepositorioConfiguracionTorneo? repositorio = null)
+    public ServicioConfiguracionTorneo(
+        ServicioAuditoria? auditoria = null,
+        IRepositorioConfiguracionTorneo? repositorio = null,
+        EstadoTorneo? estadoTorneo = null)
     {
         _auditoria = auditoria;
         _repositorio = repositorio;
+        _estadoTorneo = estadoTorneo;
 
         if (_repositorio != null)
         {
@@ -24,7 +29,12 @@ public class ServicioConfiguracionTorneo
         }
     }
 
-    public bool EsConfiguracionModificable => _configuracionUsadaParaFixture == null;
+    // Desbloqueada cuando: nunca se generó fixture, el torneo ya finalizó,
+    // o el fixture fue archivado (Fixture==null con EstadoTorneo presente).
+    public bool EsConfiguracionModificable =>
+        _configuracionUsadaParaFixture == null
+        || _estadoTorneo?.TorneoFinalizado == true
+        || (_estadoTorneo != null && _estadoTorneo.Fixture == null);
 
     private const int MinMaxPartidosPorDia = 2;
 
@@ -76,7 +86,7 @@ public class ServicioConfiguracionTorneo
 
     private void ValidarConfiguracionNoBloqueada()
     {
-        if (_configuracionUsadaParaFixture != null)
+        if (!EsConfiguracionModificable)
         {
             throw new EntidadInvalidaExcepcion(
                 "No se puede modificar la configuración después de generado el fixture.");

@@ -259,6 +259,71 @@ public class ServicioConfiguracionTorneoTests
     }
 
     [TestMethod]
+    public void EsConfiguracionModificable_ConFixtureGeneradoYTorneoFinalizado_DevuelveTrue()
+    {
+        // Arrange — fixture generado pero el torneo ya terminó: la config debe desbloquearse
+        var estadoTorneo = new EstadoTorneo
+        {
+            Fixture = new WorldCupPlanner.Dominio.Entidades.Fixture(),
+            TorneoFinalizado = true
+        };
+        var servicioConfiguracion = new ServicioConfiguracionTorneo(estadoTorneo: estadoTorneo);
+        servicioConfiguracion.RegistrarFixtureGenerado(new ConfiguracionTorneo());
+
+        // Act & Assert
+        Assert.IsTrue(servicioConfiguracion.EsConfiguracionModificable);
+    }
+
+    [TestMethod]
+    public void EsConfiguracionModificable_ConFixtureArchivadoYFixtureNulo_DevuelveTrue()
+    {
+        // Arrange — fixture fue archivado: EstadoTorneo.Fixture == null indica que no hay torneo activo
+        var estadoTorneo = new EstadoTorneo { Fixture = null, TorneoFinalizado = false };
+        var servicioConfiguracion = new ServicioConfiguracionTorneo(estadoTorneo: estadoTorneo);
+        servicioConfiguracion.RegistrarFixtureGenerado(new ConfiguracionTorneo());
+
+        // Act & Assert
+        Assert.IsTrue(servicioConfiguracion.EsConfiguracionModificable);
+    }
+
+    [TestMethod]
+    public void ModificarConfiguracion_ConTorneoFinalizado_NoBloqueaConfiguracion()
+    {
+        // Arrange
+        var estadoTorneo = new EstadoTorneo
+        {
+            Fixture = new WorldCupPlanner.Dominio.Entidades.Fixture(),
+            TorneoFinalizado = true
+        };
+        var servicioConfiguracion = new ServicioConfiguracionTorneo(estadoTorneo: estadoTorneo);
+        servicioConfiguracion.RegistrarFixtureGenerado(new ConfiguracionTorneo { SemillaFixture = 1 });
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var nuevaConfiguracion = new ConfiguracionTorneo { SemillaFixture = 99 };
+
+        // Act
+        servicioConfiguracion.ModificarConfiguracion(administrador, nuevaConfiguracion);
+
+        // Assert
+        Assert.AreEqual(99, servicioConfiguracion.ObtenerConfiguracionActual().SemillaFixture);
+    }
+
+    [TestMethod]
+    public void EsConfiguracionModificable_ConFixtureGeneradoYTorneoNoFinalizado_DevuelveFalse()
+    {
+        // Arrange — torneo activo en curso: la config debe permanecer bloqueada
+        var estadoTorneo = new EstadoTorneo
+        {
+            Fixture = new WorldCupPlanner.Dominio.Entidades.Fixture(),
+            TorneoFinalizado = false
+        };
+        var servicioConfiguracion = new ServicioConfiguracionTorneo(estadoTorneo: estadoTorneo);
+        servicioConfiguracion.RegistrarFixtureGenerado(new ConfiguracionTorneo());
+
+        // Act & Assert
+        Assert.IsFalse(servicioConfiguracion.EsConfiguracionModificable);
+    }
+
+    [TestMethod]
     public void ModificarConfiguracion_ConAdministrador_RegistraEntradaDeAuditoria()
     {
         // Arrange

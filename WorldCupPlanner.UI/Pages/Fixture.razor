@@ -738,6 +738,7 @@ else
 
             EstadoTorneo.Fixture = fixtureGenerado;
             EstadoTorneo.PartidosEliminatorios = new();
+            EstadoTorneo.TorneoFinalizado = false;
             ServicioEquipo.RegistrarFixtureGenerado(EstadoTorneo.Fixture);
             ServicioEstadio.RegistrarFixtureGenerado(EstadoTorneo.Fixture);
             ServicioConfiguracionTorneo.RegistrarFixtureGenerado(config);
@@ -791,6 +792,8 @@ else
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             ServicioSimulacion.SimularResultados(partidos, config);
             ServicioPersistenciaFixture.GuardarPartidos(partidos);
+            if (TorneoEstaFinalizado)
+                EstadoTorneo.TorneoFinalizado = true;
             SincronizarJornadaActivaConPendiente();
             Toast.Exito(mensajeExito);
         }
