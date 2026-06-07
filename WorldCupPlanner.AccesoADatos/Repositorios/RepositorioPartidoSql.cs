@@ -47,6 +47,11 @@ public class RepositorioPartidoSql : IRepositorio<Partido>
         // y encuentre instancias duplicadas de entidades relacionadas ya rastreadas.
         _contexto.Entry(partido).State = EntityState.Modified;
 
+        // EF no siempre resuelve shadow FKs opcionales al establecer estado directamente;
+        // se asignan explícitamente para garantizar que GanadorPorPenalesId se persista.
+        _contexto.Entry(partido).Property("GanadorPorPenalesId").CurrentValue =
+            partido.GanadorPorPenales?.Id;
+
         _contexto.SaveChanges();
     }
 

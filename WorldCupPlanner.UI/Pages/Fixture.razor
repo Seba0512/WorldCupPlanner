@@ -156,7 +156,7 @@ else
             <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
                 <div>
                     <strong>¡Torneo finalizado!</strong>
-                    — Campeón: <strong>@PartidoFinal!.Ganador()!.Nombre</strong>
+                    — Campeón: <strong>@(PartidoFinal?.Ganador()?.Nombre)</strong>
                 </div>
                 <button type="button" class="btn btn-primary btn-sm" @onclick="CrearNuevoTorneo">
                     <span class="oi oi-plus" aria-hidden="true"></span> Crear nuevo torneo
@@ -362,11 +362,11 @@ else
                     <div class="match-card" style="padding:28px 20px; gap:16px;">
                         <div style="flex:1; text-align:left;">
                             <div style="font-family:var(--font-heading); font-size:18px; font-weight:700;
-                                        color:@(PartidoFinal.EstaJugado() && PartidoFinal.Ganador() == PartidoFinal.EquipoLocal
+                                        color:@(PartidoFinal.EstaJugado() && PartidoFinal.Ganador()?.Id == PartidoFinal.EquipoLocal?.Id
                                                  ? "var(--accent-gold)" : "var(--text-primary)");">
                                 @(PartidoFinal.EquipoLocal?.Nombre ?? "Por definir")
                             </div>
-                            @if (PartidoFinal.EstaJugado() && PartidoFinal.Ganador() == PartidoFinal.EquipoLocal)
+                            @if (PartidoFinal.EstaJugado() && PartidoFinal.Ganador()?.Id == PartidoFinal.EquipoLocal?.Id)
                             {
                                 <div style="font-size:10px; font-weight:700; text-transform:uppercase;
                                             letter-spacing:0.1em; color:var(--accent-gold); margin-top:4px;">
@@ -413,11 +413,11 @@ else
 
                         <div style="flex:1; text-align:right;">
                             <div style="font-family:var(--font-heading); font-size:18px; font-weight:700;
-                                        color:@(PartidoFinal.EstaJugado() && PartidoFinal.Ganador() == PartidoFinal.EquipoVisitante
+                                        color:@(PartidoFinal.EstaJugado() && PartidoFinal.Ganador()?.Id == PartidoFinal.EquipoVisitante?.Id
                                                  ? "var(--accent-gold)" : "var(--text-primary)");">
                                 @(PartidoFinal.EquipoVisitante?.Nombre ?? "Por definir")
                             </div>
-                            @if (PartidoFinal.EstaJugado() && PartidoFinal.Ganador() == PartidoFinal.EquipoVisitante)
+                            @if (PartidoFinal.EstaJugado() && PartidoFinal.Ganador()?.Id == PartidoFinal.EquipoVisitante?.Id)
                             {
                                 <div style="font-size:10px; font-weight:700; text-transform:uppercase;
                                             letter-spacing:0.1em; color:var(--accent-gold); margin-top:4px;">
@@ -475,11 +475,11 @@ else
                     <div class="match-card">
                         <div style="display:flex; flex-direction:column; min-width:0; flex:1;">
                             <div class="match-team"
-                                 style="color:@(PartidoTercerPuesto.EstaJugado() && PartidoTercerPuesto.Ganador() == PartidoTercerPuesto.EquipoLocal
+                                 style="color:@(PartidoTercerPuesto.EstaJugado() && PartidoTercerPuesto.Ganador()?.Id == PartidoTercerPuesto.EquipoLocal?.Id
                                                 ? "var(--text-primary)" : "var(--text-secondary)");">
                                 @(PartidoTercerPuesto.EquipoLocal?.Nombre ?? "Por definir")
                             </div>
-                            @if (PartidoTercerPuesto.FueDefinidoPorPenales() && ReferenceEquals(PartidoTercerPuesto.GanadorPorPenales, PartidoTercerPuesto.EquipoLocal))
+                            @if (PartidoTercerPuesto.FueDefinidoPorPenales() && PartidoTercerPuesto.GanadorPorPenales?.Id == PartidoTercerPuesto.EquipoLocal?.Id)
                             {
                                 <span class="badge badge-penalty" style="align-self:flex-start; margin-top:2px;">Ganador por penales</span>
                             }
@@ -504,11 +504,11 @@ else
                         </div>
                         <div style="display:flex; flex-direction:column; min-width:0; flex:1; align-items:flex-end;">
                             <div class="match-team right"
-                                 style="color:@(PartidoTercerPuesto.EstaJugado() && PartidoTercerPuesto.Ganador() == PartidoTercerPuesto.EquipoVisitante
+                                 style="color:@(PartidoTercerPuesto.EstaJugado() && PartidoTercerPuesto.Ganador()?.Id == PartidoTercerPuesto.EquipoVisitante?.Id
                                                 ? "var(--text-primary)" : "var(--text-secondary)");">
                                 @(PartidoTercerPuesto.EquipoVisitante?.Nombre ?? "Por definir")
                             </div>
-                            @if (PartidoTercerPuesto.FueDefinidoPorPenales() && ReferenceEquals(PartidoTercerPuesto.GanadorPorPenales, PartidoTercerPuesto.EquipoVisitante))
+                            @if (PartidoTercerPuesto.FueDefinidoPorPenales() && PartidoTercerPuesto.GanadorPorPenales?.Id == PartidoTercerPuesto.EquipoVisitante?.Id)
                             {
                                 <span class="badge badge-penalty" style="margin-top:2px;">Ganador por penales</span>
                             }
@@ -558,7 +558,7 @@ else
                             <div class="match-team @(partido.EstaJugado() && partido.Ganador() == partido.EquipoLocal ? "match-winner" : "")">
                                 @(partido.EquipoLocal?.Nombre ?? "Por definir")
                             </div>
-                            @if (partido.FueDefinidoPorPenales() && ReferenceEquals(partido.GanadorPorPenales, partido.EquipoLocal))
+                            @if (partido.FueDefinidoPorPenales() && partido.GanadorPorPenales?.Id == partido.EquipoLocal?.Id)
                             {
                                 <span class="badge badge-penalty" style="align-self:flex-start; margin-top:2px;">Ganador por penales</span>
                             }
@@ -585,7 +585,7 @@ else
                             <div class="match-team right @(partido.EstaJugado() && partido.Ganador() == partido.EquipoVisitante ? "match-winner" : "")">
                                 @(partido.EquipoVisitante?.Nombre ?? "Por definir")
                             </div>
-                            @if (partido.FueDefinidoPorPenales() && ReferenceEquals(partido.GanadorPorPenales, partido.EquipoVisitante))
+                            @if (partido.FueDefinidoPorPenales() && partido.GanadorPorPenales?.Id == partido.EquipoVisitante?.Id)
                             {
                                 <span class="badge badge-penalty" style="margin-top:2px;">Ganador por penales</span>
                             }
@@ -665,7 +665,7 @@ else
         ServicioConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
 
     private bool TorneoEstaFinalizado =>
-        PartidoFinal != null && PartidoFinal.EstaJugado();
+        PartidoFinal != null && PartidoFinal.EstaJugado() && PartidoFinal.Ganador() != null;
 
     private void CrearNuevoTorneo()
     {
