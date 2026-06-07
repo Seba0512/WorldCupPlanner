@@ -23,7 +23,9 @@ public class RepositorioPartidoSql : IRepositorio<Partido>
         if (partido.Grupo != null)
             AdjuntarSiDesvinculado(partido.Grupo);
 
-        _contexto.Partidos.Add(partido);
+        // Usar Entry().State en lugar de Add() para evitar que EF recorra el grafo
+        // y encuentre instancias duplicadas de entidades relacionadas ya rastreadas.
+        _contexto.Entry(partido).State = EntityState.Added;
         _contexto.SaveChanges();
     }
 
@@ -34,8 +36,16 @@ public class RepositorioPartidoSql : IRepositorio<Partido>
             throw new EntidadInexistenteExcepcion("El partido no existe.");
 
         DesvincularInstanciaLocal(partido.Id, partido);
-        _contexto.Partidos.Update(partido);
-        MarcarRelacionesComoSinCambios(partido);
+        AdjuntarSiDesvinculado(partido.Estadio);
+        AdjuntarSiDesvinculado(partido.EquipoLocal);
+        AdjuntarSiDesvinculado(partido.EquipoVisitante);
+        AdjuntarSiDesvinculado(partido.GanadorPorPenales);
+        if (partido.Grupo != null)
+            AdjuntarSiDesvinculado(partido.Grupo);
+
+        // Usar Entry().State en lugar de Update() para evitar que EF recorra el grafo
+        // y encuentre instancias duplicadas de entidades relacionadas ya rastreadas.
+        _contexto.Entry(partido).State = EntityState.Modified;
 
         _contexto.SaveChanges();
     }
@@ -67,8 +77,18 @@ public class RepositorioPartidoSql : IRepositorio<Partido>
     private void AdjuntarSiDesvinculado<T>(T? entidad) where T : class
     {
         if (entidad == null) return;
-        if (_contexto.Entry(entidad).State == EntityState.Detached)
-            _contexto.Attach(entidad);
+        // Si la misma instancia ya está rastreada, no hacer nada.
+        // Si está Detached, adjuntarla como Unchanged para que EF resuelva los FK sin insertarla.
+        var entry = _contexto.Entry(entidad);
+        if (entry.State == EntityState.Detached)
+        {
+            try { _contexto.Attach(entidad); }
+            catch (InvalidOperationException)
+            {
+                // Ya existe otra instancia con el mismo Id rastreada: ignorar,
+                // EF resolverá el shadow FK desde el Id del objeto de navegación.
+            }
+        }
     }
 
     private void MarcarRelacionesComoSinCambios(Partido partido)
