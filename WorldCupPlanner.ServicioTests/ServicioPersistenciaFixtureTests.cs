@@ -91,6 +91,41 @@ public class ServicioPersistenciaFixtureTests
     }
 
     [TestMethod]
+    public void CargarEnEstadoTorneo_ConFinalJugada_EstableceTorneoFinalizadoEnTrue()
+    {
+        // Arrange
+        var repositorioGrupo = new RepositorioGrupoEnMemoria();
+        var repositorioPartido = new RepositorioPartidoEnMemoria();
+        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido);
+        repositorioGrupo.Agregar(new Grupo("A"));
+        repositorioPartido.Agregar(new Partido { Id = 100, Fase = FaseTorneo.Final, GolesLocal = 2, GolesVisitante = 1 });
+        var estadoTorneo = new EstadoTorneo();
+
+        // Act
+        servicio.CargarEnEstadoTorneo(estadoTorneo);
+
+        // Assert
+        Assert.IsTrue(estadoTorneo.TorneoFinalizado);
+    }
+
+    [TestMethod]
+    public void CargarEnEstadoTorneo_SinFinalJugada_TorneoNoFinalizado()
+    {
+        // Arrange
+        var repositorioGrupo = new RepositorioGrupoEnMemoria();
+        var repositorioPartido = new RepositorioPartidoEnMemoria();
+        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido);
+        repositorioGrupo.Agregar(new Grupo("A"));
+        var estadoTorneo = new EstadoTorneo();
+
+        // Act
+        servicio.CargarEnEstadoTorneo(estadoTorneo);
+
+        // Assert
+        Assert.IsFalse(estadoTorneo.TorneoFinalizado);
+    }
+
+    [TestMethod]
     public void LimpiarFixture_ConDatosPrevios_EliminaGruposYPartidos()
     {
         // Arrange

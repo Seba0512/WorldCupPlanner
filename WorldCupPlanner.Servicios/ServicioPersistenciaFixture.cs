@@ -79,6 +79,8 @@ public class ServicioPersistenciaFixture
         estadoTorneo.Fixture = new Fixture { Grupos = grupos };
         estadoTorneo.PartidosEliminatorios = _repositorioPartido
             .Buscar(p => p.Fase != FaseTorneo.FaseDeGrupos);
+        estadoTorneo.TorneoFinalizado = estadoTorneo.PartidosEliminatorios
+            .Any(p => p.Fase == FaseTorneo.Final && p.EstaJugado());
     }
 
     private static void CopiarDatosPartido(Partido origen, Partido destino)
