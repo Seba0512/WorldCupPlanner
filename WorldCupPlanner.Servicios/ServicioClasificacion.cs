@@ -87,13 +87,13 @@ public class ServicioClasificacion
         }
     }
 
-    private static Dictionary<Equipo, PosicionEquipo> CrearPosicionesIniciales(Grupo grupo)
+    private static Dictionary<int, PosicionEquipo> CrearPosicionesIniciales(Grupo grupo)
     {
-        var posiciones = new Dictionary<Equipo, PosicionEquipo>();
+        var posiciones = new Dictionary<int, PosicionEquipo>();
 
         foreach (var equipo in grupo.Equipos)
         {
-            posiciones[equipo] = new PosicionEquipo
+            posiciones[equipo.Id] = new PosicionEquipo
             {
                 Equipo = equipo,
                 Grupo = grupo
@@ -106,12 +106,13 @@ public class ServicioClasificacion
     private static bool PartidoTieneEquipos(Partido partido) =>
         partido.EquipoLocal is not null && partido.EquipoVisitante is not null;
 
-    private static void ActualizarPosicionesConPartido(Dictionary<Equipo, PosicionEquipo> posiciones, Partido partido)
+    private static void ActualizarPosicionesConPartido(Dictionary<int, PosicionEquipo> posiciones, Partido partido)
     {
         if (!PartidoTieneEquipos(partido)) return;
 
-        var posicionLocal = posiciones[partido.EquipoLocal!];
-        var posicionVisitante = posiciones[partido.EquipoVisitante!];
+        if (!posiciones.TryGetValue(partido.EquipoLocal!.Id, out var posicionLocal) ||
+            !posiciones.TryGetValue(partido.EquipoVisitante!.Id, out var posicionVisitante))
+            return;
 
         int golesLocal = partido.GolesLocal!.Value;
         int golesVisitante = partido.GolesVisitante!.Value;
