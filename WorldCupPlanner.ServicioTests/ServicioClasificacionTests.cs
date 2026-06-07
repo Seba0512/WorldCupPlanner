@@ -95,6 +95,8 @@ public class ServicioClasificacionTests
         Assert.AreEqual(4, posicionEquipo2.Puntos);
     }
 
+    private int _nextEquipoId = 1;
+
     private Equipo CrearEquipo(string nombre)
     {
         return CrearEquipo(nombre, Confederacion.UEFA);
@@ -104,6 +106,7 @@ public class ServicioClasificacionTests
     {
         return new Equipo
         {
+            Id = _nextEquipoId++,
             Nombre = nombre,
             RankingFIFA = 1000,
             Confederacion = confederacion
