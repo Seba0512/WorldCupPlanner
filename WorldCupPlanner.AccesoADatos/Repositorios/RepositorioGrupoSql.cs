@@ -22,8 +22,26 @@ public class RepositorioGrupoSql : IRepositorio<Grupo>
                 _contexto.Equipos.Attach(equipo);
         }
 
+        foreach (var partido in grupo.Partidos)
+        {
+            AdjuntarSiDesvinculado(partido.Estadio);
+            AdjuntarSiDesvinculado(partido.EquipoLocal);
+            AdjuntarSiDesvinculado(partido.EquipoVisitante);
+            AdjuntarSiDesvinculado(partido.GanadorPorPenales);
+        }
+
         _contexto.Grupos.Add(grupo);
         _contexto.SaveChanges();
+    }
+
+    private void AdjuntarSiDesvinculado<T>(T? entidad) where T : class
+    {
+        if (entidad == null) return;
+        if (_contexto.Entry(entidad).State == EntityState.Detached)
+        {
+            try { _contexto.Attach(entidad); }
+            catch (InvalidOperationException) { }
+        }
     }
 
     public void Actualizar(Grupo grupo)
