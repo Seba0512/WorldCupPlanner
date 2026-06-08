@@ -26,9 +26,12 @@
 
 <PageHeader Titulo="Equipos" Subtitulo="@($"{_equipos.Count} de 48 equipos registrados")">
     <AccionesContent>
-        <a href="/equipos/crear" class="btn btn-primary btn-sm">
-            <span class="oi oi-plus" aria-hidden="true"></span> Agregar equipo
-        </a>
+        @if (SesionServicio.PuedeGestionarEquipos)
+        {
+            <a href="/equipos/crear" class="btn btn-primary btn-sm">
+                <span class="oi oi-plus" aria-hidden="true"></span> Agregar equipo
+            </a>
+        }
     </AccionesContent>
 </PageHeader>
 
@@ -46,7 +49,7 @@
     }
 </div>
 
-@if (EstadoTorneo.Fixture != null)
+@if (SesionServicio.PuedeGestionarEquipos && EstadoTorneo.Fixture != null)
 {
     <div class="alert alert-warning mb-3">
         <span class="oi oi-warning" aria-hidden="true"></span>
@@ -62,9 +65,12 @@
             <div class="empty-state-icon">⚽</div>
             <div class="empty-state-title">No hay equipos registrados</div>
             <div class="empty-state-text">Agregá equipos manualmente o usá la opción de completar automáticamente.</div>
-            <a href="/equipos/crear" class="btn btn-primary">
-                <span class="oi oi-plus" aria-hidden="true"></span> Agregar primer equipo
-            </a>
+            @if (SesionServicio.PuedeGestionarEquipos)
+            {
+                <a href="/equipos/crear" class="btn btn-primary">
+                    <span class="oi oi-plus" aria-hidden="true"></span> Agregar primer equipo
+                </a>
+            }
         </div>
     }
     else
@@ -76,12 +82,21 @@
                     <th>Nombre</th>
                     <th>Confederación</th>
                     <th>Ranking FIFA</th>
-                    <th></th>
+                    <th class="text-center">PJ</th>
+                    <th class="text-center">GF</th>
+                    <th class="text-center">GC</th>
+                    <th class="text-center">DG</th>
+                    <th class="text-center">Pts</th>
+                    @if (SesionServicio.PuedeGestionarEquipos)
+                    {
+                        <th></th>
+                    }
                 </tr>
             </thead>
             <tbody>
                 @foreach (var (equipo, i) in _equipos.Select((e, i) => (e, i + 1)))
                 {
+                    var estadisticas = ObtenerEstadisticas(equipo);
                     <tr>
                         <td style="color:var(--text-muted); width:40px">@i</td>
                         <td style="font-weight:600">
@@ -95,16 +110,24 @@
                         </td>
                         <td><span class="badge badge-muted">@equipo.Confederacion</span></td>
                         <td style="font-family:var(--font-heading); font-weight:700">@equipo.RankingFIFA</td>
-                        <td style="width:140px; text-align:right">
-                            <a href="/equipos/@equipo.Nombre/editar" class="btn btn-success btn-sm">
-                                <span class="oi oi-pencil" aria-hidden="true"></span>
-                            </a>
-                            <button class="btn btn-danger btn-sm"
-                                    disabled="@(EstadoTorneo.Fixture != null)"
-                                    @onclick="() => PedirConfirmacion(equipo)">
-                                <span class="oi oi-trash" aria-hidden="true"></span>
-                            </button>
-                        </td>
+                        <td class="text-center">@estadisticas.PartidosJugados</td>
+                        <td class="text-center">@estadisticas.GolesAFavor</td>
+                        <td class="text-center">@estadisticas.GolesEnContra</td>
+                        <td class="text-center">@estadisticas.DiferenciaGoles</td>
+                        <td class="text-center" style="font-weight:700">@estadisticas.Puntos</td>
+                        @if (SesionServicio.PuedeGestionarEquipos)
+                        {
+                            <td style="width:140px; text-align:right">
+                                <a href="/equipos/@equipo.Nombre/editar" class="btn btn-success btn-sm">
+                                    <span class="oi oi-pencil" aria-hidden="true"></span>
+                                </a>
+                                <button class="btn btn-danger btn-sm"
+                                        disabled="@(EstadoTorneo.Fixture != null)"
+                                        @onclick="() => PedirConfirmacion(equipo)">
+                                    <span class="oi oi-trash" aria-hidden="true"></span>
+                                </button>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>
@@ -113,7 +136,7 @@
 </div>
 
 <!-- Completar equipos -->
-@if (_equipos.Count < 48)
+@if (SesionServicio.PuedeGestionarEquipos && _equipos.Count < 48)
 {
     <div style="max-width:460px;">
         <div class="table-card">
@@ -161,6 +184,7 @@
     private string _mensajeCompletar = string.Empty;
     private string _errorCarga = string.Empty;
     private int _semillaCompletar;
+    private Dictionary<string, EstadisticasEquipo> _estadisticasPorEquipo = new(StringComparer.OrdinalIgnoreCase);
 
     private static readonly Dictionary<Confederacion, int> CuposMaximos = new()
     {
@@ -173,11 +197,12 @@
 
     protected override void OnInitialized()
     {
-        if (!SesionServicio.EsAdministrador)
+        if (!SesionServicio.HaySesion)
         {
-            NavigationManager.NavigateTo("/");
+            NavigationManager.NavigateTo("/login");
             return;
         }
+
         CargarDatos();
     }
 
@@ -191,6 +216,7 @@
                 kvp => kvp.Key,
                 kvp => (_equipos.Count(e => e.Confederacion == kvp.Key), kvp.Value));
             _semillaCompletar = ServicioConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
+            CargarEstadisticas();
         }
         catch (Exception ex)
         {
@@ -199,8 +225,59 @@
             _cuposPorConfederacion = CuposMaximos.ToDictionary(
                 kvp => kvp.Key,
                 kvp => (0, kvp.Value));
+            _estadisticasPorEquipo = new Dictionary<string, EstadisticasEquipo>(StringComparer.OrdinalIgnoreCase);
         }
     }
+
+    private void CargarEstadisticas()
+    {
+        _estadisticasPorEquipo = _equipos.ToDictionary(
+            e => e.Nombre,
+            _ => new EstadisticasEquipo(),
+            StringComparer.OrdinalIgnoreCase);
+
+        var partidosJugados = (EstadoTorneo.Fixture?.Partidos ?? Enumerable.Empty<Partido>())
+            .Concat(EstadoTorneo.PartidosEliminatorios)
+            .Where(p => p.EstaJugado());
+
+        foreach (var partido in partidosJugados)
+        {
+            var golesLocal = partido.GolesLocal ?? 0;
+            var golesVisitante = partido.GolesVisitante ?? 0;
+            RegistrarPartido(partido.EquipoLocal, golesLocal, golesVisitante, CalcularPuntos(golesLocal, golesVisitante));
+            RegistrarPartido(partido.EquipoVisitante, golesVisitante, golesLocal, CalcularPuntos(golesVisitante, golesLocal));
+        }
+    }
+
+    private void RegistrarPartido(Equipo? equipo, int golesAFavor, int golesEnContra, int puntos)
+    {
+        if (equipo == null)
+            return;
+
+        if (!_estadisticasPorEquipo.TryGetValue(equipo.Nombre, out var estadisticas))
+        {
+            estadisticas = new EstadisticasEquipo();
+            _estadisticasPorEquipo[equipo.Nombre] = estadisticas;
+        }
+
+        estadisticas.PartidosJugados++;
+        estadisticas.GolesAFavor += golesAFavor;
+        estadisticas.GolesEnContra += golesEnContra;
+        estadisticas.Puntos += puntos;
+    }
+
+    private static int CalcularPuntos(int golesPropios, int golesRivales)
+    {
+        if (golesPropios > golesRivales)
+            return 3;
+
+        return golesPropios == golesRivales ? 1 : 0;
+    }
+
+    private EstadisticasEquipo ObtenerEstadisticas(Equipo equipo)
+        => _estadisticasPorEquipo.TryGetValue(equipo.Nombre, out var estadisticas)
+            ? estadisticas
+            : new EstadisticasEquipo();
 
     private void Reintentar()
     {
@@ -255,5 +332,14 @@
 
         configuracion.SemillaCompletar = _semillaCompletar;
         ServicioConfiguracionTorneo.ModificarConfiguracion(SesionServicio.UsuarioActual!, configuracion);
+    }
+
+    private sealed class EstadisticasEquipo
+    {
+        public int PartidosJugados { get; set; }
+        public int GolesAFavor { get; set; }
+        public int GolesEnContra { get; set; }
+        public int DiferenciaGoles => GolesAFavor - GolesEnContra;
+        public int Puntos { get; set; }
     }
 }

@@ -154,7 +154,18 @@
 
     protected override void OnInitialized()
     {
-        if (!SesionServicio.HaySesion) NavigationManager.NavigateTo("/login");
+        if (!SesionServicio.HaySesion)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        if (!SesionServicio.PuedeImportarEquipos)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
         ActualizarEstado();
     }
 

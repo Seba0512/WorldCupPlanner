@@ -6,6 +6,7 @@
 @inject ServicioIncidencia ServicioIncidencia
 @inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
 @inject ServicioPersistenciaFixture ServicioPersistenciaFixture
+@inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
 
@@ -207,6 +208,18 @@ else
 
     protected override void OnInitialized()
     {
+        if (!SesionServicio.HaySesion)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        if (!SesionServicio.PuedeEditarPartidos)
+        {
+            NavigationManager.NavigateTo("/fixture");
+            return;
+        }
+
         _estadios = ServicioEstadio.ObtenerEstadios();
         _partido  = ServicioPartido.BuscarPartidoPorId(Id);
         if (_partido != null)

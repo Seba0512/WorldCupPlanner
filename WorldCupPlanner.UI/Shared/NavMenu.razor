@@ -32,10 +32,21 @@
                 Partidos
             </NavLink>
 
-            <NavLink class="sidebar-link" href="/importar">
-                <span class="oi oi-data-transfer-upload" aria-hidden="true"></span>
-                Importar
-            </NavLink>
+            @if (SesionServicio.PuedeImportarEquipos)
+            {
+                <NavLink class="sidebar-link" href="/importar">
+                    <span class="oi oi-data-transfer-upload" aria-hidden="true"></span>
+                    Importar
+                </NavLink>
+            }
+
+            @if (SesionServicio.EsPeriodista && !SesionServicio.EsAdministrador)
+            {
+                <NavLink class="sidebar-link" href="/equipos">
+                    <span class="oi oi-people" aria-hidden="true"></span>
+                    Equipos
+                </NavLink>
+            }
 
             <NavLink class="sidebar-link" href="/cuenta/cambiar-contrasenia">
                 <span class="oi oi-key" aria-hidden="true"></span>
@@ -89,7 +100,7 @@
                 <div class="user-avatar">@Iniciales</div>
                 <div class="user-info">
                     <span class="user-name">@SesionServicio.UsuarioActual!.Nombre @SesionServicio.UsuarioActual.Apellido</span>
-                    <span class="user-role">@(SesionServicio.EsAdministrador ? "Administrador" : "Editor")</span>
+                    <span class="user-role">@RolPrincipal</span>
                 </div>
                 <button class="btn-logout" title="Cerrar sesión" @onclick="CerrarSesion">
                     <span class="oi oi-account-logout" aria-hidden="true"></span>
@@ -103,6 +114,14 @@
     private string Iniciales => SesionServicio.HaySesion
         ? $"{SesionServicio.UsuarioActual!.Nombre[0]}{SesionServicio.UsuarioActual.Apellido[0]}".ToUpper()
         : "??";
+
+    private string RolPrincipal => SesionServicio.EsAdministrador
+        ? "Administrador"
+        : SesionServicio.EsEditor
+            ? "Editor"
+            : SesionServicio.EsPeriodista
+                ? "Periodista"
+                : "Usuario";
 
     protected override void OnInitialized()
     {
