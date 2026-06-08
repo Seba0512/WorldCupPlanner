@@ -70,7 +70,7 @@ public class ServicioRankingDinamicoTests
         var servicio = new ServicioRankingDinamico();
         // Act
         var rankingNuevo = servicio.ActualizarRanking(1500, 1200, 0.5, FaseTorneo.FaseDeGrupos);
-        // Assert — era favorito (prob > 0.5), empate baja levemente
+        // Assert 
         Assert.IsTrue(rankingNuevo < 1500);
     }
 
@@ -82,7 +82,7 @@ public class ServicioRankingDinamicoTests
         // Act
         var rankingGrupos = servicio.ActualizarRanking(1000, 1000, 1.0, FaseTorneo.FaseDeGrupos);
         var rankingElim = servicio.ActualizarRanking(1000, 1000, 1.0, FaseTorneo.Octavos);
-        // Assert — mismo resultado pero multiplicado x1.5 → diferencia mayor
+        // Assert 
         Assert.IsTrue(rankingElim > rankingGrupos);
     }
 
@@ -91,7 +91,7 @@ public class ServicioRankingDinamicoTests
     {
         // Arrange
         var servicio = new ServicioRankingDinamico();
-        // Act — victoria con rankings iguales: K*1*1.0 = 30*0.5 = 15
+        // Act 
         var rankingNuevo = servicio.ActualizarRanking(1000, 1000, 1.0, FaseTorneo.FaseDeGrupos);
         // Assert
         Assert.AreEqual(1015, rankingNuevo);
@@ -102,7 +102,7 @@ public class ServicioRankingDinamicoTests
     {
         // Arrange
         var servicio = new ServicioRankingDinamico();
-        // Act — rankings iguales: delta=+15, 2490+15=2505 → clamp 2500
+        // Act 
         var rankingNuevo = servicio.ActualizarRanking(2490, 2490, 1.0, FaseTorneo.FaseDeGrupos);
         // Assert
         Assert.AreEqual(2500, rankingNuevo);
@@ -113,7 +113,7 @@ public class ServicioRankingDinamicoTests
     {
         // Arrange
         var servicio = new ServicioRankingDinamico();
-        // Act — rankings iguales: delta=-15, 310-15=295 → clamp 300
+        // Act 
         var rankingNuevo = servicio.ActualizarRanking(310, 310, 0.0, FaseTorneo.FaseDeGrupos);
         // Assert
         Assert.AreEqual(300, rankingNuevo);
@@ -122,9 +122,6 @@ public class ServicioRankingDinamicoTests
     [TestMethod]
     public void ActualizarRanking_CuandoDecimalEsExactamentePunto5_RedondeaHaciaArriba()
     {
-        // Arrange — buscamos un caso donde 30*(resultado-prob)*mult = X.5
-        // Rankings iguales: prob=0.5, resultado=1.0 → 30*0.5*1.0 = 15 (entero, no aplica)
-        // Usamos eliminatoria con rankings iguales: 30*0.5*1.5 = 22.5 → debe ser 23
         var servicio = new ServicioRankingDinamico();
         // Act
         var rankingNuevo = servicio.ActualizarRanking(1000, 1000, 1.0, FaseTorneo.Octavos);
@@ -183,7 +180,7 @@ public class ServicioRankingDinamicoTests
         var servicio = new ServicioRankingDinamico(repoEquipo, auditoria);
         // Act
         servicio.ActualizarRankingPartido(partido);
-        // Assert — un log por equipo con formato "NombreEquipo rankingAntes -> rankingDespues"
+        // Assert 
         var logs = repoAuditoria.Buscar(_ => true);
         Assert.AreEqual(2, logs.Count);
         Assert.IsTrue(logs.Any(l => l.Detalle.Contains("LocalFC") && l.Detalle.Contains("->")));
