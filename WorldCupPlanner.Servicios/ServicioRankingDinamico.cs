@@ -15,10 +15,12 @@ public class ServicioRankingDinamico
     private const double DivisorElo = 1000.0;
 
     private readonly IRepositorio<Equipo>? _repositorioEquipo;
+    private readonly ServicioAuditoria? _auditoria;
 
-    public ServicioRankingDinamico(IRepositorio<Equipo>? repositorioEquipo = null)
+    public ServicioRankingDinamico(IRepositorio<Equipo>? repositorioEquipo = null, ServicioAuditoria? auditoria = null)
     {
         _repositorioEquipo = repositorioEquipo;
+        _auditoria = auditoria;
     }
 
     public double CalcularProbabilidad(int rankingPropio, int rankingRival)
@@ -45,8 +47,10 @@ public class ServicioRankingDinamico
 
     private void ActualizarEquipo(Equipo equipo, int rankingRival, double resultado, FaseTorneo fase)
     {
+        var rankingAntes = equipo.RankingFIFA;
         equipo.RankingFIFA = ActualizarRanking(equipo.RankingFIFA, rankingRival, resultado, fase);
         _repositorioEquipo?.Actualizar(equipo);
+        _auditoria?.Registrar("Sistema", "RankingActualizado", $"{equipo.Nombre} {rankingAntes} -> {equipo.RankingFIFA}");
     }
 
     private static double DeterminarResultado(int golesLocal, int golesVisitante)
