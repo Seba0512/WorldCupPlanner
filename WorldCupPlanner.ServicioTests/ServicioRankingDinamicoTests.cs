@@ -167,6 +167,28 @@ public class ServicioRankingDinamicoTests
         Assert.AreEqual(1200, local.RankingFIFA);
         Assert.AreEqual(1200, visitante.RankingFIFA);
     }
+
+    [TestMethod]
+    public void ActualizarRankingPartido_CuandoPartidoJugado_RegistraAuditoriaConValoresAntesYDespues()
+    {
+        // Arrange
+        var local = new Equipo { Nombre = "LocalFC", RankingFIFA = 1200, Confederacion = Confederacion.UEFA };
+        var visitante = new Equipo { Nombre = "VisitanteFC", RankingFIFA = 1200, Confederacion = Confederacion.UEFA };
+        var partido = new Partido { EquipoLocal = local, EquipoVisitante = visitante, GolesLocal = 2, GolesVisitante = 1, Fase = FaseTorneo.FaseDeGrupos };
+        var repoEquipo = new RepositorioEquipoRankingStub();
+        repoEquipo.Agregar(local);
+        repoEquipo.Agregar(visitante);
+        var repoAuditoria = new RepositorioAuditoriaRankingStub();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var servicio = new ServicioRankingDinamico(repoEquipo, auditoria);
+        // Act
+        servicio.ActualizarRankingPartido(partido);
+        // Assert — un log por equipo con formato "NombreEquipo rankingAntes -> rankingDespues"
+        var logs = repoAuditoria.Buscar(_ => true);
+        Assert.AreEqual(2, logs.Count);
+        Assert.IsTrue(logs.Any(l => l.Detalle.Contains("LocalFC") && l.Detalle.Contains("->")));
+        Assert.IsTrue(logs.Any(l => l.Detalle.Contains("VisitanteFC") && l.Detalle.Contains("->")));
+    }
 }
 
 file sealed class RepositorioEquipoRankingStub : IRepositorio<Equipo>
@@ -186,4 +208,17 @@ file sealed class RepositorioEquipoRankingStub : IRepositorio<Equipo>
 
     public List<Equipo> Buscar(Func<Equipo, bool> predicado)
         => _equipos.Where(predicado).ToList();
+}
+
+file sealed class RepositorioAuditoriaRankingStub : IRepositorioConId<Auditoria>
+{
+    private readonly List<Auditoria> _logs = new();
+    private int _contador;
+
+    public int SiguienteId() => ++_contador;
+    public void Agregar(Auditoria entidad) => _logs.Add(entidad);
+    public void Actualizar(Auditoria entidad) { }
+    public void Eliminar(Auditoria entidad) => _logs.Remove(entidad);
+    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado)
+        => _logs.Where(predicado).ToList();
 }
