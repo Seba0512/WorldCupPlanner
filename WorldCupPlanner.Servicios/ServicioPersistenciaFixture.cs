@@ -107,19 +107,20 @@ public class ServicioPersistenciaFixture
 
     private void GuardarGrupos(IEnumerable<Grupo> grupos)
     {
-        var etiquetasExistentes = _repositorioGrupo.Buscar(_ => true)
-            .Select(grupo => grupo.Etiqueta)
-            .ToHashSet();
+        var existentesPorEtiqueta = _repositorioGrupo.Buscar(_ => true)
+            .ToDictionary(g => g.Etiqueta);
 
         foreach (var grupo in grupos)
         {
-            if (etiquetasExistentes.Contains(grupo.Etiqueta))
+            if (existentesPorEtiqueta.TryGetValue(grupo.Etiqueta, out var existente))
             {
-                continue;
+                grupo.Id = existente.Id;
+                _repositorioGrupo.Actualizar(grupo);
             }
-
-            _repositorioGrupo.Agregar(grupo);
-            etiquetasExistentes.Add(grupo.Etiqueta);
+            else
+            {
+                _repositorioGrupo.Agregar(grupo);
+            }
         }
     }
 
