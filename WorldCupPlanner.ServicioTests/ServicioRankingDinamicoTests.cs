@@ -1,3 +1,5 @@
+using WorldCupPlanner.AccesoADatos.Interfaces;
+using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
 
@@ -129,4 +131,59 @@ public class ServicioRankingDinamicoTests
         // Assert
         Assert.AreEqual(1023, rankingNuevo);
     }
+
+    [TestMethod]
+    public void ActualizarRankingPartido_CuandoPartidoJugado_ActualizaRankingDeAmbosEquipos()
+    {
+        // Arrange
+        var local = new Equipo { Nombre = "LocalFC", RankingFIFA = 1200, Confederacion = Confederacion.UEFA };
+        var visitante = new Equipo { Nombre = "VisitanteFC", RankingFIFA = 1200, Confederacion = Confederacion.UEFA };
+        var partido = new Partido { EquipoLocal = local, EquipoVisitante = visitante, GolesLocal = 2, GolesVisitante = 1, Fase = FaseTorneo.FaseDeGrupos };
+        var repo = new RepositorioEquipoRankingStub();
+        repo.Agregar(local);
+        repo.Agregar(visitante);
+        var servicio = new ServicioRankingDinamico(repo);
+        // Act
+        servicio.ActualizarRankingPartido(partido);
+        // Assert
+        Assert.AreNotEqual(1200, local.RankingFIFA);
+        Assert.AreNotEqual(1200, visitante.RankingFIFA);
+    }
+
+    [TestMethod]
+    public void ActualizarRankingPartido_CuandoPartidoNoJugado_NoActualizaRanking()
+    {
+        // Arrange
+        var local = new Equipo { Nombre = "LocalFC", RankingFIFA = 1200, Confederacion = Confederacion.UEFA };
+        var visitante = new Equipo { Nombre = "VisitanteFC", RankingFIFA = 1200, Confederacion = Confederacion.UEFA };
+        var partido = new Partido { EquipoLocal = local, EquipoVisitante = visitante, Fase = FaseTorneo.FaseDeGrupos };
+        var repo = new RepositorioEquipoRankingStub();
+        repo.Agregar(local);
+        repo.Agregar(visitante);
+        var servicio = new ServicioRankingDinamico(repo);
+        // Act
+        servicio.ActualizarRankingPartido(partido);
+        // Assert
+        Assert.AreEqual(1200, local.RankingFIFA);
+        Assert.AreEqual(1200, visitante.RankingFIFA);
+    }
+}
+
+file sealed class RepositorioEquipoRankingStub : IRepositorio<Equipo>
+{
+    private readonly List<Equipo> _equipos = new();
+
+    public void Agregar(Equipo equipo) => _equipos.Add(equipo);
+
+    public void Actualizar(Equipo equipo)
+    {
+        var indice = _equipos.FindIndex(e => ReferenceEquals(e, equipo));
+        if (indice != -1)
+            _equipos[indice] = equipo;
+    }
+
+    public void Eliminar(Equipo equipo) => _equipos.Remove(equipo);
+
+    public List<Equipo> Buscar(Func<Equipo, bool> predicado)
+        => _equipos.Where(predicado).ToList();
 }
