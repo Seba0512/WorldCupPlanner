@@ -6,6 +6,7 @@
 @inject ServicioIncidencia ServicioIncidencia
 @inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
 @inject ServicioPersistenciaFixture ServicioPersistenciaFixture
+@inject ServicioRankingDinamico ServicioRankingDinamico
 @inject EstadoTorneo EstadoTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
@@ -249,6 +250,9 @@ else
                 ServicioPartido.CargarResultado(_partido.Id, _golesLocal.Value, _golesVisitante.Value, ServicioNotificacion, periodistas);
                 var config = ServicioConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
                 ServicioPartido.ResolverEmpateConPenales(_partido.Id, config.SemillaSimulation);
+                var partidoActualizado = ServicioPartido.BuscarPartidoPorId(_partido.Id);
+                if (partidoActualizado != null)
+                    ServicioRankingDinamico.ActualizarRankingPartido(partidoActualizado);
             }
             var actualizado = ServicioPartido.BuscarPartidoPorId(_partido.Id);
             if (actualizado != null)

@@ -41,6 +41,10 @@ builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacionSql>
 builder.Services.AddScoped<ServicioNotificacion>();
 builder.Services.AddScoped<IRepositorioIncidencia, RepositorioIncidenciaSql>();
 builder.Services.AddScoped<ServicioIncidencia>();
+builder.Services.AddScoped<ServicioRankingDinamico>(sp =>
+    new ServicioRankingDinamico(
+        sp.GetRequiredService<IRepositorio<Equipo>>(),
+        sp.GetRequiredService<ServicioAuditoria>()));
 builder.Services.AddScoped<ServicioImportacionLegible>();
 builder.Services.AddScoped<InicializadorDatos>();
 
