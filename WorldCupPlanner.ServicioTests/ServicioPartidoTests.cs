@@ -1,4 +1,4 @@
-using WorldCupPlanner.AccesoADatos.Repositorios;
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -15,7 +15,7 @@ public class ServicioPartidoTests
     public void EditarFecha_ConPartidoExistente_ActualizaFecha()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
         var servicioPartido = new ServicioPartido(repositorio);
@@ -32,7 +32,7 @@ public class ServicioPartidoTests
     public void EditarEstadio_ConPartidoExistente_ActualizaEstadio()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
         var servicioPartido = new ServicioPartido(repositorio);
@@ -49,7 +49,7 @@ public class ServicioPartidoTests
     public void CargarResultado_ConPartidoExistente_ActualizaGoles()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
         var servicioPartido = new ServicioPartido(repositorio);
@@ -66,7 +66,7 @@ public class ServicioPartidoTests
     public void EditarFecha_ConPartidoInexistente_DebeLanzarExcepcion()
     {
         // Arrange
-        var servicioPartido = new ServicioPartido(new RepositorioPartidoEnMemoria());
+        var servicioPartido = new ServicioPartido(new RepositorioPartidoStub());
 
         // Act & Assert
         Assert.ThrowsException<EntidadInexistenteExcepcion>(() =>
@@ -77,7 +77,7 @@ public class ServicioPartidoTests
     public void EditarEstadio_ConEstadioInvalido_DebeLanzarExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
         var servicioPartido = new ServicioPartido(repositorio);
@@ -92,7 +92,7 @@ public class ServicioPartidoTests
     public void EditarEstadio_ConEstadioNull_LanzaEntidadInvalidaExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
         var servicioPartido = new ServicioPartido(repositorio);
@@ -106,7 +106,7 @@ public class ServicioPartidoTests
     public void CargarResultado_ConGolesNegativos_DebeLanzarExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
         var servicioPartido = new ServicioPartido(repositorio);
@@ -120,7 +120,7 @@ public class ServicioPartidoTests
     public void EditarPartidoDeFaseDeGrupos_ConCrucesGenerados_DebeLanzarExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
         var servicioPartido = new ServicioPartido(repositorio);
@@ -135,7 +135,7 @@ public class ServicioPartidoTests
     public void EditarPartidoDePrimeraRonda_ConOctavosGenerados_DebeLanzarExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.PrimeraRondaEliminatoria);
         repositorio.Agregar(partido);
         var servicioPartido = new ServicioPartido(repositorio);
@@ -150,7 +150,7 @@ public class ServicioPartidoTests
     public void EditarPartidoDeOctavos_ConCuartosGenerados_DebeLanzarExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.Octavos);
         repositorio.Agregar(partido);
         var servicioPartido = new ServicioPartido(repositorio);
@@ -165,7 +165,7 @@ public class ServicioPartidoTests
     public void EditarPartidoDeCuartos_ConSemifinalesGeneradas_DebeLanzarExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.Cuartos);
         repositorio.Agregar(partido);
         var servicioPartido = new ServicioPartido(repositorio);
@@ -180,7 +180,7 @@ public class ServicioPartidoTests
     public void EditarPartidoDeSemifinal_ConFinalGenerada_DebeLanzarExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.Semifinal);
         repositorio.Agregar(partido);
         var servicioPartido = new ServicioPartido(repositorio);
@@ -195,7 +195,7 @@ public class ServicioPartidoTests
     public void EsFaseBloqueada_SinFasesBloqueadas_RetornaFalso()
     {
         // Arrange
-        var servicioPartido = new ServicioPartido(new RepositorioPartidoEnMemoria());
+        var servicioPartido = new ServicioPartido(new RepositorioPartidoStub());
 
         // Act & Assert
         Assert.IsFalse(servicioPartido.EsFaseBloqueada(FaseTorneo.FaseDeGrupos));
@@ -205,7 +205,7 @@ public class ServicioPartidoTests
     public void EsFaseBloqueada_ConFaseDeGruposBloqueadaExplicitamente_RetornaVerdadero()
     {
         // Arrange
-        var servicioPartido = new ServicioPartido(new RepositorioPartidoEnMemoria());
+        var servicioPartido = new ServicioPartido(new RepositorioPartidoStub());
         servicioPartido.BloquearEdicionPartidosDeFaseDeGrupos();
 
         // Act & Assert
@@ -216,7 +216,7 @@ public class ServicioPartidoTests
     public void BuscarPartidoPorId_ConIdInexistente_RetornaNull()
     {
         // Arrange
-        var servicioPartido = new ServicioPartido(new RepositorioPartidoEnMemoria());
+        var servicioPartido = new ServicioPartido(new RepositorioPartidoStub());
 
         // Act
         var resultado = servicioPartido.BuscarPartidoPorId(99);
@@ -229,7 +229,7 @@ public class ServicioPartidoTests
     public void BuscarPartidoPorId_ConPartidoExistente_RetornaPartido()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
         var servicioPartido = new ServicioPartido(repositorio);
@@ -245,8 +245,8 @@ public class ServicioPartidoTests
     public void CargarResultado_CuandoResultadoValido_GeneraNotificacionesParaPeriodistas()
     {
         // Arrange
-        var repositorioPartido = new RepositorioPartidoEnMemoria();
-        var repositorioNotificacion = new RepositorioNotificacionEnMemoria();
+        var repositorioPartido = new RepositorioPartidoStub();
+        var repositorioNotificacion = new RepositorioNotificacionStub();
         var servicioNotificacion = new ServicioNotificacion(repositorioNotificacion);
         var periodista = new Usuario(new DatosUsuario { Nombre = "Sebita", Apellido = "Luciardi", Email = "periodista@test.com", FechaNacimiento = "01-01-1990" });
         periodista.AgregarRol(RolUsuario.Periodista);
@@ -304,7 +304,7 @@ public class ServicioPartidoTests
     public void CargarResultado_SiempreResetea_GanadorPorPenales()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.Octavos);
         partido.GanadorPorPenales = partido.EquipoLocal;
         repositorio.Agregar(partido);
@@ -321,7 +321,7 @@ public class ServicioPartidoTests
     public void ResolverEmpateConPenales_EnFaseEliminatoriaConEmpate_AsignaGanadorPorPenales()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.Octavos);
         partido.GolesLocal = 1;
         partido.GolesVisitante = 1;
@@ -342,7 +342,7 @@ public class ServicioPartidoTests
     public void ResolverEmpateConPenales_EnFaseDeGruposConEmpate_NoAsignaGanadorPorPenales()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.FaseDeGrupos);
         partido.GolesLocal = 1;
         partido.GolesVisitante = 1;
@@ -360,7 +360,7 @@ public class ServicioPartidoTests
     public void ResolverEmpateConPenales_CuandoNoEsEmpate_NoAsignaGanadorPorPenales()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.Cuartos);
         partido.GolesLocal = 2;
         partido.GolesVisitante = 1;
@@ -378,7 +378,7 @@ public class ServicioPartidoTests
     public void ResolverEmpateConPenales_ConMismaSemilla_EsDeterministico()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.Semifinal);
         partido.GolesLocal = 0;
         partido.GolesVisitante = 0;
@@ -488,7 +488,7 @@ public class ServicioPartidoTests
     public void ObtenerPartidos_ConRepositorio_DevuelvePartidos()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
         var servicio = new ServicioPartido(repositorio);
@@ -577,7 +577,7 @@ public class ServicioPartidoTests
     public void EditarFecha_ConFechaPorDefecto_DebeLanzarExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
         var servicio = new ServicioPartido(repositorio);
@@ -591,7 +591,7 @@ public class ServicioPartidoTests
     public void CargarResultado_ConGolesVisitanteNegativos_DebeLanzarExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
         var servicio = new ServicioPartido(repositorio);
@@ -605,7 +605,7 @@ public class ServicioPartidoTests
     public void RegistrarFaseGenerada_TercerPuesto_BloqueaSemifinal()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.Semifinal);
         repositorio.Agregar(partido);
         var servicio = new ServicioPartido(repositorio);
@@ -622,7 +622,7 @@ public class ServicioPartidoTests
     public void RegistrarFaseGenerada_FaseInvalida_DebeLanzarExcepcion()
     {
         // Arrange
-        var servicio = new ServicioPartido(new RepositorioPartidoEnMemoria());
+        var servicio = new ServicioPartido(new RepositorioPartidoStub());
 
         // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
@@ -633,7 +633,7 @@ public class ServicioPartidoTests
     public void BloquearEdicionFase_Directamente_BloqueaFaseIndicada()
     {
         // Arrange
-        var repositorio = new RepositorioPartidoEnMemoria();
+        var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.Octavos);
         repositorio.Agregar(partido);
         var servicio = new ServicioPartido(repositorio);
@@ -702,7 +702,7 @@ public class ServicioPartidoTests
     public void RegistrarFaseGenerada_PrimeraRondaEliminatoria_BloqueaFaseDeGrupos()
     {
         // Arrange
-        var servicio = new ServicioPartido(new RepositorioPartidoEnMemoria());
+        var servicio = new ServicioPartido(new RepositorioPartidoStub());
 
         // Act
         servicio.RegistrarFaseGenerada(FaseTorneo.PrimeraRondaEliminatoria);
@@ -715,7 +715,7 @@ public class ServicioPartidoTests
     public void RegistrarFaseGenerada_Octavos_BloquePrimeraRonda()
     {
         // Arrange
-        var servicio = new ServicioPartido(new RepositorioPartidoEnMemoria());
+        var servicio = new ServicioPartido(new RepositorioPartidoStub());
 
         // Act
         servicio.RegistrarFaseGenerada(FaseTorneo.Octavos);
@@ -790,4 +790,52 @@ public class ServicioPartidoTests
         Assert.AreEqual(fixtureAnterior, estado.FixtureAnterior);
         Assert.AreEqual(1, estado.PartidosEliminatoriosAnteriores.Count);
     }
+}
+
+file sealed class RepositorioPartidoStub : IRepositorio<Partido>
+{
+    private readonly List<Partido> _partidos = new();
+
+    public void Agregar(Partido partido) => _partidos.Add(partido);
+
+    public void Actualizar(Partido partido)
+    {
+        var indice = _partidos.FindIndex(p => ReferenceEquals(p, partido));
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("El partido no existe.");
+        _partidos[indice] = partido;
+    }
+
+    public void Eliminar(Partido partido) => _partidos.Remove(partido);
+
+    public List<Partido> Buscar(Func<Partido, bool> predicado)
+        => _partidos.Where(predicado).ToList();
+}
+
+file sealed class RepositorioNotificacionStub : IRepositorioNotificacion
+{
+    private readonly List<Notificacion> _notificaciones = new();
+    private int _siguienteId = 1;
+
+    public void Agregar(Notificacion notificacion)
+    {
+        notificacion.Id = _siguienteId++;
+        _notificaciones.Add(notificacion);
+    }
+
+    public void Actualizar(Notificacion notificacion)
+    {
+        var indice = _notificaciones.FindIndex(n => n.Id == notificacion.Id);
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("La notificación no existe.");
+        _notificaciones[indice] = notificacion;
+    }
+
+    public void Eliminar(Notificacion notificacion) => _notificaciones.Remove(notificacion);
+
+    public List<Notificacion> Buscar(Func<Notificacion, bool> predicado)
+        => _notificaciones.Where(predicado).ToList();
+
+    public List<Notificacion> ObtenerPorUsuario(int usuarioId)
+        => _notificaciones.Where(n => n.UsuarioDestinatarioId == usuarioId).ToList();
 }

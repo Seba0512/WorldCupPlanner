@@ -1,4 +1,4 @@
-using WorldCupPlanner.AccesoADatos.Repositorios;
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -402,8 +402,8 @@ public class ServicioConfiguracionTorneoTests
         servicioConfiguracion1.ModificarConfiguracion(administrador, new ConfiguracionTorneo { SemillaCompletar = 99 });
         servicioConfiguracion2.ModificarConfiguracion(administrador, new ConfiguracionTorneo { SemillaCompletar = 99 });
 
-        var servicioEquipo1 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
-        var servicioEquipo2 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
+        var servicioEquipo1 = new ServicioEquipo(new RepositorioEquipoStub());
+        var servicioEquipo2 = new ServicioEquipo(new RepositorioEquipoStub());
 
         // Act — ambos usan la semilla de su respectiva configuración centralizada
         var generados1 = servicioEquipo1.CompletarEquipos(
@@ -432,8 +432,8 @@ public class ServicioConfiguracionTorneoTests
         servicioConfiguracion.ModificarConfiguracion(administrador, new ConfiguracionTorneo { SemillaCompletar = 2 });
         var semilla2 = servicioConfiguracion.ObtenerConfiguracionActual().SemillaCompletar;
 
-        var servicioEquipo1 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
-        var servicioEquipo2 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
+        var servicioEquipo1 = new ServicioEquipo(new RepositorioEquipoStub());
+        var servicioEquipo2 = new ServicioEquipo(new RepositorioEquipoStub());
 
         // Act
         var rankings1 = servicioEquipo1.CompletarEquipos(semilla1).Select(e => e.RankingFIFA).ToList();
@@ -452,6 +452,7 @@ public class ServicioConfiguracionTorneoTests
         var configuracion = new ConfiguracionTorneo { SemillaCompletar = 55 };
 
         Assert.AreEqual(55, configuracion.SemillaCompletar);
+
         Assert.AreEqual(typeof(int), configuracion.SemillaCompletar.GetType());
     }
 
@@ -479,4 +480,24 @@ public class ServicioConfiguracionTorneoTests
 
         return usuario;
     }
+}
+
+file sealed class RepositorioEquipoStub : IRepositorio<Equipo>
+{
+    private readonly List<Equipo> _equipos = new();
+
+    public void Agregar(Equipo equipo) => _equipos.Add(equipo);
+
+    public void Actualizar(Equipo equipo)
+    {
+        var indice = _equipos.FindIndex(e => ReferenceEquals(e, equipo));
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("El equipo no existe.");
+        _equipos[indice] = equipo;
+    }
+
+    public void Eliminar(Equipo equipo) => _equipos.Remove(equipo);
+
+    public List<Equipo> Buscar(Func<Equipo, bool> predicado)
+        => _equipos.Where(predicado).ToList();
 }

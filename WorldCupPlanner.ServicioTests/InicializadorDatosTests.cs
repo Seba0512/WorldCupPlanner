@@ -1,6 +1,7 @@
-using WorldCupPlanner.AccesoADatos.Repositorios;
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
@@ -8,15 +9,15 @@ namespace WorldCupPlanner.ServicioTests;
 [TestClass]
 public sealed class InicializadorDatosTests
 {
-    private RepositorioUsuarioEnMemoria _repositorio = null!;
+    private IRepositorioUsuario _repositorio = null!;
     private ServicioUsuario _servicioUsuario = null!;
     private InicializadorDatos _inicializador = null!;
 
     [TestInitialize]
     public void Setup()
     {
-        _repositorio = new RepositorioUsuarioEnMemoria();
-        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaEnMemoria());
+        _repositorio = new RepositorioUsuarioStub();
+        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaStub());
         _servicioUsuario = new ServicioUsuario(_repositorio, auditoria);
         _inicializador = new InicializadorDatos(_servicioUsuario);
     }
@@ -240,4 +241,50 @@ public sealed class InicializadorDatosTests
         Assert.ThrowsException<WorldCupPlanner.Dominio.Excepciones.AccesoDenegadoExcepcion>(() =>
             _servicioUsuario.AgregarUsuario(nuevoUsuario, solicitante: editor));
     }
+}
+
+file sealed class RepositorioUsuarioStub : IRepositorioUsuario
+{
+    private readonly List<Usuario> _usuarios = new();
+
+    public void Agregar(Usuario usuario) => _usuarios.Add(usuario);
+
+    public void Actualizar(Usuario usuario)
+    {
+        var indice = _usuarios.FindIndex(u => ReferenceEquals(u, usuario));
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("El usuario no existe.");
+        _usuarios[indice] = usuario;
+    }
+
+    public void Eliminar(Usuario usuario) => _usuarios.Remove(usuario);
+
+    public List<Usuario> Buscar(Func<Usuario, bool> predicado)
+        => _usuarios.Where(predicado).ToList();
+
+    public Usuario? ObtenerPorEmail(string email)
+        => _usuarios.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+}
+
+file sealed class RepositorioAuditoriaStub : IRepositorioConId<Auditoria>
+{
+    private readonly List<Auditoria> _logs = new();
+    private int _contador;
+
+    public int SiguienteId() => ++_contador;
+
+    public void Agregar(Auditoria entidad) => _logs.Add(entidad);
+
+    public void Actualizar(Auditoria entidad)
+    {
+        var indice = _logs.FindIndex(e => e.Id == entidad.Id);
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("El log de auditoría no existe.");
+        _logs[indice] = entidad;
+    }
+
+    public void Eliminar(Auditoria entidad) => _logs.Remove(entidad);
+
+    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado)
+        => _logs.Where(predicado).ToList();
 }

@@ -1,4 +1,4 @@
-using WorldCupPlanner.AccesoADatos.Repositorios;
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -16,7 +16,7 @@ public class ServicioIncidenciaTests
     public void AgregarTarjeta_CuandoTipoAmarilla_CreasTarjetaAmarilla()
     {
         // Arrange
-        var repositorio = new RepositorioIncidenciaEnMemoria();
+        var repositorio = new RepositorioIncidenciaStub();
         var servicio = new ServicioIncidencia(repositorio);
 
         // Act
@@ -32,7 +32,7 @@ public class ServicioIncidenciaTests
     public void AgregarTarjeta_CuandoTipoRoja_CreasTarjetaRoja()
     {
         // Arrange
-        var repositorio = new RepositorioIncidenciaEnMemoria();
+        var repositorio = new RepositorioIncidenciaStub();
         var servicio = new ServicioIncidencia(repositorio);
 
         // Act
@@ -48,7 +48,7 @@ public class ServicioIncidenciaTests
     public void AgregarTarjeta_CuandoMinutoCero_LanzaExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioIncidenciaEnMemoria();
+        var repositorio = new RepositorioIncidenciaStub();
         var servicio = new ServicioIncidencia(repositorio);
 
         // Act & Assert
@@ -60,7 +60,7 @@ public class ServicioIncidenciaTests
     public void AgregarTarjeta_CuandoMinutoMayorA90_LanzaExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioIncidenciaEnMemoria();
+        var repositorio = new RepositorioIncidenciaStub();
         var servicio = new ServicioIncidencia(repositorio);
 
         // Act & Assert
@@ -72,7 +72,7 @@ public class ServicioIncidenciaTests
     public void AgregarTarjeta_CuandoMinutoEsUno_NoLanzaExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioIncidenciaEnMemoria();
+        var repositorio = new RepositorioIncidenciaStub();
         var servicio = new ServicioIncidencia(repositorio);
 
         // Act
@@ -86,7 +86,7 @@ public class ServicioIncidenciaTests
     public void AgregarTarjeta_CuandoMinutoEsNoventa_NoLanzaExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioIncidenciaEnMemoria();
+        var repositorio = new RepositorioIncidenciaStub();
         var servicio = new ServicioIncidencia(repositorio);
 
         // Act
@@ -100,7 +100,7 @@ public class ServicioIncidenciaTests
     public void AgregarTarjeta_PersisteTodosLosDatos()
     {
         // Arrange
-        var repositorio = new RepositorioIncidenciaEnMemoria();
+        var repositorio = new RepositorioIncidenciaStub();
         var servicio = new ServicioIncidencia(repositorio);
         var equipo = CrearEquipo("Brasil");
 
@@ -118,7 +118,7 @@ public class ServicioIncidenciaTests
     public void ObtenerIncidencias_ConVariasIncidencias_RetornaSoloLasDelPartido()
     {
         // Arrange
-        var repositorio = new RepositorioIncidenciaEnMemoria();
+        var repositorio = new RepositorioIncidenciaStub();
         var servicio = new ServicioIncidencia(repositorio);
         servicio.AgregarTarjeta(10, TipoTarjeta.Amarilla, 10, CrearEquipo());
         servicio.AgregarTarjeta(10, TipoTarjeta.Roja, 55, CrearEquipo());
@@ -136,7 +136,7 @@ public class ServicioIncidenciaTests
     public void EliminarIncidencia_CuandoExiste_LaEliminaDelRepositorio()
     {
         // Arrange
-        var repositorio = new RepositorioIncidenciaEnMemoria();
+        var repositorio = new RepositorioIncidenciaStub();
         var servicio = new ServicioIncidencia(repositorio);
         servicio.AgregarTarjeta(1, TipoTarjeta.Amarilla, 20, CrearEquipo());
         var incidenciaId = repositorio.ObtenerPorPartido(1).First().Id;
@@ -152,11 +152,44 @@ public class ServicioIncidenciaTests
     public void EliminarIncidencia_CuandoNoExiste_LanzaExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioIncidenciaEnMemoria();
+        var repositorio = new RepositorioIncidenciaStub();
         var servicio = new ServicioIncidencia(repositorio);
 
         // Act & Assert
         Assert.ThrowsException<EntidadInexistenteExcepcion>(() =>
             servicio.EliminarIncidencia(999));
     }
+}
+
+file sealed class RepositorioIncidenciaStub : IRepositorioIncidencia
+{
+    private readonly List<Incidencia> _incidencias = new();
+    private int _siguienteId = 1;
+
+    public void Agregar(Incidencia entidad)
+    {
+        entidad.Id = _siguienteId++;
+        _incidencias.Add(entidad);
+    }
+
+    public void Actualizar(Incidencia entidad)
+    {
+        var indice = _incidencias.FindIndex(i => i.Id == entidad.Id);
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("La incidencia no existe.");
+        _incidencias[indice] = entidad;
+    }
+
+    public void Eliminar(Incidencia entidad)
+    {
+        var existente = _incidencias.FirstOrDefault(i => i.Id == entidad.Id)
+            ?? throw new EntidadInexistenteExcepcion("La incidencia no existe.");
+        _incidencias.Remove(existente);
+    }
+
+    public List<Incidencia> Buscar(Func<Incidencia, bool> predicado)
+        => _incidencias.Where(predicado).ToList();
+
+    public List<Incidencia> ObtenerPorPartido(int partidoId)
+        => _incidencias.Where(i => i.PartidoId == partidoId).ToList();
 }

@@ -1,6 +1,7 @@
-using WorldCupPlanner.AccesoADatos.Repositorios;
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
@@ -12,9 +13,9 @@ public class ServicioPersistenciaFixtureTests
     public void GuardarFixture_SinDatosPrevios_GuardaGruposYPartidos()
     {
         // Arrange
-        var repositorioGrupo = new RepositorioGrupoEnMemoria();
-        var repositorioPartido = new RepositorioPartidoEnMemoria();
-        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoEnMemoria());
+        var repositorioGrupo = new RepositorioGrupoStub();
+        var repositorioPartido = new RepositorioPartidoStub();
+        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoStub());
         var grupo = new Grupo("A");
         var partido = CrearPartido(1, grupo);
         grupo.Partidos.Add(partido);
@@ -34,9 +35,9 @@ public class ServicioPersistenciaFixtureTests
     public void GuardarFixture_ConGrupoExistente_NoDuplicaGrupo()
     {
         // Arrange
-        var repositorioGrupo = new RepositorioGrupoEnMemoria();
-        var repositorioPartido = new RepositorioPartidoEnMemoria();
-        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoEnMemoria());
+        var repositorioGrupo = new RepositorioGrupoStub();
+        var repositorioPartido = new RepositorioPartidoStub();
+        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoStub());
         repositorioGrupo.Agregar(new Grupo("A"));
         var grupoGenerado = new Grupo("A");
         var partido = CrearPartido(1, grupoGenerado);
@@ -55,9 +56,9 @@ public class ServicioPersistenciaFixtureTests
     public void GuardarPartidos_ConPartidoExistente_ActualizaSinDuplicar()
     {
         // Arrange
-        var repositorioGrupo = new RepositorioGrupoEnMemoria();
-        var repositorioPartido = new RepositorioPartidoEnMemoria();
-        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoEnMemoria());
+        var repositorioGrupo = new RepositorioGrupoStub();
+        var repositorioPartido = new RepositorioPartidoStub();
+        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoStub());
         var grupoOriginal = new Grupo("A");
         var grupoNuevo = new Grupo("B");
         var partidoExistente = CrearPartido(1, grupoOriginal);
@@ -94,9 +95,9 @@ public class ServicioPersistenciaFixtureTests
     public void CargarEnEstadoTorneo_ConFinalJugada_EstableceTorneoFinalizadoEnTrue()
     {
         // Arrange
-        var repositorioGrupo = new RepositorioGrupoEnMemoria();
-        var repositorioPartido = new RepositorioPartidoEnMemoria();
-        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoEnMemoria());
+        var repositorioGrupo = new RepositorioGrupoStub();
+        var repositorioPartido = new RepositorioPartidoStub();
+        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoStub());
         repositorioGrupo.Agregar(new Grupo("A"));
         repositorioPartido.Agregar(new Partido { Id = 100, Fase = FaseTorneo.Final, GolesLocal = 2, GolesVisitante = 1 });
         var estadoTorneo = new EstadoTorneo();
@@ -112,9 +113,9 @@ public class ServicioPersistenciaFixtureTests
     public void CargarEnEstadoTorneo_SinFinalJugada_TorneoNoFinalizado()
     {
         // Arrange
-        var repositorioGrupo = new RepositorioGrupoEnMemoria();
-        var repositorioPartido = new RepositorioPartidoEnMemoria();
-        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoEnMemoria());
+        var repositorioGrupo = new RepositorioGrupoStub();
+        var repositorioPartido = new RepositorioPartidoStub();
+        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoStub());
         repositorioGrupo.Agregar(new Grupo("A"));
         var estadoTorneo = new EstadoTorneo();
 
@@ -129,9 +130,9 @@ public class ServicioPersistenciaFixtureTests
     public void LimpiarFixture_ConDatosPrevios_EliminaGruposYPartidos()
     {
         // Arrange
-        var repositorioGrupo = new RepositorioGrupoEnMemoria();
-        var repositorioPartido = new RepositorioPartidoEnMemoria();
-        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoEnMemoria());
+        var repositorioGrupo = new RepositorioGrupoStub();
+        var repositorioPartido = new RepositorioPartidoStub();
+        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoStub());
         var grupo = new Grupo("A");
         var partido = CrearPartido(1, grupo);
         grupo.Partidos.Add(partido);
@@ -150,9 +151,9 @@ public class ServicioPersistenciaFixtureTests
     public void LimpiarFixture_SinDatosPrevios_NoLanzaExcepcion()
     {
         // Arrange
-        var repositorioGrupo = new RepositorioGrupoEnMemoria();
-        var repositorioPartido = new RepositorioPartidoEnMemoria();
-        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoEnMemoria());
+        var repositorioGrupo = new RepositorioGrupoStub();
+        var repositorioPartido = new RepositorioPartidoStub();
+        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoStub());
 
         // Act & Assert
         servicio.LimpiarFixture();
@@ -163,9 +164,9 @@ public class ServicioPersistenciaFixtureTests
     public void ArchivarTorneoActual_ConDatosPrevios_GuardaArchivoYLimpiaBD()
     {
         // Arrange
-        var repositorioGrupo = new RepositorioGrupoEnMemoria();
-        var repositorioPartido = new RepositorioPartidoEnMemoria();
-        var repositorioArchivo = new RepositorioTorneoArchivadoEnMemoria();
+        var repositorioGrupo = new RepositorioGrupoStub();
+        var repositorioPartido = new RepositorioPartidoStub();
+        var repositorioArchivo = new RepositorioTorneoArchivadoStub();
         var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, repositorioArchivo);
         var grupo = new Grupo("A");
         var partido = CrearPartido(1, grupo);
@@ -188,9 +189,9 @@ public class ServicioPersistenciaFixtureTests
     public void ArchivarTorneoActual_SinDatos_NoGuardaArchivoYNoLanzaExcepcion()
     {
         // Arrange
-        var repositorioGrupo = new RepositorioGrupoEnMemoria();
-        var repositorioPartido = new RepositorioPartidoEnMemoria();
-        var repositorioArchivo = new RepositorioTorneoArchivadoEnMemoria();
+        var repositorioGrupo = new RepositorioGrupoStub();
+        var repositorioPartido = new RepositorioPartidoStub();
+        var repositorioArchivo = new RepositorioTorneoArchivadoStub();
         var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, repositorioArchivo);
 
         // Act
@@ -204,9 +205,9 @@ public class ServicioPersistenciaFixtureTests
     public void CargarEnEstadoTorneo_ConArchivoGuardado_ReconstruyeFixtureAnterior()
     {
         // Arrange
-        var repositorioGrupo = new RepositorioGrupoEnMemoria();
-        var repositorioPartido = new RepositorioPartidoEnMemoria();
-        var repositorioArchivo = new RepositorioTorneoArchivadoEnMemoria();
+        var repositorioGrupo = new RepositorioGrupoStub();
+        var repositorioPartido = new RepositorioPartidoStub();
+        var repositorioArchivo = new RepositorioTorneoArchivadoStub();
         var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, repositorioArchivo);
 
         var grupo = new Grupo("A");
@@ -235,9 +236,9 @@ public class ServicioPersistenciaFixtureTests
     public void CargarEnEstadoTorneo_SinArchivo_FixtureAnteriorEsNull()
     {
         // Arrange
-        var repositorioGrupo = new RepositorioGrupoEnMemoria();
-        var repositorioPartido = new RepositorioPartidoEnMemoria();
-        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoEnMemoria());
+        var repositorioGrupo = new RepositorioGrupoStub();
+        var repositorioPartido = new RepositorioPartidoStub();
+        var servicio = new ServicioPersistenciaFixture(repositorioGrupo, repositorioPartido, new RepositorioTorneoArchivadoStub());
         var estadoTorneo = new EstadoTorneo();
 
         // Act
@@ -280,4 +281,52 @@ public class ServicioPersistenciaFixtureTests
             Capacidad = 40000
         };
     }
+}
+
+file sealed class RepositorioGrupoStub : IRepositorio<Grupo>
+{
+    private readonly List<Grupo> _grupos = new();
+
+    public void Agregar(Grupo grupo) => _grupos.Add(grupo);
+
+    public void Actualizar(Grupo grupo)
+    {
+        var indice = _grupos.FindIndex(g => ReferenceEquals(g, grupo));
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("El grupo no existe.");
+        _grupos[indice] = grupo;
+    }
+
+    public void Eliminar(Grupo grupo) => _grupos.Remove(grupo);
+
+    public List<Grupo> Buscar(Func<Grupo, bool> predicado)
+        => _grupos.Where(predicado).ToList();
+}
+
+file sealed class RepositorioPartidoStub : IRepositorio<Partido>
+{
+    private readonly List<Partido> _partidos = new();
+
+    public void Agregar(Partido partido) => _partidos.Add(partido);
+
+    public void Actualizar(Partido partido)
+    {
+        var indice = _partidos.FindIndex(p => ReferenceEquals(p, partido));
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("El partido no existe.");
+        _partidos[indice] = partido;
+    }
+
+    public void Eliminar(Partido partido) => _partidos.Remove(partido);
+
+    public List<Partido> Buscar(Func<Partido, bool> predicado)
+        => _partidos.Where(predicado).ToList();
+}
+
+file sealed class RepositorioTorneoArchivadoStub : IRepositorioTorneoArchivado
+{
+    private TorneoArchivado? _archivo;
+
+    public void Guardar(TorneoArchivado torneoArchivado) => _archivo = torneoArchivado;
+    public TorneoArchivado? Obtener() => _archivo;
 }

@@ -1,4 +1,4 @@
-using WorldCupPlanner.AccesoADatos.Repositorios;
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -13,7 +13,7 @@ public class ServicioNotificacionTests
     public void GenerarNotificacionesResultado_CuandoHayPeriodistas_CreaUnaNotificacionPorCadaPeriodista()
     {
         // Arrange
-        var repositorio = new RepositorioNotificacionEnMemoria();
+        var repositorio = new RepositorioNotificacionStub();
         var servicio = new ServicioNotificacion(repositorio);
         var partido = new Partido();
         var periodista1 = new Usuario(new DatosUsuario { Nombre = "Juan", Apellido = "Perez", Email = "juan@test.com", FechaNacimiento = "01-01-1990" });
@@ -40,7 +40,7 @@ public class ServicioNotificacionTests
     public void MarcarComoLeida_CuandoNotificacionExiste_ActualizaEsLeidaATrue()
     {
         // Arrange
-        var repositorio = new RepositorioNotificacionEnMemoria();
+        var repositorio = new RepositorioNotificacionStub();
         var servicio = new ServicioNotificacion(repositorio);
         var usuario = CrearPeriodista("leida@test.com");
         var notificacion = new Notificacion { UsuarioDestinatarioId = usuario.Id };
@@ -57,7 +57,7 @@ public class ServicioNotificacionTests
     public void MarcarComoLeida_CuandoNotificacionNoPertenecAlUsuario_LanzaExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioNotificacionEnMemoria();
+        var repositorio = new RepositorioNotificacionStub();
         var servicio = new ServicioNotificacion(repositorio);
         var usuario = CrearPeriodista("duenio@test.com");
         var otroUsuario = CrearPeriodista("otro@test.com");
@@ -73,7 +73,7 @@ public class ServicioNotificacionTests
     public void MarcarComoLeida_CuandoNotificacionNoExiste_LanzaExcepcion()
     {
         // Arrange
-        var repositorio = new RepositorioNotificacionEnMemoria();
+        var repositorio = new RepositorioNotificacionStub();
         var servicio = new ServicioNotificacion(repositorio);
 
         // Act & Assert
@@ -85,7 +85,7 @@ public class ServicioNotificacionTests
     public void GenerarNotificacionesResultado_CuandoNoHayPeriodistas_NoCreaNingunNotificacion()
     {
         // Arrange
-        var repositorio = new RepositorioNotificacionEnMemoria();
+        var repositorio = new RepositorioNotificacionStub();
         var servicio = new ServicioNotificacion(repositorio);
         var partido = new Partido();
 
@@ -100,7 +100,7 @@ public class ServicioNotificacionTests
     public void GenerarNotificacionesResultado_CuandoUsuarioNoEsPeriodista_NoLeGeneraNotificacion()
     {
         // Arrange
-        var repositorio = new RepositorioNotificacionEnMemoria();
+        var repositorio = new RepositorioNotificacionStub();
         var servicio = new ServicioNotificacion(repositorio);
         var partido = new Partido();
         var editor = new Usuario(new DatosUsuario { Nombre = "Sebita", Apellido = "Luciardi", Email = "carlos@test.com", FechaNacimiento = "01-01-1990" });
@@ -119,7 +119,7 @@ public class ServicioNotificacionTests
     public void ObtenerNoLeidas_RetornaSoloLasNoLeidas()
     {
         // Arrange
-        var repositorio = new RepositorioNotificacionEnMemoria();
+        var repositorio = new RepositorioNotificacionStub();
         var servicio = new ServicioNotificacion(repositorio);
         var usuario = CrearPeriodista("noLeidas@test.com");
         repositorio.Agregar(new Notificacion { UsuarioDestinatarioId = usuario.Id, EsLeida = false });
@@ -138,7 +138,7 @@ public class ServicioNotificacionTests
     public void ObtenerNoLeidas_CuandoTodasLeidas_RetornaListaVacia()
     {
         // Arrange
-        var repositorio = new RepositorioNotificacionEnMemoria();
+        var repositorio = new RepositorioNotificacionStub();
         var servicio = new ServicioNotificacion(repositorio);
         var usuario = CrearPeriodista("todasLeidas@test.com");
         repositorio.Agregar(new Notificacion { UsuarioDestinatarioId = usuario.Id, EsLeida = true });
@@ -161,4 +161,32 @@ public class ServicioNotificacionTests
         usuario.AgregarRol(RolUsuario.Periodista);
         return usuario;
     }
+}
+
+file sealed class RepositorioNotificacionStub : IRepositorioNotificacion
+{
+    private readonly List<Notificacion> _notificaciones = new();
+    private int _siguienteId = 1;
+
+    public void Agregar(Notificacion notificacion)
+    {
+        notificacion.Id = _siguienteId++;
+        _notificaciones.Add(notificacion);
+    }
+
+    public void Actualizar(Notificacion notificacion)
+    {
+        var indice = _notificaciones.FindIndex(n => n.Id == notificacion.Id);
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("La notificación no existe.");
+        _notificaciones[indice] = notificacion;
+    }
+
+    public void Eliminar(Notificacion notificacion) => _notificaciones.Remove(notificacion);
+
+    public List<Notificacion> Buscar(Func<Notificacion, bool> predicado)
+        => _notificaciones.Where(predicado).ToList();
+
+    public List<Notificacion> ObtenerPorUsuario(int usuarioId)
+        => _notificaciones.Where(n => n.UsuarioDestinatarioId == usuarioId).ToList();
 }

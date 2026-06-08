@@ -1,5 +1,4 @@
 using WorldCupPlanner.AccesoADatos.Interfaces;
-using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -27,14 +26,14 @@ public class ServicioEstadioTests
     [TestInitialize]
     public void Setup()
     {
-        _servicio = new ServicioEstadio(new RepositorioEstadioEnMemoria());
+        _servicio = new ServicioEstadio(new RepositorioEstadioStub());
     }
 
     private static (ServicioEstadio servicio, RepositorioAuditoriaEstadioFake repoAuditoria) CrearServicioConAuditoria()
     {
         var repoAuditoria = new RepositorioAuditoriaEstadioFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
-        var servicio = new ServicioEstadio(new RepositorioEstadioEnMemoria(), auditoria);
+        var servicio = new ServicioEstadio(new RepositorioEstadioStub(), auditoria);
         return (servicio, repoAuditoria);
     }
 
@@ -330,7 +329,7 @@ public class ServicioEstadioTests
     [TestMethod]
     public void AgregarEstadio_SinAuditoria_NoLanzaExcepcion()
     {
-        var servicio = new ServicioEstadio(new RepositorioEstadioEnMemoria());
+        var servicio = new ServicioEstadio(new RepositorioEstadioStub());
 
         servicio.AgregarEstadio(CrearEstadio());
 
@@ -605,4 +604,24 @@ public class ServicioEstadioTests
             FechaNacimiento = "01-01-1990"
         });
     }
+}
+
+file sealed class RepositorioEstadioStub : IRepositorio<Estadio>
+{
+    private readonly List<Estadio> _estadios = new();
+
+    public void Agregar(Estadio estadio) => _estadios.Add(estadio);
+
+    public void Actualizar(Estadio estadio)
+    {
+        var indice = _estadios.FindIndex(e => ReferenceEquals(e, estadio));
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("El estadio no existe.");
+        _estadios[indice] = estadio;
+    }
+
+    public void Eliminar(Estadio estadio) => _estadios.Remove(estadio);
+
+    public List<Estadio> Buscar(Func<Estadio, bool> predicado)
+        => _estadios.Where(predicado).ToList();
 }

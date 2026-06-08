@@ -1,4 +1,4 @@
-﻿using WorldCupPlanner.AccesoADatos.Repositorios;
+﻿using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -9,13 +9,13 @@ namespace WorldCupPlanner.ServicioTests;
 [TestClass]
 public sealed class ServicioUsuarioTests
 {
-    private RepositorioUsuarioEnMemoria _repositorio = null!;
+    private IRepositorioUsuario _repositorio = null!;
     private ServicioUsuario _servicio = null!;
 
     public ServicioUsuarioTests()
     {
-        _repositorio = new RepositorioUsuarioEnMemoria();
-        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaEnMemoria());
+        _repositorio = new RepositorioUsuarioStub();
+        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaStub());
         _servicio = new ServicioUsuario(_repositorio, auditoria);
     }
 
@@ -79,7 +79,7 @@ public sealed class ServicioUsuarioTests
         // Arrange
         var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
-        var repositorio = new RepositorioUsuarioEnMemoria();
+        var repositorio = new RepositorioUsuarioStub();
         var servicio = new ServicioUsuario(repositorio, auditoria);
         var usuario1 = CrearUsuarioValido("juan@example.com");
         var usuario2 = CrearUsuarioValido("juan@example.com");
@@ -442,7 +442,7 @@ public sealed class ServicioUsuarioTests
         // Arrange
         var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
-        var repositorio = new RepositorioUsuarioEnMemoria();
+        var repositorio = new RepositorioUsuarioStub();
         var servicio = new ServicioUsuario(repositorio, auditoria);
         var usuario = CrearUsuarioValido("juan@example.com");
         usuario.EstablecerContrasenia("MismaPass@123");
@@ -712,7 +712,7 @@ public sealed class ServicioUsuarioTests
         // Cubre el branch ejecutadoPor != null en AgregarUsuario
         var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
-        var repositorio = new RepositorioUsuarioEnMemoria();
+        var repositorio = new RepositorioUsuarioStub();
         var servicio = new ServicioUsuario(repositorio, auditoria);
 
         var usuario = CrearUsuarioValido("juan@example.com");
@@ -727,7 +727,7 @@ public sealed class ServicioUsuarioTests
         // Cubre el branch ejecutadoPor != null en EliminarUsuario
         var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
-        var repositorio = new RepositorioUsuarioEnMemoria();
+        var repositorio = new RepositorioUsuarioStub();
         var servicio = new ServicioUsuario(repositorio, auditoria);
 
         var usuario = CrearUsuarioValido("juan@example.com");
@@ -745,7 +745,7 @@ public sealed class ServicioUsuarioTests
         // Cubre el branch ejecutadoPor != null en ActualizarUsuario
         var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
-        var repositorio = new RepositorioUsuarioEnMemoria();
+        var repositorio = new RepositorioUsuarioStub();
         var servicio = new ServicioUsuario(repositorio, auditoria);
 
         var usuario = CrearUsuarioValido("juan@example.com");
@@ -763,7 +763,7 @@ public sealed class ServicioUsuarioTests
         // Arrange
         var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
-        var repositorio = new RepositorioUsuarioEnMemoria();
+        var repositorio = new RepositorioUsuarioStub();
         var servicio = new ServicioUsuario(repositorio, auditoria);
 
         var usuario = CrearUsuarioValido("juan@example.com");
@@ -785,7 +785,7 @@ public sealed class ServicioUsuarioTests
         // Arrange
         var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
-        var repositorio = new RepositorioUsuarioEnMemoria();
+        var repositorio = new RepositorioUsuarioStub();
         var servicio = new ServicioUsuario(repositorio, auditoria);
 
         var usuario = CrearUsuarioValido("juan@example.com");
@@ -992,7 +992,7 @@ public sealed class ServicioUsuarioTests
         // Arrange
         var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
-        var repositorio = new RepositorioUsuarioEnMemoria();
+        var repositorio = new RepositorioUsuarioStub();
         var servicio = new ServicioUsuario(repositorio, auditoria);
         var admin1 = CrearUsuarioValido("admin1@example.com");
         admin1.AgregarRol(RolUsuario.AdministradorDelSistema);
@@ -1030,7 +1030,7 @@ public sealed class ServicioUsuarioTests
         // Arrange
         var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
-        var repositorio = new RepositorioUsuarioEnMemoria();
+        var repositorio = new RepositorioUsuarioStub();
         var servicio = new ServicioUsuario(repositorio, auditoria);
         var usuario = CrearUsuarioValido("juan@example.com");
 
@@ -1094,7 +1094,7 @@ public sealed class ServicioUsuarioTests
         // Arrange
         var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
-        var repositorio = new RepositorioUsuarioEnMemoria();
+        var repositorio = new RepositorioUsuarioStub();
         var servicio = new ServicioUsuario(repositorio, auditoria);
         var admin = CrearUsuarioValido("admin@example.com");
         admin.AgregarRol(RolUsuario.AdministradorDelSistema);
@@ -1153,7 +1153,7 @@ public sealed class ServicioUsuarioTests
         // Arrange
         var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
-        var repositorio = new RepositorioUsuarioEnMemoria();
+        var repositorio = new RepositorioUsuarioStub();
         var servicio = new ServicioUsuario(repositorio, auditoria);
         var admin = CrearUsuarioValido("admin@example.com");
         admin.AgregarRol(RolUsuario.AdministradorDelSistema);
@@ -1235,7 +1235,7 @@ public sealed class ServicioUsuarioTests
         // Arrange
         var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
-        var repositorio = new RepositorioUsuarioEnMemoria();
+        var repositorio = new RepositorioUsuarioStub();
         var servicio = new ServicioUsuario(repositorio, auditoria);
         var usuario = CrearUsuarioValido("juan@example.com");
         usuario.EstablecerContrasenia("ViejaPass@123");
@@ -1288,5 +1288,51 @@ public sealed class ServicioUsuarioTests
             FechaNacimiento = "01-01-1990"
         });
     }
+}
+
+file sealed class RepositorioUsuarioStub : IRepositorioUsuario
+{
+    private readonly List<Usuario> _usuarios = new();
+
+    public void Agregar(Usuario usuario) => _usuarios.Add(usuario);
+
+    public void Actualizar(Usuario usuario)
+    {
+        var indice = _usuarios.FindIndex(u => ReferenceEquals(u, usuario));
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("El usuario no existe.");
+        _usuarios[indice] = usuario;
+    }
+
+    public void Eliminar(Usuario usuario) => _usuarios.Remove(usuario);
+
+    public List<Usuario> Buscar(Func<Usuario, bool> predicado)
+        => _usuarios.Where(predicado).ToList();
+
+    public Usuario? ObtenerPorEmail(string email)
+        => _usuarios.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+}
+
+file sealed class RepositorioAuditoriaStub : IRepositorioConId<Auditoria>
+{
+    private readonly List<Auditoria> _logs = new();
+    private int _contador;
+
+    public int SiguienteId() => ++_contador;
+
+    public void Agregar(Auditoria entidad) => _logs.Add(entidad);
+
+    public void Actualizar(Auditoria entidad)
+    {
+        var indice = _logs.FindIndex(e => e.Id == entidad.Id);
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("El log de auditoría no existe.");
+        _logs[indice] = entidad;
+    }
+
+    public void Eliminar(Auditoria entidad) => _logs.Remove(entidad);
+
+    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado)
+        => _logs.Where(predicado).ToList();
 }
 

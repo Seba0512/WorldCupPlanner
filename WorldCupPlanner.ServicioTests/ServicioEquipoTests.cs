@@ -1,5 +1,4 @@
 using WorldCupPlanner.AccesoADatos.Interfaces;
-using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -27,7 +26,7 @@ public class ServicioEquipoTests
     [TestInitialize]
     public void Setup()
     {
-        _servicio = new ServicioEquipo(new RepositorioEquipoEnMemoria());
+        _servicio = new ServicioEquipo(new RepositorioEquipoStub());
     }
 
     [TestMethod]
@@ -395,7 +394,7 @@ public class ServicioEquipoTests
     public void CompletarEquipos_MismaSemilla_GeneraMismosEquipos()
     {
         // Arrange
-        var servicio2 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
+        var servicio2 = new ServicioEquipo(new RepositorioEquipoStub());
 
         // Act
         var generados1 = _servicio.CompletarEquipos(42);
@@ -415,7 +414,7 @@ public class ServicioEquipoTests
     public void CompletarEquipos_DistintaSemilla_GeneraDistintosRankings()
     {
         // Arrange
-        var servicio2 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
+        var servicio2 = new ServicioEquipo(new RepositorioEquipoStub());
 
         // Act
         var generados1 = _servicio.CompletarEquipos(1);
@@ -583,7 +582,7 @@ public class ServicioEquipoTests
     public void CompletarEquipos_RankingFIFA_Determinismo_MismaSemillaMismoRanking()
     {
         // Arrange
-        var servicio2 = new ServicioEquipo(new RepositorioEquipoEnMemoria());
+        var servicio2 = new ServicioEquipo(new RepositorioEquipoStub());
 
         // Act
         var generados1 = _servicio.CompletarEquipos(123);
@@ -601,7 +600,7 @@ public class ServicioEquipoTests
     {
         var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
-        var servicio = new ServicioEquipo(new RepositorioEquipoEnMemoria(), auditoria);
+        var servicio = new ServicioEquipo(new RepositorioEquipoStub(), auditoria);
         return (servicio, repoAuditoria);
     }
 
@@ -688,7 +687,7 @@ public class ServicioEquipoTests
     public void Agregar_SinAuditoria_NoLanzaExcepcion()
     {
         // Arrange
-        var servicio = new ServicioEquipo(new RepositorioEquipoEnMemoria());
+        var servicio = new ServicioEquipo(new RepositorioEquipoStub());
 
         // Act
         servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
@@ -967,4 +966,24 @@ public class ServicioEquipoTests
             FechaNacimiento = "01-01-1990"
         });
     }
+}
+
+file sealed class RepositorioEquipoStub : IRepositorio<Equipo>
+{
+    private readonly List<Equipo> _equipos = new();
+
+    public void Agregar(Equipo equipo) => _equipos.Add(equipo);
+
+    public void Actualizar(Equipo equipo)
+    {
+        var indice = _equipos.FindIndex(e => ReferenceEquals(e, equipo));
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("El equipo no existe.");
+        _equipos[indice] = equipo;
+    }
+
+    public void Eliminar(Equipo equipo) => _equipos.Remove(equipo);
+
+    public List<Equipo> Buscar(Func<Equipo, bool> predicado)
+        => _equipos.Where(predicado).ToList();
 }
