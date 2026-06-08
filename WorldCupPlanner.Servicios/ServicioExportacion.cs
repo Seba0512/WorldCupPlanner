@@ -4,6 +4,7 @@ using ClosedXML.Excel;
 using CsvHelper;
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -68,7 +69,7 @@ public class ServicioExportacion
             ws.Cell(fila, 5).Value = r.Detalle;
         }
 
-        ws.Columns().AdjustToContents();
+        AplicarAnchosAuditoria(ws);
         using var memory = new MemoryStream();
         workbook.SaveAs(memory);
         return memory.ToArray();
@@ -124,7 +125,7 @@ public class ServicioExportacion
             ws.Cell(fila, 9).Value = p.Estadio?.Nombre ?? "";
         }
 
-        ws.Columns().AdjustToContents();
+        AplicarAnchosFixture(ws);
         using var memory = new MemoryStream();
         workbook.SaveAs(memory);
         return memory.ToArray();
@@ -132,12 +133,23 @@ public class ServicioExportacion
 
     private List<Auditoria> ObtenerAuditoriasEnRango(DateTime desde, DateTime hasta)
     {
+        ValidarRangoFechas(desde, hasta);
+
         return _repositorioAuditoria.Buscar(a =>
         {
             if (!DateTime.TryParse(a.Timestamp, null, DateTimeStyles.RoundtripKind, out var dt))
                 return false;
             return dt.Date >= desde.Date && dt.Date <= hasta.Date;
         });
+    }
+
+    private static void ValidarRangoFechas(DateTime desde, DateTime hasta)
+    {
+        if (desde.Date > hasta.Date)
+        {
+            throw new EntidadInvalidaExcepcion(
+                "La fecha desde no puede ser posterior a la fecha hasta.");
+        }
     }
 
     private List<Partido> ObtenerTodosLosPartidos()
@@ -207,6 +219,28 @@ public class ServicioExportacion
         fila.Style.Font.Bold = true;
         fila.Style.Fill.BackgroundColor = XLColor.FromHtml("#2563EB");
         fila.Style.Font.FontColor = XLColor.White;
+    }
+
+    private static void AplicarAnchosAuditoria(IXLWorksheet ws)
+    {
+        ws.Column(1).Width = 10;
+        ws.Column(2).Width = 30;
+        ws.Column(3).Width = 24;
+        ws.Column(4).Width = 22;
+        ws.Column(5).Width = 60;
+    }
+
+    private static void AplicarAnchosFixture(IXLWorksheet ws)
+    {
+        ws.Column(1).Width = 10;
+        ws.Column(2).Width = 20;
+        ws.Column(3).Width = 12;
+        ws.Column(4).Width = 24;
+        ws.Column(5).Width = 24;
+        ws.Column(6).Width = 14;
+        ws.Column(7).Width = 18;
+        ws.Column(8).Width = 24;
+        ws.Column(9).Width = 24;
     }
 
     private static string FormatearFecha(DateTime dt) => dt.ToString("yyyyMMdd");
