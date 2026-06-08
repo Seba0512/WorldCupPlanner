@@ -115,13 +115,22 @@ public class ServicioPersistenciaFixture
             if (existentesPorEtiqueta.TryGetValue(grupo.Etiqueta, out var existente))
             {
                 grupo.Id = existente.Id;
-                _repositorioGrupo.Actualizar(grupo);
+                CopiarDatosGrupo(grupo, existente);
+                _repositorioGrupo.Actualizar(existente);
             }
             else
             {
                 _repositorioGrupo.Agregar(grupo);
             }
         }
+    }
+
+    private static void CopiarDatosGrupo(Grupo origen, Grupo destino)
+    {
+        destino.Equipos.Clear();
+        destino.Equipos.AddRange(origen.Equipos);
+        destino.Partidos.Clear();
+        destino.Partidos.AddRange(origen.Partidos);
     }
 
     private static void CopiarDatosPartido(Partido origen, Partido destino)

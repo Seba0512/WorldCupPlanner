@@ -16,12 +16,14 @@ public class RepositorioEquipoSql : IRepositorio<Equipo>, IRepositorioConClaveEd
 
     public void Agregar(Equipo equipo)
     {
+        AsegurarRankingInicial(equipo);
         _contexto.Equipos.Add(equipo);
         _contexto.SaveChanges();
     }
 
     public void Actualizar(Equipo equipo)
     {
+        AsegurarRankingInicial(equipo);
         var existe = _contexto.Equipos.Any(e => e.Id == equipo.Id);
         if (!existe)
             throw new EntidadInexistenteExcepcion("El equipo no existe.");
@@ -40,6 +42,7 @@ public class RepositorioEquipoSql : IRepositorio<Equipo>, IRepositorioConClaveEd
         existente.Nombre = equipo.Nombre;
         existente.Confederacion = equipo.Confederacion;
         existente.RankingFIFA = equipo.RankingFIFA;
+        existente.RankingInicial = equipo.RankingInicial;
         existente.Bandera = equipo.Bandera;
         _contexto.SaveChanges();
     }
@@ -72,5 +75,11 @@ public class RepositorioEquipoSql : IRepositorio<Equipo>, IRepositorioConClaveEd
         var local = _contexto.Equipos.Local.FirstOrDefault(e => e.Id == id);
         if (local != null && !ReferenceEquals(local, entidad))
             _contexto.Entry(local).State = EntityState.Detached;
+    }
+
+    private static void AsegurarRankingInicial(Equipo equipo)
+    {
+        if (equipo.RankingInicial == 0)
+            equipo.RankingInicial = equipo.RankingFIFA;
     }
 }

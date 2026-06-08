@@ -104,6 +104,19 @@ public class ServicioEstadioTests
     }
 
     [TestMethod]
+    public void EditarEstadio_EstadioUsadoEnFixture_DebeLanzarExcepcion()
+    {
+        var estadio = CrearEstadio();
+        var fixture = CrearFixtureConEstadio(estadio);
+        _servicio.AgregarEstadio(estadio);
+        _servicio.RegistrarFixtureGenerado(fixture);
+        var actualizado = CrearEstadio("Estadio Olimpico");
+
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            _servicio.EditarEstadio("Estadio Centenario", actualizado));
+    }
+
+    [TestMethod]
     public void EliminarEstadio_ConFixtureGeneradoPeroSinUsarEseEstadio_SeEliminaCorrectamente()
     {
         // Arrange

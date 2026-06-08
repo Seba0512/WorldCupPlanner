@@ -92,6 +92,7 @@ public class RepositorioGrupoSql : IRepositorio<Grupo>
         {
             Nombre = equipo.Nombre,
             RankingFIFA = equipo.RankingFIFA,
+            RankingInicial = equipo.RankingInicial == 0 ? equipo.RankingFIFA : equipo.RankingInicial,
             Confederacion = equipo.Confederacion,
             Bandera = equipo.Bandera
         };

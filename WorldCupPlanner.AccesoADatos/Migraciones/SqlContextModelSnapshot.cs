@@ -130,6 +130,9 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                     b.Property<int>("RankingFIFA")
                         .HasColumnType("int");
 
+                    b.Property<int>("RankingInicial")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Nombre")

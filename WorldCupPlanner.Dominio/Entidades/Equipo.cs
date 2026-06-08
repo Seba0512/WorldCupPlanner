@@ -7,6 +7,7 @@ namespace WorldCupPlanner.Dominio.Entidades
         public int Id { get; set; }
         public string Nombre { get; set; } = "";
         public int RankingFIFA { get; set; }
+        public int RankingInicial { get; set; }
         public Confederacion? Confederacion { get; set; }
         
         public string Bandera { get; set; } = "";

@@ -42,6 +42,9 @@ public class ServicioEstadio
         var existente = _repositorioEstadio.Buscar(e => ReferenceEquals(e, estadio) || NombresIguales(e.Nombre, nombreOriginal)).FirstOrDefault();
         if (existente == null)
             throw new EntidadInvalidaExcepcion("El estadio no existe.");
+
+        ValidarEdicionPermitida(existente);
+
         var conflicto = _repositorioEstadio.Buscar(e =>
             NombresIguales(e.Nombre, estadio.Nombre) &&
             !ReferenceEquals(e, existente) &&
@@ -102,16 +105,45 @@ public class ServicioEstadio
 
     private void ValidarEstadioNoEstaEnFixture(Estadio estadio)
     {
-        if (_fixtureGenerado == null)
-        {
-            return;
-        }
-
-        if (_fixtureGenerado.Partidos.Any(p => p.Estadio?.Nombre == estadio.Nombre))
+        if (EstadioEstaEnFixture(estadio))
         {
             throw new EntidadInvalidaExcepcion(
                 "No se puede eliminar un estadio que existe en un fixture generado.");
         }
+    }
+
+    private void ValidarEdicionPermitida(Estadio estadio)
+    {
+        if (EstadioEstaEnFixture(estadio))
+        {
+            throw new EntidadInvalidaExcepcion(
+                "No se puede editar un estadio que existe en un fixture generado.");
+        }
+    }
+
+    private bool EstadioEstaEnFixture(Estadio estadio)
+    {
+        if (_fixtureGenerado == null)
+        {
+            return false;
+        }
+
+        return _fixtureGenerado.Partidos.Any(p => EsMismoEstadio(p.Estadio, estadio));
+    }
+
+    private static bool EsMismoEstadio(Estadio? estadioEnFixture, Estadio estadio)
+    {
+        if (estadioEnFixture == null)
+        {
+            return false;
+        }
+
+        if (estadioEnFixture.Id > 0 && estadio.Id > 0)
+        {
+            return estadioEnFixture.Id == estadio.Id;
+        }
+
+        return NombresIguales(estadioEnFixture.Nombre, estadio.Nombre);
     }
 
     private static bool NombresIguales(string a, string b) =>

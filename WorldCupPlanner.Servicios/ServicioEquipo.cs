@@ -30,6 +30,7 @@ namespace WorldCupPlanner.Servicios
         {
             if (solicitante != null)
                 _autorizacion.VerificarEsAdministrador(solicitante);
+            AsegurarRankingInicial(equipo);
             ValidarEquipo(equipo);
             ValidarNombreUnico(equipo.Nombre);
             ValidarCupoConfederacion(equipo);
@@ -44,11 +45,17 @@ namespace WorldCupPlanner.Servicios
         {
             if (solicitante != null)
                 _autorizacion.VerificarEsAdministrador(solicitante);
+            AsegurarRankingInicial(equipo);
             ValidarEquipo(equipo);
             ValidarNombreUnico(equipo.Nombre, excluir: nombreOriginal);
 
             var existente = _repositorio.Buscar(e => e.Nombre == nombreOriginal).FirstOrDefault()
                 ?? throw new EntidadInexistenteExcepcion("El equipo no existe.");
+
+            ValidarEdicionPermitida(nombreOriginal);
+
+            if (equipo.RankingFIFA != existente.RankingFIFA)
+                equipo.RankingInicial = equipo.RankingFIFA;
 
             if (equipo.Confederacion != existente.Confederacion)
                 ValidarCupoConfederacion(equipo);
@@ -66,6 +73,7 @@ namespace WorldCupPlanner.Servicios
             {
                 existente.Confederacion = equipo.Confederacion;
                 existente.RankingFIFA = equipo.RankingFIFA;
+                existente.RankingInicial = equipo.RankingInicial;
                 existente.Bandera = equipo.Bandera;
                 _repositorio.Actualizar(existente);
             }
@@ -133,6 +141,7 @@ namespace WorldCupPlanner.Servicios
                 {
                     Nombre = GenerarNombre(confederacion),
                     RankingFIFA = ranking,
+                    RankingInicial = ranking,
                     Confederacion = confederacion
                 };
                 Agregar(equipo);
@@ -188,6 +197,12 @@ namespace WorldCupPlanner.Servicios
                 throw new EntidadInvalidaExcepcion("El equipo no es valido.");
         }
 
+        private static void AsegurarRankingInicial(Equipo equipo)
+        {
+            if (equipo.RankingInicial == 0)
+                equipo.RankingInicial = equipo.RankingFIFA;
+        }
+
         private void ValidarNombreUnico(string nombre, string? excluir = null)
         {
             if (_repositorio.Buscar(e =>
@@ -222,6 +237,32 @@ namespace WorldCupPlanner.Servicios
             if (_fixtureGenerado != null)
                 throw new EntidadInvalidaExcepcion(
                     "No se pueden eliminar equipos porque el fixture ya fue generado.");
+        }
+
+        private void ValidarEdicionPermitida(string nombreOriginal)
+        {
+            if (_fixtureGenerado != null && EquipoParticipaEnFixture(nombreOriginal))
+                throw new EntidadInvalidaExcepcion(
+                    "No se pueden editar equipos que participan en un fixture generado.");
+        }
+
+        private bool EquipoParticipaEnFixture(string nombreEquipo)
+        {
+            if (_fixtureGenerado == null)
+                return false;
+
+            return _fixtureGenerado.Grupos
+                       .SelectMany(g => g.Equipos)
+                       .Any(e => EsMismoEquipo(e, nombreEquipo))
+                   || _fixtureGenerado.Partidos
+                       .Any(p => EsMismoEquipo(p.EquipoLocal, nombreEquipo)
+                                 || EsMismoEquipo(p.EquipoVisitante, nombreEquipo));
+        }
+
+        private static bool EsMismoEquipo(Equipo? equipo, string nombreEquipo)
+        {
+            return equipo != null &&
+                   string.Equals(equipo.Nombre, nombreEquipo, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

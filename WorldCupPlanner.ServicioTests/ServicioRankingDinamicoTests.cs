@@ -130,6 +130,16 @@ public class ServicioRankingDinamicoTests
     }
 
     [TestMethod]
+    public void ActualizarRanking_CuandoDecimalNoLlegaAPunto5_RedondeaAlEnteroMasCercano()
+    {
+        var servicio = new ServicioRankingDinamico();
+
+        var rankingNuevo = servicio.ActualizarRanking(1500, 1501, 0.5, FaseTorneo.FaseDeGrupos);
+
+        Assert.AreEqual(1500, rankingNuevo);
+    }
+
+    [TestMethod]
     public void ActualizarRankingPartido_CuandoPartidoJugado_ActualizaRankingDeAmbosEquipos()
     {
         // Arrange
@@ -182,10 +192,69 @@ public class ServicioRankingDinamicoTests
         servicio.ActualizarRankingPartido(partido);
         // Assert 
         var logs = repoAuditoria.Buscar(_ => true);
-        Assert.AreEqual(2, logs.Count);
-        Assert.IsTrue(logs.Any(l => l.Detalle.Contains("LocalFC") && l.Detalle.Contains("->")));
-        Assert.IsTrue(logs.Any(l => l.Detalle.Contains("VisitanteFC") && l.Detalle.Contains("->")));
+        Assert.AreEqual(1, logs.Count);
+        Assert.IsTrue(logs[0].Detalle.Contains("LocalFC") && logs[0].Detalle.Contains("->"));
+        Assert.IsTrue(logs[0].Detalle.Contains("VisitanteFC") && logs[0].Detalle.Contains("->"));
     }
+
+    [TestMethod]
+    public void RecalcularRankings_CuandoSeCorrigePartidoAnterior_RecalculaPosterioresEnCascada()
+    {
+        var equipoA = CrearEquipo(1, "EquipoA", 1500);
+        var equipoB = CrearEquipo(2, "EquipoB", 1200);
+        var equipoC = CrearEquipo(3, "EquipoC", 1000);
+        var repoEquipo = new RepositorioEquipoRankingStub();
+        repoEquipo.Agregar(equipoA);
+        repoEquipo.Agregar(equipoB);
+        repoEquipo.Agregar(equipoC);
+        var partidoUno = new Partido
+        {
+            Id = 1,
+            Fecha = new DateTime(2026, 6, 1),
+            EquipoLocal = equipoA,
+            EquipoVisitante = equipoB,
+            GolesLocal = 1,
+            GolesVisitante = 0,
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+        var partidoDos = new Partido
+        {
+            Id = 2,
+            Fecha = new DateTime(2026, 6, 2),
+            EquipoLocal = equipoA,
+            EquipoVisitante = equipoC,
+            GolesLocal = 1,
+            GolesVisitante = 0,
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+        var repoPartido = new RepositorioPartidoRankingStub();
+        repoPartido.Agregar(partidoUno);
+        repoPartido.Agregar(partidoDos);
+        var servicio = new ServicioRankingDinamico(repoEquipo, repoPartido, null);
+
+        servicio.RecalcularRankings();
+        partidoUno.GolesLocal = 0;
+        partidoUno.GolesVisitante = 1;
+        servicio.RecalcularRankings();
+
+        var rankingAtrasPrimerPartidoA = servicio.ActualizarRanking(1500, 1200, 0.0, FaseTorneo.FaseDeGrupos);
+        var rankingEsperadoB = servicio.ActualizarRanking(1200, 1500, 1.0, FaseTorneo.FaseDeGrupos);
+        var rankingEsperadoA = servicio.ActualizarRanking(rankingAtrasPrimerPartidoA, 1000, 1.0, FaseTorneo.FaseDeGrupos);
+        var rankingEsperadoC = servicio.ActualizarRanking(1000, rankingAtrasPrimerPartidoA, 0.0, FaseTorneo.FaseDeGrupos);
+
+        Assert.AreEqual(rankingEsperadoA, equipoA.RankingFIFA);
+        Assert.AreEqual(rankingEsperadoB, equipoB.RankingFIFA);
+        Assert.AreEqual(rankingEsperadoC, equipoC.RankingFIFA);
+    }
+
+    private static Equipo CrearEquipo(int id, string nombre, int ranking) => new()
+    {
+        Id = id,
+        Nombre = nombre,
+        RankingFIFA = ranking,
+        RankingInicial = ranking,
+        Confederacion = Confederacion.UEFA
+    };
 }
 
 file sealed class RepositorioEquipoRankingStub : IRepositorio<Equipo>
@@ -196,7 +265,10 @@ file sealed class RepositorioEquipoRankingStub : IRepositorio<Equipo>
 
     public void Actualizar(Equipo equipo)
     {
-        var indice = _equipos.FindIndex(e => ReferenceEquals(e, equipo));
+        var indice = _equipos.FindIndex(e =>
+            ReferenceEquals(e, equipo) ||
+            (equipo.Id > 0 && e.Id == equipo.Id) ||
+            string.Equals(e.Nombre, equipo.Nombre, StringComparison.OrdinalIgnoreCase));
         if (indice != -1)
             _equipos[indice] = equipo;
     }
@@ -205,6 +277,17 @@ file sealed class RepositorioEquipoRankingStub : IRepositorio<Equipo>
 
     public List<Equipo> Buscar(Func<Equipo, bool> predicado)
         => _equipos.Where(predicado).ToList();
+}
+
+file sealed class RepositorioPartidoRankingStub : IRepositorio<Partido>
+{
+    private readonly List<Partido> _partidos = new();
+
+    public void Agregar(Partido partido) => _partidos.Add(partido);
+    public void Actualizar(Partido partido) { }
+    public void Eliminar(Partido partido) => _partidos.Remove(partido);
+    public List<Partido> Buscar(Func<Partido, bool> predicado)
+        => _partidos.Where(predicado).ToList();
 }
 
 file sealed class RepositorioAuditoriaRankingStub : IRepositorioConId<Auditoria>

@@ -295,7 +295,7 @@ public class ServicioEquipoTests
     }
 
     [TestMethod]
-    public void EditarEquipo_CuandoFixtureGenerado_NoLanzaExcepcion()
+    public void EditarEquipo_CuandoEquipoParticipaEnFixtureGenerado_LanzaExcepcion()
     {
         // Arrange
         var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
@@ -303,9 +303,9 @@ public class ServicioEquipoTests
         var fixture = CrearFixtureConEquipo(equipo);
         _servicio.RegistrarFixtureGenerado(fixture);
 
-        // Act & Assert - editar no debe verse bloqueado por el fixture
-        _servicio.EditarEquipo(CrearEquipo("Uruguay", Confederacion.CONMEBOL), "Uruguay");
-        Assert.AreEqual(1, _servicio.Buscar(_ => true).Count);
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            _servicio.EditarEquipo(CrearEquipo("Uruguay", Confederacion.CONMEBOL), "Uruguay"));
     }
 
     [TestMethod]

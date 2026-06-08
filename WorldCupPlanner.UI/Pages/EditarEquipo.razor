@@ -1,5 +1,6 @@
 @page "/equipos/{Nombre}/editar"
 @inject ServicioEquipo ServicioEquipo
+@inject EstadoTorneo EstadoTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
@@ -15,16 +16,23 @@
             <span class="oi oi-warning" aria-hidden="true"></span> @_error
         </div>
     }
+    @if (_edicionBloqueada)
+    {
+        <div class="alert alert-warning">
+            <span class="oi oi-warning" aria-hidden="true"></span>
+            No se puede editar un equipo que participa en el fixture generado.
+        </div>
+    }
 
     <div class="form-group">
         <label class="form-label">Nombre del equipo</label>
-        <input type="text" class="form-control" @bind="_equipo.Nombre" maxlength="60" />
+        <input type="text" class="form-control" @bind="_equipo.Nombre" maxlength="60" disabled="@_edicionBloqueada" />
         <span class="form-hint">1–60 caracteres. Debe ser único en el sistema.</span>
     </div>
 
     <div class="form-group">
         <label class="form-label">Confederación</label>
-        <select class="form-select" @bind="_equipo.Confederacion">
+        <select class="form-select" @bind="_equipo.Confederacion" disabled="@_edicionBloqueada">
             @foreach (var conf in Enum.GetValues<Confederacion>())
             {
                 <option value="@conf">@conf</option>
@@ -34,7 +42,7 @@
 
     <div class="form-group">
         <label class="form-label">Puntos FIFA</label>
-        <input type="number" class="form-control" @bind="_equipo.RankingFIFA" min="300" max="2500" />
+        <input type="number" class="form-control" @bind="_equipo.RankingFIFA" min="300" max="2500" disabled="@_edicionBloqueada" />
         <span class="form-hint">Valor entre 300 y 2500.</span>
     </div>
 
@@ -46,11 +54,11 @@
                 <img src="@_bandera" alt="Bandera" style="height:40px; border-radius:4px;" />
             </div>
         }
-        <InputFile OnChange="CargarBandera" accept="image/*" class="form-control" />
+        <InputFile OnChange="CargarBandera" accept="image/*" class="form-control" disabled="@_edicionBloqueada" />
     </div>
 
     <div class="d-flex gap-2 mt-2">
-        <button type="button" class="btn btn-primary" @onclick="Guardar">
+        <button type="button" class="btn btn-primary" @onclick="Guardar" disabled="@_edicionBloqueada">
             <span class="oi oi-check" aria-hidden="true"></span> Guardar cambios
         </button>
         <a href="/equipos" class="btn btn-secondary">Cancelar</a>
@@ -62,13 +70,23 @@
     private Equipo _equipo = new();
     private string _error = string.Empty;
     private string _bandera = string.Empty;
+    private bool _edicionBloqueada;
 
     protected override void OnInitialized()
     {
         if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
         var original = ServicioEquipo.Buscar(e => e.Nombre == Nombre).First();
-        _equipo = new Equipo { Id = original.Id, Nombre = original.Nombre, Confederacion = original.Confederacion, RankingFIFA = original.RankingFIFA, Bandera = original.Bandera };
+        _equipo = new Equipo
+        {
+            Id = original.Id,
+            Nombre = original.Nombre,
+            Confederacion = original.Confederacion,
+            RankingFIFA = original.RankingFIFA,
+            RankingInicial = original.RankingInicial,
+            Bandera = original.Bandera
+        };
         _bandera = original.Bandera;
+        _edicionBloqueada = EquipoParticipaEnFixture(original);
     }
 
     private async Task CargarBandera(InputFileChangeEventArgs e)
@@ -86,11 +104,41 @@
         _error = string.Empty;
         try
         {
+            if (_edicionBloqueada)
+                throw new InvalidOperationException("No se puede editar un equipo que participa en el fixture generado.");
+
             _equipo.Bandera = _bandera;
             ServicioEquipo.EditarEquipo(_equipo, Nombre, SesionServicio.UsuarioActual);
             Toast.Exito($"Equipo actualizado correctamente.");
             NavigationManager.NavigateTo("/equipos");
         }
         catch (Exception ex) { _error = ex.Message; }
+    }
+
+    private bool EquipoParticipaEnFixture(Equipo equipo)
+    {
+        if (EstadoTorneo.Fixture == null)
+            return false;
+
+        return EstadoTorneo.Fixture.Grupos
+                   .SelectMany(g => g.Equipos)
+                   .Any(e => EsMismoEquipo(e, equipo))
+               || EstadoTorneo.Fixture.Partidos
+                   .Any(p => EsMismoEquipo(p.EquipoLocal, equipo)
+                             || EsMismoEquipo(p.EquipoVisitante, equipo))
+               || EstadoTorneo.PartidosEliminatorios
+                   .Any(p => EsMismoEquipo(p.EquipoLocal, equipo)
+                             || EsMismoEquipo(p.EquipoVisitante, equipo));
+    }
+
+    private static bool EsMismoEquipo(Equipo? participante, Equipo equipo)
+    {
+        if (participante == null)
+            return false;
+
+        if (participante.Id > 0 && equipo.Id > 0)
+            return participante.Id == equipo.Id;
+
+        return string.Equals(participante.Nombre, equipo.Nombre, StringComparison.OrdinalIgnoreCase);
     }
 }

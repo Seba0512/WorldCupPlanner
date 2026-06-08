@@ -7,6 +7,7 @@
 @inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
 @inject ServicioPersistenciaFixture ServicioPersistenciaFixture
 @inject ServicioRankingDinamico ServicioRankingDinamico
+@inject ServicioEquipo ServicioEquipo
 @inject EstadoTorneo EstadoTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
@@ -252,11 +253,12 @@ else
                 ServicioPartido.ResolverEmpateConPenales(_partido.Id, config.SemillaSimulation);
                 var partidoActualizado = ServicioPartido.BuscarPartidoPorId(_partido.Id);
                 if (partidoActualizado != null)
-                    ServicioRankingDinamico.ActualizarRankingPartido(partidoActualizado);
+                    ServicioRankingDinamico.RecalcularRankings(SesionServicio.UsuarioActual);
             }
             var actualizado = ServicioPartido.BuscarPartidoPorId(_partido.Id);
             if (actualizado != null)
                 SincronizarConEstadoTorneo(actualizado);
+            SincronizarRankingsEnEstado();
             Toast.Exito("Partido actualizado correctamente.");
             NavigationManager.NavigateTo("/fixture");
         }
@@ -292,6 +294,58 @@ else
 
         EstadoTorneo.TorneoFinalizado = EstadoTorneo.PartidosEliminatorios
             .Any(p => p.Fase == FaseTorneo.Final && p.EstaJugado());
+    }
+
+    private void SincronizarRankingsEnEstado()
+    {
+        var equiposActuales = ServicioEquipo.Buscar(_ => true);
+        foreach (var equipo in ObtenerEquiposDelEstado())
+        {
+            var actualizado = ResolverEquipoActual(equipo, equiposActuales);
+            if (actualizado == null)
+                continue;
+
+            equipo.RankingFIFA = actualizado.RankingFIFA;
+            equipo.RankingInicial = actualizado.RankingInicial;
+        }
+    }
+
+    private IEnumerable<Equipo> ObtenerEquiposDelEstado()
+    {
+        if (EstadoTorneo.Fixture != null)
+        {
+            foreach (var equipo in EstadoTorneo.Fixture.Grupos.SelectMany(g => g.Equipos))
+                yield return equipo;
+
+            foreach (var equipo in ObtenerEquiposDePartidos(EstadoTorneo.Fixture.Partidos))
+                yield return equipo;
+        }
+
+        foreach (var equipo in ObtenerEquiposDePartidos(EstadoTorneo.PartidosEliminatorios))
+            yield return equipo;
+    }
+
+    private static IEnumerable<Equipo> ObtenerEquiposDePartidos(IEnumerable<Partido> partidos)
+    {
+        foreach (var partido in partidos)
+        {
+            if (partido.EquipoLocal != null) yield return partido.EquipoLocal;
+            if (partido.EquipoVisitante != null) yield return partido.EquipoVisitante;
+            if (partido.GanadorPorPenales != null) yield return partido.GanadorPorPenales;
+        }
+    }
+
+    private static Equipo? ResolverEquipoActual(Equipo equipo, List<Equipo> equiposActuales)
+    {
+        if (equipo.Id > 0)
+        {
+            var porId = equiposActuales.FirstOrDefault(e => e.Id == equipo.Id);
+            if (porId != null)
+                return porId;
+        }
+
+        return equiposActuales.FirstOrDefault(e =>
+            string.Equals(e.Nombre, equipo.Nombre, StringComparison.OrdinalIgnoreCase));
     }
 
     private void AgregarTarjeta()

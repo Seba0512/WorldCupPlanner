@@ -66,6 +66,7 @@ namespace WorldCupPlanner.AccesoADatos
                 entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 entity.Property(e => e.Nombre).IsRequired().HasMaxLength(60);
                 entity.Property(e => e.RankingFIFA).IsRequired();
+                entity.Property(e => e.RankingInicial).IsRequired();
                 entity.Property(e => e.Confederacion).IsRequired();
                 entity.HasIndex(e => e.Nombre).IsUnique();
             });

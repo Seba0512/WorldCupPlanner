@@ -10,6 +10,7 @@
 @inject ServicioPersistenciaFixture ServicioPersistenciaFixture
 @inject ServicioNotificacion ServicioNotificacion
 @inject ServicioUsuario ServicioUsuario
+@inject ServicioRankingDinamico ServicioRankingDinamico
 @inject SesionServicio SesionServicio
 @inject ToastServicio Toast
 @inject NavigationManager NavigationManager
@@ -752,6 +753,7 @@ else
 
         try
         {
+            ServicioRankingDinamico.FijarRankingBaseDelTorneo(SesionServicio.UsuarioActual);
             var equipos = ServicioEquipo.Buscar(_ => true);
             var estadios = ServicioEstadio.ObtenerEstadios();
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
@@ -840,8 +842,13 @@ else
         try
         {
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
-            ServicioSimulacion.SimularResultados(partidosSimulados, config);
-            ServicioPersistenciaFixture.GuardarPartidos(partidosSimulados);
+            foreach (var partido in partidosSimulados.OrderBy(p => p.Fecha).ThenBy(p => p.Id))
+            {
+                ServicioSimulacion.SimularResultados(new List<Partido> { partido }, config);
+                ServicioPersistenciaFixture.GuardarPartidos(new[] { partido });
+                ServicioRankingDinamico.RecalcularRankings(SesionServicio.UsuarioActual);
+                SincronizarRankingsEnEstado();
+            }
             GenerarNotificacionesPorResultados(partidosSimulados);
             if (TorneoEstaFinalizado)
                 EstadoTorneo.TorneoFinalizado = true;
@@ -873,6 +880,58 @@ else
         {
             ServicioNotificacion.GenerarNotificacionesResultado(partido, periodistas);
         }
+    }
+
+    private void SincronizarRankingsEnEstado()
+    {
+        var equiposActuales = ServicioEquipo.Buscar(_ => true);
+        foreach (var equipo in ObtenerEquiposDelEstado())
+        {
+            var actualizado = ResolverEquipoActual(equipo, equiposActuales);
+            if (actualizado == null)
+                continue;
+
+            equipo.RankingFIFA = actualizado.RankingFIFA;
+            equipo.RankingInicial = actualizado.RankingInicial;
+        }
+    }
+
+    private IEnumerable<Equipo> ObtenerEquiposDelEstado()
+    {
+        if (EstadoTorneo.Fixture != null)
+        {
+            foreach (var equipo in EstadoTorneo.Fixture.Grupos.SelectMany(g => g.Equipos))
+                yield return equipo;
+
+            foreach (var equipo in ObtenerEquiposDePartidos(EstadoTorneo.Fixture.Partidos))
+                yield return equipo;
+        }
+
+        foreach (var equipo in ObtenerEquiposDePartidos(EstadoTorneo.PartidosEliminatorios))
+            yield return equipo;
+    }
+
+    private static IEnumerable<Equipo> ObtenerEquiposDePartidos(IEnumerable<Partido> partidos)
+    {
+        foreach (var partido in partidos)
+        {
+            if (partido.EquipoLocal != null) yield return partido.EquipoLocal;
+            if (partido.EquipoVisitante != null) yield return partido.EquipoVisitante;
+            if (partido.GanadorPorPenales != null) yield return partido.GanadorPorPenales;
+        }
+    }
+
+    private static Equipo? ResolverEquipoActual(Equipo equipo, List<Equipo> equiposActuales)
+    {
+        if (equipo.Id > 0)
+        {
+            var porId = equiposActuales.FirstOrDefault(e => e.Id == equipo.Id);
+            if (porId != null)
+                return porId;
+        }
+
+        return equiposActuales.FirstOrDefault(e =>
+            string.Equals(e.Nombre, equipo.Nombre, StringComparison.OrdinalIgnoreCase));
     }
 
     private bool EsEtapaActivaSimulable =>
