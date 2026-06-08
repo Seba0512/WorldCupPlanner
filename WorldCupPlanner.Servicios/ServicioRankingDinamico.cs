@@ -40,9 +40,11 @@ public class ServicioRankingDinamico
     {
         if (!partido.EstaJugado()) return;
 
+        var rankingLocalOriginal = partido.EquipoLocal!.RankingFIFA;
+        var rankingVisitanteOriginal = partido.EquipoVisitante!.RankingFIFA;
         var resultadoLocal = DeterminarResultado(partido.GolesLocal!.Value, partido.GolesVisitante!.Value);
-        ActualizarEquipo(partido.EquipoLocal!, partido.EquipoVisitante!.RankingFIFA, resultadoLocal, partido.Fase);
-        ActualizarEquipo(partido.EquipoVisitante!, partido.EquipoLocal!.RankingFIFA, 1.0 - resultadoLocal, partido.Fase);
+        ActualizarEquipo(partido.EquipoLocal!, rankingVisitanteOriginal, resultadoLocal, partido.Fase);
+        ActualizarEquipo(partido.EquipoVisitante!, rankingLocalOriginal, 1.0 - resultadoLocal, partido.Fase);
     }
 
     private void ActualizarEquipo(Equipo equipo, int rankingRival, double resultado, FaseTorneo fase)
