@@ -257,8 +257,11 @@
         {
             var golesLocal = partido.GolesLocal ?? 0;
             var golesVisitante = partido.GolesVisitante ?? 0;
-            RegistrarPartido(partido.EquipoLocal, golesLocal, golesVisitante, CalcularPuntos(golesLocal, golesVisitante));
-            RegistrarPartido(partido.EquipoVisitante, golesVisitante, golesLocal, CalcularPuntos(golesVisitante, golesLocal));
+            var sumaPuntos = partido.Fase == FaseTorneo.FaseDeGrupos;
+            RegistrarPartido(partido.EquipoLocal, golesLocal, golesVisitante,
+                sumaPuntos ? CalcularPuntos(golesLocal, golesVisitante) : 0);
+            RegistrarPartido(partido.EquipoVisitante, golesVisitante, golesLocal,
+                sumaPuntos ? CalcularPuntos(golesVisitante, golesLocal) : 0);
         }
     }
 
