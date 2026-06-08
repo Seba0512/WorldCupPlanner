@@ -48,6 +48,14 @@
                 </NavLink>
             }
 
+            @if (SesionServicio.PuedeExportar)
+            {
+                <NavLink class="sidebar-link" href="/exportacion">
+                    <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
+                    Exportar
+                </NavLink>
+            }
+
             <NavLink class="sidebar-link" href="/cuenta/cambiar-contrasenia">
                 <span class="oi oi-key" aria-hidden="true"></span>
                 Cambiar contraseña

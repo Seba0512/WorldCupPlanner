@@ -45,6 +45,7 @@ builder.Services.AddScoped<ServicioRankingDinamico>(sp =>
     new ServicioRankingDinamico(
         sp.GetRequiredService<IRepositorio<Equipo>>(),
         sp.GetRequiredService<ServicioAuditoria>()));
+builder.Services.AddScoped<ServicioExportacion>();
 builder.Services.AddScoped<ServicioImportacionLegible>();
 builder.Services.AddScoped<InicializadorDatos>();
 

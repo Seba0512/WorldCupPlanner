@@ -17,6 +17,8 @@ namespace WorldCupPlanner.UI.Data
 
         public bool PuedeEditarPartidos => EsAdministrador || EsEditor;
 
+        public bool PuedeExportar => EsAdministrador || EsPeriodista;
+
         public bool PuedeGestionarEquipos => EsAdministrador;
 
         public bool PuedeImportarEquipos => EsAdministrador;

@@ -51,6 +51,12 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
+        function downloadFile(filename, contentType, base64) {
+            var a = document.createElement('a');
+            a.href = 'data:' + contentType + ';base64,' + base64;
+            a.download = filename;
+            a.click();
+        }
     </script>
 </body>
 </html>

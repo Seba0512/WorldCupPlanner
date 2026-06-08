@@ -1,0 +1,124 @@
+@page "/exportacion"
+@inject ServicioExportacion ServicioExportacion
+@inject SesionServicio SesionServicio
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<PageTitle>Exportación — WorldCupPlanner 2026</PageTitle>
+
+<PageHeader Titulo="Exportación" Subtitulo="Descargá datos del torneo en CSV o Excel" />
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger">
+        <span class="oi oi-warning" aria-hidden="true"></span> @_error
+    </div>
+}
+
+
+<div class="form-section" style="max-width:560px; margin-bottom:24px;">
+    <div style="font-family:var(--font-heading); font-size:16px; font-weight:700; margin-bottom:16px;">
+        <span class="oi oi-globe" aria-hidden="true" style="margin-right:8px;"></span>Fixture
+    </div>
+    <p style="color:var(--text-secondary); font-size:14px; margin-bottom:16px;">
+        Todos los partidos del torneo (fase de grupos y eliminatorias) con fecha, equipos, goles y estadio.
+    </p>
+    <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-secondary" disabled="@_descargando" @onclick='() => Descargar("fixture.csv", "text/csv", () => ServicioExportacion.ExportarFixtureCsv(NombreUsuario))'>
+            <span class="oi oi-data-transfer-download" aria-hidden="true"></span> CSV
+        </button>
+        <button class="btn btn-secondary" disabled="@_descargando" @onclick='() => Descargar("fixture.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", () => ServicioExportacion.ExportarFixtureXlsx(NombreUsuario))'>
+            <span class="oi oi-spreadsheet" aria-hidden="true"></span> Excel
+        </button>
+    </div>
+</div>
+
+
+@if (SesionServicio.EsAdministrador)
+{
+    <div class="form-section" style="max-width:560px;">
+        <div style="font-family:var(--font-heading); font-size:16px; font-weight:700; margin-bottom:16px;">
+            <span class="oi oi-document" aria-hidden="true" style="margin-right:8px;"></span>Auditoría
+        </div>
+        <p style="color:var(--text-secondary); font-size:14px; margin-bottom:16px;">
+            Registros de auditoría del sistema filtrados por rango de fechas.
+        </p>
+        <div class="row g-3 mb-3">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="form-label">Desde</label>
+                    <input type="date" class="form-control" @bind="_desde" />
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="form-label">Hasta</label>
+                    <input type="date" class="form-control" @bind="_hasta" />
+                </div>
+            </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-secondary" disabled="@_descargando" @onclick="DescargarAuditoriaCsv">
+                <span class="oi oi-data-transfer-download" aria-hidden="true"></span> CSV
+            </button>
+            <button class="btn btn-secondary" disabled="@_descargando" @onclick="DescargarAuditoriaXlsx">
+                <span class="oi oi-spreadsheet" aria-hidden="true"></span> Excel
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    private DateTime _desde = DateTime.Today.AddDays(-30);
+    private DateTime _hasta = DateTime.Today;
+    private bool _descargando;
+    private string _error = string.Empty;
+
+    private string NombreUsuario =>
+        SesionServicio.UsuarioActual != null
+            ? $"{SesionServicio.UsuarioActual.Nombre} {SesionServicio.UsuarioActual.Apellido}"
+            : "Sistema";
+
+    protected override void OnInitialized()
+    {
+        if (!SesionServicio.HaySesion)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        if (!SesionServicio.PuedeExportar)
+            NavigationManager.NavigateTo("/");
+    }
+
+    private async Task Descargar(string nombreArchivo, string contentType, Func<byte[]> generarBytes)
+    {
+        _error = string.Empty;
+        _descargando = true;
+        try
+        {
+            var bytes = generarBytes();
+            await JS.InvokeVoidAsync("downloadFile", nombreArchivo, contentType, Convert.ToBase64String(bytes));
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _descargando = false;
+        }
+    }
+
+    private Task DescargarAuditoriaCsv() =>
+        Descargar(
+            $"auditoria_{_desde:yyyyMMdd}_{_hasta:yyyyMMdd}.csv",
+            "text/csv",
+            () => ServicioExportacion.ExportarAuditoriasCsv(_desde, _hasta, NombreUsuario));
+
+    private Task DescargarAuditoriaXlsx() =>
+        Descargar(
+            $"auditoria_{_desde:yyyyMMdd}_{_hasta:yyyyMMdd}.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            () => ServicioExportacion.ExportarAuditoriasXlsx(_desde, _hasta, NombreUsuario));
+}
