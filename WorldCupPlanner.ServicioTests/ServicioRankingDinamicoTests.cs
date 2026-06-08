@@ -71,4 +71,62 @@ public class ServicioRankingDinamicoTests
         // Assert — era favorito (prob > 0.5), empate baja levemente
         Assert.IsTrue(rankingNuevo < 1500);
     }
+
+    [TestMethod]
+    public void ActualizarRanking_CuandoFaseEliminatoria_AplicaMultiplicador1punto5()
+    {
+        // Arrange
+        var servicio = new ServicioRankingDinamico();
+        // Act
+        var rankingGrupos = servicio.ActualizarRanking(1000, 1000, 1.0, FaseTorneo.FaseDeGrupos);
+        var rankingElim = servicio.ActualizarRanking(1000, 1000, 1.0, FaseTorneo.Octavos);
+        // Assert — mismo resultado pero multiplicado x1.5 → diferencia mayor
+        Assert.IsTrue(rankingElim > rankingGrupos);
+    }
+
+    [TestMethod]
+    public void ActualizarRanking_CuandoFaseDeGrupos_AplicaMultiplicador1punto0()
+    {
+        // Arrange
+        var servicio = new ServicioRankingDinamico();
+        // Act — victoria con rankings iguales: K*1*1.0 = 30*0.5 = 15
+        var rankingNuevo = servicio.ActualizarRanking(1000, 1000, 1.0, FaseTorneo.FaseDeGrupos);
+        // Assert
+        Assert.AreEqual(1015, rankingNuevo);
+    }
+
+    [TestMethod]
+    public void ActualizarRanking_CuandoResultadoSupera2500_RetornaClampeadoA2500()
+    {
+        // Arrange
+        var servicio = new ServicioRankingDinamico();
+        // Act — rankings iguales: delta=+15, 2490+15=2505 → clamp 2500
+        var rankingNuevo = servicio.ActualizarRanking(2490, 2490, 1.0, FaseTorneo.FaseDeGrupos);
+        // Assert
+        Assert.AreEqual(2500, rankingNuevo);
+    }
+
+    [TestMethod]
+    public void ActualizarRanking_CuandoResultadoBajaDe300_RetornaClampeadoA300()
+    {
+        // Arrange
+        var servicio = new ServicioRankingDinamico();
+        // Act — rankings iguales: delta=-15, 310-15=295 → clamp 300
+        var rankingNuevo = servicio.ActualizarRanking(310, 310, 0.0, FaseTorneo.FaseDeGrupos);
+        // Assert
+        Assert.AreEqual(300, rankingNuevo);
+    }
+
+    [TestMethod]
+    public void ActualizarRanking_CuandoDecimalEsExactamentePunto5_RedondeaHaciaArriba()
+    {
+        // Arrange — buscamos un caso donde 30*(resultado-prob)*mult = X.5
+        // Rankings iguales: prob=0.5, resultado=1.0 → 30*0.5*1.0 = 15 (entero, no aplica)
+        // Usamos eliminatoria con rankings iguales: 30*0.5*1.5 = 22.5 → debe ser 23
+        var servicio = new ServicioRankingDinamico();
+        // Act
+        var rankingNuevo = servicio.ActualizarRanking(1000, 1000, 1.0, FaseTorneo.Octavos);
+        // Assert
+        Assert.AreEqual(1023, rankingNuevo);
+    }
 }
