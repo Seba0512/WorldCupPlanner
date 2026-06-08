@@ -6,6 +6,7 @@
 @inject ServicioIncidencia ServicioIncidencia
 @inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
 @inject ServicioPersistenciaFixture ServicioPersistenciaFixture
+@inject EstadoTorneo EstadoTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
@@ -249,11 +250,44 @@ else
                 var config = ServicioConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
                 ServicioPartido.ResolverEmpateConPenales(_partido.Id, config.SemillaSimulation);
             }
-            ServicioPersistenciaFixture.GuardarPartidos(new[] { _partido });
+            var actualizado = ServicioPartido.BuscarPartidoPorId(_partido.Id);
+            if (actualizado != null)
+                SincronizarConEstadoTorneo(actualizado);
             Toast.Exito("Partido actualizado correctamente.");
             NavigationManager.NavigateTo("/fixture");
         }
         catch (Exception ex) { _error = ex.Message; }
+    }
+
+    private void SincronizarConEstadoTorneo(Partido actualizado)
+    {
+        var enGrupo = EstadoTorneo.Fixture?.Grupos
+            .SelectMany(g => g.Partidos)
+            .FirstOrDefault(p => p.Id == actualizado.Id);
+
+        if (enGrupo != null)
+        {
+            enGrupo.Fecha = actualizado.Fecha;
+            enGrupo.Estadio = actualizado.Estadio;
+            enGrupo.GolesLocal = actualizado.GolesLocal;
+            enGrupo.GolesVisitante = actualizado.GolesVisitante;
+            enGrupo.GanadorPorPenales = actualizado.GanadorPorPenales;
+            return;
+        }
+
+        var enEliminatorio = EstadoTorneo.PartidosEliminatorios
+            .FirstOrDefault(p => p.Id == actualizado.Id);
+
+        if (enEliminatorio == null) return;
+
+        enEliminatorio.Fecha = actualizado.Fecha;
+        enEliminatorio.Estadio = actualizado.Estadio;
+        enEliminatorio.GolesLocal = actualizado.GolesLocal;
+        enEliminatorio.GolesVisitante = actualizado.GolesVisitante;
+        enEliminatorio.GanadorPorPenales = actualizado.GanadorPorPenales;
+
+        EstadoTorneo.TorneoFinalizado = EstadoTorneo.PartidosEliminatorios
+            .Any(p => p.Fase == FaseTorneo.Final && p.EstaJugado());
     }
 
     private void AgregarTarjeta()
