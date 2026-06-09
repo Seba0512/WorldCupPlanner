@@ -440,4 +440,202 @@ public class ServicioFixture
             Fase = FaseTorneo.FaseDeGrupos
         };
     }
+
+    private const int NumeroJornadaInicial = 1;
+
+    public List<Partido> ObtenerPartidosPendientesDeJornada(Fixture? fixture, int jornada)
+    {
+        if (fixture == null)
+            return new List<Partido>();
+
+        var indiceInicial = (jornada - NumeroJornadaInicial) * CantidadPartidosPorJornadaDeGrupo;
+
+        return fixture.Grupos
+            .SelectMany(g => g.Partidos
+                .Skip(indiceInicial)
+                .Take(CantidadPartidosPorJornadaDeGrupo))
+            .Where(p => !p.EstaJugado())
+            .ToList();
+    }
+
+    public List<Partido> ObtenerPartidosPorPrimeraFechaPendiente(List<Partido> pendientes)
+    {
+        if (!pendientes.Any())
+            return new List<Partido>();
+
+        var fecha = pendientes.Min(p => p.Fecha.Date);
+        return pendientes.Where(p => p.Fecha.Date == fecha).ToList();
+    }
+
+    public bool FaseYaGenerada(FaseTorneo fase, EstadoTorneo estado)
+    {
+        if (fase == FaseTorneo.Final)
+            return estado.PartidosEliminatorios.Any(p =>
+                p.Fase == FaseTorneo.Final || p.Fase == FaseTorneo.TercerPuesto);
+
+        return estado.PartidosEliminatorios.Any(p => p.Fase == fase);
+    }
+
+    public bool PuedeGenerarFase(FaseTorneo fase, EstadoTorneo estado) =>
+        fase switch
+        {
+            FaseTorneo.PrimeraRondaEliminatoria => GruposCompletos(estado),
+            FaseTorneo.Octavos   => FaseEliminatoriaCompleta(FaseTorneo.PrimeraRondaEliminatoria, estado),
+            FaseTorneo.Cuartos   => FaseEliminatoriaCompleta(FaseTorneo.Octavos, estado),
+            FaseTorneo.Semifinal => FaseEliminatoriaCompleta(FaseTorneo.Cuartos, estado),
+            FaseTorneo.Final     => FaseEliminatoriaCompleta(FaseTorneo.Semifinal, estado),
+            _                    => false
+        };
+
+    public string ObtenerMensajeCondicionFase(FaseTorneo fase, EstadoTorneo estado)
+    {
+        if (fase == FaseTorneo.FaseDeGrupos || FaseYaGenerada(fase, estado) || PuedeGenerarFase(fase, estado))
+            return string.Empty;
+
+        return fase switch
+        {
+            FaseTorneo.PrimeraRondaEliminatoria =>
+                "Para generar los 16avos, todos los partidos de la fase de grupos deben estar jugados.",
+            FaseTorneo.Octavos => !FaseYaGenerada(FaseTorneo.PrimeraRondaEliminatoria, estado)
+                ? "Primero debés generar la primera ronda eliminatoria (16avos)."
+                : "Para generar los 8avos, todos los partidos de 16avos deben estar jugados y con ganador definido.",
+            FaseTorneo.Cuartos => !FaseYaGenerada(FaseTorneo.Octavos, estado)
+                ? "Primero debés generar los 8avos de final."
+                : "Para generar los 4tos, todos los partidos de 8avos deben estar jugados y con ganador definido.",
+            FaseTorneo.Semifinal => !FaseYaGenerada(FaseTorneo.Cuartos, estado)
+                ? "Primero debés generar los cuartos de final."
+                : "Para generar las semifinales, todos los partidos de 4tos deben estar jugados y con ganador definido.",
+            FaseTorneo.Final => !FaseYaGenerada(FaseTorneo.Semifinal, estado)
+                ? "Primero debés generar las semifinales."
+                : "Para generar la final, todos los partidos de semifinales deben estar jugados y con ganador definido.",
+            _ => string.Empty
+        };
+    }
+
+    public FaseTorneo? ObtenerFaseActualSimulable(EstadoTorneo estado)
+    {
+        if (estado.Fixture == null)
+            return null;
+
+        if (estado.Fixture.Partidos.Any(p => !p.EstaJugado()))
+            return FaseTorneo.FaseDeGrupos;
+
+        var fasesEliminatorias = new[]
+        {
+            FaseTorneo.PrimeraRondaEliminatoria,
+            FaseTorneo.Octavos,
+            FaseTorneo.Cuartos,
+            FaseTorneo.Semifinal
+        };
+
+        foreach (var fase in fasesEliminatorias)
+        {
+            if (estado.PartidosEliminatorios.Any(p => p.Fase == fase && !p.EstaJugado()))
+                return fase;
+        }
+
+        if (estado.PartidosEliminatorios.Any(p =>
+                (p.Fase == FaseTorneo.Final || p.Fase == FaseTorneo.TercerPuesto)
+                && !p.EstaJugado()))
+            return FaseTorneo.Final;
+
+        return null;
+    }
+
+    public List<Partido> ObtenerPartidosEtapaActiva(EstadoTorneo estado, FaseTorneo etapaActiva)
+    {
+        if (estado.Fixture == null)
+            return new List<Partido>();
+
+        if (etapaActiva == FaseTorneo.FaseDeGrupos)
+            return estado.Fixture.Partidos;
+
+        if (etapaActiva == FaseTorneo.Final)
+            return estado.PartidosEliminatorios
+                .Where(p => p.Fase == FaseTorneo.Final || p.Fase == FaseTorneo.TercerPuesto)
+                .ToList();
+
+        return estado.PartidosEliminatorios
+            .Where(p => p.Fase == etapaActiva)
+            .ToList();
+    }
+
+    public List<Partido> ObtenerPartidosPendientesEtapaActiva(EstadoTorneo estado, FaseTorneo etapaActiva)
+    {
+        if (ObtenerFaseActualSimulable(estado) != etapaActiva)
+            return new List<Partido>();
+
+        return ObtenerPartidosEtapaActiva(estado, etapaActiva)
+            .Where(p => !p.EstaJugado())
+            .ToList();
+    }
+
+    public List<Partido> ObtenerPartidosJornadaOFechaActual(EstadoTorneo estado, FaseTorneo etapaActiva, int jornadaActiva)
+    {
+        if (ObtenerFaseActualSimulable(estado) != etapaActiva)
+            return new List<Partido>();
+
+        if (etapaActiva != FaseTorneo.FaseDeGrupos)
+            return ObtenerPartidosPorPrimeraFechaPendiente(ObtenerPartidosPendientesEtapaActiva(estado, etapaActiva));
+
+        var jornadaPendiente = ObtenerJornadaPendienteActual(estado.Fixture);
+        if (!jornadaPendiente.HasValue || jornadaActiva != jornadaPendiente.Value)
+            return new List<Partido>();
+
+        return ObtenerPartidosPendientesDeJornada(estado.Fixture, jornadaActiva);
+    }
+
+    public List<Partido> ObtenerPartidosSimulablesAhora(EstadoTorneo estado, FaseTorneo etapaActiva)
+    {
+        if (ObtenerFaseActualSimulable(estado) != etapaActiva)
+            return new List<Partido>();
+
+        if (etapaActiva != FaseTorneo.FaseDeGrupos)
+            return ObtenerPartidosPorPrimeraFechaPendiente(ObtenerPartidosPendientesEtapaActiva(estado, etapaActiva));
+
+        var jornadaPendiente = ObtenerJornadaPendienteActual(estado.Fixture);
+        return jornadaPendiente.HasValue
+            ? ObtenerPartidosPendientesDeJornada(estado.Fixture, jornadaPendiente.Value)
+            : new List<Partido>();
+    }
+
+    public Partido? ObtenerProximoPartidoSimulable(EstadoTorneo estado, FaseTorneo etapaActiva) =>
+        ObtenerPartidosSimulablesAhora(estado, etapaActiva)
+            .OrderBy(p => p.Fecha)
+            .ThenBy(p => p.Id)
+            .FirstOrDefault();
+
+    public int? ObtenerJornadaPendienteActual(Fixture? fixture)
+    {
+        for (var jornada = NumeroJornadaInicial; jornada < NumeroJornadaInicial + CantidadJornadasPorGrupo; jornada++)
+        {
+            if (ObtenerPartidosPendientesDeJornada(fixture, jornada).Any())
+                return jornada;
+        }
+
+        return null;
+    }
+
+    public bool EsJornadaSeleccionable(int jornada, Fixture? fixture)
+    {
+        var jornadaPendiente = ObtenerJornadaPendienteActual(fixture);
+        return jornadaPendiente.HasValue && jornada == jornadaPendiente.Value;
+    }
+
+    public bool PerteneceAEtapaActiva(Partido partido, FaseTorneo etapaActiva)
+    {
+        if (etapaActiva == FaseTorneo.Final)
+            return partido.Fase == FaseTorneo.Final || partido.Fase == FaseTorneo.TercerPuesto;
+
+        return partido.Fase == etapaActiva;
+    }
+
+    private bool GruposCompletos(EstadoTorneo estado) =>
+        estado.Fixture?.Partidos.All(p => p.EstaJugado()) ?? false;
+
+    private bool FaseEliminatoriaCompleta(FaseTorneo fase, EstadoTorneo estado)
+    {
+        var partidos = estado.PartidosEliminatorios.Where(p => p.Fase == fase).ToList();
+        return partidos.Any() && partidos.All(p => p.EstaJugado() && p.Ganador() != null);
+    }
 }

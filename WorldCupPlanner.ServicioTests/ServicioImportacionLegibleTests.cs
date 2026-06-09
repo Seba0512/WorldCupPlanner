@@ -10,8 +10,8 @@ namespace WorldCupPlanner.ServicioTests;
 [TestClass]
 public class ServicioImportacionLegibleTests
 {
-    private ServicioImportacionLegible _servicio;
-    private ServicioEquipo _servicioEquipo;
+    private ServicioImportacionLegible _servicio = null!;
+    private ServicioEquipo _servicioEquipo = null!;
 
     [TestInitialize]
     public void Setup()

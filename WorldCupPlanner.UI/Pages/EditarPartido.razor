@@ -1,14 +1,10 @@
 @page "/partidos/{Id:int}/editar"
 @inject ServicioPartido ServicioPartido
 @inject ServicioEstadio ServicioEstadio
-@inject ServicioNotificacion ServicioNotificacion
-@inject ServicioUsuario ServicioUsuario
 @inject ServicioIncidencia ServicioIncidencia
-@inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
 @inject ServicioPersistenciaFixture ServicioPersistenciaFixture
-@inject ServicioRankingDinamico ServicioRankingDinamico
-@inject ServicioEquipo ServicioEquipo
 @inject EstadoTorneo EstadoTorneo
+@inject ServicioOrquestadorPartido OrquestadorPartido
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
@@ -68,7 +64,7 @@ else
         else
         {
             <div style="margin-top:8px; display:flex; align-items:center; justify-content:center; gap:8px;">
-                <span class="badge badge-blue">@MostrarFase(_partido.Fase)</span>
+                <span class="badge badge-blue">@_partido.Fase.ToEtiqueta()</span>
                 @if (_partido.FueDefinidoPorPenales())
                 {
                     <span class="badge badge-penalty">Definido por penales</span>
@@ -242,110 +238,18 @@ else
         {
             if (_partido == null) return;
             var estadio = _estadios.First(e => e.Nombre == _nombreEstadio);
-            ServicioPartido.EditarFecha(_partido.Id, _nuevaFecha);
-            ServicioPartido.EditarEstadio(_partido.Id, estadio);
-            if (_golesLocal.HasValue && _golesVisitante.HasValue)
-            {
-                var periodistas = ServicioUsuario.ObtenerTodosLosUsuarios()
-                    .Where(u => u.TieneRol(RolUsuario.Periodista));
-                ServicioPartido.CargarResultado(_partido.Id, _golesLocal.Value, _golesVisitante.Value, ServicioNotificacion, periodistas);
-                var config = ServicioConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
-                ServicioPartido.ResolverEmpateConPenales(_partido.Id, config.SemillaSimulation);
-                var partidoActualizado = ServicioPartido.BuscarPartidoPorId(_partido.Id);
-                if (partidoActualizado != null)
-                    ServicioRankingDinamico.RecalcularRankings(SesionServicio.UsuarioActual);
-            }
-            var actualizado = ServicioPartido.BuscarPartidoPorId(_partido.Id);
-            if (actualizado != null)
-                SincronizarConEstadoTorneo(actualizado);
-            SincronizarRankingsEnEstado();
+            OrquestadorPartido.GuardarCambiosPartido(
+                _partido.Id,
+                _nuevaFecha,
+                estadio,
+                _golesLocal,
+                _golesVisitante,
+                SesionServicio.UsuarioActual,
+                EstadoTorneo);
             Toast.Exito("Partido actualizado correctamente.");
             NavigationManager.NavigateTo("/fixture");
         }
         catch (Exception ex) { _error = ex.Message; }
-    }
-
-    private void SincronizarConEstadoTorneo(Partido actualizado)
-    {
-        var enGrupo = EstadoTorneo.Fixture?.Grupos
-            .SelectMany(g => g.Partidos)
-            .FirstOrDefault(p => p.Id == actualizado.Id);
-
-        if (enGrupo != null)
-        {
-            enGrupo.Fecha = actualizado.Fecha;
-            enGrupo.Estadio = actualizado.Estadio;
-            enGrupo.GolesLocal = actualizado.GolesLocal;
-            enGrupo.GolesVisitante = actualizado.GolesVisitante;
-            enGrupo.GanadorPorPenales = actualizado.GanadorPorPenales;
-            return;
-        }
-
-        var enEliminatorio = EstadoTorneo.PartidosEliminatorios
-            .FirstOrDefault(p => p.Id == actualizado.Id);
-
-        if (enEliminatorio == null) return;
-
-        enEliminatorio.Fecha = actualizado.Fecha;
-        enEliminatorio.Estadio = actualizado.Estadio;
-        enEliminatorio.GolesLocal = actualizado.GolesLocal;
-        enEliminatorio.GolesVisitante = actualizado.GolesVisitante;
-        enEliminatorio.GanadorPorPenales = actualizado.GanadorPorPenales;
-
-        EstadoTorneo.TorneoFinalizado = EstadoTorneo.PartidosEliminatorios
-            .Any(p => p.Fase == FaseTorneo.Final && p.EstaJugado());
-    }
-
-    private void SincronizarRankingsEnEstado()
-    {
-        var equiposActuales = ServicioEquipo.Buscar(_ => true);
-        foreach (var equipo in ObtenerEquiposDelEstado())
-        {
-            var actualizado = ResolverEquipoActual(equipo, equiposActuales);
-            if (actualizado == null)
-                continue;
-
-            equipo.RankingFIFA = actualizado.RankingFIFA;
-            equipo.RankingInicial = actualizado.RankingInicial;
-        }
-    }
-
-    private IEnumerable<Equipo> ObtenerEquiposDelEstado()
-    {
-        if (EstadoTorneo.Fixture != null)
-        {
-            foreach (var equipo in EstadoTorneo.Fixture.Grupos.SelectMany(g => g.Equipos))
-                yield return equipo;
-
-            foreach (var equipo in ObtenerEquiposDePartidos(EstadoTorneo.Fixture.Partidos))
-                yield return equipo;
-        }
-
-        foreach (var equipo in ObtenerEquiposDePartidos(EstadoTorneo.PartidosEliminatorios))
-            yield return equipo;
-    }
-
-    private static IEnumerable<Equipo> ObtenerEquiposDePartidos(IEnumerable<Partido> partidos)
-    {
-        foreach (var partido in partidos)
-        {
-            if (partido.EquipoLocal != null) yield return partido.EquipoLocal;
-            if (partido.EquipoVisitante != null) yield return partido.EquipoVisitante;
-            if (partido.GanadorPorPenales != null) yield return partido.GanadorPorPenales;
-        }
-    }
-
-    private static Equipo? ResolverEquipoActual(Equipo equipo, List<Equipo> equiposActuales)
-    {
-        if (equipo.Id > 0)
-        {
-            var porId = equiposActuales.FirstOrDefault(e => e.Id == equipo.Id);
-            if (porId != null)
-                return porId;
-        }
-
-        return equiposActuales.FirstOrDefault(e =>
-            string.Equals(e.Nombre, equipo.Nombre, StringComparison.OrdinalIgnoreCase));
     }
 
     private void AgregarTarjeta()
@@ -355,7 +259,7 @@ else
         try
         {
             ServicioPersistenciaFixture.GuardarPartidos(new[] { _partido });
-            var equipo = _equipoTarjeta == "Local" ? _partido.EquipoLocal! : _partido.EquipoVisitante!;
+            var equipo = ServicioIncidencia.ResolverEquipoPorRol(_partido, _equipoTarjeta);
             ServicioIncidencia.AgregarTarjeta(_partido.Id, _tipoTarjeta, _minutoTarjeta, equipo);
             _incidencias = ServicioIncidencia.ObtenerIncidencias(_partido.Id);
         }
@@ -373,14 +277,5 @@ else
         catch (Exception ex) { _error = ex.Message; }
     }
 
-    private static string MostrarFase(FaseTorneo fase) => fase switch
-    {
-        FaseTorneo.PrimeraRondaEliminatoria => "Primera Ronda",
-        FaseTorneo.Octavos   => "Octavos de Final",
-        FaseTorneo.Cuartos   => "Cuartos de Final",
-        FaseTorneo.Semifinal => "Semifinal",
-        FaseTorneo.TercerPuesto => "Tercer Puesto",
-        FaseTorneo.Final     => "Final",
-        _                    => fase.ToString()
-    };
+
 }

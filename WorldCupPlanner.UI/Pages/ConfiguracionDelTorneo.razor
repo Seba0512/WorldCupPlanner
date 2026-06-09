@@ -191,7 +191,7 @@ else if (!SesionServicio.EsAdministrador)
     private string _error = string.Empty;
 
     private bool PuedeEditar =>
-        SesionServicio.EsAdministrador && ServicioConfiguracionTorneo.EsConfiguracionModificable;
+        ServicioConfiguracionTorneo.PuedeModificarConfiguracion(SesionServicio.UsuarioActual);
 
     protected override void OnInitialized()
     {

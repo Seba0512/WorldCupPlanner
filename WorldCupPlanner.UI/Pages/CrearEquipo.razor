@@ -63,28 +63,17 @@
     private string _error = string.Empty;
     private string _bandera = string.Empty;
 
-    private static readonly Dictionary<Confederacion, int> Cupos = new()
-    {
-        { Confederacion.UEFA, 16 }, { Confederacion.CAF, 9 },
-        { Confederacion.CONCACAF, 7 }, { Confederacion.CONMEBOL, 7 },
-        { Confederacion.AFC, 8 }, { Confederacion.OFC, 1 }
-    };
-
     protected override void OnInitialized()
     {
         if (!SesionServicio.EsAdministrador) NavigationManager.NavigateTo("/");
     }
 
-    private int ObtenerCupo(Confederacion conf) => Cupos.GetValueOrDefault(conf, 0);
+    private int ObtenerCupo(Confederacion conf) =>
+        ServicioEquipo.ObtenerCuposMaximos().GetValueOrDefault(conf, 0);
 
     private async Task CargarBandera(InputFileChangeEventArgs e)
     {
-        var archivo = e.File;
-        using var stream = archivo.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024);
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
-        var bytes = ms.ToArray();
-        _bandera = $"data:{archivo.ContentType};base64,{Convert.ToBase64String(bytes)}";
+        _bandera = await ArchivoHelper.ConvertirABase64DataUri(e.File);
     }
 
     private void Guardar()

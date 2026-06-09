@@ -49,6 +49,13 @@ public class ServicioNotificacion
     public List<Notificacion> ObtenerNoLeidas(int usuarioId)
         => _repositorio.Buscar(n => n.UsuarioDestinatarioId == usuarioId && !n.EsLeida);
 
+    public void GenerarNotificacionesPorResultados(IEnumerable<Partido> partidos, IEnumerable<Usuario> periodistas)
+    {
+        var periodistasList = periodistas.ToList();
+        foreach (var partido in partidos.Where(p => p.EstaJugado()))
+            GenerarNotificacionesResultado(partido, periodistasList);
+    }
+
     public void GenerarNotificacionesResultado(Partido partido, IEnumerable<Usuario> periodistas)
     {
         foreach (var periodista in periodistas.Where(u => u.TieneRol(RolUsuario.Periodista)))

@@ -1,5 +1,6 @@
 @page "/partidos"
 @inject EstadoTorneo EstadoTorneo
+@inject ServicioPartido ServicioPartido
 
 <PageTitle>Partidos — WorldCupPlanner 2026</PageTitle>
 
@@ -50,7 +51,7 @@ else
                 <option value="">Todas</option>
                 @foreach (var f in FasesDisponibles)
                 {
-                    <option value="@f">@MostrarFase(f)</option>
+                    <option value="@f">@f.ToEtiqueta()</option>
                 }
             </select>
         </div>
@@ -117,7 +118,7 @@ else
                                 }
                                 else
                                 {
-                                    <span class="badge badge-blue">@MostrarFase(partido.Fase)</span>
+                                    <span class="badge badge-blue">@partido.Fase.ToEtiqueta()</span>
                                 }
                             </td>
                         </tr>
@@ -140,11 +141,13 @@ else
         .OrderBy(p => p.Fecha);
 
     private IEnumerable<Partido> PartidosFiltrados =>
-        TodosLosPartidos
-            .Where(p => _filtroFecha == null || p.Fecha.Date == _filtroFecha.Value.Date)
-            .Where(p => string.IsNullOrEmpty(_filtroEstadio) || p.Estadio?.Nombre == _filtroEstadio)
-            .Where(p => string.IsNullOrEmpty(_filtroGrupo) || p.Grupo?.Etiqueta == _filtroGrupo)
-            .Where(p => string.IsNullOrEmpty(_filtroFase) || p.Fase.ToString() == _filtroFase);
+        ServicioPartido.FiltrarPartidos(TodosLosPartidos, new FiltroPartidos
+        {
+            Fecha    = _filtroFecha,
+            Estadio  = _filtroEstadio,
+            Grupo    = _filtroGrupo,
+            Fase     = _filtroFase
+        });
 
     private IEnumerable<string> EstadiosDisponibles =>
         TodosLosPartidos.Select(p => p.Estadio?.Nombre).Where(n => n != null).Distinct().OrderBy(n => n)!;
@@ -163,15 +166,4 @@ else
         _filtroFase = string.Empty;
     }
 
-    private static string MostrarFase(FaseTorneo fase) => fase switch
-    {
-        FaseTorneo.FaseDeGrupos              => "Fase de Grupos",
-        FaseTorneo.PrimeraRondaEliminatoria  => "Primera Ronda",
-        FaseTorneo.Octavos   => "Octavos",
-        FaseTorneo.Cuartos   => "Cuartos",
-        FaseTorneo.Semifinal => "Semifinal",
-        FaseTorneo.TercerPuesto => "3° Puesto",
-        FaseTorneo.Final     => "Final",
-        _                    => fase.ToString()
-    };
 }

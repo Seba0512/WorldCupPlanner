@@ -143,13 +143,6 @@
     private string _estadoTexto = string.Empty;
     private string _estadoBadgeClase = string.Empty;
 
-    private static readonly Dictionary<Confederacion, int> CuposMaximos = new()
-    {
-        { Confederacion.UEFA, 16 }, { Confederacion.CAF, 9 },
-        { Confederacion.CONCACAF, 7 }, { Confederacion.CONMEBOL, 7 },
-        { Confederacion.AFC, 8 }, { Confederacion.OFC, 1 }
-    };
-
     private Dictionary<Confederacion, (int registrados, int cupo)> _cuposPorConfederacion = new();
 
     protected override void OnInitialized()
@@ -172,10 +165,8 @@
     private void ActualizarEstado()
     {
         _equipos = ServicioEquipo.Buscar(_ => true);
-        _equiposFaltantes = Math.Max(0, 48 - _equipos.Count);
-        _cuposPorConfederacion = CuposMaximos.ToDictionary(
-            kvp => kvp.Key,
-            kvp => (_equipos.Count(e => e.Confederacion == kvp.Key), kvp.Value));
+        _equiposFaltantes = ServicioEquipo.ObtenerCantidadFaltante(_equipos.Count);
+        _cuposPorConfederacion = ServicioEquipo.ObtenerCuposConOcupacion(_equipos);
 
         if (EstadoTorneo.Fixture != null)
         {

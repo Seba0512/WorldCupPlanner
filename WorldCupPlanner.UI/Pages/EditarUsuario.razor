@@ -114,9 +114,7 @@
             _esAdmin         = _usuario.TieneRol(RolUsuario.AdministradorDelSistema);
             _esEditor        = _usuario.TieneRol(RolUsuario.Editor);
             _esPeriodista    = _usuario.TieneRol(RolUsuario.Periodista);
-            _esUltimoAdministrador = _esAdmin &&
-                ServicioUsuario.ObtenerTodosLosUsuarios()
-                    .Count(u => u.TieneRol(RolUsuario.AdministradorDelSistema)) == 1;
+            _esUltimoAdministrador = ServicioUsuario.EsUltimoAdministrador(_usuario);
         }
     }
 

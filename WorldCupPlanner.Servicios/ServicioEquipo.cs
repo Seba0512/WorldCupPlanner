@@ -118,6 +118,11 @@ namespace WorldCupPlanner.Servicios
             return generados;
         }
 
+        public string ObtenerMensajeComplecion(int cantidadGenerados) =>
+            cantidadGenerados > 0
+                ? $"Se generaron {cantidadGenerados} equipos ficticios correctamente."
+                : "Ya hay 48 equipos registrados.";
+
         private void ValidarSemillaNoNegativa(int semilla)
         {
             if (semilla < 0)
@@ -190,6 +195,33 @@ namespace WorldCupPlanner.Servicios
         }
 
         public List<Equipo> Buscar(Func<Equipo, bool> predicado) => _repositorio.Buscar(predicado);
+
+        public Equipo ClonarParaEdicion(string nombre)
+        {
+            var original = Buscar(e => e.Nombre == nombre).First();
+            return new Equipo
+            {
+                Id             = original.Id,
+                Nombre         = original.Nombre,
+                Confederacion  = original.Confederacion,
+                RankingFIFA    = original.RankingFIFA,
+                RankingInicial = original.RankingInicial,
+                Bandera        = original.Bandera
+            };
+        }
+
+        public int ObtenerMaximoEquipos() => MaximoEquipos;
+
+        public IReadOnlyDictionary<Confederacion, int> ObtenerCuposMaximos() =>
+            ReglasConfederacion.CuposPorConfederacion;
+
+        public Dictionary<Confederacion, (int registrados, int cupo)> ObtenerCuposConOcupacion(List<Equipo> equipos) =>
+            ObtenerCuposMaximos().ToDictionary(
+                kvp => kvp.Key,
+                kvp => (equipos.Count(e => e.Confederacion == kvp.Key), kvp.Value));
+
+        public int ObtenerCantidadFaltante(int inscritos) =>
+            Math.Max(0, MaximoEquipos - inscritos);
 
         private void ValidarEquipo(Equipo equipo)
         {

@@ -75,28 +75,14 @@
     protected override void OnInitialized()
     {
         if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
-        var original = ServicioEquipo.Buscar(e => e.Nombre == Nombre).First();
-        _equipo = new Equipo
-        {
-            Id = original.Id,
-            Nombre = original.Nombre,
-            Confederacion = original.Confederacion,
-            RankingFIFA = original.RankingFIFA,
-            RankingInicial = original.RankingInicial,
-            Bandera = original.Bandera
-        };
-        _bandera = original.Bandera;
-        _edicionBloqueada = EquipoParticipaEnFixture(original);
+        _equipo = ServicioEquipo.ClonarParaEdicion(Nombre);
+        _bandera = _equipo.Bandera;
+        _edicionBloqueada = EstadoTorneo.EquipoParticipaEnFixture(_equipo);
     }
 
     private async Task CargarBandera(InputFileChangeEventArgs e)
     {
-        var archivo = e.File;
-        using var stream = archivo.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024);
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
-        var bytes = ms.ToArray();
-        _bandera = $"data:{archivo.ContentType};base64,{Convert.ToBase64String(bytes)}";
+        _bandera = await ArchivoHelper.ConvertirABase64DataUri(e.File);
     }
 
     private void Guardar()
@@ -115,30 +101,4 @@
         catch (Exception ex) { _error = ex.Message; }
     }
 
-    private bool EquipoParticipaEnFixture(Equipo equipo)
-    {
-        if (EstadoTorneo.Fixture == null)
-            return false;
-
-        return EstadoTorneo.Fixture.Grupos
-                   .SelectMany(g => g.Equipos)
-                   .Any(e => EsMismoEquipo(e, equipo))
-               || EstadoTorneo.Fixture.Partidos
-                   .Any(p => EsMismoEquipo(p.EquipoLocal, equipo)
-                             || EsMismoEquipo(p.EquipoVisitante, equipo))
-               || EstadoTorneo.PartidosEliminatorios
-                   .Any(p => EsMismoEquipo(p.EquipoLocal, equipo)
-                             || EsMismoEquipo(p.EquipoVisitante, equipo));
-    }
-
-    private static bool EsMismoEquipo(Equipo? participante, Equipo equipo)
-    {
-        if (participante == null)
-            return false;
-
-        if (participante.Id > 0 && equipo.Id > 0)
-            return participante.Id == equipo.Id;
-
-        return string.Equals(participante.Nombre, equipo.Nombre, StringComparison.OrdinalIgnoreCase);
-    }
 }

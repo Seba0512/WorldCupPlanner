@@ -412,11 +412,11 @@ public class ServicioFixtureTests
         // Assert
         var partidos = fixture.Grupos.SelectMany(g => g.Partidos).ToList();
 
-        Assert.AreEqual("Estadio1", partidos[0].Estadio.Nombre);
-        Assert.AreEqual("Estadio2", partidos[1].Estadio.Nombre);
-        Assert.AreEqual("Estadio3", partidos[2].Estadio.Nombre);
-        Assert.AreEqual("Estadio4", partidos[3].Estadio.Nombre);
-        Assert.AreEqual("Estadio1", partidos[4].Estadio.Nombre);
+        Assert.AreEqual("Estadio1", partidos[0].Estadio!.Nombre);
+        Assert.AreEqual("Estadio2", partidos[1].Estadio!.Nombre);
+        Assert.AreEqual("Estadio3", partidos[2].Estadio!.Nombre);
+        Assert.AreEqual("Estadio4", partidos[3].Estadio!.Nombre);
+        Assert.AreEqual("Estadio1", partidos[4].Estadio!.Nombre);
     }
 
     [TestMethod]
@@ -838,12 +838,12 @@ public class ServicioFixtureTests
             foreach (var partido in grupo.Partidos)
             {
                 var clave = string.Concat(
-                    new[] { partido.EquipoLocal.Nombre, partido.EquipoVisitante.Nombre }.OrderBy(x => x)
+                    new[] { partido.EquipoLocal!.Nombre, partido.EquipoVisitante!.Nombre }.OrderBy(x => x)
                 );
 
                 Assert.IsTrue(
                     partidosUnicos.Add(clave),
-                    $"El enfrentamiento entre {partido.EquipoLocal.Nombre} y {partido.EquipoVisitante.Nombre} " +
+                    $"El enfrentamiento entre {partido.EquipoLocal!.Nombre} y {partido.EquipoVisitante!.Nombre} " +
                     $"aparece repetido en el grupo {grupo.Etiqueta}"
                 );
             }
@@ -868,7 +868,7 @@ public class ServicioFixtureTests
             foreach (var partido in grupo.Partidos)
             {
                 Assert.AreEqual(FaseTorneo.FaseDeGrupos, partido.Fase,
-                    $"El partido entre {partido.EquipoLocal.Nombre} y {partido.EquipoVisitante.Nombre} " +
+                    $"El partido entre {partido.EquipoLocal!.Nombre} y {partido.EquipoVisitante!.Nombre} " +
                     $"debe tener fase FaseDeGrupos");
             }
         }
@@ -892,7 +892,7 @@ public class ServicioFixtureTests
             foreach (var partido in grupo.Partidos)
             {
                 Assert.IsNotNull(partido.Grupo,
-                    $"El partido entre {partido.EquipoLocal.Nombre} y {partido.EquipoVisitante.Nombre} debe tener grupo asignado");
+                    $"El partido entre {partido.EquipoLocal!.Nombre} y {partido.EquipoVisitante!.Nombre} debe tener grupo asignado");
 
                 Assert.AreEqual(grupo, partido.Grupo,
                     $"El partido debe pertenencer al grupo {grupo.Etiqueta}");
@@ -922,13 +922,13 @@ public class ServicioFixtureTests
             foreach (var partido in grupo.Partidos)
             {
                 Assert.IsNotNull(partido.Estadio,
-                    $"El partido entre {partido.EquipoLocal.Nombre} y {partido.EquipoVisitante.Nombre} debe tener estadio asignado");
+                    $"El partido entre {partido.EquipoLocal!.Nombre} y {partido.EquipoVisitante!.Nombre} debe tener estadio asignado");
 
                 Assert.IsTrue(estadios.Contains(partido.Estadio),
-                    $"El estadio {partido.Estadio.Nombre} debe ser uno de los estadios disponibles");
+                    $"El estadio {partido.Estadio!.Nombre} debe ser uno de los estadios disponibles");
 
-                Assert.IsTrue(partido.Estadio.EsValido(),
-                    $"El estadio {partido.Estadio.Nombre} asignado debe ser valido");
+                Assert.IsTrue(partido.Estadio!.EsValido(),
+                    $"El estadio {partido.Estadio!.Nombre} asignado debe ser valido");
             }
         }
     }

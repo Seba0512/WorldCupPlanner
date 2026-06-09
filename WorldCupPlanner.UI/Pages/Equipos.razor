@@ -1,6 +1,8 @@
 @page "/equipos"
+@using WorldCupPlanner.Dominio.Entidades
 @inject ServicioEquipo ServicioEquipo
 @inject EstadoTorneo EstadoTorneo
+@inject ServicioEstadisticasEquipo ServicioEstadisticasEquipo
 @inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
@@ -24,7 +26,7 @@
                Mensaje="@($"¿Eliminás el equipo \"{_equipoAEliminar?.Nombre}\"? Esta acción no se puede deshacer.")"
                OnConfirmar="ConfirmarEliminar" />
 
-<PageHeader Titulo="Equipos" Subtitulo="@($"{_equipos.Count} de 48 equipos registrados")">
+<PageHeader Titulo="Equipos" Subtitulo="@($"{_equipos.Count} de {_maxEquipos} equipos registrados")">
     <AccionesContent>
         @if (SesionServicio.PuedeGestionarEquipos)
         {
@@ -117,7 +119,7 @@
                         <td class="text-center" style="font-weight:700">@estadisticas.Puntos</td>
                         @if (SesionServicio.PuedeGestionarEquipos)
                         {
-                            var equipoBloqueadoPorFixture = EquipoParticipaEnFixture(equipo);
+                            var equipoBloqueadoPorFixture = EstadoTorneo.EquipoParticipaEnFixture(equipo);
                             <td style="width:140px; text-align:right">
                                 @if (equipoBloqueadoPorFixture)
                                 {
@@ -149,13 +151,13 @@
 </div>
 
 <!-- Completar equipos -->
-@if (SesionServicio.PuedeGestionarEquipos && _equipos.Count < 48)
+@if (SesionServicio.PuedeGestionarEquipos && _equipos.Count < _maxEquipos)
 {
     <div style="max-width:460px;">
         <div class="table-card">
             <div class="table-card-header">
                 <span class="table-card-title">Completar hasta 48</span>
-                <span class="badge badge-muted">@_equipos.Count / 48</span>
+                <span class="badge badge-muted">@_equipos.Count / @_maxEquipos</span>
             </div>
             <div style="padding:20px;">
                 <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
@@ -198,14 +200,8 @@
     private string _mensajeCompletar = string.Empty;
     private string _errorCarga = string.Empty;
     private int _semillaCompletar;
+    private int _maxEquipos;
     private Dictionary<string, EstadisticasEquipo> _estadisticasPorEquipo = new(StringComparer.OrdinalIgnoreCase);
-
-    private static readonly Dictionary<Confederacion, int> CuposMaximos = new()
-    {
-        { Confederacion.UEFA,     16 }, { Confederacion.CAF,      9 },
-        { Confederacion.CONCACAF, 7  }, { Confederacion.CONMEBOL, 7 },
-        { Confederacion.AFC,      8  }, { Confederacion.OFC,      1 }
-    };
 
     private Dictionary<Confederacion, (int registrados, int cupo)> _cuposPorConfederacion = new();
 
@@ -217,6 +213,7 @@
             return;
         }
 
+        _maxEquipos = ServicioEquipo.ObtenerMaximoEquipos();
         CargarDatos();
     }
 
@@ -226,102 +223,23 @@
         try
         {
             _equipos = ServicioEquipo.Buscar(_ => true);
-            _cuposPorConfederacion = CuposMaximos.ToDictionary(
-                kvp => kvp.Key,
-                kvp => (_equipos.Count(e => e.Confederacion == kvp.Key), kvp.Value));
+            _cuposPorConfederacion = ServicioEquipo.ObtenerCuposConOcupacion(_equipos);
             _semillaCompletar = ServicioConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
-            CargarEstadisticas();
+            _estadisticasPorEquipo = ServicioEstadisticasEquipo.ObtenerEstadisticasPorEquipo(_equipos);
         }
         catch (Exception ex)
         {
             _errorCarga = ex.Message;
             _equipos = new();
-            _cuposPorConfederacion = CuposMaximos.ToDictionary(
-                kvp => kvp.Key,
-                kvp => (0, kvp.Value));
-            _estadisticasPorEquipo = new Dictionary<string, EstadisticasEquipo>(StringComparer.OrdinalIgnoreCase);
+            _cuposPorConfederacion = ServicioEquipo.ObtenerCuposConOcupacion(new List<Equipo>());
+            _estadisticasPorEquipo = new(StringComparer.OrdinalIgnoreCase);
         }
-    }
-
-    private void CargarEstadisticas()
-    {
-        _estadisticasPorEquipo = _equipos.ToDictionary(
-            e => e.Nombre,
-            _ => new EstadisticasEquipo(),
-            StringComparer.OrdinalIgnoreCase);
-
-        var partidosJugados = (EstadoTorneo.Fixture?.Partidos ?? Enumerable.Empty<Partido>())
-            .Concat(EstadoTorneo.PartidosEliminatorios)
-            .Where(p => p.EstaJugado());
-
-        foreach (var partido in partidosJugados)
-        {
-            var golesLocal = partido.GolesLocal ?? 0;
-            var golesVisitante = partido.GolesVisitante ?? 0;
-            var sumaPuntos = partido.Fase == FaseTorneo.FaseDeGrupos;
-            RegistrarPartido(partido.EquipoLocal, golesLocal, golesVisitante,
-                sumaPuntos ? CalcularPuntos(golesLocal, golesVisitante) : 0);
-            RegistrarPartido(partido.EquipoVisitante, golesVisitante, golesLocal,
-                sumaPuntos ? CalcularPuntos(golesVisitante, golesLocal) : 0);
-        }
-    }
-
-    private void RegistrarPartido(Equipo? equipo, int golesAFavor, int golesEnContra, int puntos)
-    {
-        if (equipo == null)
-            return;
-
-        if (!_estadisticasPorEquipo.TryGetValue(equipo.Nombre, out var estadisticas))
-        {
-            estadisticas = new EstadisticasEquipo();
-            _estadisticasPorEquipo[equipo.Nombre] = estadisticas;
-        }
-
-        estadisticas.PartidosJugados++;
-        estadisticas.GolesAFavor += golesAFavor;
-        estadisticas.GolesEnContra += golesEnContra;
-        estadisticas.Puntos += puntos;
-    }
-
-    private static int CalcularPuntos(int golesPropios, int golesRivales)
-    {
-        if (golesPropios > golesRivales)
-            return 3;
-
-        return golesPropios == golesRivales ? 1 : 0;
     }
 
     private EstadisticasEquipo ObtenerEstadisticas(Equipo equipo)
         => _estadisticasPorEquipo.TryGetValue(equipo.Nombre, out var estadisticas)
             ? estadisticas
             : new EstadisticasEquipo();
-
-    private bool EquipoParticipaEnFixture(Equipo equipo)
-    {
-        if (EstadoTorneo.Fixture == null)
-            return false;
-
-        return EstadoTorneo.Fixture.Grupos
-                   .SelectMany(g => g.Equipos)
-                   .Any(e => EsMismoEquipo(e, equipo))
-               || EstadoTorneo.Fixture.Partidos
-                   .Any(p => EsMismoEquipo(p.EquipoLocal, equipo)
-                             || EsMismoEquipo(p.EquipoVisitante, equipo))
-               || EstadoTorneo.PartidosEliminatorios
-                   .Any(p => EsMismoEquipo(p.EquipoLocal, equipo)
-                             || EsMismoEquipo(p.EquipoVisitante, equipo));
-    }
-
-    private static bool EsMismoEquipo(Equipo? participante, Equipo equipo)
-    {
-        if (participante == null)
-            return false;
-
-        if (participante.Id > 0 && equipo.Id > 0)
-            return participante.Id == equipo.Id;
-
-        return string.Equals(participante.Nombre, equipo.Nombre, StringComparison.OrdinalIgnoreCase);
-    }
 
     private void Reintentar()
     {
@@ -350,31 +268,13 @@
     private void Completar()
     {
         _semillaCompletar = ServicioConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
-
-        if (_semillaCompletar < 0)
-        {
-            Toast.Error("La semilla de generación automática debe ser mayor o igual a cero.");
-            return;
-        }
-
         try
         {
             var generados = ServicioEquipo.CompletarEquipos(_semillaCompletar, SesionServicio.UsuarioActual);
             CargarDatos();
-            _mensajeCompletar = generados.Count > 0
-                ? $"Se generaron {generados.Count} equipos ficticios correctamente."
-                : "Ya hay 48 equipos registrados.";
+            _mensajeCompletar = ServicioEquipo.ObtenerMensajeComplecion(generados.Count);
             if (generados.Count > 0) Toast.Exito(_mensajeCompletar);
         }
         catch (Exception ex) { Toast.Error(ex.Message); }
-    }
-
-    private sealed class EstadisticasEquipo
-    {
-        public int PartidosJugados { get; set; }
-        public int GolesAFavor { get; set; }
-        public int GolesEnContra { get; set; }
-        public int DiferenciaGoles => GolesAFavor - GolesEnContra;
-        public int Puntos { get; set; }
     }
 }

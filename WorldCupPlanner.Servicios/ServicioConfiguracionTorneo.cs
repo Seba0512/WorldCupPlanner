@@ -76,6 +76,11 @@ public class ServicioConfiguracionTorneo
         return CopiarConfiguracion(_configuracionUsadaParaFixture);
     }
 
+    public bool PuedeModificarConfiguracion(Usuario? usuario) =>
+        usuario != null
+        && usuario.TieneRol(RolUsuario.AdministradorDelSistema)
+        && EsConfiguracionModificable;
+
     private void ValidarUsuarioAdministrador(Usuario usuario)
     {
         if (!usuario.TieneRol(RolUsuario.AdministradorDelSistema))

@@ -21,7 +21,7 @@ internal class RepositorioAuditoriaEstadioFake : IRepositorioConId<Auditoria>
 [TestClass]
 public class ServicioEstadioTests
 {
-    private ServicioEstadio _servicio;
+    private ServicioEstadio _servicio = null!;
 
     [TestInitialize]
     public void Setup()

@@ -12,6 +12,8 @@
 @inject ServicioIncidencia ServicioIncidencia
 @inject ServicioUsuario ServicioUsuario
 @inject ServicioRankingDinamico ServicioRankingDinamico
+@inject ServicioOrquestadorSimulacion OrquestadorSimulacion
+@inject ServicioOrquestadorFixture OrquestadorFixture
 @inject SesionServicio SesionServicio
 @inject ToastServicio Toast
 @inject NavigationManager NavigationManager
@@ -25,7 +27,7 @@
             @if (_etapaActiva != FaseTorneo.FaseDeGrupos)
             {
                 <button class="btn btn-primary btn-sm"
-                        disabled="@(FaseYaGenerada(_etapaActiva) || !PuedeGenerarFase(_etapaActiva) || _generando)"
+                        disabled="@(ServicioFixture.FaseYaGenerada(_etapaActiva, EstadoTorneo) || !ServicioFixture.PuedeGenerarFase(_etapaActiva, EstadoTorneo) || _generando)"
                         @onclick="GenerarFaseActiva">
                     @if (_generando)
                     {
@@ -35,7 +37,7 @@
                     else
                     {
                         <span class="oi oi-cog" aria-hidden="true"></span>
-                        <span>@(FaseYaGenerada(_etapaActiva) ? "Cruces generados" : "Generar Cruces")</span>
+                        <span>@(ServicioFixture.FaseYaGenerada(_etapaActiva, EstadoTorneo) ? "Cruces generados" : "Generar Cruces")</span>
                     }
                 </button>
             }
@@ -46,9 +48,9 @@
                             style="width:auto"
                             @bind="_jornadaActiva"
                             disabled="@(!EsEtapaActivaSimulable)">
-                        <option value="@JornadaUno" disabled="@(!EsJornadaSeleccionable(JornadaUno))">Jornada 1</option>
-                        <option value="@JornadaDos" disabled="@(!EsJornadaSeleccionable(JornadaDos))">Jornada 2</option>
-                        <option value="@JornadaTres" disabled="@(!EsJornadaSeleccionable(JornadaTres))">Jornada 3</option>
+                        <option value="@JornadaUno" disabled="@(!ServicioFixture.EsJornadaSeleccionable(JornadaUno, EstadoTorneo.Fixture))">Jornada 1</option>
+                        <option value="@JornadaDos" disabled="@(!ServicioFixture.EsJornadaSeleccionable(JornadaDos, EstadoTorneo.Fixture))">Jornada 2</option>
+                        <option value="@JornadaTres" disabled="@(!ServicioFixture.EsJornadaSeleccionable(JornadaTres, EstadoTorneo.Fixture))">Jornada 3</option>
                     </select>
                 }
                 <button class="btn btn-warning"
@@ -717,14 +719,10 @@ else
 
         _etapaActiva = FaseTorneo.FaseDeGrupos;
         _jornadaActiva = JornadaUno;
-        EstadoTorneo.FixtureAnterior = EstadoTorneo.Fixture;
-        EstadoTorneo.PartidosEliminatoriosAnteriores = EstadoTorneo.PartidosEliminatorios;
-        EstadoTorneo.TorneoFinalizado = true;
+        EstadoTorneo.ArchivarTorneoActual();
         ServicioPersistenciaFixture.ArchivarTorneoActual();
         ServicioEquipo.LimpiarFixtureGenerado();
         ServicioEstadio.LimpiarFixtureGenerado();
-        EstadoTorneo.Fixture = null;
-        EstadoTorneo.PartidosEliminatorios = new();
         NavigationManager.NavigateTo("/fixture");
     }
 
@@ -768,36 +766,7 @@ else
 
         try
         {
-            ServicioRankingDinamico.FijarRankingBaseDelTorneo(SesionServicio.UsuarioActual);
-            var equipos = ServicioEquipo.Buscar(_ => true);
-            var estadios = ServicioEstadio.ObtenerEstadios();
-            var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
-            config.MotorSimulacion = _motorSimulacionSeleccionado;
-
-            var esFixtureNuevo = EstadoTorneo.Fixture == null;
-            WorldCupPlanner.Dominio.Entidades.Fixture fixtureGenerado;
-
-            if (esFixtureNuevo)
-            {
-                fixtureGenerado = ServicioFixture.GenerarFixture(equipos, estadios, config);
-            }
-            else
-            {
-                fixtureGenerado = ServicioFixture.RegenerarFixture(
-                    equipos,
-                    EstadoTorneo.Fixture!,
-                    estadios,
-                    config,
-                    EstadoTorneo.PartidosEliminatorios);
-            }
-
-            EstadoTorneo.Fixture = fixtureGenerado;
-            EstadoTorneo.PartidosEliminatorios = new();
-            EstadoTorneo.TorneoFinalizado = false;
-            ServicioEquipo.RegistrarFixtureGenerado(EstadoTorneo.Fixture);
-            ServicioEstadio.RegistrarFixtureGenerado(EstadoTorneo.Fixture);
-            ServicioConfiguracionTorneo.RegistrarFixtureGenerado(config);
-            ServicioPersistenciaFixture.GuardarFixture(EstadoTorneo.Fixture);
+            OrquestadorFixture.GenerarORegenerarFixture(_motorSimulacionSeleccionado, SesionServicio.UsuarioActual, EstadoTorneo);
             SincronizarJornadaActivaConPendiente();
             Toast.Exito("Fixture generado correctamente.");
         }
@@ -847,9 +816,7 @@ else
         if (!PuedeModificarTorneo())
             return;
 
-        var partidosSimulados = partidos.Where(p => !p.EstaJugado()).ToList();
-
-        if (!partidosSimulados.Any())
+        if (!partidos.Any(p => !p.EstaJugado()))
         {
             _error = "No hay partidos pendientes para simular en la fase actual.";
             return;
@@ -858,21 +825,7 @@ else
         try
         {
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
-            foreach (var partido in partidosSimulados.OrderBy(p => p.Fecha).ThenBy(p => p.Id))
-            {
-                ServicioSimulacion.SimularResultados(
-                    new List<Partido> { partido },
-                    config,
-                    SesionServicio.UsuarioActual,
-                    ObtenerTodosLosPartidosDelTorneo());
-                ServicioPersistenciaFixture.GuardarPartidos(new[] { partido });
-                PersistirIncidenciasSimuladas(partido);
-                ServicioRankingDinamico.RecalcularRankings(SesionServicio.UsuarioActual);
-                SincronizarRankingsEnEstado();
-            }
-            GenerarNotificacionesPorResultados(partidosSimulados);
-            if (TorneoEstaFinalizado)
-                EstadoTorneo.TorneoFinalizado = true;
+            OrquestadorSimulacion.SimularYPersistirPartidos(partidos, config, SesionServicio.UsuarioActual, EstadoTorneo);
             SincronizarJornadaActivaConPendiente();
             Toast.Exito(mensajeExito);
         }
@@ -882,125 +835,24 @@ else
         }
     }
 
-    private void PersistirIncidenciasSimuladas(Partido partido)
-    {
-        var nuevas = partido.Incidencias
-            .Where(i => i.Id == 0 && i.PartidoId == partido.Id)
-            .ToList();
-
-        if (!nuevas.Any() || ServicioIncidencia.ObtenerIncidencias(partido.Id).Any())
-            return;
-
-        foreach (var incidencia in nuevas)
-        {
-            if (incidencia.Equipo == null)
-                continue;
-
-            var tipo = incidencia is TarjetaRoja ? TipoTarjeta.Roja : TipoTarjeta.Amarilla;
-            ServicioIncidencia.AgregarTarjeta(
-                partido.Id,
-                tipo,
-                incidencia.MinutoDelPartido,
-                incidencia.Equipo);
-        }
-    }
-
-    private List<Partido> ObtenerTodosLosPartidosDelTorneo()
-    {
-        var partidos = new List<Partido>();
-
-        if (EstadoTorneo.Fixture != null)
-        {
-            partidos.AddRange(EstadoTorneo.Fixture.Partidos);
-        }
-
-        partidos.AddRange(EstadoTorneo.PartidosEliminatorios);
-
-        return partidos;
-    }
-
     private bool PuedeModificarTorneo()
     {
         if (SesionServicio.PuedeEditarPartidos)
             return true;
 
-        _error = "No tenÃ©s permisos para modificar partidos o fixture.";
+        _error = "No tenés permisos para modificar partidos o fixture.";
         return false;
     }
 
-    private void GenerarNotificacionesPorResultados(IEnumerable<Partido> partidos)
-    {
-        var periodistas = ServicioUsuario.ObtenerTodosLosUsuarios()
-            .Where(u => u.TieneRol(RolUsuario.Periodista))
-            .ToList();
-
-        foreach (var partido in partidos.Where(p => p.EstaJugado()))
-        {
-            ServicioNotificacion.GenerarNotificacionesResultado(partido, periodistas);
-        }
-    }
-
-    private void SincronizarRankingsEnEstado()
-    {
-        var equiposActuales = ServicioEquipo.Buscar(_ => true);
-        foreach (var equipo in ObtenerEquiposDelEstado())
-        {
-            var actualizado = ResolverEquipoActual(equipo, equiposActuales);
-            if (actualizado == null)
-                continue;
-
-            equipo.RankingFIFA = actualizado.RankingFIFA;
-            equipo.RankingInicial = actualizado.RankingInicial;
-        }
-    }
-
-    private IEnumerable<Equipo> ObtenerEquiposDelEstado()
-    {
-        if (EstadoTorneo.Fixture != null)
-        {
-            foreach (var equipo in EstadoTorneo.Fixture.Grupos.SelectMany(g => g.Equipos))
-                yield return equipo;
-
-            foreach (var equipo in ObtenerEquiposDePartidos(EstadoTorneo.Fixture.Partidos))
-                yield return equipo;
-        }
-
-        foreach (var equipo in ObtenerEquiposDePartidos(EstadoTorneo.PartidosEliminatorios))
-            yield return equipo;
-    }
-
-    private static IEnumerable<Equipo> ObtenerEquiposDePartidos(IEnumerable<Partido> partidos)
-    {
-        foreach (var partido in partidos)
-        {
-            if (partido.EquipoLocal != null) yield return partido.EquipoLocal;
-            if (partido.EquipoVisitante != null) yield return partido.EquipoVisitante;
-            if (partido.GanadorPorPenales != null) yield return partido.GanadorPorPenales;
-        }
-    }
-
-    private static Equipo? ResolverEquipoActual(Equipo equipo, List<Equipo> equiposActuales)
-    {
-        if (equipo.Id > 0)
-        {
-            var porId = equiposActuales.FirstOrDefault(e => e.Id == equipo.Id);
-            if (porId != null)
-                return porId;
-        }
-
-        return equiposActuales.FirstOrDefault(e =>
-            string.Equals(e.Nombre, equipo.Nombre, StringComparison.OrdinalIgnoreCase));
-    }
-
     private bool EsEtapaActivaSimulable =>
-        ObtenerFaseActualSimulable() == _etapaActiva;
+        ServicioFixture.ObtenerFaseActualSimulable(EstadoTorneo) == _etapaActiva;
 
     private bool PuedeSimularPartido(Partido? partido)
     {
         return SesionServicio.PuedeEditarPartidos
             && partido != null
             && EsEtapaActivaSimulable
-            && PerteneceAEtapaActiva(partido)
+            && ServicioFixture.PerteneceAEtapaActiva(partido, _etapaActiva)
             && !partido.EstaJugado()
             && ReferenceEquals(partido, ObtenerProximoPartidoSimulable());
     }
@@ -1015,190 +867,17 @@ else
         return SesionServicio.PuedeEditarPartidos && ObtenerPartidosPendientesEtapaActiva().Any();
     }
 
-    private FaseTorneo? ObtenerFaseActualSimulable()
-    {
-        if (EstadoTorneo.Fixture == null)
-        {
-            return null;
-        }
+    private List<Partido> ObtenerPartidosPendientesEtapaActiva() =>
+        ServicioFixture.ObtenerPartidosPendientesEtapaActiva(EstadoTorneo, _etapaActiva);
 
-        if (EstadoTorneo.Fixture.Partidos.Any(p => !p.EstaJugado()))
-        {
-            return FaseTorneo.FaseDeGrupos;
-        }
+    private List<Partido> ObtenerPartidosJornadaOFechaActual() =>
+        ServicioFixture.ObtenerPartidosJornadaOFechaActual(EstadoTorneo, _etapaActiva, _jornadaActiva);
 
-        var fasesEliminatorias = new[]
-        {
-            FaseTorneo.PrimeraRondaEliminatoria,
-            FaseTorneo.Octavos,
-            FaseTorneo.Cuartos,
-            FaseTorneo.Semifinal
-        };
+    private Partido? ObtenerProximoPartidoSimulable() =>
+        ServicioFixture.ObtenerProximoPartidoSimulable(EstadoTorneo, _etapaActiva);
 
-        foreach (var fase in fasesEliminatorias)
-        {
-            if (EstadoTorneo.PartidosEliminatorios.Any(p => p.Fase == fase && !p.EstaJugado()))
-            {
-                return fase;
-            }
-        }
-
-        if (EstadoTorneo.PartidosEliminatorios.Any(p =>
-                (p.Fase == FaseTorneo.Final || p.Fase == FaseTorneo.TercerPuesto)
-                && !p.EstaJugado()))
-        {
-            return FaseTorneo.Final;
-        }
-
-        return null;
-    }
-
-    private bool PerteneceAEtapaActiva(Partido partido)
-    {
-        if (_etapaActiva == FaseTorneo.Final)
-        {
-            return partido.Fase == FaseTorneo.Final || partido.Fase == FaseTorneo.TercerPuesto;
-        }
-
-        return partido.Fase == _etapaActiva;
-    }
-
-    private List<Partido> ObtenerPartidosPendientesEtapaActiva()
-    {
-        if (!EsEtapaActivaSimulable)
-        {
-            return new List<Partido>();
-        }
-
-        return ObtenerPartidosEtapaActiva()
-            .Where(p => !p.EstaJugado())
-            .ToList();
-    }
-
-    private List<Partido> ObtenerPartidosJornadaOFechaActual()
-    {
-        if (!EsEtapaActivaSimulable)
-        {
-            return new List<Partido>();
-        }
-
-        if (_etapaActiva != FaseTorneo.FaseDeGrupos)
-        {
-            return ObtenerPartidosPendientesDePrimeraFechaActual();
-        }
-
-        var jornadaPendiente = ObtenerJornadaPendienteActual();
-
-        if (!jornadaPendiente.HasValue || _jornadaActiva != jornadaPendiente.Value)
-        {
-            return new List<Partido>();
-        }
-
-        return ObtenerPartidosPendientesDeJornada(_jornadaActiva);
-    }
-
-    private List<Partido> ObtenerPartidosEtapaActiva()
-    {
-        if (EstadoTorneo.Fixture == null)
-        {
-            return new List<Partido>();
-        }
-
-        if (_etapaActiva == FaseTorneo.FaseDeGrupos)
-        {
-            return EstadoTorneo.Fixture.Partidos;
-        }
-
-        if (_etapaActiva == FaseTorneo.Final)
-        {
-            return EstadoTorneo.PartidosEliminatorios
-                .Where(p => p.Fase == FaseTorneo.Final || p.Fase == FaseTorneo.TercerPuesto)
-                .ToList();
-        }
-
-        return EstadoTorneo.PartidosEliminatorios
-            .Where(p => p.Fase == _etapaActiva)
-            .ToList();
-    }
-
-    private List<Partido> ObtenerPartidosPendientesDeJornada(int jornada)
-    {
-        if (EstadoTorneo.Fixture == null)
-        {
-            return new List<Partido>();
-        }
-
-        var indiceInicial = (jornada - JornadaUno) * CantidadPartidosPorJornadaGrupo;
-
-        return EstadoTorneo.Fixture.Grupos
-            .SelectMany(g => g.Partidos
-                .Skip(indiceInicial)
-                .Take(CantidadPartidosPorJornadaGrupo))
-            .Where(p => !p.EstaJugado())
-            .ToList();
-    }
-
-    private List<Partido> ObtenerPartidosPendientesDePrimeraFechaActual()
-    {
-        var pendientes = ObtenerPartidosPendientesEtapaActiva();
-
-        if (!pendientes.Any())
-        {
-            return new List<Partido>();
-        }
-
-        var fecha = pendientes.Min(p => p.Fecha.Date);
-
-        return pendientes
-            .Where(p => p.Fecha.Date == fecha)
-            .ToList();
-    }
-
-    private List<Partido> ObtenerPartidosSimulablesAhora()
-    {
-        if (!EsEtapaActivaSimulable)
-        {
-            return new List<Partido>();
-        }
-
-        if (_etapaActiva != FaseTorneo.FaseDeGrupos)
-        {
-            return ObtenerPartidosPendientesDePrimeraFechaActual();
-        }
-
-        var jornadaPendiente = ObtenerJornadaPendienteActual();
-
-        return jornadaPendiente.HasValue
-            ? ObtenerPartidosPendientesDeJornada(jornadaPendiente.Value)
-            : new List<Partido>();
-    }
-
-    private Partido? ObtenerProximoPartidoSimulable()
-    {
-        return ObtenerPartidosSimulablesAhora()
-            .OrderBy(p => p.Fecha)
-            .ThenBy(p => p.Id)
-            .FirstOrDefault();
-    }
-
-    private int? ObtenerJornadaPendienteActual()
-    {
-        for (var jornada = JornadaUno; jornada <= JornadaTres; jornada++)
-        {
-            if (ObtenerPartidosPendientesDeJornada(jornada).Any())
-            {
-                return jornada;
-            }
-        }
-
-        return null;
-    }
-
-    private bool EsJornadaSeleccionable(int jornada)
-    {
-        var jornadaPendiente = ObtenerJornadaPendienteActual();
-        return jornadaPendiente.HasValue && jornada == jornadaPendiente.Value;
-    }
+    private int? ObtenerJornadaPendienteActual() =>
+        ServicioFixture.ObtenerJornadaPendienteActual(EstadoTorneo.Fixture);
 
     private void SincronizarJornadaActivaConPendiente()
     {
@@ -1215,65 +894,10 @@ else
         }
     }
 
-    private bool FaseYaGenerada(FaseTorneo fase)
-    {
-        if (fase == FaseTorneo.Final)
-            return EstadoTorneo.PartidosEliminatorios.Any(p => p.Fase == FaseTorneo.Final || p.Fase == FaseTorneo.TercerPuesto);
-        return EstadoTorneo.PartidosEliminatorios.Any(p => p.Fase == fase);
-    }
-
-    private bool GruposCompletos() =>
-        EstadoTorneo.Fixture?.Partidos.All(p => p.EstaJugado()) ?? false;
-
-    private bool FaseEliminatoriaCompleta(FaseTorneo fase)
-    {
-        var partidos = EstadoTorneo.PartidosEliminatorios.Where(p => p.Fase == fase).ToList();
-        return partidos.Any() && partidos.All(p => p.EstaJugado() && p.Ganador() != null);
-    }
-
-    private bool PuedeGenerarFase(FaseTorneo fase) => fase switch
-    {
-        FaseTorneo.PrimeraRondaEliminatoria => GruposCompletos(),
-        FaseTorneo.Octavos   => FaseEliminatoriaCompleta(FaseTorneo.PrimeraRondaEliminatoria),
-        FaseTorneo.Cuartos   => FaseEliminatoriaCompleta(FaseTorneo.Octavos),
-        FaseTorneo.Semifinal => FaseEliminatoriaCompleta(FaseTorneo.Cuartos),
-        FaseTorneo.Final     => FaseEliminatoriaCompleta(FaseTorneo.Semifinal),
-        _                    => false
-    };
-
-    private string MensajeCondicionFaseActiva
-    {
-        get
-        {
-            if (EstadoTorneo.Fixture == null)
-                return string.Empty;
-
-            if (_etapaActiva == FaseTorneo.FaseDeGrupos || FaseYaGenerada(_etapaActiva) || PuedeGenerarFase(_etapaActiva))
-                return string.Empty;
-
-            return _etapaActiva switch
-            {
-                FaseTorneo.PrimeraRondaEliminatoria =>
-                    "Para generar los 16avos, todos los partidos de la fase de grupos deben estar jugados.",
-                FaseTorneo.Octavos => !FaseYaGenerada(FaseTorneo.PrimeraRondaEliminatoria)
-                    ? "Primero debés generar la primera ronda eliminatoria (16avos)."
-                    : "Para generar los 8avos, todos los partidos de 16avos deben estar jugados y con ganador definido.",
-                FaseTorneo.Cuartos => !FaseYaGenerada(FaseTorneo.Octavos)
-                    ? "Primero debés generar los 8avos de final."
-                    : "Para generar los 4tos, todos los partidos de 8avos deben estar jugados y con ganador definido.",
-                FaseTorneo.Semifinal => !FaseYaGenerada(FaseTorneo.Cuartos)
-                    ? "Primero debés generar los cuartos de final."
-                    : "Para generar las semifinales, todos los partidos de 4tos deben estar jugados y con ganador definido.",
-                FaseTorneo.Final => !FaseYaGenerada(FaseTorneo.Semifinal)
-                    ? "Primero debés generar las semifinales."
-                    : "Para generar la final, todos los partidos de semifinales deben estar jugados y con ganador definido.",
-                _ => string.Empty
-            };
-        }
-    }
-
-    private List<Partido> PartidosDeFase(FaseTorneo fase) =>
-        EstadoTorneo.PartidosEliminatorios.Where(p => p.Fase == fase).ToList();
+    private string MensajeCondicionFaseActiva =>
+        EstadoTorneo.Fixture == null
+            ? string.Empty
+            : ServicioFixture.ObtenerMensajeCondicionFase(_etapaActiva, EstadoTorneo);
 
     private async Task GenerarFaseActiva()
     {
@@ -1298,7 +922,7 @@ else
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             var clasificados = ServicioClasificacion.ObtenerClasificadosAFaseEliminatoria(EstadoTorneo.Fixture!, config);
             var estadios = ServicioEstadio.ObtenerEstadios();
-            EstadoTorneo.PartidosEliminatorios = ServicioCruces.GenerarPrimeraRondaEliminatoria(
+            var partidos = ServicioCruces.GenerarPrimeraRondaEliminatoria(
                 new ContextoSorteo
                 {
                     Clasificados = clasificados,
@@ -1306,7 +930,8 @@ else
                     ConfiguracionTorneo = config,
                     FechaUltimoPartidoFaseGrupos = EstadoTorneo.Fixture!.Partidos.Max(p => p.Fecha)
                 });
-            ServicioPersistenciaFixture.GuardarPartidos(EstadoTorneo.PartidosEliminatorios);
+            EstadoTorneo.EstablecerPartidosEliminatorios(partidos);
+            ServicioPersistenciaFixture.GuardarPartidos(partidos);
             Toast.Exito("16avos de final generados correctamente.");
         }
         catch (Exception ex) { _error = ex.Message; }
@@ -1319,8 +944,8 @@ else
         {
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             var estadios = ServicioEstadio.ObtenerEstadios();
-            var octavos = ServicioCruces.GenerarOctavos(PartidosDeFase(FaseTorneo.PrimeraRondaEliminatoria), estadios, config);
-            EstadoTorneo.PartidosEliminatorios.AddRange(octavos);
+            var octavos = ServicioCruces.GenerarOctavos(EstadoTorneo.ObtenerPartidosDeFase(FaseTorneo.PrimeraRondaEliminatoria), estadios, config);
+            EstadoTorneo.AgregarPartidosEliminatorios(octavos);
             ServicioPersistenciaFixture.GuardarPartidos(octavos);
             Toast.Exito("8avos de final generados correctamente.");
         }
@@ -1334,8 +959,8 @@ else
         {
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             var estadios = ServicioEstadio.ObtenerEstadios();
-            var cuartos = ServicioCruces.GenerarCuartos(PartidosDeFase(FaseTorneo.Octavos), estadios, config);
-            EstadoTorneo.PartidosEliminatorios.AddRange(cuartos);
+            var cuartos = ServicioCruces.GenerarCuartos(EstadoTorneo.ObtenerPartidosDeFase(FaseTorneo.Octavos), estadios, config);
+            EstadoTorneo.AgregarPartidosEliminatorios(cuartos);
             ServicioPersistenciaFixture.GuardarPartidos(cuartos);
             Toast.Exito("Cuartos de final generados correctamente.");
         }
@@ -1349,8 +974,8 @@ else
         {
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             var estadios = ServicioEstadio.ObtenerEstadios();
-            var semifinales = ServicioCruces.GenerarSemifinales(PartidosDeFase(FaseTorneo.Cuartos), estadios, config);
-            EstadoTorneo.PartidosEliminatorios.AddRange(semifinales);
+            var semifinales = ServicioCruces.GenerarSemifinales(EstadoTorneo.ObtenerPartidosDeFase(FaseTorneo.Cuartos), estadios, config);
+            EstadoTorneo.AgregarPartidosEliminatorios(semifinales);
             ServicioPersistenciaFixture.GuardarPartidos(semifinales);
             Toast.Exito("Semifinales generadas correctamente.");
         }
@@ -1367,12 +992,11 @@ else
             await Task.Yield();
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             var estadios = ServicioEstadio.ObtenerEstadios();
-            var semifinales = PartidosDeFase(FaseTorneo.Semifinal);
+            var semifinales = EstadoTorneo.ObtenerPartidosDeFase(FaseTorneo.Semifinal);
             var existentes = EstadoTorneo.PartidosEliminatorios;
             var tercerPuesto = ServicioCruces.GenerarTercerPuesto(semifinales, estadios, config, existentes);
             var final = ServicioCruces.GenerarFinal(semifinales, estadios, config, existentes);
-            EstadoTorneo.PartidosEliminatorios.Add(tercerPuesto);
-            EstadoTorneo.PartidosEliminatorios.Add(final);
+            EstadoTorneo.AgregarPartidosEliminatorios(new[] { tercerPuesto, final });
             ServicioPersistenciaFixture.GuardarPartidos(new[] { tercerPuesto, final });
             Toast.Exito("Final y tercer puesto generados correctamente.");
         }

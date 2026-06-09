@@ -146,12 +146,25 @@ public class ServicioUsuario
         }
     }
 
+    public bool EsUltimoAdministrador(Usuario usuario)
+    {
+        if (!usuario.TieneRol(RolUsuario.AdministradorDelSistema))
+            return false;
+
+        return !_repositorio.Buscar(u =>
+            !ReferenceEquals(u, usuario) &&
+            u.TieneRol(RolUsuario.AdministradorDelSistema)).Any();
+    }
+
     public List<Usuario> ObtenerTodosLosUsuarios(Usuario? solicitante = null)
     {
         if (solicitante != null)
             _autorizacion.VerificarEsAdministrador(solicitante);
         return _repositorio.Buscar(_ => true);
     }
+
+    public IEnumerable<Usuario> ObtenerPeriodistas() =>
+        ObtenerTodosLosUsuarios().Where(u => u.TieneRol(RolUsuario.Periodista));
 
     public Usuario? ObtenerPorEmail(string email)
     {

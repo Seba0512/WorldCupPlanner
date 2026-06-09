@@ -55,7 +55,7 @@
             <tbody>
                 @foreach (var estadio in _estadios)
                 {
-                    var estadioBloqueadoPorFixture = EstadioParticipaEnFixture(estadio);
+                    var estadioBloqueadoPorFixture = EstadoTorneo.EstadioParticipaEnFixture(estadio);
                     <tr>
                         <td style="font-weight:600">@estadio.Nombre</td>
                         <td>@estadio.Ciudad</td>
@@ -122,25 +122,4 @@
         catch (Exception ex) { Toast.Error(ex.Message); }
     }
 
-    private bool EstadioParticipaEnFixture(Estadio estadio)
-    {
-        if (EstadoTorneo.Fixture == null)
-            return false;
-
-        return EstadoTorneo.Fixture.Partidos
-                   .Any(p => EsMismoEstadio(p.Estadio, estadio))
-               || EstadoTorneo.PartidosEliminatorios
-                   .Any(p => EsMismoEstadio(p.Estadio, estadio));
-    }
-
-    private static bool EsMismoEstadio(Estadio? estadioEnFixture, Estadio estadio)
-    {
-        if (estadioEnFixture == null)
-            return false;
-
-        if (estadioEnFixture.Id > 0 && estadio.Id > 0)
-            return estadioEnFixture.Id == estadio.Id;
-
-        return string.Equals(estadioEnFixture.Nombre, estadio.Nombre, StringComparison.OrdinalIgnoreCase);
-    }
 }

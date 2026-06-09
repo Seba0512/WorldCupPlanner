@@ -170,6 +170,22 @@ public class ServicioRankingDinamico
         return cambios;
     }
 
+    public void SincronizarRankingsEnEstado(EstadoTorneo estado)
+    {
+        if (_repositorioEquipo == null)
+            return;
+
+        var equiposActualizados = _repositorioEquipo.Buscar(_ => true);
+        foreach (var equipo in estado.ObtenerTodosLosEquipos())
+        {
+            var actualizado = ResolverEquipo(equipo, equiposActualizados);
+            if (actualizado == null)
+                continue;
+            equipo.RankingFIFA    = actualizado.RankingFIFA;
+            equipo.RankingInicial = actualizado.RankingInicial;
+        }
+    }
+
     private static int RedondearRanking(double ranking)
     {
         return (int)Math.Floor(ranking + 0.5);

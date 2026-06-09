@@ -61,17 +61,15 @@
     private Estadio _estadio = new();
     private int? _capacidad;
     private string _error = string.Empty;
-    private List<Estadio> _todosLosEstadios = [];
     private bool _edicionBloqueada;
 
     protected override void OnInitialized()
     {
         if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
-        _todosLosEstadios = ServicioEstadio.ObtenerEstadios();
-        var original = _todosLosEstadios.First(e => e.Nombre == Nombre);
+        var original = ServicioEstadio.ObtenerEstadios().First(e => e.Nombre == Nombre);
         _estadio = new Estadio { Id = original.Id, Nombre = original.Nombre, Ciudad = original.Ciudad, Capacidad = original.Capacidad, Descripcion = original.Descripcion };
         _capacidad = original.Capacidad;
-        _edicionBloqueada = EstadioParticipaEnFixture(original);
+        _edicionBloqueada = EstadoTorneo.EstadioParticipaEnFixture(original);
     }
 
     private void Guardar()
@@ -82,16 +80,6 @@
             _error = "No se puede editar un estadio que participa en el fixture generado.";
             return;
         }
-
-        var nombreNuevo = (_estadio.Nombre ?? string.Empty).Trim();
-        var hayConflicto = _todosLosEstadios.Any(e =>
-            string.Equals(e.Nombre.Trim(), nombreNuevo, StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(e.Nombre.Trim(), Nombre.Trim(), StringComparison.OrdinalIgnoreCase));
-        if (hayConflicto)
-        {
-            _error = "Ya existe un estadio con ese nombre.";
-            return;
-        }
         try
         {
             ServicioEstadio.EditarEstadio(Nombre, _estadio, SesionServicio.UsuarioActual);
@@ -99,27 +87,5 @@
             NavigationManager.NavigateTo("/estadios");
         }
         catch (Exception ex) { _error = ex.Message; }
-    }
-
-    private bool EstadioParticipaEnFixture(Estadio estadio)
-    {
-        if (EstadoTorneo.Fixture == null)
-            return false;
-
-        return EstadoTorneo.Fixture.Partidos
-                   .Any(p => EsMismoEstadio(p.Estadio, estadio))
-               || EstadoTorneo.PartidosEliminatorios
-                   .Any(p => EsMismoEstadio(p.Estadio, estadio));
-    }
-
-    private static bool EsMismoEstadio(Estadio? estadioEnFixture, Estadio estadio)
-    {
-        if (estadioEnFixture == null)
-            return false;
-
-        if (estadioEnFixture.Id > 0 && estadio.Id > 0)
-            return estadioEnFixture.Id == estadio.Id;
-
-        return string.Equals(estadioEnFixture.Nombre, estadio.Nombre, StringComparison.OrdinalIgnoreCase);
     }
 }

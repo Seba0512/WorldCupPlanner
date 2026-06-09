@@ -1,9 +1,6 @@
 @page "/"
 @inject SesionServicio SesionServicio
-@inject ServicioEquipo ServicioEquipo
-@inject ServicioEstadio ServicioEstadio
-@inject ServicioUsuario ServicioUsuario
-@inject EstadoTorneo EstadoTorneo
+@inject ServicioDashboard ServicioDashboard
 @inject ServicioNotificacion ServicioNotificacion
 
 <PageTitle>Dashboard — WorldCupPlanner 2026</PageTitle>
@@ -18,6 +15,9 @@
             @if (_notificaciones.Any())
             {
                 <span class="badge badge-blue">@_notificaciones.Count</span>
+                <button class="btn btn-success btn-sm" @onclick="MarcarTodasLeidas">
+                    <span class="oi oi-check" aria-hidden="true"></span> Marcar todo como leído
+                </button>
             }
         </div>
         <div style="padding: 16px;">
@@ -157,22 +157,20 @@
 
     protected override void OnInitialized()
     {
-        _saludo   = SesionServicio.HaySesion
+        _saludo = SesionServicio.HaySesion
             ? $"Bienvenido, {SesionServicio.UsuarioActual?.Nombre} {SesionServicio.UsuarioActual?.Apellido}"
             : string.Empty;
-        _equipos  = ServicioEquipo.Buscar(_ => true).Count;
-        _estadios = ServicioEstadio.ObtenerEstadios().Count;
-        _fixture  = EstadoTorneo.Fixture != null;
-        _cruces   = EstadoTorneo.PartidosEliminatorios.Any();
+
+        var datos = ServicioDashboard.ObtenerDatos();
+        _equipos          = datos.CantidadEquipos;
+        _estadios         = datos.CantidadEstadios;
+        _fixture          = datos.FixtureGenerado;
+        _cruces           = datos.CrucesGenerados;
+        _partidos         = datos.TotalPartidos;
+        _partidos_jugados = datos.PartidosJugados;
 
         if (SesionServicio.UsuarioActual?.TieneRol(RolUsuario.Periodista) == true)
             _notificaciones = ServicioNotificacion.ObtenerNoLeidas(SesionServicio.UsuarioActual.Id);
-
-        var todosPartidos = (_fixture ? EstadoTorneo.Fixture!.Partidos : new())
-            .Concat(EstadoTorneo.PartidosEliminatorios)
-            .ToList();
-        _partidos         = todosPartidos.Count;
-        _partidos_jugados = todosPartidos.Count(p => p.EstaJugado());
     }
 
     private void MarcarLeida(int id)
@@ -182,6 +180,18 @@
             return;
 
         ServicioNotificacion.MarcarComoLeida(id, usuarioActual);
+        _notificaciones = ServicioNotificacion.ObtenerNoLeidas(usuarioActual.Id);
+    }
+
+    private void MarcarTodasLeidas()
+    {
+        var usuarioActual = SesionServicio.UsuarioActual;
+        if (usuarioActual == null)
+            return;
+
+        foreach (var notificacion in _notificaciones.ToList())
+            ServicioNotificacion.MarcarComoLeida(notificacion.Id, usuarioActual);
+
         _notificaciones = ServicioNotificacion.ObtenerNoLeidas(usuarioActual.Id);
     }
 }

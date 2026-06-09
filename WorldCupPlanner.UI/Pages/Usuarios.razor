@@ -66,8 +66,8 @@
                             </a>
                             <button class="btn btn-danger btn-sm"
                                     @onclick="() => PedirConfirmacion(usuario)"
-                                    disabled="@EsUltimoAdministrador(usuario)"
-                                    title="@(EsUltimoAdministrador(usuario) ? "No es posible eliminar el último administrador del sistema" : "Eliminar usuario")">
+                                    disabled="@ServicioUsuario.EsUltimoAdministrador(usuario)"
+                                    title="@(ServicioUsuario.EsUltimoAdministrador(usuario) ? "No es posible eliminar el último administrador del sistema" : "Eliminar usuario")">
                                 <span class="oi oi-trash" aria-hidden="true"></span>
                             </button>
                         </td>
@@ -108,9 +108,4 @@
         catch (Exception ex) { Toast.Error(ex.Message); }
     }
 
-    private bool EsUltimoAdministrador(Usuario usuario)
-    {
-        if (!usuario.TieneRol(RolUsuario.AdministradorDelSistema)) return false;
-        return _usuarios.Count(u => u.TieneRol(RolUsuario.AdministradorDelSistema)) == 1;
-    }
 }

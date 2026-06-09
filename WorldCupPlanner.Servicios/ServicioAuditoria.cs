@@ -26,4 +26,10 @@ public class ServicioAuditoria
             _autorizacion.VerificarEsAdministrador(solicitante);
         return _repo.Buscar(_ => true).OrderByDescending(a => a.Timestamp).ToList();
     }
+
+    public string ExportarComoTexto(List<Auditoria> registros)
+    {
+        var lineas = registros.Select(r => $"{r.Timestamp} | {r.Usuario} | {r.Accion} | {r.Detalle}");
+        return string.Join("\n", lineas);
+    }
 }

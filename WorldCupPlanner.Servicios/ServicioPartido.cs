@@ -30,6 +30,18 @@ public class ServicioPartido
         _estadoTorneo = estadoTorneo;
     }
 
+    public void EditarFechaYEstadio(int id, DateTime fecha, Estadio estadio)
+    {
+        EditarFecha(id, fecha);
+        EditarEstadio(id, estadio);
+    }
+
+    public void AplicarResultadoConPenales(int id, ContextoResultadoPartido contexto)
+    {
+        CargarResultado(id, contexto.GolesLocal, contexto.GolesVisitante, contexto.Notificacion, contexto.Periodistas);
+        ResolverEmpateConPenales(id, contexto.SemillaSimulation);
+    }
+
     public void EditarFecha(int idPartido, DateTime nuevaFecha)
     {
         if (nuevaFecha == default)
@@ -162,6 +174,15 @@ public class ServicioPartido
         {
             throw new EntidadInvalidaExcepcion("Los goles del partido no pueden ser negativos.");
         }
+    }
+
+    public IEnumerable<Partido> FiltrarPartidos(IEnumerable<Partido> partidos, FiltroPartidos filtro)
+    {
+        return partidos
+            .Where(p => filtro.Fecha == null || p.Fecha.Date == filtro.Fecha.Value.Date)
+            .Where(p => string.IsNullOrEmpty(filtro.Estadio) || p.Estadio?.Nombre == filtro.Estadio)
+            .Where(p => string.IsNullOrEmpty(filtro.Grupo) || p.Grupo?.Etiqueta == filtro.Grupo)
+            .Where(p => string.IsNullOrEmpty(filtro.Fase) || p.Fase.ToString() == filtro.Fase);
     }
 
     private FaseTorneo ObtenerFaseAnterior(FaseTorneo faseGenerada)

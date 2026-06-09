@@ -159,7 +159,7 @@ public class ServicioCrucesTests
             );
 
             Assert.IsTrue(
-                clasificados.MejoresTerceros.Contains(primerosOchoPartidos[i].EquipoVisitante)
+                clasificados.MejoresTerceros.Contains(primerosOchoPartidos[i].EquipoVisitante!)
             );
         }
     }
@@ -238,8 +238,8 @@ public class ServicioCrucesTests
 
         for (int i = 0; i < partidosSegundosRestantes.Count; i++)
         {
-            Assert.IsTrue(segundosRestantes.Contains(partidosSegundosRestantes[i].EquipoLocal));
-            Assert.IsTrue(segundosRestantes.Contains(partidosSegundosRestantes[i].EquipoVisitante));
+            Assert.IsTrue(segundosRestantes.Contains(partidosSegundosRestantes[i].EquipoLocal!));
+            Assert.IsTrue(segundosRestantes.Contains(partidosSegundosRestantes[i].EquipoVisitante!));
             Assert.AreNotEqual(
                 partidosSegundosRestantes[i].EquipoLocal,
                 partidosSegundosRestantes[i].EquipoVisitante
@@ -346,7 +346,7 @@ public class ServicioCrucesTests
     private List<string> ObtenerCruces(List<Partido> partidos)
     {
         return partidos
-            .Select(p => $"{p.EquipoLocal.Nombre}-{p.EquipoVisitante.Nombre}")
+            .Select(p => $"{p.EquipoLocal!.Nombre}-{p.EquipoVisitante!.Nombre}")
             .ToList();
     }
 

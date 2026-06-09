@@ -44,11 +44,11 @@
                     <tr>
                         <td style="color:var(--text-muted); width:40px">@registro.Id</td>
                         <td style="white-space:nowrap; color:var(--text-secondary); font-size:12px">
-                            @FormatearTimestamp(registro.Timestamp)
+                            @AuditoriaDisplayHelper.FormatearTimestamp(registro.Timestamp)
                         </td>
                         <td style="font-weight:600">@registro.Usuario</td>
                         <td>
-                            <span class="badge @ObtenerBadge(registro.Accion)">@registro.Accion</span>
+                            <span class="badge @AuditoriaDisplayHelper.ObtenerClaseBadge(registro.Accion)">@registro.Accion</span>
                         </td>
                         <td style="color:var(--text-secondary); font-size:13px">
                             @(string.IsNullOrEmpty(registro.Detalle) ? "—" : registro.Detalle)
@@ -71,24 +71,8 @@
 
     private async Task DescargarLog()
     {
-        var lineas = _registros.Select(r => $"{r.Timestamp} | {r.Usuario} | {r.Accion} | {r.Detalle}");
-        var contenido = string.Join("\n", lineas);
+        var contenido = ServicioAuditoria.ExportarComoTexto(_registros);
         await JS.InvokeVoidAsync("descargarArchivo", contenido, "logs_auditoria.txt");
     }
 
-    private static string FormatearTimestamp(string iso)
-    {
-        if (DateTime.TryParse(iso, out var dt))
-            return dt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss");
-        return iso;
-    }
-
-    private static string ObtenerBadge(string accion) => accion.ToLower() switch
-    {
-        var a when a.Contains("elimin") || a.Contains("borr") => "badge-red",
-        var a when a.Contains("cre")   || a.Contains("agre")  => "badge-green",
-        var a when a.Contains("edit")  || a.Contains("actu")  => "badge-gold",
-        var a when a.Contains("login") || a.Contains("sesion") => "badge-blue",
-        _ => "badge-muted"
-    };
 }

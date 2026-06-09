@@ -17,6 +17,11 @@ public class ServicioIncidencia
         _repositorio = repositorio;
     }
 
+    public Equipo ResolverEquipoPorRol(Partido partido, string rolEquipo)
+    {
+        return rolEquipo == "Local" ? partido.EquipoLocal! : partido.EquipoVisitante!;
+    }
+
     public void AgregarTarjeta(int partidoId, TipoTarjeta tipo, int minuto, Equipo equipo)
     {
         ValidarMinuto(minuto);
@@ -28,6 +33,25 @@ public class ServicioIncidencia
 
     public List<Incidencia> ObtenerIncidencias(int partidoId)
         => _repositorio.ObtenerPorPartido(partidoId);
+
+    public void PersistirIncidenciasDePartido(Partido partido)
+    {
+        var nuevas = partido.Incidencias
+            .Where(i => i.Id == 0 && i.PartidoId == partido.Id)
+            .ToList();
+
+        if (!nuevas.Any() || ObtenerIncidencias(partido.Id).Any())
+            return;
+
+        foreach (var incidencia in nuevas)
+        {
+            if (incidencia.Equipo == null)
+                continue;
+
+            var tipo = incidencia is TarjetaRoja ? TipoTarjeta.Roja : TipoTarjeta.Amarilla;
+            AgregarTarjeta(partido.Id, tipo, incidencia.MinutoDelPartido, incidencia.Equipo);
+        }
+    }
 
     public void EliminarIncidencia(int incidenciaId)
     {
