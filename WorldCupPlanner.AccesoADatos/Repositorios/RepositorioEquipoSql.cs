@@ -53,6 +53,11 @@ public class RepositorioEquipoSql : IRepositorio<Equipo>, IRepositorioConClaveEd
         if (existente == null)
             throw new EntidadInexistenteExcepcion("El equipo no existe.");
 
+        var incidencias = _contexto.Incidencias
+            .Where(i => EF.Property<int>(i, "EquipoId") == existente.Id)
+            .ToList();
+        _contexto.Incidencias.RemoveRange(incidencias);
+
         _contexto.Equipos.Remove(existente);
         _contexto.SaveChanges();
     }
