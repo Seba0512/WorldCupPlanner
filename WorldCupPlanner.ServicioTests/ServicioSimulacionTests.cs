@@ -1,4 +1,5 @@
 ﻿using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
 
@@ -25,6 +26,37 @@ public class ServicioSimulacionTests
         // Assert
         Assert.IsTrue(partidos.All(p => p.GolesLocal.HasValue));
         Assert.IsTrue(partidos.All(p => p.GolesVisitante.HasValue));
+    }
+
+    [TestMethod]
+    public void SimularResultados_ConAuditoria_RegistraSemillaYCantidadDePartidos()
+    {
+        // Arrange
+        var repoAuditoria = new RepositorioAuditoriaSimulacionStub();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var servicioSimulacion = new ServicioSimulacion(auditoria);
+        var partidos = CrearPartidosSinResultado(2);
+        var usuario = new Usuario(new DatosUsuario
+        {
+            Nombre = "Admin",
+            Apellido = "Sistema",
+            Email = "admin@test.com",
+            FechaNacimiento = "01-01-1990"
+        });
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 17
+        };
+
+        // Act
+        servicioSimulacion.SimularResultados(partidos, configuracionTorneo, usuario);
+
+        // Assert
+        var log = repoAuditoria.Buscar(_ => true).Single();
+        Assert.AreEqual("Simulacion", log.Accion);
+        StringAssert.Contains(log.Usuario, "admin@test.com");
+        StringAssert.Contains(log.Detalle, "17");
+        StringAssert.Contains(log.Detalle, "2/2");
     }
 
     private List<Partido> CrearPartidosSinResultado(int cantidad)
@@ -432,4 +464,31 @@ public class ServicioSimulacionTests
         Assert.AreEqual(partido1.GanadorPorPenales!.Nombre, partido2.GanadorPorPenales!.Nombre);
     }
 
+}
+
+file sealed class RepositorioAuditoriaSimulacionStub : IRepositorioConId<Auditoria>
+{
+    private readonly List<Auditoria> _auditorias = new();
+    private int _siguienteId = 1;
+
+    public int SiguienteId() => _siguienteId++;
+
+    public void Agregar(Auditoria entidad)
+    {
+        _auditorias.Add(entidad);
+    }
+
+    public void Actualizar(Auditoria entidad)
+    {
+        var indice = _auditorias.FindIndex(a => a.Id == entidad.Id);
+        if (indice >= 0)
+        {
+            _auditorias[indice] = entidad;
+        }
+    }
+
+    public void Eliminar(Auditoria entidad) => _auditorias.Remove(entidad);
+
+    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado)
+        => _auditorias.Where(predicado).ToList();
 }

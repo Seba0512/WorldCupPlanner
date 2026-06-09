@@ -169,13 +169,14 @@
                                style="width:120px;"
                                min="0"
                                step="1"
-                               @bind="_semillaCompletar"
-                               disabled="@(!ServicioConfiguracionTorneo.EsConfiguracionModificable)" />
+                               value="@_semillaCompletar"
+                               readonly
+                               aria-readonly="true" />
                         <a href="/configuracion" style="font-size:12px; color:var(--text-muted); white-space:nowrap;">
                             <span class="oi oi-cog" aria-hidden="true"></span> Configurar
                         </a>
                     </div>
-                    <span class="form-hint">La misma semilla genera siempre los mismos equipos y rankings ficticios. Se aplica al completar equipos y no modifica equipos ya generados.</span>
+                    <span class="form-hint">La misma semilla genera siempre los mismos equipos y rankings ficticios. Se configura desde ConfiguraciÃ³n y no modifica equipos ya generados.</span>
                 </div>
                 @if (!string.IsNullOrEmpty(_mensajeCompletar))
                 {
@@ -348,6 +349,8 @@
 
     private void Completar()
     {
+        _semillaCompletar = ServicioConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
+
         if (_semillaCompletar < 0)
         {
             Toast.Error("La semilla de generación automática debe ser mayor o igual a cero.");
@@ -356,7 +359,6 @@
 
         try
         {
-            GuardarSemillaCompletarSiCambio();
             var generados = ServicioEquipo.CompletarEquipos(_semillaCompletar, SesionServicio.UsuarioActual);
             CargarDatos();
             _mensajeCompletar = generados.Count > 0
@@ -365,16 +367,6 @@
             if (generados.Count > 0) Toast.Exito(_mensajeCompletar);
         }
         catch (Exception ex) { Toast.Error(ex.Message); }
-    }
-
-    private void GuardarSemillaCompletarSiCambio()
-    {
-        var configuracion = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
-        if (configuracion.SemillaCompletar == _semillaCompletar)
-            return;
-
-        configuracion.SemillaCompletar = _semillaCompletar;
-        ServicioConfiguracionTorneo.ModificarConfiguracion(SesionServicio.UsuarioActual!, configuracion);
     }
 
     private sealed class EstadisticasEquipo

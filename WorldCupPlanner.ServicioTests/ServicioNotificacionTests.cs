@@ -54,6 +54,27 @@ public class ServicioNotificacionTests
     }
 
     [TestMethod]
+    public void MarcarComoLeida_ConAuditoria_RegistraLecturaDelPeriodista()
+    {
+        // Arrange
+        var repositorio = new RepositorioNotificacionStub();
+        var repoAuditoria = new RepositorioAuditoriaNotificacionStub();
+        var servicio = new ServicioNotificacion(repositorio, new ServicioAuditoria(repoAuditoria));
+        var usuario = CrearPeriodista("periodista@test.com");
+        var notificacion = new Notificacion { UsuarioDestinatarioId = usuario.Id };
+        repositorio.Agregar(notificacion);
+
+        // Act
+        servicio.MarcarComoLeida(notificacion.Id, usuario);
+
+        // Assert
+        var log = repoAuditoria.Buscar(_ => true).Single();
+        Assert.AreEqual("LecturaNotificacion", log.Accion);
+        StringAssert.Contains(log.Usuario, "periodista@test.com");
+        StringAssert.Contains(log.Detalle, notificacion.Id.ToString());
+    }
+
+    [TestMethod]
     public void MarcarComoLeida_CuandoNotificacionNoPertenecAlUsuario_LanzaExcepcion()
     {
         // Arrange
@@ -189,4 +210,31 @@ file sealed class RepositorioNotificacionStub : IRepositorioNotificacion
 
     public List<Notificacion> ObtenerPorUsuario(int usuarioId)
         => _notificaciones.Where(n => n.UsuarioDestinatarioId == usuarioId).ToList();
+}
+
+file sealed class RepositorioAuditoriaNotificacionStub : IRepositorioConId<Auditoria>
+{
+    private readonly List<Auditoria> _auditorias = new();
+    private int _siguienteId = 1;
+
+    public int SiguienteId() => _siguienteId++;
+
+    public void Agregar(Auditoria entidad)
+    {
+        _auditorias.Add(entidad);
+    }
+
+    public void Actualizar(Auditoria entidad)
+    {
+        var indice = _auditorias.FindIndex(a => a.Id == entidad.Id);
+        if (indice >= 0)
+        {
+            _auditorias[indice] = entidad;
+        }
+    }
+
+    public void Eliminar(Auditoria entidad) => _auditorias.Remove(entidad);
+
+    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado)
+        => _auditorias.Where(predicado).ToList();
 }

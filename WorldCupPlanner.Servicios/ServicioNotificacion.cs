@@ -8,13 +8,26 @@ namespace WorldCupPlanner.Servicios;
 public class ServicioNotificacion
 {
     private readonly IRepositorioNotificacion _repositorio;
+    private readonly ServicioAuditoria? _auditoria;
 
-    public ServicioNotificacion(IRepositorioNotificacion repositorio)
+    public ServicioNotificacion(IRepositorioNotificacion repositorio, ServicioAuditoria? auditoria = null)
     {
         _repositorio = repositorio;
+        _auditoria = auditoria;
     }
 
     public void MarcarComoLeida(int notificacionId, int usuarioId)
+    {
+        MarcarComoLeida(notificacionId, usuarioId, $"UsuarioId {usuarioId}");
+    }
+
+    public void MarcarComoLeida(int notificacionId, Usuario usuario)
+    {
+        var usuarioAuditoria = $"{usuario.Nombre} {usuario.Apellido} ({usuario.Email})";
+        MarcarComoLeida(notificacionId, usuario.Id, usuarioAuditoria);
+    }
+
+    private void MarcarComoLeida(int notificacionId, int usuarioId, string usuarioAuditoria)
     {
         var notificacion = ObtenerNotificacionPorId(notificacionId);
 
@@ -23,6 +36,10 @@ public class ServicioNotificacion
 
         notificacion.EsLeida = true;
         _repositorio.Actualizar(notificacion);
+        _auditoria?.Registrar(
+            usuarioAuditoria,
+            "LecturaNotificacion",
+            $"Notificacion {notificacion.Id} marcada como leida por periodista.");
     }
 
     private Notificacion ObtenerNotificacionPorId(int notificacionId)

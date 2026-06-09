@@ -14,11 +14,20 @@ public class ServicioSimulacion
     private const int RankingAlto = 1800;
     private const int BonusRankingMedio = 1;
     private const int BonusRankingAlto = 2;
+    private readonly ServicioAuditoria? _auditoria;
+
+    public ServicioSimulacion(ServicioAuditoria? auditoria = null)
+    {
+        _auditoria = auditoria;
+    }
 
     public void SimularResultados(
         List<Partido> partidos,
-        ConfiguracionTorneo configuracionTorneo)
+        ConfiguracionTorneo configuracionTorneo,
+        Usuario? usuario = null)
     {
+        var partidosSimulados = 0;
+
         foreach (var partido in partidos)
         {
             if (partido.EstaJugado())
@@ -35,7 +44,32 @@ public class ServicioSimulacion
             {
                 DesempatarPartido(partido, random);
             }
+
+            partidosSimulados++;
         }
+
+        RegistrarAuditoriaSimulacion(partidos.Count, partidosSimulados, configuracionTorneo, usuario);
+    }
+
+    private void RegistrarAuditoriaSimulacion(
+        int partidosRecibidos,
+        int partidosSimulados,
+        ConfiguracionTorneo configuracionTorneo,
+        Usuario? usuario)
+    {
+        if (_auditoria == null || partidosRecibidos == 0)
+        {
+            return;
+        }
+
+        var usuarioAuditoria = usuario == null
+            ? "Sistema"
+            : $"{usuario.Nombre} {usuario.Apellido} ({usuario.Email})";
+
+        _auditoria.Registrar(
+            usuarioAuditoria,
+            "Simulacion",
+            $"Semilla simulacion: {configuracionTorneo.SemillaSimulation}. Partidos simulados: {partidosSimulados}/{partidosRecibidos}.");
     }
 
     private Random CrearRandomParaPartido(

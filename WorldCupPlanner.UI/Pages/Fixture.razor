@@ -844,7 +844,7 @@ else
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
             foreach (var partido in partidosSimulados.OrderBy(p => p.Fecha).ThenBy(p => p.Id))
             {
-                ServicioSimulacion.SimularResultados(new List<Partido> { partido }, config);
+                ServicioSimulacion.SimularResultados(new List<Partido> { partido }, config, SesionServicio.UsuarioActual);
                 ServicioPersistenciaFixture.GuardarPartidos(new[] { partido });
                 ServicioRankingDinamico.RecalcularRankings(SesionServicio.UsuarioActual);
                 SincronizarRankingsEnEstado();

@@ -177,7 +177,7 @@
 
     private void MarcarLeida(int id)
     {
-        ServicioNotificacion.MarcarComoLeida(id, SesionServicio.UsuarioActual!.Id);
+        ServicioNotificacion.MarcarComoLeida(id, SesionServicio.UsuarioActual!);
         _notificaciones = ServicioNotificacion.ObtenerNoLeidas(SesionServicio.UsuarioActual.Id);
     }
 }
