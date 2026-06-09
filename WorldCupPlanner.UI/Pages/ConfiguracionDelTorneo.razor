@@ -1,5 +1,6 @@
 @page "/configuracion"
 @inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
+@inject ServicioSimulacion ServicioSimulacion
 @inject SesionServicio SesionServicio
 @inject EstadoTorneo EstadoTorneo
 @inject ToastServicio Toast
@@ -177,6 +178,7 @@ else if (!SesionServicio.EsAdministrador)
                         <tr><td>Semilla gen. automática</td><td>@usada.SemillaCompletar</td></tr>
                         <tr><td>Semilla cruces</td><td>@usada.SemillaCrucesFase</td></tr>
                         <tr><td>Semilla simulación</td><td>@usada.SemillaSimulation</td></tr>
+                        <tr><td>Motor simulacion</td><td>@ServicioSimulacion.ObtenerNombreMotor(usada.MotorSimulacion)</td></tr>
                     </tbody>
                 </table>
             </div>

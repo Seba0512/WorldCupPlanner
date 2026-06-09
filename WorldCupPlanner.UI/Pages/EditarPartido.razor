@@ -145,7 +145,7 @@ else
                         @foreach (var inc in _incidencias)
                         {
                             <div class="d-flex align-items-center gap-2" style="padding: 6px 0; border-bottom: 1px solid var(--border-subtle);">
-                                <span class="badge @(inc is TarjetaRoja ? "badge-danger" : "badge-gold")" style="min-width:70px; text-align:center;">
+                                <span class="badge @(inc is TarjetaRoja ? "badge-red" : "badge-gold")" style="min-width:70px; text-align:center;">
                                     @(inc is TarjetaRoja ? "Roja" : "Amarilla")
                                 </span>
                                 <span style="flex:1; font-size:14px;">@inc.Equipo?.Nombre</span>

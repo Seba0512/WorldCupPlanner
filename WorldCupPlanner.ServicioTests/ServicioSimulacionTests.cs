@@ -29,6 +29,48 @@ public class ServicioSimulacionTests
     }
 
     [TestMethod]
+    public void SimularResultados_ConPartidoSinResultado_DebeGenerarTarjetasSimuladas()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var partido = CrearPartidosSinResultado(1)[0];
+        var configuracionTorneo = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 8
+        };
+
+        // Act
+        servicioSimulacion.SimularResultados(new List<Partido> { partido }, configuracionTorneo);
+
+        // Assert
+        Assert.IsTrue(partido.Incidencias.Any());
+        Assert.IsTrue(partido.Incidencias.All(i => i is TarjetaAmarilla || i is TarjetaRoja));
+        Assert.IsTrue(partido.Incidencias.All(i => i.PartidoId == partido.Id));
+        Assert.IsTrue(partido.Incidencias.All(i => i.MinutoDelPartido is >= 1 and <= 90));
+        Assert.IsTrue(partido.Incidencias.All(i =>
+            ReferenceEquals(i.Equipo, partido.EquipoLocal) ||
+            ReferenceEquals(i.Equipo, partido.EquipoVisitante)));
+    }
+
+    [TestMethod]
+    public void SimularResultados_ConPartidoYaJugado_NoDebeAgregarTarjetasSimuladas()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var partido = CrearPartidosSinResultado(1)[0];
+        partido.GolesLocal = 1;
+        partido.GolesVisitante = 0;
+
+        // Act
+        servicioSimulacion.SimularResultados(
+            new List<Partido> { partido },
+            new ConfiguracionTorneo { SemillaSimulation = 8 });
+
+        // Assert
+        Assert.IsFalse(partido.Incidencias.Any());
+    }
+
+    [TestMethod]
     public void SimularResultados_ConAuditoria_RegistraSemillaYCantidadDePartidos()
     {
         // Arrange
@@ -57,6 +99,22 @@ public class ServicioSimulacionTests
         StringAssert.Contains(log.Usuario, "admin@test.com");
         StringAssert.Contains(log.Detalle, "17");
         StringAssert.Contains(log.Detalle, "2/2");
+    }
+
+    [TestMethod]
+    public void ObtenerMotoresDisponibles_DebeIncluirHistoricoRankingYFormaYAleatorioPuro()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+
+        // Act
+        var motores = servicioSimulacion.ObtenerMotoresDisponibles();
+
+        // Assert
+        Assert.IsTrue(motores.Any(m => m.Tipo == MotorSimulacion.RankingActualYSemilla && m.Nombre == "Ranking actual + semilla"));
+        Assert.IsTrue(motores.Any(m => m.Tipo == MotorSimulacion.RankingYForma && m.Nombre == "Ranking + Forma"));
+        Assert.IsTrue(motores.Any(m => m.Tipo == MotorSimulacion.AleatorioPuro && m.Nombre == "Aleatorio Puro"));
+        Assert.AreEqual(3, motores.Count);
     }
 
     private List<Partido> CrearPartidosSinResultado(int cantidad)
@@ -113,6 +171,57 @@ public class ServicioSimulacionTests
                 Id = i,
                 EquipoLocal = CrearEquipo($"Local{i}", rankingLocal),
                 EquipoVisitante = CrearEquipo($"Visitante{i}", rankingVisitante),
+                Estadio = CrearEstadio(),
+                Fecha = DateTime.Now,
+                Fase = FaseTorneo.FaseDeGrupos
+            });
+        }
+
+        return partidos;
+    }
+
+    private List<Partido> CrearContextoDeForma(string nombreLocal, string nombreVisitante, bool localEnForma)
+    {
+        var local = CrearEquipo(nombreLocal, 1200);
+        var visitante = CrearEquipo(nombreVisitante, 1200);
+        var partidos = new List<Partido>();
+
+        for (var i = 1; i <= 3; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = 100 + i,
+                EquipoLocal = local,
+                EquipoVisitante = visitante,
+                Estadio = CrearEstadio(),
+                Fecha = DateTime.Now.AddDays(-i),
+                Fase = FaseTorneo.FaseDeGrupos,
+                GolesLocal = localEnForma ? 3 : 0,
+                GolesVisitante = localEnForma ? 0 : 3
+            });
+        }
+
+        return partidos;
+    }
+
+    private List<Partido> CrearPartidosMismosEquipos(
+        int cantidad,
+        string nombreLocal,
+        string nombreVisitante,
+        int rankingLocal,
+        int rankingVisitante)
+    {
+        var local = CrearEquipo(nombreLocal, rankingLocal);
+        var visitante = CrearEquipo(nombreVisitante, rankingVisitante);
+        var partidos = new List<Partido>();
+
+        for (var i = 1; i <= cantidad; i++)
+        {
+            partidos.Add(new Partido
+            {
+                Id = i,
+                EquipoLocal = local,
+                EquipoVisitante = visitante,
                 Estadio = CrearEstadio(),
                 Fecha = DateTime.Now,
                 Fase = FaseTorneo.FaseDeGrupos
@@ -304,6 +413,53 @@ public class ServicioSimulacionTests
         var golesLocalesDebiles = partidosConLocalDebil.Sum(p => p.GolesLocal!.Value);
 
         Assert.IsTrue(golesLocalesFuertes > golesLocalesDebiles);
+    }
+
+    [TestMethod]
+    public void SimularResultados_ConMotorAleatorioPuro_NoDebeUsarRanking()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var partidoLocalFuerte = CrearPartidosConRankingLocalYVisitante(1, 2500, 300)[0];
+        var partidoLocalDebil = CrearPartidosConRankingLocalYVisitante(1, 300, 2500)[0];
+        var configuracion = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 15,
+            MotorSimulacion = MotorSimulacion.AleatorioPuro
+        };
+
+        // Act
+        servicioSimulacion.SimularResultados(new List<Partido> { partidoLocalFuerte }, configuracion);
+        servicioSimulacion.SimularResultados(new List<Partido> { partidoLocalDebil }, configuracion);
+
+        // Assert
+        Assert.AreEqual(partidoLocalFuerte.GolesLocal, partidoLocalDebil.GolesLocal);
+        Assert.AreEqual(partidoLocalFuerte.GolesVisitante, partidoLocalDebil.GolesVisitante);
+    }
+
+    [TestMethod]
+    public void SimularResultados_ConMotorRankingYForma_DebeConsiderarRendimientoDelTorneo()
+    {
+        // Arrange
+        var servicioSimulacion = new ServicioSimulacion();
+        var partidosLocalEnForma = CrearPartidosMismosEquipos(30, "Local1", "Visitante1", 1200, 1200);
+        var partidosLocalSinForma = CrearPartidosMismosEquipos(30, "Local1", "Visitante1", 1200, 1200);
+        var contextoLocalEnForma = CrearContextoDeForma("Local1", "Visitante1", localEnForma: true);
+        var contextoLocalSinForma = CrearContextoDeForma("Local1", "Visitante1", localEnForma: false);
+        var configuracion = new ConfiguracionTorneo
+        {
+            SemillaSimulation = 3,
+            MotorSimulacion = MotorSimulacion.RankingYForma
+        };
+
+        // Act
+        servicioSimulacion.SimularResultados(partidosLocalEnForma, configuracion, contextoPartidos: contextoLocalEnForma);
+        servicioSimulacion.SimularResultados(partidosLocalSinForma, configuracion, contextoPartidos: contextoLocalSinForma);
+
+        // Assert
+        var golesLocalEnForma = partidosLocalEnForma.Sum(p => p.GolesLocal!.Value);
+        var golesLocalSinForma = partidosLocalSinForma.Sum(p => p.GolesLocal!.Value);
+        Assert.IsTrue(golesLocalEnForma > golesLocalSinForma);
     }
 
     [TestMethod]

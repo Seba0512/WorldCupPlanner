@@ -40,6 +40,7 @@ public class ServicioFixture
                     SemillaCompletar = configuracionTorneo.SemillaCompletar,
                     SemillaCrucesFase = configuracionTorneo.SemillaCrucesFase,
                     SemillaSimulation = configuracionTorneo.SemillaSimulation,
+                    MotorSimulacion = configuracionTorneo.MotorSimulacion,
                     FechaInicioTorneo = configuracionTorneo.FechaInicioTorneo,
                     MaxPartidosPorDia = configuracionTorneo.MaxPartidosPorDia,
                     SeparacionEntreFechas = configuracionTorneo.SeparacionEntreFechas,

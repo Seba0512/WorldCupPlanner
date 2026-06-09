@@ -51,7 +51,8 @@ public class ServicioConfiguracionTorneo
             "Modificación de configuración del torneo",
             $"SemillaFixture={nuevaConfiguracion.SemillaFixture}, SemillaCompletar={nuevaConfiguracion.SemillaCompletar}, " +
             $"SemillaCrucesFase={nuevaConfiguracion.SemillaCrucesFase}, SemillaSimulation={nuevaConfiguracion.SemillaSimulation}, " +
-            $"FechaInicio={nuevaConfiguracion.FechaInicioTorneo:yyyy-MM-dd}, MaxPartidosPorDia={nuevaConfiguracion.MaxPartidosPorDia}");
+            $"MotorSimulacion={nuevaConfiguracion.MotorSimulacion}, FechaInicio={nuevaConfiguracion.FechaInicioTorneo:yyyy-MM-dd}, " +
+            $"MaxPartidosPorDia={nuevaConfiguracion.MaxPartidosPorDia}");
     }
 
     public ConfiguracionTorneo ObtenerConfiguracionActual()
@@ -119,6 +120,7 @@ public class ServicioConfiguracionTorneo
             SemillaCompletar = configuracion.SemillaCompletar,
             SemillaCrucesFase = configuracion.SemillaCrucesFase,
             SemillaSimulation = configuracion.SemillaSimulation,
+            MotorSimulacion = configuracion.MotorSimulacion,
             FechaInicioTorneo = configuracion.FechaInicioTorneo,
             MaxPartidosPorDia = configuracion.MaxPartidosPorDia,
             SeparacionEntreFechas = configuracion.SeparacionEntreFechas,

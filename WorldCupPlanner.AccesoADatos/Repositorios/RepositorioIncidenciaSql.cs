@@ -17,7 +17,8 @@ public class RepositorioIncidenciaSql : IRepositorioIncidencia
     public void Agregar(Incidencia entidad)
     {
         if (entidad.Equipo != null)
-            _contexto.Entry(entidad.Equipo).State = EntityState.Unchanged;
+            entidad.Equipo = ResolverEquipoExistente(entidad.Equipo);
+
         _contexto.Incidencias.Add(entidad);
         _contexto.SaveChanges();
     }
@@ -66,5 +67,30 @@ public class RepositorioIncidenciaSql : IRepositorioIncidencia
         var local = _contexto.Incidencias.Local.FirstOrDefault(i => i.Id == id);
         if (local != null && !ReferenceEquals(local, entidad))
             _contexto.Entry(local).State = EntityState.Detached;
+    }
+
+    private Equipo ResolverEquipoExistente(Equipo equipo)
+    {
+        if (equipo.Id > 0)
+        {
+            var localPorId = _contexto.Equipos.Local.FirstOrDefault(e => e.Id == equipo.Id);
+            if (localPorId != null)
+                return localPorId;
+
+            var existentePorId = _contexto.Equipos.FirstOrDefault(e => e.Id == equipo.Id);
+            if (existentePorId != null)
+                return existentePorId;
+        }
+
+        var localPorNombre = _contexto.Equipos.Local.FirstOrDefault(e => e.Nombre == equipo.Nombre);
+        if (localPorNombre != null)
+            return localPorNombre;
+
+        var existentePorNombre = _contexto.Equipos.FirstOrDefault(e => e.Nombre == equipo.Nombre);
+        if (existentePorNombre != null)
+            return existentePorNombre;
+
+        _contexto.Entry(equipo).State = EntityState.Unchanged;
+        return equipo;
     }
 }

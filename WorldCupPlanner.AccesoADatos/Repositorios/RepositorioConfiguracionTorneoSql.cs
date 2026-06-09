@@ -50,6 +50,7 @@ public class RepositorioConfiguracionTorneoSql : IRepositorioConfiguracionTorneo
             SemillaCompletar = configuracion.SemillaCompletar,
             SemillaCrucesFase = configuracion.SemillaCrucesFase,
             SemillaSimulation = configuracion.SemillaSimulation,
+            MotorSimulacion = configuracion.MotorSimulacion,
             FechaInicioTorneo = configuracion.FechaInicioTorneo,
             MaxPartidosPorDia = configuracion.MaxPartidosPorDia,
             SeparacionEntreFechas = configuracion.SeparacionEntreFechas,

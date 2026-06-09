@@ -84,6 +84,9 @@ namespace WorldCupPlanner.AccesoADatos.Migraciones
                     b.Property<int>("MaxPartidosPorDia")
                         .HasColumnType("int");
 
+                    b.Property<int>("MotorSimulacion")
+                        .HasColumnType("int");
+
                     b.Property<int>("SemillaCompletar")
                         .HasColumnType("int");
 

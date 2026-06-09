@@ -9,6 +9,7 @@
 @inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
 @inject ServicioPersistenciaFixture ServicioPersistenciaFixture
 @inject ServicioNotificacion ServicioNotificacion
+@inject ServicioIncidencia ServicioIncidencia
 @inject ServicioUsuario ServicioUsuario
 @inject ServicioRankingDinamico ServicioRankingDinamico
 @inject SesionServicio SesionServicio
@@ -110,6 +111,17 @@
                         Inicio: <strong>@configActual.FechaInicioTorneo.ToString("yyyy-MM-dd")</strong> —
                         Máx. @configActual.MaxPartidosPorDia partidos/día
                     </div>
+                    <div style="margin-top:12px;">
+                        <label class="form-label">Motor de simulacion</label>
+                        <select class="form-select"
+                                @bind="_motorSimulacionSeleccionado"
+                                disabled="@(!SesionServicio.PuedeEditarPartidos)">
+                            @foreach (var motor in ServicioSimulacion.ObtenerMotoresDisponibles())
+                            {
+                                <option value="@motor.Tipo">@motor.Nombre</option>
+                            }
+                        </select>
+                    </div>
                 </div>
                 @if (SesionServicio.PuedeEditarPartidos)
                 {
@@ -191,6 +203,7 @@ else
                 <tr><td>Semilla completar</td><td>@ConfiguracionUsadaParaFixture.SemillaCompletar</td></tr>
                 <tr><td>Semilla cruces</td><td>@ConfiguracionUsadaParaFixture.SemillaCrucesFase</td></tr>
                 <tr><td>Semilla simulacion</td><td>@ConfiguracionUsadaParaFixture.SemillaSimulation</td></tr>
+                <tr><td>Motor simulacion</td><td>@ServicioSimulacion.ObtenerNombreMotor(ConfiguracionUsadaParaFixture.MotorSimulacion)</td></tr>
                 <tr><td>Max partidos por dia</td><td>@ConfiguracionUsadaParaFixture.MaxPartidosPorDia</td></tr>
                 <tr><td>Separacion entre fechas (dias)</td><td>@ConfiguracionUsadaParaFixture.SeparacionEntreFechas</td></tr>
             </tbody>
@@ -642,6 +655,7 @@ else
     private FaseTorneo _etapaActiva = FaseTorneo.FaseDeGrupos;
     private int _jornadaActiva = JornadaUno;
     private bool _generando = false;
+    private MotorSimulacion _motorSimulacionSeleccionado = MotorSimulacion.RankingActualYSemilla;
 
     protected override void OnInitialized()
     {
@@ -652,6 +666,7 @@ else
         }
 
         SincronizarJornadaActivaConPendiente();
+        _motorSimulacionSeleccionado = ServicioConfiguracionTorneo.ObtenerConfiguracionActual().MotorSimulacion;
     }
 
     private record EtapaTorneo(FaseTorneo Fase, string Etiqueta);
@@ -757,6 +772,7 @@ else
             var equipos = ServicioEquipo.Buscar(_ => true);
             var estadios = ServicioEstadio.ObtenerEstadios();
             var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
+            config.MotorSimulacion = _motorSimulacionSeleccionado;
 
             var esFixtureNuevo = EstadoTorneo.Fixture == null;
             WorldCupPlanner.Dominio.Entidades.Fixture fixtureGenerado;
@@ -841,11 +857,16 @@ else
 
         try
         {
-            var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
+            var config = ServicioConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
             foreach (var partido in partidosSimulados.OrderBy(p => p.Fecha).ThenBy(p => p.Id))
             {
-                ServicioSimulacion.SimularResultados(new List<Partido> { partido }, config, SesionServicio.UsuarioActual);
+                ServicioSimulacion.SimularResultados(
+                    new List<Partido> { partido },
+                    config,
+                    SesionServicio.UsuarioActual,
+                    ObtenerTodosLosPartidosDelTorneo());
                 ServicioPersistenciaFixture.GuardarPartidos(new[] { partido });
+                PersistirIncidenciasSimuladas(partido);
                 ServicioRankingDinamico.RecalcularRankings(SesionServicio.UsuarioActual);
                 SincronizarRankingsEnEstado();
             }
@@ -859,6 +880,43 @@ else
         {
             _error = ex.Message;
         }
+    }
+
+    private void PersistirIncidenciasSimuladas(Partido partido)
+    {
+        var nuevas = partido.Incidencias
+            .Where(i => i.Id == 0 && i.PartidoId == partido.Id)
+            .ToList();
+
+        if (!nuevas.Any() || ServicioIncidencia.ObtenerIncidencias(partido.Id).Any())
+            return;
+
+        foreach (var incidencia in nuevas)
+        {
+            if (incidencia.Equipo == null)
+                continue;
+
+            var tipo = incidencia is TarjetaRoja ? TipoTarjeta.Roja : TipoTarjeta.Amarilla;
+            ServicioIncidencia.AgregarTarjeta(
+                partido.Id,
+                tipo,
+                incidencia.MinutoDelPartido,
+                incidencia.Equipo);
+        }
+    }
+
+    private List<Partido> ObtenerTodosLosPartidosDelTorneo()
+    {
+        var partidos = new List<Partido>();
+
+        if (EstadoTorneo.Fixture != null)
+        {
+            partidos.AddRange(EstadoTorneo.Fixture.Partidos);
+        }
+
+        partidos.AddRange(EstadoTorneo.PartidosEliminatorios);
+
+        return partidos;
     }
 
     private bool PuedeModificarTorneo()

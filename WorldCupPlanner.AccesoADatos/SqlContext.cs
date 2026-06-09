@@ -174,6 +174,7 @@ namespace WorldCupPlanner.AccesoADatos
                 entity.Property(c => c.SemillaCompletar).IsRequired();
                 entity.Property(c => c.SemillaCrucesFase).IsRequired();
                 entity.Property(c => c.SemillaSimulation).IsRequired();
+                entity.Property(c => c.MotorSimulacion).IsRequired();
                 entity.Property(c => c.FechaInicioTorneo).IsRequired();
                 entity.Property(c => c.MaxPartidosPorDia).IsRequired();
                 entity.Property(c => c.SeparacionEntreFechas).IsRequired();

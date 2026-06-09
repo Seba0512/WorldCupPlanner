@@ -16,6 +16,8 @@ public class ConfiguracionTorneo
     public int SemillaCompletar { get; set; }
     public int SemillaCrucesFase { get; set; }
     public int SemillaSimulation { get; set; }
+    public WorldCupPlanner.Dominio.Enumeraciones.MotorSimulacion MotorSimulacion { get; set; } =
+        WorldCupPlanner.Dominio.Enumeraciones.MotorSimulacion.RankingActualYSemilla;
 
     public DateTime FechaInicioTorneo { get; set; } =
         new DateTime(AnioInicioPorDefecto, MesInicioPorDefecto, DiaInicioPorDefecto);
