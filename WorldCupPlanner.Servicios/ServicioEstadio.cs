@@ -7,13 +7,19 @@ namespace WorldCupPlanner.Servicios;
 public class ServicioEstadio
 {
     private readonly IRepositorio<Estadio> _repositorioEstadio;
+    private readonly IRepositorio<Partido>? _repositorioPartido;
     private readonly ServicioAuditoria? _auditoria;
     private readonly ServicioAutorizacion _autorizacion;
     private Fixture? _fixtureGenerado;
 
-    public ServicioEstadio(IRepositorio<Estadio> repositorioEstadio, ServicioAuditoria? auditoria = null, ServicioAutorizacion? autorizacion = null)
+    public ServicioEstadio(
+        IRepositorio<Estadio> repositorioEstadio,
+        ServicioAuditoria? auditoria = null,
+        ServicioAutorizacion? autorizacion = null,
+        IRepositorio<Partido>? repositorioPartido = null)
     {
         _repositorioEstadio = repositorioEstadio;
+        _repositorioPartido = repositorioPartido;
         _auditoria = auditoria;
         _autorizacion = autorizacion ?? new ServicioAutorizacion();
     }
@@ -123,12 +129,27 @@ public class ServicioEstadio
 
     private bool EstadioEstaEnFixture(Estadio estadio)
     {
+        if (EstadioEstaEnPartidosPersistidos(estadio))
+        {
+            return true;
+        }
+
+        if (_repositorioPartido != null)
+        {
+            return false;
+        }
+
         if (_fixtureGenerado == null)
         {
             return false;
         }
 
         return _fixtureGenerado.Partidos.Any(p => EsMismoEstadio(p.Estadio, estadio));
+    }
+
+    private bool EstadioEstaEnPartidosPersistidos(Estadio estadio)
+    {
+        return _repositorioPartido?.Buscar(p => EsMismoEstadio(p.Estadio, estadio)).Count > 0;
     }
 
     private static bool EsMismoEstadio(Estadio? estadioEnFixture, Estadio estadio)

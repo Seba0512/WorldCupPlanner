@@ -192,6 +192,25 @@ public class ServicioPartidoTests
     }
 
     [TestMethod]
+    public void ServicioPartido_DespuesDeReiniciar_DebeMantenerFaseGruposBloqueadaSiExistenEliminatorias()
+    {
+        // Arrange
+        var repositorio = new RepositorioPartidoStub();
+        var partidoGrupo = CrearPartido(FaseTorneo.FaseDeGrupos);
+        var partidoEliminatorio = CrearPartido(FaseTorneo.PrimeraRondaEliminatoria);
+        partidoEliminatorio.Id = 2;
+        repositorio.Agregar(partidoGrupo);
+        repositorio.Agregar(partidoEliminatorio);
+
+        var servicioRecreado = new ServicioPartido(repositorio);
+
+        // Act & Assert
+        Assert.IsTrue(servicioRecreado.EsFaseBloqueada(FaseTorneo.FaseDeGrupos));
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioRecreado.CargarResultado(partidoGrupo.Id, 1, 0));
+    }
+
+    [TestMethod]
     public void EsFaseBloqueada_SinFasesBloqueadas_RetornaFalso()
     {
         // Arrange

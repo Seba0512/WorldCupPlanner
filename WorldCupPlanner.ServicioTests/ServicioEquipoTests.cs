@@ -242,6 +242,32 @@ public class ServicioEquipoTests
     }
 
     [TestMethod]
+    public void ServicioEquipo_DespuesDeReiniciar_NoDebePermitirEliminarEquipoConPartidosPersistidos()
+    {
+        // Arrange
+        var repositorioEquipo = new RepositorioEquipoStub();
+        var repositorioPartido = new RepositorioPartidoEquipoStub();
+        var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
+        repositorioEquipo.Agregar(equipo);
+        repositorioPartido.Agregar(new Partido
+        {
+            Id = 1,
+            Fecha = new DateTime(2026, 6, 1),
+            EquipoLocal = equipo,
+            EquipoVisitante = CrearEquipo("Francia", Confederacion.UEFA),
+            Fase = FaseTorneo.FaseDeGrupos
+        });
+
+        var servicioRecreado = new ServicioEquipo(
+            repositorioEquipo,
+            repositorioPartido: repositorioPartido);
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioRecreado.Eliminar(equipo));
+    }
+
+    [TestMethod]
     public void Eliminar_DespuesDeLimpiarFixtureGenerado_SeEliminaCorrectamente()
     {
         // Arrange
@@ -986,4 +1012,24 @@ file sealed class RepositorioEquipoStub : IRepositorio<Equipo>
 
     public List<Equipo> Buscar(Func<Equipo, bool> predicado)
         => _equipos.Where(predicado).ToList();
+}
+
+file sealed class RepositorioPartidoEquipoStub : IRepositorio<Partido>
+{
+    private readonly List<Partido> _partidos = new();
+
+    public void Agregar(Partido partido) => _partidos.Add(partido);
+
+    public void Actualizar(Partido partido)
+    {
+        var indice = _partidos.FindIndex(p => ReferenceEquals(p, partido));
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("El partido no existe.");
+        _partidos[indice] = partido;
+    }
+
+    public void Eliminar(Partido partido) => _partidos.Remove(partido);
+
+    public List<Partido> Buscar(Func<Partido, bool> predicado)
+        => _partidos.Where(predicado).ToList();
 }

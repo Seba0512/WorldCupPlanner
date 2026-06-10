@@ -122,8 +122,8 @@ public class ServicioPartido
 
     public bool EsFaseBloqueada(FaseTorneo fase)
     {
-        return _fasesBloqueadas.Contains(fase) ||
-               (fase == FaseTorneo.FaseDeGrupos && _estadoTorneo?.PartidosEliminatorios.Any() == true);
+        return HayFasePosteriorGenerada(fase, ObtenerPartidos()) ||
+               _fasesBloqueadas.Contains(fase);
     }
 
     public Partido? BuscarPartidoPorId(int idPartido)
@@ -196,6 +196,23 @@ public class ServicioPartido
             FaseTorneo.TercerPuesto => FaseTorneo.Semifinal,
             FaseTorneo.Final => FaseTorneo.Semifinal,
             _ => throw new EntidadInvalidaExcepcion("La fase generada no tiene una fase anterior para bloquear.")
+        };
+    }
+
+    private static bool HayFasePosteriorGenerada(FaseTorneo fase, IEnumerable<Partido> partidos)
+    {
+        return fase switch
+        {
+            FaseTorneo.FaseDeGrupos => partidos.Any(p => p.Fase != FaseTorneo.FaseDeGrupos),
+            FaseTorneo.PrimeraRondaEliminatoria => partidos.Any(p =>
+                p.Fase is FaseTorneo.Octavos or FaseTorneo.Cuartos or FaseTorneo.Semifinal or FaseTorneo.TercerPuesto or FaseTorneo.Final),
+            FaseTorneo.Octavos => partidos.Any(p =>
+                p.Fase is FaseTorneo.Cuartos or FaseTorneo.Semifinal or FaseTorneo.TercerPuesto or FaseTorneo.Final),
+            FaseTorneo.Cuartos => partidos.Any(p =>
+                p.Fase is FaseTorneo.Semifinal or FaseTorneo.TercerPuesto or FaseTorneo.Final),
+            FaseTorneo.Semifinal => partidos.Any(p =>
+                p.Fase is FaseTorneo.TercerPuesto or FaseTorneo.Final),
+            _ => false
         };
     }
 }

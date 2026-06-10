@@ -8,6 +8,8 @@ namespace WorldCupPlanner.Servicios
     public class ServicioEquipo
     {
         private readonly IRepositorio<Equipo> _repositorio;
+        private readonly IRepositorio<Partido>? _repositorioPartido;
+        private readonly IRepositorio<Grupo>? _repositorioGrupo;
         private readonly ServicioAuditoria? _auditoria;
         private readonly ServicioAutorizacion _autorizacion;
         private Fixture? _fixtureGenerado;
@@ -15,9 +17,16 @@ namespace WorldCupPlanner.Servicios
         private static IReadOnlyDictionary<Confederacion, int> CuposPorConfederacion =>
             ReglasConfederacion.CuposPorConfederacion;
 
-        public ServicioEquipo(IRepositorio<Equipo> repositorio, ServicioAuditoria? auditoria = null, ServicioAutorizacion? autorizacion = null)
+        public ServicioEquipo(
+            IRepositorio<Equipo> repositorio,
+            ServicioAuditoria? auditoria = null,
+            ServicioAutorizacion? autorizacion = null,
+            IRepositorio<Partido>? repositorioPartido = null,
+            IRepositorio<Grupo>? repositorioGrupo = null)
         {
             _repositorio = repositorio;
+            _repositorioPartido = repositorioPartido;
+            _repositorioGrupo = repositorioGrupo;
             _auditoria = auditoria;
             _autorizacion = autorizacion ?? new ServicioAutorizacion();
         }
@@ -173,7 +182,7 @@ namespace WorldCupPlanner.Servicios
         {
             if (solicitante != null)
                 _autorizacion.VerificarEsAdministrador(solicitante);
-            ValidarEliminacionPermitida();
+            ValidarEliminacionPermitida(equipo);
 
             _repositorio.Eliminar(equipo);
             _auditoria?.Registrar(
@@ -182,7 +191,7 @@ namespace WorldCupPlanner.Servicios
                 $"Equipo: {equipo.Nombre}, Confederacion: {equipo.Confederacion}");
         }
 
-        public bool FixtureYaFueGenerado => _fixtureGenerado != null;
+        public bool FixtureYaFueGenerado => FixturePersistidoExiste() || _fixtureGenerado != null;
 
         public void RegistrarFixtureGenerado(Fixture fixture)
         {
@@ -264,8 +273,17 @@ namespace WorldCupPlanner.Servicios
                     $"La confederación {equipo.Confederacion!.Value} ya alcanzó su cupo máximo de {cupo} equipos.");
         }
 
-        private void ValidarEliminacionPermitida()
+        private void ValidarEliminacionPermitida(Equipo equipo)
         {
+            if (EquipoParticipaEnFixturePersistido(equipo.Nombre))
+            {
+                throw new EntidadInvalidaExcepcion(
+                    "No se pueden eliminar equipos porque el fixture ya fue generado.");
+            }
+
+            if (HayRepositoriosDeFixturePersistido())
+                return;
+
             if (_fixtureGenerado != null)
                 throw new EntidadInvalidaExcepcion(
                     "No se pueden eliminar equipos porque el fixture ya fue generado.");
@@ -273,9 +291,31 @@ namespace WorldCupPlanner.Servicios
 
         private void ValidarEdicionPermitida(string nombreOriginal)
         {
-            if (_fixtureGenerado != null && EquipoParticipaEnFixture(nombreOriginal))
+            if (EquipoParticipaEnFixturePersistido(nombreOriginal) ||
+                (_fixtureGenerado != null && EquipoParticipaEnFixture(nombreOriginal)))
                 throw new EntidadInvalidaExcepcion(
                     "No se pueden editar equipos que participan en un fixture generado.");
+        }
+
+        private bool FixturePersistidoExiste()
+        {
+            return _repositorioGrupo?.Buscar(_ => true).Count > 0 ||
+                   _repositorioPartido?.Buscar(_ => true).Count > 0;
+        }
+
+        private bool EquipoParticipaEnFixturePersistido(string nombreEquipo)
+        {
+            return _repositorioGrupo?.Buscar(g =>
+                       g.Equipos.Any(e => EsMismoEquipo(e, nombreEquipo))).Count > 0 ||
+                   _repositorioPartido?.Buscar(p =>
+                       EsMismoEquipo(p.EquipoLocal, nombreEquipo) ||
+                       EsMismoEquipo(p.EquipoVisitante, nombreEquipo) ||
+                       EsMismoEquipo(p.GanadorPorPenales, nombreEquipo)).Count > 0;
+        }
+
+        private bool HayRepositoriosDeFixturePersistido()
+        {
+            return _repositorioGrupo != null || _repositorioPartido != null;
         }
 
         private bool EquipoParticipaEnFixture(string nombreEquipo)

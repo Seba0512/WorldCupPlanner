@@ -19,11 +19,17 @@ builder.Services.AddScoped<IRepositorio<Estadio>, RepositorioEstadioSql>();
 builder.Services.AddScoped<IRepositorio<Grupo>, RepositorioGrupoSql>();
 builder.Services.AddScoped<IRepositorio<Partido>, RepositorioPartidoSql>();
 builder.Services.AddScoped<ServicioAuditoria>();
-builder.Services.AddScoped<ServicioEstadio>();
+builder.Services.AddScoped<ServicioEstadio>(sp =>
+    new ServicioEstadio(
+        sp.GetRequiredService<IRepositorio<Estadio>>(),
+        sp.GetRequiredService<ServicioAuditoria>(),
+        repositorioPartido: sp.GetRequiredService<IRepositorio<Partido>>()));
 builder.Services.AddScoped<ServicioEquipo>(sp =>
     new ServicioEquipo(
         sp.GetRequiredService<IRepositorio<Equipo>>(),
-        sp.GetRequiredService<ServicioAuditoria>()));
+        sp.GetRequiredService<ServicioAuditoria>(),
+        repositorioPartido: sp.GetRequiredService<IRepositorio<Partido>>(),
+        repositorioGrupo: sp.GetRequiredService<IRepositorio<Grupo>>()));
 builder.Services.AddSingleton<ServicioFixture>();
 builder.Services.AddSingleton<ServicioClasificacion>();
 builder.Services.AddSingleton<ServicioCruces>();

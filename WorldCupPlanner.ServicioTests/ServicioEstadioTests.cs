@@ -90,6 +90,33 @@ public class ServicioEstadioTests
     }
 
     [TestMethod]
+    public void ServicioEstadio_DespuesDeReiniciar_NoDebePermitirEliminarEstadioAsignadoAPartidosPersistidos()
+    {
+        // Arrange
+        var repositorioEstadio = new RepositorioEstadioStub();
+        var repositorioPartido = new RepositorioPartidoEstadioStub();
+        var estadio = CrearEstadio();
+        repositorioEstadio.Agregar(estadio);
+        repositorioPartido.Agregar(new Partido
+        {
+            Id = 1,
+            Fecha = new DateTime(2026, 6, 1),
+            Estadio = estadio,
+            EquipoLocal = new Equipo { Nombre = "Uruguay", RankingFIFA = 1000, Confederacion = Confederacion.CONMEBOL },
+            EquipoVisitante = new Equipo { Nombre = "Francia", RankingFIFA = 1000, Confederacion = Confederacion.UEFA },
+            Fase = FaseTorneo.FaseDeGrupos
+        });
+
+        var servicioRecreado = new ServicioEstadio(
+            repositorioEstadio,
+            repositorioPartido: repositorioPartido);
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioRecreado.EliminarEstadio(estadio));
+    }
+
+    [TestMethod]
     public void EliminarEstadio_DespuesDeLimpiarFixtureGenerado_SeEliminaCorrectamente()
     {
         var estadio = CrearEstadio();
@@ -637,4 +664,24 @@ file sealed class RepositorioEstadioStub : IRepositorio<Estadio>
 
     public List<Estadio> Buscar(Func<Estadio, bool> predicado)
         => _estadios.Where(predicado).ToList();
+}
+
+file sealed class RepositorioPartidoEstadioStub : IRepositorio<Partido>
+{
+    private readonly List<Partido> _partidos = new();
+
+    public void Agregar(Partido partido) => _partidos.Add(partido);
+
+    public void Actualizar(Partido partido)
+    {
+        var indice = _partidos.FindIndex(p => ReferenceEquals(p, partido));
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("El partido no existe.");
+        _partidos[indice] = partido;
+    }
+
+    public void Eliminar(Partido partido) => _partidos.Remove(partido);
+
+    public List<Partido> Buscar(Func<Partido, bool> predicado)
+        => _partidos.Where(predicado).ToList();
 }
