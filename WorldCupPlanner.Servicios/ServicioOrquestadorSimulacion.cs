@@ -39,6 +39,9 @@ public class ServicioOrquestadorSimulacion
             .ThenBy(p => p.Id)
             .ToList();
 
+        if (!pendientes.Any())
+            throw new InvalidOperationException("No hay partidos pendientes para simular en la fase actual.");
+
         foreach (var partido in pendientes)
         {
             _simulacion.SimularResultados(

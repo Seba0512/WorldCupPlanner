@@ -201,6 +201,14 @@ public class ServicioClasificacion
             .ThenByDescending(p => p.DiferenciaGoles)
             .ThenByDescending(p => p.GolesAFavor));
 
-        return AplicarDesempateDeterministico(posicionesOrdenadas, semillaCrucesFase);
+        var resultado = AplicarDesempateDeterministico(posicionesOrdenadas, semillaCrucesFase);
+
+        for (int i = 0; i < resultado.Count; i++)
+            resultado[i].Posicion = i + 1;
+
+        return resultado;
     }
+
+    public Equipo? ObtenerCampeon(Partido? partidoFinal) =>
+        partidoFinal?.EstaJugado() == true ? partidoFinal.Ganador() : null;
 }

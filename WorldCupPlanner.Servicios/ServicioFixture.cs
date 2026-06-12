@@ -443,6 +443,10 @@ public class ServicioFixture
 
     private const int NumeroJornadaInicial = 1;
 
+    public const int PrimeraJornada = NumeroJornadaInicial;
+    public const int SegundaJornada = NumeroJornadaInicial + 1;
+    public const int TerceraJornada = NumeroJornadaInicial + 2;
+
     public List<Partido> ObtenerPartidosPendientesDeJornada(Fixture? fixture, int jornada)
     {
         if (fixture == null)
@@ -615,6 +619,17 @@ public class ServicioFixture
 
         return null;
     }
+
+    public int? ObtenerJornadaActivaParaFase(FaseTorneo fase, Fixture? fixture)
+    {
+        if (fase != FaseTorneo.FaseDeGrupos) return null;
+        return ObtenerJornadaPendienteActual(fixture);
+    }
+
+    public string ObtenerMensajeExitoSimulacion(FaseTorneo fase) =>
+        fase == FaseTorneo.FaseDeGrupos
+            ? "Jornada simulada correctamente."
+            : "Fecha simulada correctamente.";
 
     public bool EsJornadaSeleccionable(int jornada, Fixture? fixture)
     {

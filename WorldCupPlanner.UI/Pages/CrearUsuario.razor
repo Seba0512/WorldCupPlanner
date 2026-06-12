@@ -114,10 +114,7 @@
         _emailConError = false;
         try
         {
-            var roles = new List<RolUsuario>();
-            if (_esAdmin)      roles.Add(RolUsuario.AdministradorDelSistema);
-            if (_esEditor)     roles.Add(RolUsuario.Editor);
-            if (_esPeriodista) roles.Add(RolUsuario.Periodista);
+            var roles = UsuarioFormHelper.ConstruirRoles(_esAdmin, _esEditor, _esPeriodista);
 
             ServicioUsuario.CrearUsuario(new NuevoUsuarioDto
             {

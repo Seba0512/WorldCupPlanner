@@ -168,21 +168,13 @@
         _equiposFaltantes = ServicioEquipo.ObtenerCantidadFaltante(_equipos.Count);
         _cuposPorConfederacion = ServicioEquipo.ObtenerCuposConOcupacion(_equipos);
 
-        if (EstadoTorneo.Fixture != null)
+        var fase = EstadoTorneo.ObtenerFaseConfiguracion(_equipos.Count);
+        (_estadoTexto, _estadoBadgeClase) = fase switch
         {
-            _estadoTexto = "Fixture generado";
-            _estadoBadgeClase = "badge-success";
-        }
-        else if (_equipos.Count >= 48)
-        {
-            _estadoTexto = "Listo para generar fixture";
-            _estadoBadgeClase = "badge-warning";
-        }
-        else
-        {
-            _estadoTexto = "Incompleto";
-            _estadoBadgeClase = "badge-muted";
-        }
+            FaseConfiguracionTorneo.FixtureGenerado    => ("Fixture generado",           "badge-success"),
+            FaseConfiguracionTorneo.ListoParaFixture   => ("Listo para generar fixture", "badge-warning"),
+            _                                          => ("Incompleto",                 "badge-muted"),
+        };
     }
 
     private void SeleccionarArchivo(InputFileChangeEventArgs e)

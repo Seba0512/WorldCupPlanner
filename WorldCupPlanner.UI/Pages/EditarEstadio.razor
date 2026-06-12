@@ -66,9 +66,9 @@
     protected override void OnInitialized()
     {
         if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
-        var original = ServicioEstadio.ObtenerEstadios().First(e => e.Nombre == Nombre);
-        _estadio = new Estadio { Id = original.Id, Nombre = original.Nombre, Ciudad = original.Ciudad, Capacidad = original.Capacidad, Descripcion = original.Descripcion };
-        _capacidad = original.Capacidad;
+        var original = ServicioEstadio.ObtenerPorNombre(Nombre);
+        _estadio = ServicioEstadio.ClonarParaEdicion(Nombre);
+        _capacidad = _estadio.Capacidad;
         _edicionBloqueada = EstadoTorneo.EstadioParticipaEnFixture(original);
     }
 

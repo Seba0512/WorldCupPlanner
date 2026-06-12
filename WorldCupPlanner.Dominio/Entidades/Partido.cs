@@ -36,6 +36,9 @@ namespace WorldCupPlanner.Dominio.Entidades
 
         public Equipo? GanadorPorPenales { get; set; }
 
+        public bool EsGanador(Equipo? equipo) =>
+            equipo != null && EstaJugado() && Ganador()?.Id == equipo.Id;
+
         public bool EsEmpate()
         {
             return EstaJugado() && GolesLocal == GolesVisitante;

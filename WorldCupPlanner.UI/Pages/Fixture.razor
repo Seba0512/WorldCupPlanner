@@ -48,16 +48,16 @@
                             style="width:auto"
                             @bind="_jornadaActiva"
                             disabled="@(!EsEtapaActivaSimulable)">
-                        <option value="@JornadaUno" disabled="@(!ServicioFixture.EsJornadaSeleccionable(JornadaUno, EstadoTorneo.Fixture))">Jornada 1</option>
-                        <option value="@JornadaDos" disabled="@(!ServicioFixture.EsJornadaSeleccionable(JornadaDos, EstadoTorneo.Fixture))">Jornada 2</option>
-                        <option value="@JornadaTres" disabled="@(!ServicioFixture.EsJornadaSeleccionable(JornadaTres, EstadoTorneo.Fixture))">Jornada 3</option>
+                        <option value="@ServicioFixture.PrimeraJornada" disabled="@(!ServicioFixture.EsJornadaSeleccionable(ServicioFixture.PrimeraJornada, EstadoTorneo.Fixture))">Jornada 1</option>
+                        <option value="@ServicioFixture.SegundaJornada" disabled="@(!ServicioFixture.EsJornadaSeleccionable(ServicioFixture.SegundaJornada, EstadoTorneo.Fixture))">Jornada 2</option>
+                        <option value="@ServicioFixture.TerceraJornada" disabled="@(!ServicioFixture.EsJornadaSeleccionable(ServicioFixture.TerceraJornada, EstadoTorneo.Fixture))">Jornada 3</option>
                     </select>
                 }
                 <button class="btn btn-warning"
                         disabled="@(!PuedeSimularJornadaOFecha())"
                         @onclick="SimularJornadaOFecha">
                     <span class="oi oi-clock" aria-hidden="true"></span>
-                    @(_etapaActiva == FaseTorneo.FaseDeGrupos ? "Simular jornada" : "Simular fecha")
+                    Simular @(_etapaActiva == FaseTorneo.FaseDeGrupos ? "jornada" : "fecha")
                 </button>
                 <button class="btn btn-warning"
                         disabled="@(!PuedeSimularFaseActiva())"
@@ -277,11 +277,11 @@ else
                                 <tr style="@ObtenerEstiloFilaPosicion(numeroPosicion)">
                                     <td>
                                         <span style="font-weight:700;">@numeroPosicion</span>
-                                        @if (numeroPosicion <= 2)
+                                        @if (posicion.Clasifica)
                                         {
                                             <span class="badge badge-green" style="margin-left:6px;">Clasifica</span>
                                         }
-                                        else if (numeroPosicion == 3)
+                                        else if (posicion.EsTercero)
                                         {
                                             <span class="badge badge-muted" style="margin-left:6px;">3°</span>
                                         }
@@ -647,15 +647,10 @@ else
 }
 
 @code {
-    private const int JornadaUno = 1;
-    private const int JornadaDos = 2;
-    private const int JornadaTres = 3;
-    private const int CantidadPartidosPorJornadaGrupo = 2;
-
     private string _error = string.Empty;
     private string _grupoActivo = "A";
     private FaseTorneo _etapaActiva = FaseTorneo.FaseDeGrupos;
-    private int _jornadaActiva = JornadaUno;
+    private int _jornadaActiva = ServicioFixture.PrimeraJornada;
     private bool _generando = false;
     private MotorSimulacion _motorSimulacionSeleccionado = MotorSimulacion.RankingActualYSemilla;
 
@@ -671,17 +666,8 @@ else
         _motorSimulacionSeleccionado = ServicioConfiguracionTorneo.ObtenerConfiguracionActual().MotorSimulacion;
     }
 
-    private record EtapaTorneo(FaseTorneo Fase, string Etiqueta);
-
-    private static readonly List<EtapaTorneo> EtapasDisponibles = new()
-    {
-        new(FaseTorneo.FaseDeGrupos,              "Fase de grupos"),
-        new(FaseTorneo.PrimeraRondaEliminatoria,  "16avos"),
-        new(FaseTorneo.Octavos,                   "8avos"),
-        new(FaseTorneo.Cuartos,                   "4tos"),
-        new(FaseTorneo.Semifinal,                 "Semifinal"),
-        new(FaseTorneo.Final,                     "Final"),
-    };
+    private static readonly List<EtapasTorneoHelper.EtapaTorneo> EtapasDisponibles =
+        EtapasTorneoHelper.EtapasDisponibles;
 
     private Grupo? GrupoSeleccionado =>
         EstadoTorneo.Fixture?.Grupos.FirstOrDefault(g => g.Etiqueta == _grupoActivo);
@@ -718,7 +704,7 @@ else
             return;
 
         _etapaActiva = FaseTorneo.FaseDeGrupos;
-        _jornadaActiva = JornadaUno;
+        _jornadaActiva = ServicioFixture.PrimeraJornada;
         EstadoTorneo.ArchivarTorneoActual();
         ServicioPersistenciaFixture.ArchivarTorneoActual();
         ServicioEquipo.LimpiarFixtureGenerado();
@@ -792,12 +778,9 @@ else
         if (!PuedeModificarTorneo())
             return;
 
-        var partidos = ObtenerPartidosJornadaOFechaActual();
-        var mensaje = _etapaActiva == FaseTorneo.FaseDeGrupos
-            ? "Jornada simulada correctamente."
-            : "Fecha simulada correctamente.";
-
-        SimularPartidos(partidos, mensaje);
+        SimularPartidos(
+            ObtenerPartidosJornadaOFechaActual(),
+            ServicioFixture.ObtenerMensajeExitoSimulacion(_etapaActiva));
     }
 
     private void SimularFaseActiva()
@@ -815,12 +798,6 @@ else
         _error = string.Empty;
         if (!PuedeModificarTorneo())
             return;
-
-        if (!partidos.Any(p => !p.EstaJugado()))
-        {
-            _error = "No hay partidos pendientes para simular en la fase actual.";
-            return;
-        }
 
         try
         {
@@ -870,22 +847,11 @@ else
     private Partido? ObtenerProximoPartidoSimulable() =>
         ServicioFixture.ObtenerProximoPartidoSimulable(EstadoTorneo, _etapaActiva);
 
-    private int? ObtenerJornadaPendienteActual() =>
-        ServicioFixture.ObtenerJornadaPendienteActual(EstadoTorneo.Fixture);
-
     private void SincronizarJornadaActivaConPendiente()
     {
-        if (_etapaActiva != FaseTorneo.FaseDeGrupos)
-        {
-            return;
-        }
-
-        var jornadaPendiente = ObtenerJornadaPendienteActual();
-
-        if (jornadaPendiente.HasValue)
-        {
-            _jornadaActiva = jornadaPendiente.Value;
-        }
+        var jornada = ServicioFixture.ObtenerJornadaActivaParaFase(_etapaActiva, EstadoTorneo.Fixture);
+        if (jornada.HasValue)
+            _jornadaActiva = jornada.Value;
     }
 
     private string MensajeCondicionFaseActiva =>

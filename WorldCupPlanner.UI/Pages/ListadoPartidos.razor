@@ -136,9 +136,7 @@ else
     private string _filtroFase = string.Empty;
 
     private IEnumerable<Partido> TodosLosPartidos =>
-        (EstadoTorneo.Fixture?.Partidos ?? Enumerable.Empty<Partido>())
-        .Concat(EstadoTorneo.PartidosEliminatorios)
-        .OrderBy(p => p.Fecha);
+        EstadoTorneo.ObtenerTodosLosPartidos().OrderBy(p => p.Fecha);
 
     private IEnumerable<Partido> PartidosFiltrados =>
         ServicioPartido.FiltrarPartidos(TodosLosPartidos, new FiltroPartidos

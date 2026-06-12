@@ -115,6 +115,19 @@ public class ServicioEstadio
             ?? throw new EntidadInexistenteExcepcion($"No existe un estadio con el nombre '{nombre}'.");
     }
 
+    public Estadio ClonarParaEdicion(string nombre)
+    {
+        var original = ObtenerPorNombre(nombre);
+        return new Estadio
+        {
+            Id          = original.Id,
+            Nombre      = original.Nombre,
+            Ciudad      = original.Ciudad,
+            Capacidad   = original.Capacidad,
+            Descripcion = original.Descripcion
+        };
+    }
+
     private void ValidarEstadioNoEstaEnFixture(Estadio estadio)
     {
         if (EstadioEstaEnFixture(estadio))

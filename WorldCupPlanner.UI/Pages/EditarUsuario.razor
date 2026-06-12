@@ -126,10 +126,7 @@
         try
         {
             if (_usuario == null) return;
-            var nuevosRoles = new List<RolUsuario>();
-            if (_esAdmin)      nuevosRoles.Add(RolUsuario.AdministradorDelSistema);
-            if (_esEditor)     nuevosRoles.Add(RolUsuario.Editor);
-            if (_esPeriodista) nuevosRoles.Add(RolUsuario.Periodista);
+            var nuevosRoles = UsuarioFormHelper.ConstruirRoles(_esAdmin, _esEditor, _esPeriodista);
             ServicioUsuario.GestionarRoles(_usuario, nuevosRoles);
             ServicioUsuario.ActualizarUsuario(_usuario, new ActualizacionUsuario
             {
