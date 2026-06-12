@@ -1087,6 +1087,104 @@ public class ServicioFixtureTests
 
         return equipos;
     }
+
+    // --- EsPartidoSimulable ---
+
+    [TestMethod]
+    public void EsPartidoSimulable_ConPartidoNulo_RetornaFalse()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var (estado, _, _) = CrearEstadoConDosPartidosPendientes();
+
+        // Act & Assert
+        Assert.IsFalse(servicioFixture.EsPartidoSimulable(null, estado, FaseTorneo.FaseDeGrupos));
+    }
+
+    [TestMethod]
+    public void EsPartidoSimulable_ConEtapaActivaDistintaALaFaseActual_RetornaFalse()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var (estado, proximoPartido, _) = CrearEstadoConDosPartidosPendientes();
+
+        // Act & Assert — el fixture tiene partidos de grupo pendientes, pero se pide Octavos
+        Assert.IsFalse(servicioFixture.EsPartidoSimulable(proximoPartido, estado, FaseTorneo.Octavos));
+    }
+
+    [TestMethod]
+    public void EsPartidoSimulable_ConPartidoYaJugado_RetornaFalse()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var (estado, proximoPartido, _) = CrearEstadoConDosPartidosPendientes();
+        proximoPartido.GolesLocal = 1;
+        proximoPartido.GolesVisitante = 0;
+
+        // Act & Assert
+        Assert.IsFalse(servicioFixture.EsPartidoSimulable(proximoPartido, estado, FaseTorneo.FaseDeGrupos));
+    }
+
+    [TestMethod]
+    public void EsPartidoSimulable_ConPartidoQueNoEsElProximo_RetornaFalse()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var (estado, _, segundoPartido) = CrearEstadoConDosPartidosPendientes();
+
+        // Act & Assert — segundoPartido no es el próximo simulable
+        Assert.IsFalse(servicioFixture.EsPartidoSimulable(segundoPartido, estado, FaseTorneo.FaseDeGrupos));
+    }
+
+    [TestMethod]
+    public void EsPartidoSimulable_ConProximoPartidoPendiente_RetornaTrue()
+    {
+        // Arrange
+        var servicioFixture = new ServicioFixture();
+        var (estado, proximoPartido, _) = CrearEstadoConDosPartidosPendientes();
+
+        // Act & Assert
+        Assert.IsTrue(servicioFixture.EsPartidoSimulable(proximoPartido, estado, FaseTorneo.FaseDeGrupos));
+    }
+
+    private static (EstadoTorneo estado, Partido proximoPartido, Partido segundoPartido)
+        CrearEstadoConDosPartidosPendientes()
+    {
+        var estadio = new Estadio { Nombre = "Estadio", Ciudad = "Ciudad", Capacidad = 30000 };
+        var grupo = new Grupo("A");
+
+        // proximoPartido tiene fecha anterior → es el primero en OrderBy(Fecha).ThenBy(Id)
+        var proximoPartido = new Partido
+        {
+            Id = 1,
+            EquipoLocal = new Equipo { Id = 1, Nombre = "E1", RankingFIFA = 1000, Confederacion = Confederacion.UEFA },
+            EquipoVisitante = new Equipo { Id = 2, Nombre = "E2", RankingFIFA = 900, Confederacion = Confederacion.UEFA },
+            Estadio = estadio,
+            Fecha = new DateTime(2026, 6, 1),
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+        var segundoPartido = new Partido
+        {
+            Id = 2,
+            EquipoLocal = new Equipo { Id = 3, Nombre = "E3", RankingFIFA = 800, Confederacion = Confederacion.CONMEBOL },
+            EquipoVisitante = new Equipo { Id = 4, Nombre = "E4", RankingFIFA = 700, Confederacion = Confederacion.CAF },
+            Estadio = estadio,
+            Fecha = new DateTime(2026, 6, 2),
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+
+        // Ambos en la jornada 1 (posiciones 0 y 1 dentro del grupo)
+        grupo.Partidos.Add(proximoPartido);
+        grupo.Partidos.Add(segundoPartido);
+
+        var fixture = new Fixture();
+        fixture.Grupos.Add(grupo);
+
+        var estado = new EstadoTorneo();
+        estado.EstablecerFixture(fixture);
+
+        return (estado, proximoPartido, segundoPartido);
+    }
 }
 
 file sealed class RepositorioEquipoStub : IRepositorio<Equipo>

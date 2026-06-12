@@ -847,15 +847,9 @@ else
     private bool EsEtapaActivaSimulable =>
         ServicioFixture.ObtenerFaseActualSimulable(EstadoTorneo) == _etapaActiva;
 
-    private bool PuedeSimularPartido(Partido? partido)
-    {
-        return SesionServicio.PuedeEditarPartidos
-            && partido != null
-            && EsEtapaActivaSimulable
-            && ServicioFixture.PerteneceAEtapaActiva(partido, _etapaActiva)
-            && !partido.EstaJugado()
-            && ReferenceEquals(partido, ObtenerProximoPartidoSimulable());
-    }
+    private bool PuedeSimularPartido(Partido? partido) =>
+        SesionServicio.PuedeEditarPartidos
+        && ServicioFixture.EsPartidoSimulable(partido, EstadoTorneo, _etapaActiva);
 
     private bool PuedeSimularJornadaOFecha()
     {

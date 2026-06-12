@@ -630,6 +630,15 @@ public class ServicioFixture
         return partido.Fase == etapaActiva;
     }
 
+    public bool EsPartidoSimulable(Partido? partido, EstadoTorneo estado, FaseTorneo etapaActiva)
+    {
+        if (partido == null) return false;
+        if (ObtenerFaseActualSimulable(estado) != etapaActiva) return false;
+        if (!PerteneceAEtapaActiva(partido, etapaActiva)) return false;
+        if (partido.EstaJugado()) return false;
+        return ReferenceEquals(partido, ObtenerProximoPartidoSimulable(estado, etapaActiva));
+    }
+
     private bool GruposCompletos(EstadoTorneo estado) =>
         estado.Fixture?.Partidos.All(p => p.EstaJugado()) ?? false;
 
