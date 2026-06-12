@@ -6,10 +6,12 @@ namespace WorldCupPlanner.Servicios;
 public class ServicioEstadisticasEquipo
 {
     private readonly EstadoTorneo _estadoTorneo;
+    private readonly ServicioConsultasTorneo _consultasTorneo;
 
-    public ServicioEstadisticasEquipo(EstadoTorneo estadoTorneo)
+    public ServicioEstadisticasEquipo(EstadoTorneo estadoTorneo, ServicioConsultasTorneo consultasTorneo)
     {
         _estadoTorneo = estadoTorneo;
+        _consultasTorneo = consultasTorneo;
     }
 
     public Dictionary<string, EstadisticasEquipo> ObtenerEstadisticasPorEquipo(List<Equipo> equipos)
@@ -19,8 +21,7 @@ public class ServicioEstadisticasEquipo
             _ => new EstadisticasEquipo(),
             StringComparer.OrdinalIgnoreCase);
 
-        var partidosJugados = (_estadoTorneo.Fixture?.Partidos ?? Enumerable.Empty<Partido>())
-            .Concat(_estadoTorneo.PartidosEliminatorios)
+        var partidosJugados = _consultasTorneo.ObtenerTodosLosPartidos(_estadoTorneo)
             .Where(p => p.EstaJugado());
 
         foreach (var partido in partidosJugados)

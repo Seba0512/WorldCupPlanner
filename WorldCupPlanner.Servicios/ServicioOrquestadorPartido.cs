@@ -50,7 +50,7 @@ public class ServicioOrquestadorPartido
                 Notificacion = _notificacion,
                 Periodistas = _usuario.ObtenerPeriodistas()
             });
-            _rankingDinamico.RecalcularRankings(usuarioActual);
+            _rankingDinamico.RecalcularRankings(usuarioActual, partidoId);
         }
 
         var actualizado = _partido.BuscarPartidoPorId(partidoId);

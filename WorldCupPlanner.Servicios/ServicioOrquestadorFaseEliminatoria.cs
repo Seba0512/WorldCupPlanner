@@ -10,19 +10,22 @@ public class ServicioOrquestadorFaseEliminatoria
     private readonly ServicioConfiguracionTorneo _configuracion;
     private readonly ServicioCruces _cruces;
     private readonly ServicioPersistenciaFixture _persistencia;
+    private readonly ServicioConsultasTorneo _consultasTorneo;
 
     public ServicioOrquestadorFaseEliminatoria(
         ServicioClasificacion clasificacion,
         ServicioEstadio estadio,
         ServicioConfiguracionTorneo configuracion,
         ServicioCruces cruces,
-        ServicioPersistenciaFixture persistencia)
+        ServicioPersistenciaFixture persistencia,
+        ServicioConsultasTorneo consultasTorneo)
     {
         _clasificacion = clasificacion;
         _estadio = estadio;
         _configuracion = configuracion;
         _cruces = cruces;
         _persistencia = persistencia;
+        _consultasTorneo = consultasTorneo;
     }
 
     public void GenerarFase(FaseTorneo fase, EstadoTorneo estadoTorneo)
@@ -59,7 +62,7 @@ public class ServicioOrquestadorFaseEliminatoria
         var config = _configuracion.ObtenerConfiguracionActual();
         var estadios = _estadio.ObtenerEstadios();
         var octavos = _cruces.GenerarOctavos(
-            estado.ObtenerPartidosDeFase(FaseTorneo.PrimeraRondaEliminatoria), estadios, config);
+            _consultasTorneo.ObtenerPartidosDeFase(estado, FaseTorneo.PrimeraRondaEliminatoria), estadios, config);
         estado.AgregarPartidosEliminatorios(octavos);
         _persistencia.GuardarPartidos(octavos);
     }
@@ -69,7 +72,7 @@ public class ServicioOrquestadorFaseEliminatoria
         var config = _configuracion.ObtenerConfiguracionActual();
         var estadios = _estadio.ObtenerEstadios();
         var cuartos = _cruces.GenerarCuartos(
-            estado.ObtenerPartidosDeFase(FaseTorneo.Octavos), estadios, config);
+            _consultasTorneo.ObtenerPartidosDeFase(estado, FaseTorneo.Octavos), estadios, config);
         estado.AgregarPartidosEliminatorios(cuartos);
         _persistencia.GuardarPartidos(cuartos);
     }
@@ -79,7 +82,7 @@ public class ServicioOrquestadorFaseEliminatoria
         var config = _configuracion.ObtenerConfiguracionActual();
         var estadios = _estadio.ObtenerEstadios();
         var semifinales = _cruces.GenerarSemifinales(
-            estado.ObtenerPartidosDeFase(FaseTorneo.Cuartos), estadios, config);
+            _consultasTorneo.ObtenerPartidosDeFase(estado, FaseTorneo.Cuartos), estadios, config);
         estado.AgregarPartidosEliminatorios(semifinales);
         _persistencia.GuardarPartidos(semifinales);
     }
@@ -88,7 +91,7 @@ public class ServicioOrquestadorFaseEliminatoria
     {
         var config = _configuracion.ObtenerConfiguracionActual();
         var estadios = _estadio.ObtenerEstadios();
-        var semifinales = estado.ObtenerPartidosDeFase(FaseTorneo.Semifinal);
+        var semifinales = _consultasTorneo.ObtenerPartidosDeFase(estado, FaseTorneo.Semifinal);
         var existentes = estado.PartidosEliminatorios;
         var tercerPuesto = _cruces.GenerarTercerPuesto(semifinales, estadios, config, existentes);
         var final = _cruces.GenerarFinal(semifinales, estadios, config, existentes);

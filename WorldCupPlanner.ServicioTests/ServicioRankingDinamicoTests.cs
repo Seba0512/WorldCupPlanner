@@ -247,6 +247,51 @@ public class ServicioRankingDinamicoTests
         Assert.AreEqual(rankingEsperadoC, equipoC.RankingFIFA);
     }
 
+    [TestMethod]
+    public void RecalcularRankings_CuandoSeEditaPartidoYaJugado_AuditaDesdeRankingPrevioAlPartido()
+    {
+        var caf02 = CrearEquipo(1, "CAF_02", 2458);
+        var caf07 = CrearEquipo(2, "CAF_07", 1860);
+        var repoEquipo = new RepositorioEquipoRankingStub();
+        repoEquipo.Agregar(caf02);
+        repoEquipo.Agregar(caf07);
+
+        var partido = new Partido
+        {
+            Id = 263,
+            Fecha = new DateTime(2026, 7, 29, 14, 0, 0),
+            EquipoLocal = caf02,
+            EquipoVisitante = caf07,
+            GolesLocal = 5,
+            GolesVisitante = 4,
+            Fase = FaseTorneo.TercerPuesto
+        };
+        var repoPartido = new RepositorioPartidoRankingStub();
+        repoPartido.Agregar(partido);
+        var repoAuditoria = new RepositorioAuditoriaRankingStub();
+        var servicio = new ServicioRankingDinamico(
+            repoEquipo,
+            repoPartido,
+            new ServicioAuditoria(repoAuditoria));
+
+        servicio.RecalcularRankings(null, partido.Id);
+        var rankingLocalTrasResultadoOriginal = caf02.RankingFIFA;
+
+        partido.GolesLocal = 4;
+        partido.GolesVisitante = 4;
+        partido.GanadorPorPenales = caf07;
+        servicio.RecalcularRankings(null, partido.Id);
+
+        var rankingEsperadoLocal = servicio.ActualizarRanking(2458, 1860, 0.5, FaseTorneo.TercerPuesto);
+        var rankingEsperadoVisitante = servicio.ActualizarRanking(1860, 2458, 0.5, FaseTorneo.TercerPuesto);
+        var ultimoLog = repoAuditoria.Buscar(_ => true).Last();
+
+        Assert.AreEqual(rankingEsperadoLocal, caf02.RankingFIFA);
+        Assert.AreEqual(rankingEsperadoVisitante, caf07.RankingFIFA);
+        StringAssert.Contains(ultimoLog.Detalle, $"CAF_02: 2458 -> {rankingEsperadoLocal}");
+        Assert.IsFalse(ultimoLog.Detalle.Contains($"CAF_02: {rankingLocalTrasResultadoOriginal} ->"));
+    }
+
     private static Equipo CrearEquipo(int id, string nombre, int ranking) => new()
     {
         Id = id,

@@ -82,7 +82,7 @@ public class ServicioExportacionTests
         EstadoTorneo? estadoTorneo = null)
     {
         var auditoria = new ServicioAuditoria(repo);
-        return new ServicioExportacion(repo, estadoTorneo ?? new EstadoTorneo(), auditoria);
+        return new ServicioExportacion(repo, estadoTorneo ?? new EstadoTorneo(), auditoria, new ServicioConsultasTorneo());
     }
 
     private static EstadoTorneo CrearEstadoConFixtureCompleto()

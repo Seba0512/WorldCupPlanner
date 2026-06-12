@@ -2,6 +2,7 @@
 @using WorldCupPlanner.Dominio.Entidades
 @inject ServicioEquipo ServicioEquipo
 @inject EstadoTorneo EstadoTorneo
+@inject ServicioConsultasTorneo ServicioConsultasTorneo
 @inject ServicioEstadisticasEquipo ServicioEstadisticasEquipo
 @inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
 @inject SesionServicio SesionServicio
@@ -119,7 +120,7 @@
                         <td class="text-center" style="font-weight:700">@estadisticas.Puntos</td>
                         @if (SesionServicio.PuedeGestionarEquipos)
                         {
-                            var equipoBloqueadoPorFixture = EstadoTorneo.EquipoParticipaEnFixture(equipo);
+                            var equipoBloqueadoPorFixture = ServicioConsultasTorneo.EquipoParticipaEnFixture(EstadoTorneo, equipo);
                             <td style="width:140px; text-align:right">
                                 @if (equipoBloqueadoPorFixture)
                                 {

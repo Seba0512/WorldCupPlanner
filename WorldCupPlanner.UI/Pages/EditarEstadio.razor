@@ -1,6 +1,7 @@
 @page "/estadios/{Nombre}/editar"
 @inject ServicioEstadio ServicioEstadio
 @inject EstadoTorneo EstadoTorneo
+@inject ServicioConsultasTorneo ServicioConsultasTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
@@ -70,7 +71,7 @@
         var original = ServicioEstadio.ObtenerPorNombre(Nombre);
         _estadio = ServicioEstadio.ClonarParaEdicion(Nombre);
         _capacidad = _estadio.Capacidad;
-        _edicionBloqueada = EstadoTorneo.EstadioParticipaEnFixture(original);
+        _edicionBloqueada = ServicioConsultasTorneo.EstadioParticipaEnFixture(EstadoTorneo, original);
     }
 
     private void Guardar()

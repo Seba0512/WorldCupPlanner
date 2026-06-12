@@ -38,10 +38,11 @@ builder.Services.AddScoped<IRepositorioConfiguracionTorneo, RepositorioConfigura
 builder.Services.AddScoped<IRepositorioTorneoArchivado, RepositorioTorneoArchivadoSql>();
 builder.Services.AddScoped<ServicioConfiguracionTorneo>();
 builder.Services.AddSingleton<EstadoTorneo>();
+builder.Services.AddSingleton<ServicioConsultasTorneo>();
 builder.Services.AddSingleton<ServicioEstadisticasEquipo>();
 builder.Services.AddScoped<ServicioPersistenciaFixture>();
-builder.Services.AddScoped<ServicioPartido>(sp =>
-    new ServicioPartido(sp.GetRequiredService<IRepositorio<Partido>>()));
+builder.Services.AddScoped<IProveedorPartidos, ProveedorPartidosRepositorio>();
+builder.Services.AddScoped<ServicioPartido>();
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuarioSql>();
 builder.Services.AddScoped<ServicioUsuario>();
 builder.Services.AddScoped<IRepositorioNotificacion, RepositorioNotificacionSql>();
@@ -52,7 +53,8 @@ builder.Services.AddScoped<ServicioRankingDinamico>(sp =>
     new ServicioRankingDinamico(
         sp.GetRequiredService<IRepositorio<Equipo>>(),
         sp.GetRequiredService<IRepositorio<Partido>>(),
-        sp.GetRequiredService<ServicioAuditoria>()));
+        sp.GetRequiredService<ServicioAuditoria>(),
+        sp.GetRequiredService<ServicioConsultasTorneo>()));
 builder.Services.AddScoped<ServicioExportacion>();
 builder.Services.AddScoped<ServicioImportacionLegible>();
 builder.Services.AddScoped<ServicioOrquestadorSimulacion>();

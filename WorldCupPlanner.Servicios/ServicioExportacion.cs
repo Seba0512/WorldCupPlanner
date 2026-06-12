@@ -13,15 +13,18 @@ public class ServicioExportacion
     private readonly IRepositorioConId<Auditoria> _repositorioAuditoria;
     private readonly EstadoTorneo _estadoTorneo;
     private readonly ServicioAuditoria _auditoria;
+    private readonly ServicioConsultasTorneo _consultasTorneo;
 
     public ServicioExportacion(
         IRepositorioConId<Auditoria> repositorioAuditoria,
         EstadoTorneo estadoTorneo,
-        ServicioAuditoria auditoria)
+        ServicioAuditoria auditoria,
+        ServicioConsultasTorneo consultasTorneo)
     {
         _repositorioAuditoria = repositorioAuditoria;
         _estadoTorneo = estadoTorneo;
         _auditoria = auditoria;
+        _consultasTorneo = consultasTorneo;
     }
 
     public byte[] ExportarAuditoriasCsv(DateTime desde, DateTime hasta, string usuario)
@@ -84,7 +87,7 @@ public class ServicioExportacion
         using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
 
         EscribirEncabezadosFixture(csv);
-        foreach (var partido in ObtenerTodosLosPartidos())
+        foreach (var partido in _consultasTorneo.ObtenerTodosLosPartidos(_estadoTorneo))
             EscribirFilaFixture(csv, partido);
 
         writer.Flush();
@@ -109,7 +112,7 @@ public class ServicioExportacion
         ws.Cell(1, 9).Value = "Estadio";
         AplicarEstiloEncabezado(ws.Row(1));
 
-        var partidos = ObtenerTodosLosPartidos();
+        var partidos = _consultasTorneo.ObtenerTodosLosPartidos(_estadoTorneo);
         for (var i = 0; i < partidos.Count; i++)
         {
             var fila = i + 2;
@@ -150,15 +153,6 @@ public class ServicioExportacion
             throw new EntidadInvalidaExcepcion(
                 "La fecha desde no puede ser posterior a la fecha hasta.");
         }
-    }
-
-    private List<Partido> ObtenerTodosLosPartidos()
-    {
-        var partidos = new List<Partido>();
-        if (_estadoTorneo.Fixture != null)
-            partidos.AddRange(_estadoTorneo.Fixture.Grupos.SelectMany(g => g.Partidos));
-        partidos.AddRange(_estadoTorneo.PartidosEliminatorios);
-        return partidos;
     }
 
     private void RegistrarExportacion(string usuario, string nombreArchivo)

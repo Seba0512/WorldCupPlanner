@@ -1,6 +1,7 @@
 @page "/estadios"
 @inject ServicioEstadio ServicioEstadio
 @inject EstadoTorneo EstadoTorneo
+@inject ServicioConsultasTorneo ServicioConsultasTorneo
 @inject SesionServicio SesionServicio
 @inject ToastServicio Toast
 
@@ -55,7 +56,7 @@
             <tbody>
                 @foreach (var estadio in _estadios)
                 {
-                    var estadioBloqueadoPorFixture = EstadoTorneo.EstadioParticipaEnFixture(estadio);
+                    var estadioBloqueadoPorFixture = ServicioConsultasTorneo.EstadioParticipaEnFixture(EstadoTorneo, estadio);
                     <tr>
                         <td style="font-weight:600">@estadio.Nombre</td>
                         <td>@estadio.Ciudad</td>

@@ -2,6 +2,7 @@
 @inject ServicioImportacionLegible ServicioImportacionLegible
 @inject ServicioEquipo ServicioEquipo
 @inject EstadoTorneo EstadoTorneo
+@inject ServicioConsultasTorneo ServicioConsultasTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 
@@ -168,7 +169,7 @@
         _equiposFaltantes = ServicioEquipo.ObtenerCantidadFaltante(_equipos.Count);
         _cuposPorConfederacion = ServicioEquipo.ObtenerCuposConOcupacion(_equipos);
 
-        var fase = EstadoTorneo.ObtenerFaseConfiguracion(_equipos.Count);
+        var fase = ServicioConsultasTorneo.ObtenerFaseConfiguracion(EstadoTorneo, _equipos.Count);
         (_estadoTexto, _estadoBadgeClase) = fase switch
         {
             FaseConfiguracionTorneo.FixtureGenerado    => ("Fixture generado",           "badge-success"),

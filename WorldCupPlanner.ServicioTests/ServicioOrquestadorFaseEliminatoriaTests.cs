@@ -8,6 +8,8 @@ namespace WorldCupPlanner.ServicioTests;
 [TestClass]
 public class ServicioOrquestadorFaseEliminatoriaTests
 {
+    private readonly ServicioConsultasTorneo _consultasTorneo = new();
+
     [TestMethod]
     public void GenerarFase_FaseDeGruposNoSoportada_LanzaArgumentOutOfRangeException()
     {
@@ -33,7 +35,7 @@ public class ServicioOrquestadorFaseEliminatoriaTests
         orquestador.GenerarFase(FaseTorneo.PrimeraRondaEliminatoria, estadoTorneo);
 
         // Assert
-        Assert.AreEqual(16, estadoTorneo.ObtenerPartidosDeFase(FaseTorneo.PrimeraRondaEliminatoria).Count);
+        Assert.AreEqual(16, _consultasTorneo.ObtenerPartidosDeFase(estadoTorneo, FaseTorneo.PrimeraRondaEliminatoria).Count);
     }
 
     [TestMethod]
@@ -48,7 +50,7 @@ public class ServicioOrquestadorFaseEliminatoriaTests
         orquestador.GenerarFase(FaseTorneo.Octavos, estadoTorneo);
 
         // Assert
-        Assert.AreEqual(8, estadoTorneo.ObtenerPartidosDeFase(FaseTorneo.Octavos).Count);
+        Assert.AreEqual(8, _consultasTorneo.ObtenerPartidosDeFase(estadoTorneo, FaseTorneo.Octavos).Count);
     }
 
     [TestMethod]
@@ -63,7 +65,7 @@ public class ServicioOrquestadorFaseEliminatoriaTests
         orquestador.GenerarFase(FaseTorneo.Cuartos, estadoTorneo);
 
         // Assert
-        Assert.AreEqual(4, estadoTorneo.ObtenerPartidosDeFase(FaseTorneo.Cuartos).Count);
+        Assert.AreEqual(4, _consultasTorneo.ObtenerPartidosDeFase(estadoTorneo, FaseTorneo.Cuartos).Count);
     }
 
     [TestMethod]
@@ -78,7 +80,7 @@ public class ServicioOrquestadorFaseEliminatoriaTests
         orquestador.GenerarFase(FaseTorneo.Semifinal, estadoTorneo);
 
         // Assert
-        Assert.AreEqual(2, estadoTorneo.ObtenerPartidosDeFase(FaseTorneo.Semifinal).Count);
+        Assert.AreEqual(2, _consultasTorneo.ObtenerPartidosDeFase(estadoTorneo, FaseTorneo.Semifinal).Count);
     }
 
     [TestMethod]
@@ -109,7 +111,7 @@ public class ServicioOrquestadorFaseEliminatoriaTests
         orquestador.GenerarFase(FaseTorneo.Octavos, estadoTorneo);
 
         // Assert
-        Assert.IsTrue(estadoTorneo.ObtenerPartidosDeFase(FaseTorneo.Octavos)
+        Assert.IsTrue(_consultasTorneo.ObtenerPartidosDeFase(estadoTorneo, FaseTorneo.Octavos)
             .All(p => p.Fase == FaseTorneo.Octavos));
     }
 
@@ -133,7 +135,8 @@ public class ServicioOrquestadorFaseEliminatoriaTests
             servicioEstadio,
             new ServicioConfiguracionTorneo(),
             new ServicioCruces(),
-            persistencia);
+            persistencia,
+            new ServicioConsultasTorneo());
     }
 
     private static List<Estadio> CrearEstadiosValidos(int cantidad) =>

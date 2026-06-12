@@ -18,7 +18,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
-        var servicioPartido = new ServicioPartido(repositorio);
+        var servicioPartido = CrearServicio(repositorio);
         var nuevaFecha = new DateTime(2026, 6, 15, 18, 0, 0);
 
         // Act
@@ -35,7 +35,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
-        var servicioPartido = new ServicioPartido(repositorio);
+        var servicioPartido = CrearServicio(repositorio);
         var nuevoEstadio = CrearEstadio("Estadio Nuevo");
 
         // Act
@@ -52,7 +52,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
-        var servicioPartido = new ServicioPartido(repositorio);
+        var servicioPartido = CrearServicio(repositorio);
 
         // Act
         servicioPartido.CargarResultado(partido.Id, 2, 1);
@@ -66,7 +66,7 @@ public class ServicioPartidoTests
     public void EditarFecha_ConPartidoInexistente_DebeLanzarExcepcion()
     {
         // Arrange
-        var servicioPartido = new ServicioPartido(new RepositorioPartidoStub());
+        var servicioPartido = CrearServicio(new RepositorioPartidoStub());
 
         // Act & Assert
         Assert.ThrowsException<EntidadInexistenteExcepcion>(() =>
@@ -80,7 +80,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
-        var servicioPartido = new ServicioPartido(repositorio);
+        var servicioPartido = CrearServicio(repositorio);
         var estadioInvalido = CrearEstadio("");
 
         // Act & Assert
@@ -95,7 +95,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
-        var servicioPartido = new ServicioPartido(repositorio);
+        var servicioPartido = CrearServicio(repositorio);
 
         // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
@@ -109,7 +109,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
-        var servicioPartido = new ServicioPartido(repositorio);
+        var servicioPartido = CrearServicio(repositorio);
 
         // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
@@ -123,7 +123,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
-        var servicioPartido = new ServicioPartido(repositorio);
+        var servicioPartido = CrearServicio(repositorio);
         servicioPartido.BloquearEdicionPartidosDeFaseDeGrupos();
 
         // Act & Assert
@@ -138,7 +138,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.PrimeraRondaEliminatoria);
         repositorio.Agregar(partido);
-        var servicioPartido = new ServicioPartido(repositorio);
+        var servicioPartido = CrearServicio(repositorio);
         servicioPartido.RegistrarFaseGenerada(FaseTorneo.Octavos);
 
         // Act & Assert
@@ -153,7 +153,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.Octavos);
         repositorio.Agregar(partido);
-        var servicioPartido = new ServicioPartido(repositorio);
+        var servicioPartido = CrearServicio(repositorio);
         servicioPartido.RegistrarFaseGenerada(FaseTorneo.Cuartos);
 
         // Act & Assert
@@ -168,7 +168,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.Cuartos);
         repositorio.Agregar(partido);
-        var servicioPartido = new ServicioPartido(repositorio);
+        var servicioPartido = CrearServicio(repositorio);
         servicioPartido.RegistrarFaseGenerada(FaseTorneo.Semifinal);
 
         // Act & Assert
@@ -183,7 +183,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.Semifinal);
         repositorio.Agregar(partido);
-        var servicioPartido = new ServicioPartido(repositorio);
+        var servicioPartido = CrearServicio(repositorio);
         servicioPartido.RegistrarFaseGenerada(FaseTorneo.Final);
 
         // Act & Assert
@@ -202,7 +202,7 @@ public class ServicioPartidoTests
         repositorio.Agregar(partidoGrupo);
         repositorio.Agregar(partidoEliminatorio);
 
-        var servicioRecreado = new ServicioPartido(repositorio);
+        var servicioRecreado = CrearServicio(repositorio);
 
         // Act & Assert
         Assert.IsTrue(servicioRecreado.EsFaseBloqueada(FaseTorneo.FaseDeGrupos));
@@ -214,7 +214,7 @@ public class ServicioPartidoTests
     public void EsFaseBloqueada_SinFasesBloqueadas_RetornaFalso()
     {
         // Arrange
-        var servicioPartido = new ServicioPartido(new RepositorioPartidoStub());
+        var servicioPartido = CrearServicio(new RepositorioPartidoStub());
 
         // Act & Assert
         Assert.IsFalse(servicioPartido.EsFaseBloqueada(FaseTorneo.FaseDeGrupos));
@@ -224,7 +224,7 @@ public class ServicioPartidoTests
     public void EsFaseBloqueada_ConFaseDeGruposBloqueadaExplicitamente_RetornaVerdadero()
     {
         // Arrange
-        var servicioPartido = new ServicioPartido(new RepositorioPartidoStub());
+        var servicioPartido = CrearServicio(new RepositorioPartidoStub());
         servicioPartido.BloquearEdicionPartidosDeFaseDeGrupos();
 
         // Act & Assert
@@ -235,7 +235,7 @@ public class ServicioPartidoTests
     public void BuscarPartidoPorId_ConIdInexistente_RetornaNull()
     {
         // Arrange
-        var servicioPartido = new ServicioPartido(new RepositorioPartidoStub());
+        var servicioPartido = CrearServicio(new RepositorioPartidoStub());
 
         // Act
         var resultado = servicioPartido.BuscarPartidoPorId(99);
@@ -251,7 +251,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
-        var servicioPartido = new ServicioPartido(repositorio);
+        var servicioPartido = CrearServicio(repositorio);
 
         // Act
         var resultado = servicioPartido.BuscarPartidoPorId(partido.Id);
@@ -272,10 +272,10 @@ public class ServicioPartidoTests
         var periodistas = new List<Usuario> { periodista };
         var partido = CrearPartido();
         repositorioPartido.Agregar(partido);
-        var servicioPartido = new ServicioPartido(repositorioPartido, servicioNotificacion, periodistas);
+        var servicioPartido = CrearServicio(repositorioPartido);
 
         // Act
-        servicioPartido.CargarResultado(partido.Id, 2, 1);
+        servicioPartido.CargarResultado(partido.Id, 2, 1, servicioNotificacion, periodistas);
 
         // Assert
         Assert.AreEqual(1, repositorioNotificacion.ObtenerPorUsuario(periodista.Id).Count);
@@ -284,6 +284,16 @@ public class ServicioPartidoTests
     private static Partido CrearPartido()
     {
         return CrearPartido(FaseTorneo.FaseDeGrupos);
+    }
+
+    private static ServicioPartido CrearServicio(IRepositorio<Partido> repositorio)
+    {
+        return new ServicioPartido(new ProveedorPartidosRepositorio(repositorio));
+    }
+
+    private static ServicioPartido CrearServicio(EstadoTorneo? estadoTorneo)
+    {
+        return new ServicioPartido(new ProveedorPartidosEstadoTorneo(estadoTorneo));
     }
 
     private static Partido CrearPartido(FaseTorneo fase)
@@ -327,7 +337,7 @@ public class ServicioPartidoTests
         var partido = CrearPartido(FaseTorneo.Octavos);
         partido.GanadorPorPenales = partido.EquipoLocal;
         repositorio.Agregar(partido);
-        var servicio = new ServicioPartido(repositorio);
+        var servicio = CrearServicio(repositorio);
 
         // Act — cargamos resultado no empate, GanadorPorPenales debe quedar null
         servicio.CargarResultado(partido.Id, 2, 1);
@@ -345,7 +355,7 @@ public class ServicioPartidoTests
         partido.GolesLocal = 1;
         partido.GolesVisitante = 1;
         repositorio.Agregar(partido);
-        var servicio = new ServicioPartido(repositorio);
+        var servicio = CrearServicio(repositorio);
 
         // Act
         servicio.ResolverEmpateConPenales(partido.Id, semilla: 42);
@@ -366,7 +376,7 @@ public class ServicioPartidoTests
         partido.GolesLocal = 1;
         partido.GolesVisitante = 1;
         repositorio.Agregar(partido);
-        var servicio = new ServicioPartido(repositorio);
+        var servicio = CrearServicio(repositorio);
 
         // Act
         servicio.ResolverEmpateConPenales(partido.Id, semilla: 42);
@@ -384,7 +394,7 @@ public class ServicioPartidoTests
         partido.GolesLocal = 2;
         partido.GolesVisitante = 1;
         repositorio.Agregar(partido);
-        var servicio = new ServicioPartido(repositorio);
+        var servicio = CrearServicio(repositorio);
 
         // Act
         servicio.ResolverEmpateConPenales(partido.Id, semilla: 42);
@@ -402,7 +412,7 @@ public class ServicioPartidoTests
         partido.GolesLocal = 0;
         partido.GolesVisitante = 0;
         repositorio.Agregar(partido);
-        var servicio = new ServicioPartido(repositorio);
+        var servicio = CrearServicio(repositorio);
 
         // Act
         servicio.ResolverEmpateConPenales(partido.Id, semilla: 7);
@@ -427,7 +437,7 @@ public class ServicioPartidoTests
         var fixture = new Fixture();
         fixture.Grupos.Add(grupo);
         var estadoTorneo = new EstadoTorneo { Fixture = fixture };
-        var servicio = new ServicioPartido(estadoTorneo);
+        var servicio = CrearServicio(estadoTorneo);
 
         // Act
         var resultado = servicio.BuscarPartidoPorId(partido.Id);
@@ -443,7 +453,7 @@ public class ServicioPartidoTests
         var partido = CrearPartido(FaseTorneo.PrimeraRondaEliminatoria);
         var estadoTorneo = new EstadoTorneo();
         estadoTorneo.PartidosEliminatorios.Add(partido);
-        var servicio = new ServicioPartido(estadoTorneo);
+        var servicio = CrearServicio(estadoTorneo);
 
         // Act
         var resultado = servicio.BuscarPartidoPorId(partido.Id);
@@ -467,7 +477,7 @@ public class ServicioPartidoTests
 
         var estadoTorneo = new EstadoTorneo { Fixture = fixture };
         estadoTorneo.PartidosEliminatorios.Add(partidoEliminatorio);
-        var servicio = new ServicioPartido(estadoTorneo);
+        var servicio = CrearServicio(estadoTorneo);
 
         // Act
         var resultado = servicio.BuscarPartidoPorId(partidoEliminatorio.Id);
@@ -480,7 +490,7 @@ public class ServicioPartidoTests
     public void BuscarPartidoPorId_ConEstadoTorneoNulo_RetornaNull()
     {
         // Arrange
-        var servicio = new ServicioPartido((EstadoTorneo)null!);
+        var servicio = CrearServicio((EstadoTorneo?)null);
 
         // Act
         var resultado = servicio.BuscarPartidoPorId(99);
@@ -494,7 +504,7 @@ public class ServicioPartidoTests
     {
         // Arrange
         var estadoTorneo = new EstadoTorneo();
-        var servicio = new ServicioPartido(estadoTorneo);
+        var servicio = CrearServicio(estadoTorneo);
 
         // Act
         var resultado = servicio.BuscarPartidoPorId(99);
@@ -510,7 +520,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
-        var servicio = new ServicioPartido(repositorio);
+        var servicio = CrearServicio(repositorio);
 
         // Act
         var partidos = servicio.ObtenerPartidos();
@@ -533,7 +543,7 @@ public class ServicioPartidoTests
         fixture.Grupos.Add(grupo);
         var estadoTorneo = new EstadoTorneo { Fixture = fixture };
         estadoTorneo.PartidosEliminatorios.Add(partidoElim);
-        var servicio = new ServicioPartido(estadoTorneo);
+        var servicio = CrearServicio(estadoTorneo);
 
         // Act
         var partidos = servicio.ObtenerPartidos();
@@ -547,7 +557,7 @@ public class ServicioPartidoTests
     {
         // Arrange
         var estadoTorneo = new EstadoTorneo();
-        var servicio = new ServicioPartido(estadoTorneo);
+        var servicio = CrearServicio(estadoTorneo);
 
         // Act
         var partidos = servicio.ObtenerPartidos();
@@ -560,7 +570,7 @@ public class ServicioPartidoTests
     public void ObtenerPartidos_ConEstadoTorneoNulo_DevuelveListaVacia()
     {
         // Arrange
-        var servicio = new ServicioPartido((EstadoTorneo)null!);
+        var servicio = CrearServicio((EstadoTorneo?)null);
 
         // Act
         var partidos = servicio.ObtenerPartidos();
@@ -575,7 +585,7 @@ public class ServicioPartidoTests
         // Arrange
         var estadoTorneo = new EstadoTorneo();
         estadoTorneo.PartidosEliminatorios.Add(CrearPartido(FaseTorneo.PrimeraRondaEliminatoria));
-        var servicio = new ServicioPartido(estadoTorneo);
+        var servicio = CrearServicio(estadoTorneo);
 
         // Act & Assert
         Assert.IsTrue(servicio.EsFaseBloqueada(FaseTorneo.FaseDeGrupos));
@@ -586,7 +596,7 @@ public class ServicioPartidoTests
     {
         // Arrange
         var estadoTorneo = new EstadoTorneo();
-        var servicio = new ServicioPartido(estadoTorneo);
+        var servicio = CrearServicio(estadoTorneo);
 
         // Act & Assert
         Assert.IsFalse(servicio.EsFaseBloqueada(FaseTorneo.FaseDeGrupos));
@@ -599,7 +609,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
-        var servicio = new ServicioPartido(repositorio);
+        var servicio = CrearServicio(repositorio);
 
         // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
@@ -613,7 +623,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido();
         repositorio.Agregar(partido);
-        var servicio = new ServicioPartido(repositorio);
+        var servicio = CrearServicio(repositorio);
 
         // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
@@ -627,7 +637,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.Semifinal);
         repositorio.Agregar(partido);
-        var servicio = new ServicioPartido(repositorio);
+        var servicio = CrearServicio(repositorio);
 
         // Act
         servicio.RegistrarFaseGenerada(FaseTorneo.TercerPuesto);
@@ -641,7 +651,7 @@ public class ServicioPartidoTests
     public void RegistrarFaseGenerada_FaseInvalida_DebeLanzarExcepcion()
     {
         // Arrange
-        var servicio = new ServicioPartido(new RepositorioPartidoStub());
+        var servicio = CrearServicio(new RepositorioPartidoStub());
 
         // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
@@ -655,7 +665,7 @@ public class ServicioPartidoTests
         var repositorio = new RepositorioPartidoStub();
         var partido = CrearPartido(FaseTorneo.Octavos);
         repositorio.Agregar(partido);
-        var servicio = new ServicioPartido(repositorio);
+        var servicio = CrearServicio(repositorio);
 
         // Act
         servicio.BloquearEdicionFase(FaseTorneo.Octavos);
@@ -672,7 +682,7 @@ public class ServicioPartidoTests
         // Arrange
         var estadoTorneo = new EstadoTorneo();
         estadoTorneo.PartidosEliminatorios.Add(CrearPartido(FaseTorneo.PrimeraRondaEliminatoria));
-        var servicio = new ServicioPartido(estadoTorneo);
+        var servicio = CrearServicio(estadoTorneo);
 
         // EsFaseBloqueada para Octavos sin fase bloqueada explícita → debe ser false
         Assert.IsFalse(servicio.EsFaseBloqueada(FaseTorneo.Octavos));
@@ -688,7 +698,7 @@ public class ServicioPartidoTests
         var fixture = new Fixture();
         fixture.Grupos.Add(grupo);
         var estadoTorneo = new EstadoTorneo { Fixture = fixture };
-        var servicio = new ServicioPartido(estadoTorneo);
+        var servicio = CrearServicio(estadoTorneo);
         var nuevaFecha = new DateTime(2026, 8, 1, 12, 0, 0);
 
         // Act
@@ -705,7 +715,7 @@ public class ServicioPartidoTests
         var partido = CrearPartido(FaseTorneo.PrimeraRondaEliminatoria);
         var estadoTorneo = new EstadoTorneo();
         estadoTorneo.PartidosEliminatorios.Add(partido);
-        var servicio = new ServicioPartido(estadoTorneo);
+        var servicio = CrearServicio(estadoTorneo);
 
         // Act
         servicio.CargarResultado(partido.Id, 3, 1);
@@ -721,7 +731,7 @@ public class ServicioPartidoTests
     public void RegistrarFaseGenerada_PrimeraRondaEliminatoria_BloqueaFaseDeGrupos()
     {
         // Arrange
-        var servicio = new ServicioPartido(new RepositorioPartidoStub());
+        var servicio = CrearServicio(new RepositorioPartidoStub());
 
         // Act
         servicio.RegistrarFaseGenerada(FaseTorneo.PrimeraRondaEliminatoria);
@@ -734,7 +744,7 @@ public class ServicioPartidoTests
     public void RegistrarFaseGenerada_Octavos_BloquePrimeraRonda()
     {
         // Arrange
-        var servicio = new ServicioPartido(new RepositorioPartidoStub());
+        var servicio = CrearServicio(new RepositorioPartidoStub());
 
         // Act
         servicio.RegistrarFaseGenerada(FaseTorneo.Octavos);
@@ -755,7 +765,7 @@ public class ServicioPartidoTests
         var fixture = new Fixture();
         fixture.Grupos.Add(grupo);
         var estadoTorneo = new EstadoTorneo { Fixture = fixture };
-        var servicio = new ServicioPartido(estadoTorneo);
+        var servicio = CrearServicio(estadoTorneo);
         var nuevoEstadio = CrearEstadio("Nuevo Estadio");
 
         // Act
@@ -774,7 +784,7 @@ public class ServicioPartidoTests
         var partidoElim = CrearPartido(FaseTorneo.PrimeraRondaEliminatoria);
         var estadoTorneo = new EstadoTorneo();
         estadoTorneo.PartidosEliminatorios.Add(partidoElim);
-        var servicio = new ServicioPartido(estadoTorneo);
+        var servicio = CrearServicio(estadoTorneo);
 
         // Act
         var partidos = servicio.ObtenerPartidos();

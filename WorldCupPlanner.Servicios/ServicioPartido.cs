@@ -1,4 +1,3 @@
-using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -7,27 +6,12 @@ namespace WorldCupPlanner.Servicios;
 
 public class ServicioPartido
 {
-    private readonly IRepositorio<Partido>? _repositorioPartido;
-    private readonly EstadoTorneo? _estadoTorneo;
+    private readonly IProveedorPartidos _partidos;
     private readonly HashSet<FaseTorneo> _fasesBloqueadas = new();
-    private readonly ServicioNotificacion? _servicioNotificacion;
-    private readonly IEnumerable<Usuario> _periodistas = [];
 
-    public ServicioPartido(IRepositorio<Partido> repositorioPartido)
+    public ServicioPartido(IProveedorPartidos partidos)
     {
-        _repositorioPartido = repositorioPartido;
-    }
-
-    public ServicioPartido(IRepositorio<Partido> repositorioPartido, ServicioNotificacion servicioNotificacion, IEnumerable<Usuario> periodistas)
-    {
-        _repositorioPartido = repositorioPartido;
-        _servicioNotificacion = servicioNotificacion;
-        _periodistas = periodistas;
-    }
-
-    public ServicioPartido(EstadoTorneo estadoTorneo)
-    {
-        _estadoTorneo = estadoTorneo;
+        _partidos = partidos;
     }
 
     public void EditarFechaYEstadio(int id, DateTime fecha, Estadio estadio)
@@ -53,7 +37,7 @@ public class ServicioPartido
         ValidarPuedeEditarPartido(partido);
 
         partido.Fecha = nuevaFecha;
-        _repositorioPartido?.Actualizar(partido);
+        _partidos.Actualizar(partido);
     }
 
     public void EditarEstadio(int idPartido, Estadio nuevoEstadio)
@@ -67,7 +51,7 @@ public class ServicioPartido
         ValidarPuedeEditarPartido(partido);
 
         partido.Estadio = nuevoEstadio;
-        _repositorioPartido?.Actualizar(partido);
+        _partidos.Actualizar(partido);
     }
 
     private const int MultiplicadorSemillaPenales = 523;
@@ -82,8 +66,7 @@ public class ServicioPartido
         partido.GolesLocal = golesLocal;
         partido.GolesVisitante = golesVisitante;
         partido.GanadorPorPenales = null;
-        _repositorioPartido?.Actualizar(partido);
-        _servicioNotificacion?.GenerarNotificacionesResultado(partido, _periodistas);
+        _partidos.Actualizar(partido);
     }
 
     public void CargarResultado(int idPartido, int golesLocal, int golesVisitante, ServicioNotificacion servicioNotificacion, IEnumerable<Usuario> periodistas)
@@ -102,7 +85,7 @@ public class ServicioPartido
 
         var random = new Random(unchecked(semilla * MultiplicadorSemillaPenales + idPartido));
         partido.GanadorPorPenales = random.Next(2) == 0 ? partido.EquipoLocal : partido.EquipoVisitante;
-        _repositorioPartido?.Actualizar(partido);
+        _partidos.Actualizar(partido);
     }
 
     public void BloquearEdicionPartidosDeFaseDeGrupos()
@@ -128,23 +111,12 @@ public class ServicioPartido
 
     public Partido? BuscarPartidoPorId(int idPartido)
     {
-        if (_repositorioPartido != null)
-            return _repositorioPartido.Buscar(p => p.Id == idPartido).FirstOrDefault();
-
-        return _estadoTorneo?.Fixture?.Partidos.FirstOrDefault(p => p.Id == idPartido)
-            ?? _estadoTorneo?.PartidosEliminatorios.FirstOrDefault(p => p.Id == idPartido);
+        return _partidos.BuscarPorId(idPartido);
     }
 
     public List<Partido> ObtenerPartidos()
     {
-        if (_repositorioPartido != null)
-            return _repositorioPartido.Buscar(_ => true);
-
-        var partidos = new List<Partido>();
-        if (_estadoTorneo?.Fixture != null)
-            partidos.AddRange(_estadoTorneo.Fixture.Partidos);
-        partidos.AddRange(_estadoTorneo?.PartidosEliminatorios ?? new List<Partido>());
-        return partidos;
+        return _partidos.ObtenerTodos();
     }
 
     private Partido ObtenerPartidoPorId(int idPartido)

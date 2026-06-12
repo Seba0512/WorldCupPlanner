@@ -1,6 +1,7 @@
 @page "/equipos/{Nombre}/editar"
 @inject ServicioEquipo ServicioEquipo
 @inject EstadoTorneo EstadoTorneo
+@inject ServicioConsultasTorneo ServicioConsultasTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
@@ -78,7 +79,7 @@
     {
         _equipo = ServicioEquipo.ClonarParaEdicion(Nombre);
         _bandera = _equipo.Bandera;
-        _edicionBloqueada = EstadoTorneo.EquipoParticipaEnFixture(_equipo);
+        _edicionBloqueada = ServicioConsultasTorneo.EquipoParticipaEnFixture(EstadoTorneo, _equipo);
     }
 
     private async Task CargarBandera(InputFileChangeEventArgs e)

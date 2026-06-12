@@ -1,5 +1,6 @@
 @page "/partidos"
 @inject EstadoTorneo EstadoTorneo
+@inject ServicioConsultasTorneo ServicioConsultasTorneo
 @inject ServicioPartido ServicioPartido
 
 <PageTitle>Partidos — WorldCupPlanner 2026</PageTitle>
@@ -136,7 +137,7 @@ else
     private string _filtroFase = string.Empty;
 
     private IEnumerable<Partido> TodosLosPartidos =>
-        EstadoTorneo.ObtenerTodosLosPartidos().OrderBy(p => p.Fecha);
+        ServicioConsultasTorneo.ObtenerTodosLosPartidos(EstadoTorneo).OrderBy(p => p.Fecha);
 
     private IEnumerable<Partido> PartidosFiltrados =>
         ServicioPartido.FiltrarPartidos(TodosLosPartidos, new FiltroPartidos

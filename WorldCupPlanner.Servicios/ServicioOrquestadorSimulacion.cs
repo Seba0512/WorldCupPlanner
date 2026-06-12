@@ -11,6 +11,7 @@ public class ServicioOrquestadorSimulacion
     private readonly ServicioRankingDinamico _rankingDinamico;
     private readonly ServicioUsuario _usuario;
     private readonly ServicioNotificacion _notificacion;
+    private readonly ServicioConsultasTorneo _consultasTorneo;
 
     public ServicioOrquestadorSimulacion(
         ServicioSimulacion simulacion,
@@ -18,7 +19,8 @@ public class ServicioOrquestadorSimulacion
         ServicioIncidencia incidencia,
         ServicioRankingDinamico rankingDinamico,
         ServicioUsuario usuario,
-        ServicioNotificacion notificacion)
+        ServicioNotificacion notificacion,
+        ServicioConsultasTorneo consultasTorneo)
     {
         _simulacion = simulacion;
         _persistencia = persistencia;
@@ -26,6 +28,7 @@ public class ServicioOrquestadorSimulacion
         _rankingDinamico = rankingDinamico;
         _usuario = usuario;
         _notificacion = notificacion;
+        _consultasTorneo = consultasTorneo;
     }
 
     public void SimularYPersistirPartidos(
@@ -49,10 +52,10 @@ public class ServicioOrquestadorSimulacion
                 new List<Partido> { partido },
                 config,
                 usuarioActual,
-                estadoTorneo.ObtenerTodosLosPartidos());
+                _consultasTorneo.ObtenerTodosLosPartidos(estadoTorneo));
             _persistencia.GuardarPartidos(new[] { partido });
             _incidencia.PersistirIncidenciasDePartido(partido);
-            _rankingDinamico.RecalcularRankings(usuarioActual);
+            _rankingDinamico.RecalcularRankings(usuarioActual, partido.Id);
             _rankingDinamico.SincronizarRankingsEnEstado(estadoTorneo);
         }
 
