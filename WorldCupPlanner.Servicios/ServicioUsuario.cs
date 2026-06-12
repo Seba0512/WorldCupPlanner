@@ -274,19 +274,22 @@ public class ServicioUsuario
         return contraseniaTemporal;
     }
 
-    public void CambiarContrasenia(Usuario usuario, string contraseniaAnterior, string nuevaContrasenia)
+    public void CambiarContrasenia(Usuario usuario, CambiarContraseniaDto datos)
     {
-        if (!usuario.VerificarContrasenia(contraseniaAnterior))
+        if (datos.NuevaContrasenia != datos.ConfirmarContrasenia)
+            throw new EntidadInvalidaExcepcion(CambiarContraseniaDto.MensajeContrasenasNoCoinciden);
+
+        if (!usuario.VerificarContrasenia(datos.ContraseniaAnterior))
             throw new EntidadInvalidaExcepcion("La contraseña actual es incorrecta.");
 
-        if (usuario.VerificarContrasenia(nuevaContrasenia))
+        if (usuario.VerificarContrasenia(datos.NuevaContrasenia))
         {
             _auditoria.Registrar(usuario.Email, "CAMBIO_CONTRASENIA_RECHAZADO",
                 $"Intento de reutilizar la contraseña actual: {usuario.Email}");
             throw new EntidadInvalidaExcepcion("La nueva contraseña debe ser diferente de la contraseña actual.");
         }
 
-        usuario.EstablecerContrasenia(nuevaContrasenia);
+        usuario.EstablecerContrasenia(datos.NuevaContrasenia);
         if (_repositorio.ObtenerPorEmail(usuario.Email) != null)
             _repositorio.Actualizar(usuario);
         _auditoria.Registrar(usuario.Email, "CAMBIO_CONTRASENIA", $"Contraseña cambiada para: {usuario.Email}");

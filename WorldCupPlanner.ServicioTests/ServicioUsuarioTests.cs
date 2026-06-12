@@ -387,7 +387,12 @@ public sealed class ServicioUsuarioTests
         usuario.EstablecerContrasenia("ViejaPass@123");
 
         // Act
-        _servicio.CambiarContrasenia(usuario, "ViejaPass@123", "NuevaPass@456");
+        _servicio.CambiarContrasenia(usuario, new CambiarContraseniaDto
+        {
+            ContraseniaAnterior = "ViejaPass@123",
+            NuevaContrasenia = "NuevaPass@456",
+            ConfirmarContrasenia = "NuevaPass@456"
+        });
 
         // Assert
         Assert.IsTrue(usuario.VerificarContrasenia("NuevaPass@456"));
@@ -403,7 +408,12 @@ public sealed class ServicioUsuarioTests
 
         // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            _servicio.CambiarContrasenia(usuario, "IncorrectPass@999", "NuevaPass@456")
+            _servicio.CambiarContrasenia(usuario, new CambiarContraseniaDto
+            {
+                ContraseniaAnterior = "IncorrectPass@999",
+                NuevaContrasenia = "NuevaPass@456",
+                ConfirmarContrasenia = "NuevaPass@456"
+            })
         );
     }
 
@@ -416,7 +426,12 @@ public sealed class ServicioUsuarioTests
 
         // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            _servicio.CambiarContrasenia(usuario, "MismaPass@123", "MismaPass@123")
+            _servicio.CambiarContrasenia(usuario, new CambiarContraseniaDto
+            {
+                ContraseniaAnterior = "MismaPass@123",
+                NuevaContrasenia = "MismaPass@123",
+                ConfirmarContrasenia = "MismaPass@123"
+            })
         );
     }
 
@@ -429,7 +444,12 @@ public sealed class ServicioUsuarioTests
 
         // Act
         var ex = Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            _servicio.CambiarContrasenia(usuario, "MismaPass@123", "MismaPass@123")
+            _servicio.CambiarContrasenia(usuario, new CambiarContraseniaDto
+            {
+                ContraseniaAnterior = "MismaPass@123",
+                NuevaContrasenia = "MismaPass@123",
+                ConfirmarContrasenia = "MismaPass@123"
+            })
         );
 
         // Assert
@@ -448,7 +468,7 @@ public sealed class ServicioUsuarioTests
         usuario.EstablecerContrasenia("MismaPass@123");
 
         // Act
-        try { servicio.CambiarContrasenia(usuario, "MismaPass@123", "MismaPass@123"); } catch (EntidadInvalidaExcepcion) { }
+        try { servicio.CambiarContrasenia(usuario, new CambiarContraseniaDto { ContraseniaAnterior = "MismaPass@123", NuevaContrasenia = "MismaPass@123", ConfirmarContrasenia = "MismaPass@123" }); } catch (EntidadInvalidaExcepcion) { }
 
         // Assert
         Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "CAMBIO_CONTRASENIA_RECHAZADO"),
@@ -463,11 +483,52 @@ public sealed class ServicioUsuarioTests
         usuario.EstablecerContrasenia("MismaPass@123");
 
         // Act
-        try { _servicio.CambiarContrasenia(usuario, "MismaPass@123", "MismaPass@123"); } catch (EntidadInvalidaExcepcion) { }
+        try { _servicio.CambiarContrasenia(usuario, new CambiarContraseniaDto { ContraseniaAnterior = "MismaPass@123", NuevaContrasenia = "MismaPass@123", ConfirmarContrasenia = "MismaPass@123" }); } catch (EntidadInvalidaExcepcion) { }
 
         // Assert — la contraseña original debe seguir siendo válida
         Assert.IsTrue(usuario.VerificarContrasenia("MismaPass@123"),
             "La contraseña no debe haber cambiado tras un intento rechazado.");
+    }
+
+    [TestMethod]
+    public void CambiarContrasenia_ConContrasenasQueNoCoinciden_LanzaExcepcion()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("ViejaPass@123");
+        var dto = new CambiarContraseniaDto
+        {
+            ContraseniaAnterior = "ViejaPass@123",
+            NuevaContrasenia = "NuevaPass@456",
+            ConfirmarContrasenia = "Diferente@789"
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            _servicio.CambiarContrasenia(usuario, dto)
+        );
+    }
+
+    [TestMethod]
+    public void CambiarContrasenia_ConContrasenasQueNoCoinciden_MensajeDeError()
+    {
+        // Arrange
+        var usuario = CrearUsuarioValido("juan@example.com");
+        usuario.EstablecerContrasenia("ViejaPass@123");
+        var dto = new CambiarContraseniaDto
+        {
+            ContraseniaAnterior = "ViejaPass@123",
+            NuevaContrasenia = "NuevaPass@456",
+            ConfirmarContrasenia = "Diferente@789"
+        };
+
+        // Act
+        var ex = Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            _servicio.CambiarContrasenia(usuario, dto)
+        );
+
+        // Assert
+        Assert.AreEqual(CambiarContraseniaDto.MensajeContrasenasNoCoinciden, ex.Message);
     }
 
     [TestMethod]
@@ -1264,7 +1325,12 @@ public sealed class ServicioUsuarioTests
         usuario.MarcarParaCambioForzado();
 
         // Act
-        _servicio.CambiarContrasenia(usuario, "ViejaPass@123", "NuevaPass@456");
+        _servicio.CambiarContrasenia(usuario, new CambiarContraseniaDto
+        {
+            ContraseniaAnterior = "ViejaPass@123",
+            NuevaContrasenia = "NuevaPass@456",
+            ConfirmarContrasenia = "NuevaPass@456"
+        });
 
         // Assert
         Assert.IsFalse(usuario.DebeCambiarContrasenia,

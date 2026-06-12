@@ -102,17 +102,20 @@
         _error = string.Empty;
         _confirmarConError = false;
 
-        if (_nuevaContrasenia != _confirmarContrasenia)
-        {
-            _confirmarConError = true;
-            return;
-        }
-
         try
         {
-            ServicioUsuario.CambiarContrasenia(SesionServicio.UsuarioActual!, _contraseniaActual, _nuevaContrasenia);
+            ServicioUsuario.CambiarContrasenia(SesionServicio.UsuarioActual!, new CambiarContraseniaDto
+            {
+                ContraseniaAnterior = _contraseniaActual,
+                NuevaContrasenia = _nuevaContrasenia,
+                ConfirmarContrasenia = _confirmarContrasenia
+            });
             Toast.Exito("Contraseña cambiada correctamente.");
             NavigationManager.NavigateTo("/");
+        }
+        catch (EntidadInvalidaExcepcion ex) when (ex.Message == CambiarContraseniaDto.MensajeContrasenasNoCoinciden)
+        {
+            _confirmarConError = true;
         }
         catch (Exception ex)
         {
