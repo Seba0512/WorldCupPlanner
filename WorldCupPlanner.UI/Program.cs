@@ -58,6 +58,7 @@ builder.Services.AddScoped<ServicioImportacionLegible>();
 builder.Services.AddScoped<ServicioOrquestadorSimulacion>();
 builder.Services.AddScoped<ServicioOrquestadorFixture>();
 builder.Services.AddScoped<ServicioOrquestadorPartido>();
+builder.Services.AddScoped<ServicioOrquestadorFaseEliminatoria>();
 builder.Services.AddScoped<ServicioDashboard>();
 builder.Services.AddScoped<InicializadorDatos>();
 

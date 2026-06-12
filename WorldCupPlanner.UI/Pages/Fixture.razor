@@ -3,7 +3,6 @@
 @inject ServicioEstadio ServicioEstadio
 @inject ServicioEquipo ServicioEquipo
 @inject ServicioClasificacion ServicioClasificacion
-@inject ServicioCruces ServicioCruces
 @inject EstadoTorneo EstadoTorneo
 @inject ServicioSimulacion ServicioSimulacion
 @inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
@@ -14,6 +13,7 @@
 @inject ServicioRankingDinamico ServicioRankingDinamico
 @inject ServicioOrquestadorSimulacion OrquestadorSimulacion
 @inject ServicioOrquestadorFixture OrquestadorFixture
+@inject ServicioOrquestadorFaseEliminatoria OrquestadorFaseEliminatoria
 @inject SesionServicio SesionServicio
 @inject ToastServicio Toast
 @inject NavigationManager NavigationManager
@@ -901,109 +901,27 @@ else
 
     private async Task GenerarFaseActiva()
     {
-        if (!PuedeModificarTorneo())
-            return;
-
-        switch (_etapaActiva)
-        {
-            case FaseTorneo.PrimeraRondaEliminatoria: GenerarPrimeraRondaEliminatoria(); break;
-            case FaseTorneo.Octavos:                  GenerarOctavos();                  break;
-            case FaseTorneo.Cuartos:                  GenerarCuartos();                  break;
-            case FaseTorneo.Semifinal:                GenerarSemifinales();              break;
-            case FaseTorneo.Final:                    await GenerarFinalYTercerPuesto(); break;
-        }
-    }
-
-    private void GenerarPrimeraRondaEliminatoria()
-    {
-        _error = string.Empty;
-        try
-        {
-            var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
-            var clasificados = ServicioClasificacion.ObtenerClasificadosAFaseEliminatoria(EstadoTorneo.Fixture!, config);
-            var estadios = ServicioEstadio.ObtenerEstadios();
-            var partidos = ServicioCruces.GenerarPrimeraRondaEliminatoria(
-                new ContextoSorteo
-                {
-                    Clasificados = clasificados,
-                    Estadios = estadios,
-                    ConfiguracionTorneo = config,
-                    FechaUltimoPartidoFaseGrupos = EstadoTorneo.Fixture!.Partidos.Max(p => p.Fecha)
-                });
-            EstadoTorneo.EstablecerPartidosEliminatorios(partidos);
-            ServicioPersistenciaFixture.GuardarPartidos(partidos);
-            Toast.Exito("16avos de final generados correctamente.");
-        }
-        catch (Exception ex) { _error = ex.Message; }
-    }
-
-    private void GenerarOctavos()
-    {
-        _error = string.Empty;
-        try
-        {
-            var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
-            var estadios = ServicioEstadio.ObtenerEstadios();
-            var octavos = ServicioCruces.GenerarOctavos(EstadoTorneo.ObtenerPartidosDeFase(FaseTorneo.PrimeraRondaEliminatoria), estadios, config);
-            EstadoTorneo.AgregarPartidosEliminatorios(octavos);
-            ServicioPersistenciaFixture.GuardarPartidos(octavos);
-            Toast.Exito("8avos de final generados correctamente.");
-        }
-        catch (Exception ex) { _error = ex.Message; }
-    }
-
-    private void GenerarCuartos()
-    {
-        _error = string.Empty;
-        try
-        {
-            var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
-            var estadios = ServicioEstadio.ObtenerEstadios();
-            var cuartos = ServicioCruces.GenerarCuartos(EstadoTorneo.ObtenerPartidosDeFase(FaseTorneo.Octavos), estadios, config);
-            EstadoTorneo.AgregarPartidosEliminatorios(cuartos);
-            ServicioPersistenciaFixture.GuardarPartidos(cuartos);
-            Toast.Exito("Cuartos de final generados correctamente.");
-        }
-        catch (Exception ex) { _error = ex.Message; }
-    }
-
-    private void GenerarSemifinales()
-    {
-        _error = string.Empty;
-        try
-        {
-            var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
-            var estadios = ServicioEstadio.ObtenerEstadios();
-            var semifinales = ServicioCruces.GenerarSemifinales(EstadoTorneo.ObtenerPartidosDeFase(FaseTorneo.Cuartos), estadios, config);
-            EstadoTorneo.AgregarPartidosEliminatorios(semifinales);
-            ServicioPersistenciaFixture.GuardarPartidos(semifinales);
-            Toast.Exito("Semifinales generadas correctamente.");
-        }
-        catch (Exception ex) { _error = ex.Message; }
-    }
-
-    private async Task GenerarFinalYTercerPuesto()
-    {
+        if (!PuedeModificarTorneo()) return;
         _error = string.Empty;
         _generando = true;
         StateHasChanged();
+        await Task.Yield();
         try
         {
-            await Task.Yield();
-            var config = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
-            var estadios = ServicioEstadio.ObtenerEstadios();
-            var semifinales = EstadoTorneo.ObtenerPartidosDeFase(FaseTorneo.Semifinal);
-            var existentes = EstadoTorneo.PartidosEliminatorios;
-            var tercerPuesto = ServicioCruces.GenerarTercerPuesto(semifinales, estadios, config, existentes);
-            var final = ServicioCruces.GenerarFinal(semifinales, estadios, config, existentes);
-            EstadoTorneo.AgregarPartidosEliminatorios(new[] { tercerPuesto, final });
-            ServicioPersistenciaFixture.GuardarPartidos(new[] { tercerPuesto, final });
-            Toast.Exito("Final y tercer puesto generados correctamente.");
+            OrquestadorFaseEliminatoria.GenerarFase(_etapaActiva, EstadoTorneo);
+            Toast.Exito(ObtenerMensajeExitoFase(_etapaActiva));
         }
         catch (Exception ex) { _error = ex.Message; }
-        finally
-        {
-            _generando = false;
-        }
+        finally { _generando = false; }
     }
+
+    private static string ObtenerMensajeExitoFase(FaseTorneo fase) => fase switch
+    {
+        FaseTorneo.PrimeraRondaEliminatoria => "16avos de final generados correctamente.",
+        FaseTorneo.Octavos                  => "8avos de final generados correctamente.",
+        FaseTorneo.Cuartos                  => "Cuartos de final generados correctamente.",
+        FaseTorneo.Semifinal                => "Semifinales generadas correctamente.",
+        FaseTorneo.Final                    => "Final y tercer puesto generados correctamente.",
+        _                                   => "Fase eliminatoria generada correctamente."
+    };
 }
