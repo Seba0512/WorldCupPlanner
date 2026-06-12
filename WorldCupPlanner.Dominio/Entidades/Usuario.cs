@@ -10,10 +10,6 @@ public class Usuario
 {
     private const string PatronEmail = @"^[^\s@]+@[^\s@]+\.[^\s@]+$";
     private const string PatronFormatoFecha = @"^\d{2}-\d{2}-\d{4}$";
-    private const string PatronMayuscula = @"[A-Z]";
-    private const string PatronMinuscula = @"[a-z]";
-    private const string PatronNumero = @"[0-9]";
-    private const string PatronEspecial = @"[@#$\.\!\&\*\-_\+=\?]";
 
 
 
@@ -153,31 +149,31 @@ public class Usuario
 
     private static void ValidarLongitudMinima(string contrasenia)
     {
-        if (contrasenia.Length < 8)
+        if (!ValidadorContrasenia.CumpleLongitud(contrasenia))
             throw new ArgumentException("La contrasenia debe tener al menos 8 caracteres.", nameof(contrasenia));
     }
 
     private static void ValidarTieneMayuscula(string contrasenia)
     {
-        if (!Regex.IsMatch(contrasenia, PatronMayuscula))
+        if (!ValidadorContrasenia.CumpleMayuscula(contrasenia))
             throw new ArgumentException("La contrasenia debe incluir al menos una letra mayúscula.", nameof(contrasenia));
     }
 
     private static void ValidarTieneMinuscula(string contrasenia)
     {
-        if (!Regex.IsMatch(contrasenia, PatronMinuscula))
+        if (!ValidadorContrasenia.CumpleMinuscula(contrasenia))
             throw new ArgumentException("La contrasenia debe incluir al menos una letra minúscula.", nameof(contrasenia));
     }
 
     private static void ValidarTieneNumero(string contrasenia)
     {
-        if (!Regex.IsMatch(contrasenia, PatronNumero))
+        if (!ValidadorContrasenia.CumpleNumero(contrasenia))
             throw new ArgumentException("La contrasenia debe incluir al menos un número.", nameof(contrasenia));
     }
 
     private static void ValidarTieneCaracterEspecial(string contrasenia)
     {
-        if (!Regex.IsMatch(contrasenia, PatronEspecial))
+        if (!ValidadorContrasenia.CumpleEspecial(contrasenia))
             throw new ArgumentException("La contrasenia debe incluir al menos un carácter especial (@, #, $, ., !, &, *, -, _, +, =, ?).", nameof(contrasenia));
     }
 
