@@ -5,6 +5,7 @@
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
 
+<GuardiaAdmin>
 <PageTitle>Editar equipo — WorldCupPlanner 2026</PageTitle>
 
 <PageHeader Titulo="Editar equipo" UrlVolver="/equipos" TextoVolver="Volver a equipos" />
@@ -64,6 +65,7 @@
         <a href="/equipos" class="btn btn-secondary">Cancelar</a>
     </div>
 </div>
+</GuardiaAdmin>
 
 @code {
     [Parameter] public string Nombre { get; set; } = string.Empty;
@@ -74,7 +76,6 @@
 
     protected override void OnInitialized()
     {
-        if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
         _equipo = ServicioEquipo.ClonarParaEdicion(Nombre);
         _bandera = _equipo.Bandera;
         _edicionBloqueada = EstadoTorneo.EquipoParticipaEnFixture(_equipo);

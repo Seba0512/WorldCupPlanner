@@ -1,9 +1,8 @@
 @page "/auditoria"
 @inject ServicioAuditoria ServicioAuditoria
-@inject SesionServicio SesionServicio
-@inject NavigationManager NavigationManager
 @inject IJSRuntime JS
 
+<GuardiaAdmin>
 <PageTitle>Auditoría — WorldCupPlanner 2026</PageTitle>
 
 <PageHeader Titulo="Auditoría" Subtitulo="Registro de acciones del sistema">
@@ -59,13 +58,13 @@
         </table>
     }
 </div>
+</GuardiaAdmin>
 
 @code {
     private List<Auditoria> _registros = new();
 
     protected override void OnInitialized()
     {
-        if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
         _registros = ServicioAuditoria.ObtenerTodos();
     }
 

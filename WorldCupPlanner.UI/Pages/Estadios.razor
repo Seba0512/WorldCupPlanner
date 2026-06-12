@@ -2,9 +2,9 @@
 @inject ServicioEstadio ServicioEstadio
 @inject EstadoTorneo EstadoTorneo
 @inject SesionServicio SesionServicio
-@inject NavigationManager NavigationManager
 @inject ToastServicio Toast
 
+<GuardiaAdmin>
 <PageTitle>Estadios — WorldCupPlanner 2026</PageTitle>
 
 <ConfirmDialog @bind-Visible="_confirmarEliminar"
@@ -91,6 +91,7 @@
         </table>
     }
 </div>
+</GuardiaAdmin>
 
 @code {
     private List<Estadio> _estadios = new();
@@ -99,7 +100,6 @@
 
     protected override void OnInitialized()
     {
-        if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
         _estadios = ServicioEstadio.ObtenerEstadios();
     }
 

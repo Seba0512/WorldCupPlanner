@@ -148,13 +148,13 @@ else
         });
 
     private IEnumerable<string> EstadiosDisponibles =>
-        TodosLosPartidos.Select(p => p.Estadio?.Nombre).Where(n => n != null).Distinct().OrderBy(n => n)!;
+        ServicioPartido.ObtenerEstadiosDisponibles(TodosLosPartidos);
 
     private IEnumerable<string> GruposDisponibles =>
-        TodosLosPartidos.Select(p => p.Grupo?.Etiqueta).Where(e => e != null).Distinct().OrderBy(e => e)!;
+        ServicioPartido.ObtenerGruposDisponibles(TodosLosPartidos);
 
     private IEnumerable<FaseTorneo> FasesDisponibles =>
-        TodosLosPartidos.Select(p => p.Fase).Distinct().OrderBy(f => (int)f);
+        ServicioPartido.ObtenerFasesDisponibles(TodosLosPartidos);
 
     private void LimpiarFiltros()
     {

@@ -93,11 +93,11 @@ else
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var (posicion, numeroPosicion) in TablaGrupoSeleccionado.Select((p, i) => (p, i + 1)))
+                                    @foreach (var posicion in TablaGrupoSeleccionado)
                                     {
-                                        <tr style="@TablaGruposHelper.ObtenerEstiloFilaPosicion(numeroPosicion)">
+                                        <tr style="@TablaGruposHelper.ObtenerEstiloFilaPosicion(posicion.Posicion)">
                                             <td>
-                                                <span style="font-weight:700;">@numeroPosicion</span>
+                                                <span style="font-weight:700;">@posicion.Posicion</span>
                                                 @if (posicion.Clasifica)
                                                 {
                                                     <span class="badge badge-green" style="margin-left:6px;">Clasificó</span>

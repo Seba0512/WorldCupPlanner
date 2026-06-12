@@ -5,6 +5,7 @@
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
 
+<GuardiaAdmin>
 <PageTitle>Editar estadio — WorldCupPlanner 2026</PageTitle>
 
 <PageHeader Titulo="Editar estadio" UrlVolver="/estadios" TextoVolver="Volver a estadios" />
@@ -55,6 +56,7 @@
         <a href="/estadios" class="btn btn-secondary">Cancelar</a>
     </div>
 </div>
+</GuardiaAdmin>
 
 @code {
     [Parameter] public string Nombre { get; set; } = string.Empty;
@@ -65,7 +67,6 @@
 
     protected override void OnInitialized()
     {
-        if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
         var original = ServicioEstadio.ObtenerPorNombre(Nombre);
         _estadio = ServicioEstadio.ClonarParaEdicion(Nombre);
         _capacidad = _estadio.Capacidad;

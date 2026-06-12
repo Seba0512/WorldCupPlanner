@@ -5,9 +5,6 @@ namespace WorldCupPlanner.Servicios;
 
 public class ServicioEstadisticasEquipo
 {
-    private const int PuntosPorVictoria = 3;
-    private const int PuntosPorEmpate = 1;
-
     private readonly EstadoTorneo _estadoTorneo;
 
     public ServicioEstadisticasEquipo(EstadoTorneo estadoTorneo)
@@ -72,8 +69,8 @@ public class ServicioEstadisticasEquipo
     private static int CalcularPuntos(int golesPropios, int golesRivales)
     {
         if (golesPropios > golesRivales)
-            return PuntosPorVictoria;
+            return ConstantesTorneo.PuntosPorVictoria;
 
-        return golesPropios == golesRivales ? PuntosPorEmpate : 0;
+        return golesPropios == golesRivales ? ConstantesTorneo.PuntosPorEmpate : 0;
     }
 }

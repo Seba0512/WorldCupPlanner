@@ -1,9 +1,8 @@
 @page "/usuarios"
 @inject ServicioUsuario ServicioUsuario
-@inject SesionServicio SesionServicio
-@inject NavigationManager NavigationManager
 @inject ToastServicio Toast
 
+<GuardiaAdmin>
 <PageTitle>Usuarios — WorldCupPlanner 2026</PageTitle>
 
 <ConfirmDialog @bind-Visible="_confirmarEliminar"
@@ -77,6 +76,7 @@
         </table>
     }
 </div>
+</GuardiaAdmin>
 
 @code {
     private List<Usuario> _usuarios = new();
@@ -85,7 +85,6 @@
 
     protected override void OnInitialized()
     {
-        if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
         _usuarios = ServicioUsuario.ObtenerTodosLosUsuarios();
     }
 

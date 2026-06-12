@@ -1,9 +1,9 @@
 @page "/usuarios/{Email}/reiniciar-contrasenia"
 @inject ServicioUsuario ServicioUsuario
 @inject SesionServicio SesionServicio
-@inject NavigationManager NavigationManager
 @inject ToastServicio Toast
 
+<GuardiaAdmin>
 <PageTitle>Reiniciar contraseña — WorldCupPlanner 2026</PageTitle>
 
 <PageHeader Titulo="Reiniciar contraseña" UrlVolver="/usuarios" TextoVolver="Volver a usuarios" />
@@ -69,6 +69,7 @@
         </div>
     }
 </div>
+</GuardiaAdmin>
 
 @code {
     [Parameter] public string Email { get; set; } = string.Empty;
@@ -80,7 +81,6 @@
 
     protected override void OnInitialized()
     {
-        if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
         _usuario = ServicioUsuario.ObtenerPorEmail(Email);
     }
 

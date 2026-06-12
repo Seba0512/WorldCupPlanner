@@ -631,6 +631,16 @@ public class ServicioFixture
             ? "Jornada simulada correctamente."
             : "Fecha simulada correctamente.";
 
+    public string ObtenerMensajeExitoGeneracionFase(FaseTorneo fase) => fase switch
+    {
+        FaseTorneo.PrimeraRondaEliminatoria => "16avos de final generados correctamente.",
+        FaseTorneo.Octavos                  => "8avos de final generados correctamente.",
+        FaseTorneo.Cuartos                  => "Cuartos de final generados correctamente.",
+        FaseTorneo.Semifinal                => "Semifinales generadas correctamente.",
+        FaseTorneo.Final                    => "Final y tercer puesto generados correctamente.",
+        _                                   => "Fase eliminatoria generada correctamente."
+    };
+
     public bool EsJornadaSeleccionable(int jornada, Fixture? fixture)
     {
         var jornadaPendiente = ObtenerJornadaPendienteActual(fixture);

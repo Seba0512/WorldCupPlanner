@@ -176,6 +176,15 @@ public class ServicioPartido
         }
     }
 
+    public IEnumerable<string> ObtenerEstadiosDisponibles(IEnumerable<Partido> partidos) =>
+        partidos.Select(p => p.Estadio?.Nombre).Where(n => n != null).Distinct().OrderBy(n => n)!;
+
+    public IEnumerable<string> ObtenerGruposDisponibles(IEnumerable<Partido> partidos) =>
+        partidos.Select(p => p.Grupo?.Etiqueta).Where(e => e != null).Distinct().OrderBy(e => e)!;
+
+    public IEnumerable<FaseTorneo> ObtenerFasesDisponibles(IEnumerable<Partido> partidos) =>
+        partidos.Select(p => p.Fase).Distinct().OrderBy(f => (int)f);
+
     public IEnumerable<Partido> FiltrarPartidos(IEnumerable<Partido> partidos, FiltroPartidos filtro)
     {
         return partidos

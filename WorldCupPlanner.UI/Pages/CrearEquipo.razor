@@ -4,6 +4,7 @@
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
 
+<GuardiaAdmin>
 <PageTitle>Nuevo equipo — WorldCupPlanner 2026</PageTitle>
 
 <PageHeader Titulo="Nuevo equipo" UrlVolver="/equipos" TextoVolver="Volver a equipos" />
@@ -57,16 +58,12 @@
         <a href="/equipos" class="btn btn-secondary">Cancelar</a>
     </div>
 </div>
+</GuardiaAdmin>
 
 @code {
     private NuevoEquipoDto _dto = new();
     private string _error = string.Empty;
     private string _bandera = string.Empty;
-
-    protected override void OnInitialized()
-    {
-        if (!SesionServicio.EsAdministrador) NavigationManager.NavigateTo("/");
-    }
 
     private int ObtenerCupo(Confederacion conf) =>
         ServicioEquipo.ObtenerCuposMaximos().GetValueOrDefault(conf, 0);

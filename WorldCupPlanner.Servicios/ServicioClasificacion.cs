@@ -5,9 +5,6 @@ namespace WorldCupPlanner.Servicios;
 
 public class ServicioClasificacion
 {
-    private const int PuntosPorVictoria = 3;
-    private const int PuntosPorEmpate = 1;
-
     public List<PosicionEquipo> CalcularTabla(Grupo grupo)
     {
         return CalcularTabla(grupo, new ConfiguracionTorneo());
@@ -138,20 +135,20 @@ public class ServicioClasificacion
 
         if (golesLocal > golesVisitante)
         {
-            posicionLocal.Puntos += PuntosPorVictoria;
+            posicionLocal.Puntos += ConstantesTorneo.PuntosPorVictoria;
             posicionLocal.PartidosGanados++;
             posicionVisitante.PartidosPerdidos++;
         }
         else if (golesVisitante > golesLocal)
         {
-            posicionVisitante.Puntos += PuntosPorVictoria;
+            posicionVisitante.Puntos += ConstantesTorneo.PuntosPorVictoria;
             posicionVisitante.PartidosGanados++;
             posicionLocal.PartidosPerdidos++;
         }
         else
         {
-            posicionLocal.Puntos += PuntosPorEmpate;
-            posicionVisitante.Puntos += PuntosPorEmpate;
+            posicionLocal.Puntos += ConstantesTorneo.PuntosPorEmpate;
+            posicionVisitante.Puntos += ConstantesTorneo.PuntosPorEmpate;
             posicionLocal.PartidosEmpatados++;
             posicionVisitante.PartidosEmpatados++;
         }

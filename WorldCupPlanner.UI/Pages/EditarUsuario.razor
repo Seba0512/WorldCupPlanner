@@ -4,6 +4,7 @@
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
 
+<GuardiaAdmin>
 <PageTitle>Editar usuario — WorldCupPlanner 2026</PageTitle>
 
 <PageHeader Titulo="Editar usuario" UrlVolver="/usuarios" TextoVolver="Volver a usuarios" />
@@ -86,6 +87,7 @@
         <a href="/usuarios" class="btn btn-secondary">Cancelar</a>
     </div>
 </div>
+</GuardiaAdmin>
 
 @code {
     [Parameter] public string Email { get; set; } = string.Empty;
@@ -103,7 +105,6 @@
 
     protected override void OnInitialized()
     {
-        if (!SesionServicio.EsAdministrador) { NavigationManager.NavigateTo("/"); return; }
         _usuario = ServicioUsuario.ObtenerPorEmail(Email);
         if (_usuario != null)
         {
