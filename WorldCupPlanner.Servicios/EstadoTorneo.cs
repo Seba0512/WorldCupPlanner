@@ -3,11 +3,8 @@ namespace WorldCupPlanner.Servicios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 
-public enum FaseConfiguracionTorneo { Incompleto, ListoParaFixture, FixtureGenerado }
-
 public class EstadoTorneo
 {
-    private const int CantidadEquiposRequeridos = 48;
 
     public Fixture? Fixture { get; set; }
     public List<Partido> PartidosEliminatorios { get; set; } = new();
@@ -111,7 +108,7 @@ public class EstadoTorneo
     public FaseConfiguracionTorneo ObtenerFaseConfiguracion(int cantidadEquiposRegistrados)
     {
         if (Fixture != null) return FaseConfiguracionTorneo.FixtureGenerado;
-        if (cantidadEquiposRegistrados >= CantidadEquiposRequeridos) return FaseConfiguracionTorneo.ListoParaFixture;
+        if (cantidadEquiposRegistrados >= ConstantesTorneo.CantidadEquipos) return FaseConfiguracionTorneo.ListoParaFixture;
         return FaseConfiguracionTorneo.Incompleto;
     }
 

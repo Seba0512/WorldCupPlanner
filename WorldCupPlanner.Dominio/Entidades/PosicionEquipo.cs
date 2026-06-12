@@ -7,7 +7,17 @@ public class PosicionEquipo
 
     public Equipo Equipo { get; set; } = null!;
     public Grupo Grupo { get; set; } = null!;
-    public int Posicion { get; set; }
+    private int _posicion;
+    public int Posicion
+    {
+        get => _posicion;
+        set
+        {
+            if (value < 1)
+                throw new ArgumentOutOfRangeException(nameof(value), "La posición debe ser al menos 1.");
+            _posicion = value;
+        }
+    }
     public bool Clasifica => Posicion > 0 && Posicion <= PosicionesQueClassifican;
     public bool EsTercero => Posicion == PosicionTercero;
     public int PartidosJugados { get; set; }

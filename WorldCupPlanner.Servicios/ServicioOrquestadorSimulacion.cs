@@ -1,4 +1,5 @@
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -40,7 +41,7 @@ public class ServicioOrquestadorSimulacion
             .ToList();
 
         if (!pendientes.Any())
-            throw new InvalidOperationException("No hay partidos pendientes para simular en la fase actual.");
+            throw new EntidadInvalidaExcepcion("No hay partidos pendientes para simular en la fase actual.");
 
         foreach (var partido in pendientes)
         {

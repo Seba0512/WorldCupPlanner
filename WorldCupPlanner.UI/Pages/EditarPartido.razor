@@ -73,7 +73,7 @@ else
         }
     </div>
 
-    @if (_faseBloqueada)
+    @if (EsFaseBloqueadaParaPartidoActual)
     {
         <div class="alert alert-warning">
             <span class="oi oi-warning" aria-hidden="true"></span>
@@ -194,7 +194,7 @@ else
 @code {
     [Parameter] public int Id { get; set; }
     private Partido? _partido;
-    private bool _faseBloqueada;
+    private bool EsFaseBloqueadaParaPartidoActual => _partido != null && ServicioPartido.EsFaseBloqueada(_partido.Fase);
     private List<Estadio> _estadios = new();
     private DateTime _nuevaFecha;
     private string _nombreEstadio = string.Empty;
@@ -224,7 +224,6 @@ else
         _partido  = ServicioPartido.BuscarPartidoPorId(Id);
         if (_partido != null)
         {
-            _faseBloqueada  = ServicioPartido.EsFaseBloqueada(_partido.Fase);
             _nuevaFecha     = _partido.Fecha;
             _nombreEstadio  = _partido.Estadio?.Nombre ?? string.Empty;
             _golesLocal     = _partido.GolesLocal;

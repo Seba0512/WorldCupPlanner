@@ -6,7 +6,7 @@ namespace WorldCupPlanner.Servicios;
 
 public class ServicioFixture
 {
-    private const int CantidadExactaEquipos = 48;
+
     private const int CantidadMinimaEstadios = 4;
     private const int CantidadGrupos = 12;
     private const int CantidadEquiposPorGrupo = 4;
@@ -94,14 +94,14 @@ public class ServicioFixture
 
     private void ValidarCantidadExactaDeEquipos(List<Equipo> equipos)
     {
-        if (equipos.Count < CantidadExactaEquipos)
+        if (equipos.Count < ConstantesTorneo.CantidadEquipos)
         {
-            int faltantes = CantidadExactaEquipos - equipos.Count;
+            int faltantes = ConstantesTorneo.CantidadEquipos - equipos.Count;
             throw new EntidadInvalidaExcepcion(
                 $"No es posible generar el fixture. Faltan {faltantes} equipo(s) por registrar o completar.");
         }
 
-        if (equipos.Count > CantidadExactaEquipos)
+        if (equipos.Count > ConstantesTorneo.CantidadEquipos)
         {
             throw new EntidadInvalidaExcepcion("No se puede generar el fixture con más de 48 equipos.");
         }
