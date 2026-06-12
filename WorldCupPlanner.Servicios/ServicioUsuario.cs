@@ -18,6 +18,33 @@ public class ServicioUsuario
         _autorizacion = autorizacion ?? new ServicioAutorizacion();
     }
 
+    private const string FormatoFechaNacimiento = "MM-dd-yyyy";
+
+    public void CrearUsuario(NuevoUsuarioDto dto, string? ejecutadoPor = null, Usuario? solicitante = null)
+    {
+        if (solicitante != null)
+            _autorizacion.VerificarEsAdministrador(solicitante);
+
+        if (dto.Contrasenia != dto.ConfirmarContrasenia)
+            throw new EntidadInvalidaExcepcion("Las contraseñas no coinciden.");
+
+        var datos = new DatosUsuario
+        {
+            Nombre = dto.Nombre,
+            Apellido = dto.Apellido,
+            Email = dto.Email.Trim(),
+            FechaNacimiento = dto.FechaNacimiento.ToString(FormatoFechaNacimiento)
+        };
+
+        var usuario = new Usuario(datos);
+        usuario.EstablecerContrasenia(dto.Contrasenia);
+
+        foreach (var rol in dto.Roles)
+            usuario.AgregarRol(rol);
+
+        AgregarUsuario(usuario, ejecutadoPor);
+    }
+
     public void AgregarUsuario(Usuario usuario, string? ejecutadoPor = null, Usuario? solicitante = null)
     {
         if (solicitante != null)

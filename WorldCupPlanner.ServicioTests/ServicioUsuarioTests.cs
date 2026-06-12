@@ -1271,6 +1271,151 @@ public sealed class ServicioUsuarioTests
             "Cambiar contraseña debe limpiar el flag de cambio forzado.");
     }
 
+    // --- CrearUsuario ---
+
+    [TestMethod]
+    public void CrearUsuario_ConDatosValidos_CreaElUsuario()
+    {
+        // Arrange
+        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
+
+        // Act
+        _servicio.CrearUsuario(dto);
+
+        // Assert
+        var usuarios = _servicio.ObtenerTodosLosUsuarios();
+        Assert.AreEqual(1, usuarios.Count);
+        Assert.AreEqual("nuevo@example.com", usuarios[0].Email);
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConContrasenasQueNoCoinciden_LanzaExcepcion()
+    {
+        // Arrange
+        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
+        dto.ConfirmarContrasenia = "OtraPass@999";
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.CrearUsuario(dto));
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConContrasenasQueNoCoinciden_MensajeDeErrorAmigable()
+    {
+        // Arrange
+        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
+        dto.ConfirmarContrasenia = "OtraPass@999";
+
+        // Act
+        var ex = Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.CrearUsuario(dto));
+
+        // Assert
+        Assert.AreEqual("Las contraseñas no coinciden.", ex.Message);
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConEmailDuplicado_LanzaExcepcion()
+    {
+        // Arrange
+        var dto1 = CrearNuevoUsuarioDtoValido("nuevo@example.com");
+        _servicio.CrearUsuario(dto1);
+        var dto2 = CrearNuevoUsuarioDtoValido("nuevo@example.com");
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.CrearUsuario(dto2));
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConRolesExplicitos_AsignaRolesCorrectamente()
+    {
+        // Arrange
+        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
+        dto.Roles = new[] { RolUsuario.AdministradorDelSistema, RolUsuario.Editor };
+
+        // Act
+        _servicio.CrearUsuario(dto);
+
+        // Assert
+        var usuario = _servicio.ObtenerTodosLosUsuarios()[0];
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.AdministradorDelSistema));
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void CrearUsuario_SinRoles_AsignaRolEditorPorDefecto()
+    {
+        // Arrange
+        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
+        dto.Roles = Enumerable.Empty<RolUsuario>();
+
+        // Act
+        _servicio.CrearUsuario(dto);
+
+        // Assert
+        var usuario = _servicio.ObtenerTodosLosUsuarios()[0];
+        Assert.IsTrue(usuario.TieneRol(RolUsuario.Editor));
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConFechaNacimiento_GuardaFechaCorrectamente()
+    {
+        // Arrange
+        var fechaEsperada = new DateTime(1990, 3, 15);
+        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
+        dto.FechaNacimiento = fechaEsperada;
+
+        // Act
+        _servicio.CrearUsuario(dto);
+
+        // Assert
+        var usuario = _servicio.ObtenerTodosLosUsuarios()[0];
+        Assert.AreEqual(fechaEsperada, usuario.FechaNacimiento);
+    }
+
+    [TestMethod]
+    public void CrearUsuario_ConContraseniaValida_EstableceContraseniaCifrada()
+    {
+        // Arrange
+        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
+
+        // Act
+        _servicio.CrearUsuario(dto);
+
+        // Assert
+        var usuario = _servicio.ObtenerTodosLosUsuarios()[0];
+        Assert.IsNotNull(usuario.ContraseniaCifrada);
+        Assert.IsTrue(usuario.VerificarContrasenia(dto.Contrasenia));
+    }
+
+    [TestMethod]
+    public void CrearUsuario_RegistraAltaEnAuditoria()
+    {
+        // Arrange
+        var repoAuditoria = new RepositorioAuditoriaFake();
+        var auditoria = new ServicioAuditoria(repoAuditoria);
+        var repositorio = new RepositorioUsuarioStub();
+        var servicio = new ServicioUsuario(repositorio, auditoria);
+        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
+
+        // Act
+        servicio.CrearUsuario(dto);
+
+        // Assert
+        Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "ALTA_USUARIO"),
+            "Debe registrarse ALTA_USUARIO en auditoría al crear un usuario.");
+    }
+
+    private static NuevoUsuarioDto CrearNuevoUsuarioDtoValido(string email) => new()
+    {
+        Nombre = "Juan",
+        Apellido = "Pérez",
+        Email = email,
+        FechaNacimiento = new DateTime(1990, 1, 1),
+        Contrasenia = "Pass@12345",
+        ConfirmarContrasenia = "Pass@12345",
+        Roles = new[] { RolUsuario.Editor }
+    };
+
     private static Usuario CrearUsuarioConRol(RolUsuario rol)
     {
         var usuario = CrearUsuarioValido($"{rol.ToString().ToLower()}@example.com");
