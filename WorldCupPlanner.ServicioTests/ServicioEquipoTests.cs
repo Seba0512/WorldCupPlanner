@@ -992,6 +992,80 @@ public class ServicioEquipoTests
             FechaNacimiento = "01-01-1990"
         });
     }
+
+    // --- Crear (NuevoEquipoDto) ---
+
+    [TestMethod]
+    public void Crear_ConDatosValidos_AgregaEquipo()
+    {
+        // Arrange
+        var dto = new NuevoEquipoDto
+        {
+            Nombre = "Uruguay",
+            Confederacion = Confederacion.CONMEBOL,
+            RankingFIFA = 1000
+        };
+
+        // Act
+        _servicio.Crear(dto);
+
+        // Assert
+        Assert.AreEqual(1, _servicio.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
+    public void Crear_ConDatosValidos_AgregaEquipoConPropiedadesCorrectas()
+    {
+        // Arrange
+        var dto = new NuevoEquipoDto
+        {
+            Nombre = "Uruguay",
+            Confederacion = Confederacion.CONMEBOL,
+            RankingFIFA = 1000,
+            Bandera = "data:image/png;base64,abc"
+        };
+
+        // Act
+        _servicio.Crear(dto);
+
+        // Assert
+        var equipo = _servicio.Buscar(_ => true).Single();
+        Assert.AreEqual("Uruguay", equipo.Nombre);
+        Assert.AreEqual(Confederacion.CONMEBOL, equipo.Confederacion);
+        Assert.AreEqual(1000, equipo.RankingFIFA);
+        Assert.AreEqual("data:image/png;base64,abc", equipo.Bandera);
+    }
+
+    [TestMethod]
+    public void Crear_ConNombreDuplicado_LanzaExcepcion()
+    {
+        // Arrange
+        _servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
+        var dto = new NuevoEquipoDto
+        {
+            Nombre = "Uruguay",
+            Confederacion = Confederacion.CONMEBOL,
+            RankingFIFA = 1200
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.Crear(dto));
+    }
+
+    [TestMethod]
+    public void Crear_ConDatosInvalidos_LanzaExcepcion()
+    {
+        // Arrange
+        var dto = new NuevoEquipoDto
+        {
+            Nombre = "",
+            Confederacion = Confederacion.UEFA,
+            RankingFIFA = 1000
+        };
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.Crear(dto));
+    }
 }
 
 file sealed class RepositorioEquipoStub : IRepositorio<Equipo>
