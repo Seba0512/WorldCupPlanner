@@ -109,6 +109,12 @@ public class ServicioEstadio
         return _repositorioEstadio.Buscar(_ => true);
     }
 
+    public Estadio ObtenerPorNombre(string nombre)
+    {
+        return _repositorioEstadio.Buscar(e => NombresIguales(e.Nombre, nombre)).FirstOrDefault()
+            ?? throw new EntidadInexistenteExcepcion($"No existe un estadio con el nombre '{nombre}'.");
+    }
+
     private void ValidarEstadioNoEstaEnFixture(Estadio estadio)
     {
         if (EstadioEstaEnFixture(estadio))

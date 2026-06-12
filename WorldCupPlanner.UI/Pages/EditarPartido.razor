@@ -237,11 +237,10 @@ else
         try
         {
             if (_partido == null) return;
-            var estadio = _estadios.First(e => e.Nombre == _nombreEstadio);
             OrquestadorPartido.GuardarCambiosPartido(
                 _partido.Id,
                 _nuevaFecha,
-                estadio,
+                _nombreEstadio,
                 _golesLocal,
                 _golesVisitante,
                 SesionServicio.UsuarioActual,

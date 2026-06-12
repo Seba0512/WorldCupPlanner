@@ -9,30 +9,34 @@ public class ServicioOrquestadorPartido
     private readonly ServicioNotificacion _notificacion;
     private readonly ServicioUsuario _usuario;
     private readonly ServicioRankingDinamico _rankingDinamico;
+    private readonly ServicioEstadio _estadio;
 
     public ServicioOrquestadorPartido(
         ServicioPartido partido,
         ServicioConfiguracionTorneo configuracion,
         ServicioNotificacion notificacion,
         ServicioUsuario usuario,
-        ServicioRankingDinamico rankingDinamico)
+        ServicioRankingDinamico rankingDinamico,
+        ServicioEstadio estadio)
     {
         _partido = partido;
         _configuracion = configuracion;
         _notificacion = notificacion;
         _usuario = usuario;
         _rankingDinamico = rankingDinamico;
+        _estadio = estadio;
     }
 
     public void GuardarCambiosPartido(
         int partidoId,
         DateTime nuevaFecha,
-        Estadio estadio,
+        string nombreEstadio,
         int? golesLocal,
         int? golesVisitante,
         Usuario? usuarioActual,
         EstadoTorneo estadoTorneo)
     {
+        var estadio = _estadio.ObtenerPorNombre(nombreEstadio);
         _partido.EditarFechaYEstadio(partidoId, nuevaFecha, estadio);
 
         if (golesLocal.HasValue && golesVisitante.HasValue)

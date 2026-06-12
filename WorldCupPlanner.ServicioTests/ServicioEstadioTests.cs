@@ -644,6 +644,45 @@ public class ServicioEstadioTests
             FechaNacimiento = "01-01-1990"
         });
     }
+
+    // --- ObtenerPorNombre ---
+
+    [TestMethod]
+    public void ObtenerPorNombre_ConNombreExistente_DevuelveEstadio()
+    {
+        // Arrange
+        _servicio.AgregarEstadio(CrearEstadio("Estadio Centenario"));
+
+        // Act
+        var resultado = _servicio.ObtenerPorNombre("Estadio Centenario");
+
+        // Assert
+        Assert.AreEqual("Estadio Centenario", resultado.Nombre);
+    }
+
+    [TestMethod]
+    public void ObtenerPorNombre_ConNombreInexistente_LanzaExcepcion()
+    {
+        // Arrange — repositorio vacío
+
+        // Act & Assert
+        Assert.ThrowsException<EntidadInexistenteExcepcion>(() =>
+            _servicio.ObtenerPorNombre("No Existe")
+        );
+    }
+
+    [TestMethod]
+    public void ObtenerPorNombre_ConDistintasMayusculas_DevuelveEstadio()
+    {
+        // Arrange
+        _servicio.AgregarEstadio(CrearEstadio("Estadio Centenario"));
+
+        // Act
+        var resultado = _servicio.ObtenerPorNombre("estadio centenario");
+
+        // Assert
+        Assert.AreEqual("Estadio Centenario", resultado.Nombre);
+    }
 }
 
 file sealed class RepositorioEstadioStub : IRepositorio<Estadio>
