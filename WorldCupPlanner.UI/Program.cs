@@ -47,6 +47,7 @@ builder.Services.AddSingleton<EstadoTorneo>();
 builder.Services.AddSingleton<ServicioConsultasTorneo>();
 builder.Services.AddScoped<ControladorConsultasTorneo>();
 builder.Services.AddSingleton<ServicioEstadisticasEquipo>();
+builder.Services.AddScoped<ControladorEstadisticasEquipo>();
 builder.Services.AddScoped<ServicioPersistenciaFixture>();
 builder.Services.AddScoped<IProveedorPartidos, ProveedorPartidosRepositorio>();
 builder.Services.AddScoped<ServicioPartido>();
