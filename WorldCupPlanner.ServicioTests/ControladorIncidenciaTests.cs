@@ -1,0 +1,122 @@
+using WorldCupPlanner.AccesoADatos.Interfaces;
+using WorldCupPlanner.Controladores;
+using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
+using WorldCupPlanner.Servicios;
+
+namespace WorldCupPlanner.ServicioTests;
+
+[TestClass]
+public class ControladorIncidenciaTests
+{
+    [TestMethod]
+    public void AgregarTarjeta_DelegaEnServicio()
+    {
+        var repositorio = new RepositorioIncidenciaControladorFake();
+        var controlador = CrearControlador(repositorio);
+
+        controlador.AgregarTarjeta(10, TipoTarjeta.Amarilla, 25, CrearEquipo("Uruguay"));
+
+        var incidencias = controlador.ObtenerIncidencias(10);
+        Assert.AreEqual(1, incidencias.Count);
+        Assert.IsInstanceOfType(incidencias[0], typeof(TarjetaAmarilla));
+        Assert.AreEqual(25, incidencias[0].MinutoDelPartido);
+        Assert.AreEqual("Uruguay", incidencias[0].Equipo!.Nombre);
+    }
+
+    [TestMethod]
+    public void AgregarTarjeta_ConMinutoInvalido_MantieneValidacionDelServicio()
+    {
+        var controlador = CrearControlador(new RepositorioIncidenciaControladorFake());
+
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            controlador.AgregarTarjeta(10, TipoTarjeta.Roja, 91, CrearEquipo("Brasil")));
+    }
+
+    [TestMethod]
+    public void ObtenerIncidencias_DevuelveSoloLasDelPartido()
+    {
+        var repositorio = new RepositorioIncidenciaControladorFake();
+        var controlador = CrearControlador(repositorio);
+        controlador.AgregarTarjeta(1, TipoTarjeta.Amarilla, 20, CrearEquipo("A"));
+        controlador.AgregarTarjeta(1, TipoTarjeta.Roja, 70, CrearEquipo("B"));
+        controlador.AgregarTarjeta(2, TipoTarjeta.Amarilla, 30, CrearEquipo("C"));
+
+        var incidencias = controlador.ObtenerIncidencias(1);
+
+        Assert.AreEqual(2, incidencias.Count);
+        Assert.IsTrue(incidencias.All(i => i.PartidoId == 1));
+    }
+
+    [TestMethod]
+    public void EliminarIncidencia_DelegaEnServicio()
+    {
+        var repositorio = new RepositorioIncidenciaControladorFake();
+        var controlador = CrearControlador(repositorio);
+        controlador.AgregarTarjeta(1, TipoTarjeta.Amarilla, 20, CrearEquipo("A"));
+        var incidenciaId = controlador.ObtenerIncidencias(1).Single().Id;
+
+        controlador.EliminarIncidencia(incidenciaId);
+
+        Assert.AreEqual(0, controlador.ObtenerIncidencias(1).Count);
+    }
+
+    [TestMethod]
+    public void ResolverEquipoPorRol_DelegaResolucionDelServicio()
+    {
+        var controlador = CrearControlador(new RepositorioIncidenciaControladorFake());
+        var local = CrearEquipo("Local");
+        var visitante = CrearEquipo("Visitante");
+        var partido = new Partido { EquipoLocal = local, EquipoVisitante = visitante };
+
+        Assert.AreSame(local, controlador.ResolverEquipoPorRol(partido, "Local"));
+        Assert.AreSame(visitante, controlador.ResolverEquipoPorRol(partido, "Visitante"));
+    }
+
+    private static ControladorIncidencia CrearControlador(IRepositorioIncidencia repositorio)
+    {
+        var servicio = new ServicioIncidencia(repositorio);
+        return new ControladorIncidencia(servicio);
+    }
+
+    private static Equipo CrearEquipo(string nombre) => new()
+    {
+        Nombre = nombre,
+        Confederacion = Confederacion.CONMEBOL,
+        RankingFIFA = 1200
+    };
+}
+
+file sealed class RepositorioIncidenciaControladorFake : IRepositorioIncidencia
+{
+    private readonly List<Incidencia> _incidencias = new();
+    private int _siguienteId = 1;
+
+    public void Agregar(Incidencia entidad)
+    {
+        entidad.Id = _siguienteId++;
+        _incidencias.Add(entidad);
+    }
+
+    public void Actualizar(Incidencia entidad)
+    {
+        var indice = _incidencias.FindIndex(i => i.Id == entidad.Id);
+        if (indice == -1)
+            throw new EntidadInexistenteExcepcion("La incidencia no existe.");
+        _incidencias[indice] = entidad;
+    }
+
+    public void Eliminar(Incidencia entidad)
+    {
+        var existente = _incidencias.FirstOrDefault(i => i.Id == entidad.Id)
+            ?? throw new EntidadInexistenteExcepcion("La incidencia no existe.");
+        _incidencias.Remove(existente);
+    }
+
+    public List<Incidencia> Buscar(Func<Incidencia, bool> predicado) =>
+        _incidencias.Where(predicado).ToList();
+
+    public List<Incidencia> ObtenerPorPartido(int partidoId) =>
+        _incidencias.Where(i => i.PartidoId == partidoId).ToList();
+}

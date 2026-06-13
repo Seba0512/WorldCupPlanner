@@ -5,6 +5,7 @@ namespace WorldCupPlanner.Dominio.DTO;
 
 public class UsuarioDTO
 {
+    public int Id { get; set; }
     public string Nombre { get; set; } = string.Empty;
     public string Apellido { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
@@ -12,33 +13,13 @@ public class UsuarioDTO
     public bool DebeCambiarContrasenia { get; set; }
     public List<RolUsuario> Roles { get; set; } = [];
 
-    public Usuario ToEntity()
-    {
-        var usuario = new Usuario(new DatosUsuario
-        {
-            Nombre = Nombre,
-            Apellido = Apellido,
-            Email = Email,
-            FechaNacimiento = FechaNacimiento
-        });
-
-        foreach (var rol in Roles ?? [])
-        {
-            usuario.AgregarRol(rol);
-        }
-
-        if (DebeCambiarContrasenia)
-            usuario.MarcarParaCambioForzado();
-
-        return usuario;
-    }
-
     public static UsuarioDTO FromEntity(Usuario usuario)
     {
         ArgumentNullException.ThrowIfNull(usuario);
 
         return new UsuarioDTO
         {
+            Id = usuario.Id,
             Nombre = usuario.Nombre,
             Apellido = usuario.Apellido,
             Email = usuario.Email,
