@@ -36,6 +36,7 @@ builder.Services.AddScoped<ServicioEquipo>(sp =>
 builder.Services.AddScoped<ControladorEquipo>();
 builder.Services.AddSingleton<ServicioFixture>();
 builder.Services.AddSingleton<ServicioClasificacion>();
+builder.Services.AddScoped<ControladorClasificacion>();
 builder.Services.AddSingleton<ServicioCruces>();
 builder.Services.AddScoped<ServicioSimulacion>();
 builder.Services.AddScoped<IRepositorioConfiguracionTorneo, RepositorioConfiguracionTorneoSql>();
