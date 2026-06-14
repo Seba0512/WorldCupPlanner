@@ -76,6 +76,7 @@ builder.Services.AddScoped<ControladorSimulacion>();
 builder.Services.AddScoped<ServicioOrquestadorFixture>();
 builder.Services.AddScoped<ServicioOrquestadorPartido>();
 builder.Services.AddScoped<ServicioOrquestadorFaseEliminatoria>();
+builder.Services.AddScoped<ControladorFaseEliminatoria>();
 builder.Services.AddScoped<ServicioDashboard>();
 builder.Services.AddScoped<ControladorDashboard>();
 builder.Services.AddScoped<InicializadorDatos>();
