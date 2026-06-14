@@ -1,8 +1,9 @@
 @page "/importar"
-@inject ServicioImportacionLegible ServicioImportacionLegible
-@inject ServicioEquipo ServicioEquipo
+@using WorldCupPlanner.Controladores
+@inject ControladorImportacion ControladorImportacion
+@inject ControladorEquipo ControladorEquipo
 @inject EstadoTorneo EstadoTorneo
-@inject ServicioConsultasTorneo ServicioConsultasTorneo
+@inject ControladorConsultasTorneo ControladorConsultasTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 
@@ -165,11 +166,11 @@
 
     private void ActualizarEstado()
     {
-        _equipos = ServicioEquipo.Buscar(_ => true);
-        _equiposFaltantes = ServicioEquipo.ObtenerCantidadFaltante(_equipos.Count);
-        _cuposPorConfederacion = ServicioEquipo.ObtenerCuposConOcupacion(_equipos);
+        _equipos = ControladorEquipo.Buscar(_ => true);
+        _equiposFaltantes = ControladorEquipo.ObtenerCantidadFaltante(_equipos.Count);
+        _cuposPorConfederacion = ControladorEquipo.ObtenerCuposConOcupacion(_equipos);
 
-        var fase = ServicioConsultasTorneo.ObtenerFaseConfiguracion(EstadoTorneo, _equipos.Count);
+        var fase = ControladorConsultasTorneo.ObtenerFaseConfiguracion(EstadoTorneo, _equipos.Count);
         (_estadoTexto, _estadoBadgeClase) = fase switch
         {
             FaseConfiguracionTorneo.FixtureGenerado    => ("Fixture generado",           "badge-success"),
@@ -198,7 +199,7 @@
             using var memoryStream = new MemoryStream();
             await browserStream.CopyToAsync(memoryStream);
             memoryStream.Position = 0;
-            _resultado = ServicioImportacionLegible.Importar(memoryStream, ServicioEquipo, SesionServicio.UsuarioActual);
+            _resultado = ControladorImportacion.Importar(memoryStream, SesionServicio.UsuarioActual);
             ActualizarEstado();
         }
         catch (Exception ex)
