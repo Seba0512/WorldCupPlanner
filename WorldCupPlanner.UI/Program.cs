@@ -35,6 +35,7 @@ builder.Services.AddScoped<ServicioEquipo>(sp =>
         repositorioGrupo: sp.GetRequiredService<IRepositorio<Grupo>>()));
 builder.Services.AddScoped<ControladorEquipo>();
 builder.Services.AddSingleton<ServicioFixture>();
+builder.Services.AddScoped<ControladorFixture>();
 builder.Services.AddSingleton<ServicioClasificacion>();
 builder.Services.AddScoped<ControladorClasificacion>();
 builder.Services.AddSingleton<ServicioCruces>();
