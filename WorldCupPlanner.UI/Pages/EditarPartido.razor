@@ -1,10 +1,9 @@
 @page "/partidos/{Id:int}/editar"
-@inject ServicioPartido ServicioPartido
-@inject ServicioEstadio ServicioEstadio
-@inject ServicioIncidencia ServicioIncidencia
-@inject ServicioPersistenciaFixture ServicioPersistenciaFixture
+@using WorldCupPlanner.Controladores
+@inject ControladorPartido ControladorPartido
+@inject ControladorEstadio ControladorEstadio
+@inject ControladorIncidencia ControladorIncidencia
 @inject EstadoTorneo EstadoTorneo
-@inject ServicioOrquestadorPartido OrquestadorPartido
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
@@ -194,7 +193,7 @@ else
 @code {
     [Parameter] public int Id { get; set; }
     private Partido? _partido;
-    private bool EsFaseBloqueadaParaPartidoActual => _partido != null && ServicioPartido.EsFaseBloqueada(_partido.Fase);
+    private bool EsFaseBloqueadaParaPartidoActual => _partido != null && ControladorPartido.EsFaseBloqueada(_partido.Fase);
     private List<Estadio> _estadios = new();
     private DateTime _nuevaFecha;
     private string _nombreEstadio = string.Empty;
@@ -220,15 +219,15 @@ else
             return;
         }
 
-        _estadios = ServicioEstadio.ObtenerEstadios();
-        _partido  = ServicioPartido.BuscarPartidoPorId(Id);
+        _estadios = ControladorEstadio.Listar();
+        _partido  = ControladorPartido.BuscarPartidoPorId(Id);
         if (_partido != null)
         {
             _nuevaFecha     = _partido.Fecha;
             _nombreEstadio  = _partido.Estadio?.Nombre ?? string.Empty;
             _golesLocal     = _partido.GolesLocal;
             _golesVisitante = _partido.GolesVisitante;
-            _incidencias    = ServicioIncidencia.ObtenerIncidencias(Id);
+            _incidencias    = ControladorIncidencia.ObtenerIncidencias(Id);
         }
     }
 
@@ -238,7 +237,7 @@ else
         try
         {
             if (_partido == null) return;
-            OrquestadorPartido.GuardarCambiosPartido(
+            ControladorPartido.GuardarCambiosPartido(
                 _partido.Id,
                 _nuevaFecha,
                 _nombreEstadio,
@@ -258,10 +257,8 @@ else
         _error = string.Empty;
         try
         {
-            ServicioPersistenciaFixture.GuardarPartidos(new[] { _partido });
-            var equipo = ServicioIncidencia.ResolverEquipoPorRol(_partido, _equipoTarjeta);
-            ServicioIncidencia.AgregarTarjeta(_partido.Id, _tipoTarjeta, _minutoTarjeta, equipo);
-            _incidencias = ServicioIncidencia.ObtenerIncidencias(_partido.Id);
+            ControladorIncidencia.AgregarTarjetaAPartido(_partido, _equipoTarjeta, _tipoTarjeta, _minutoTarjeta);
+            _incidencias = ControladorIncidencia.ObtenerIncidencias(_partido.Id);
         }
         catch (Exception ex) { _error = ex.Message; }
     }
@@ -271,8 +268,8 @@ else
         _error = string.Empty;
         try
         {
-            ServicioIncidencia.EliminarIncidencia(id);
-            _incidencias = ServicioIncidencia.ObtenerIncidencias(_partido!.Id);
+            ControladorIncidencia.EliminarIncidencia(id);
+            _incidencias = ControladorIncidencia.ObtenerIncidencias(_partido!.Id);
         }
         catch (Exception ex) { _error = ex.Message; }
     }

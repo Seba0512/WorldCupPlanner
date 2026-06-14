@@ -1,19 +1,11 @@
 @page "/fixture"
-@inject ServicioFixture ServicioFixture
-@inject ServicioEstadio ServicioEstadio
-@inject ServicioEquipo ServicioEquipo
-@inject ServicioClasificacion ServicioClasificacion
+@using WorldCupPlanner.Controladores
+@inject ControladorFixture ControladorFixture
+@inject ControladorClasificacion ControladorClasificacion
 @inject EstadoTorneo EstadoTorneo
-@inject ServicioSimulacion ServicioSimulacion
-@inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
-@inject ServicioPersistenciaFixture ServicioPersistenciaFixture
-@inject ServicioNotificacion ServicioNotificacion
-@inject ServicioIncidencia ServicioIncidencia
-@inject ServicioUsuario ServicioUsuario
-@inject ServicioRankingDinamico ServicioRankingDinamico
-@inject ServicioOrquestadorSimulacion OrquestadorSimulacion
-@inject ServicioOrquestadorFixture OrquestadorFixture
-@inject ServicioOrquestadorFaseEliminatoria OrquestadorFaseEliminatoria
+@inject ControladorSimulacion ControladorSimulacion
+@inject ControladorConfiguracionTorneo ControladorConfiguracionTorneo
+@inject ControladorFaseEliminatoria ControladorFaseEliminatoria
 @inject SesionServicio SesionServicio
 @inject ToastServicio Toast
 @inject NavigationManager NavigationManager
@@ -27,7 +19,7 @@
             @if (_etapaActiva != FaseTorneo.FaseDeGrupos)
             {
                 <button class="btn btn-primary btn-sm"
-                        disabled="@(ServicioFixture.FaseYaGenerada(_etapaActiva, EstadoTorneo) || !ServicioFixture.PuedeGenerarFase(_etapaActiva, EstadoTorneo) || _generando)"
+                        disabled="@(ControladorFixture.FaseYaGenerada(_etapaActiva, EstadoTorneo) || !ControladorFixture.PuedeGenerarFase(_etapaActiva, EstadoTorneo) || _generando)"
                         @onclick="GenerarFaseActiva">
                     @if (_generando)
                     {
@@ -37,7 +29,7 @@
                     else
                     {
                         <span class="oi oi-cog" aria-hidden="true"></span>
-                        <span>@(ServicioFixture.FaseYaGenerada(_etapaActiva, EstadoTorneo) ? "Cruces generados" : "Generar Cruces")</span>
+                        <span>@(ControladorFixture.FaseYaGenerada(_etapaActiva, EstadoTorneo) ? "Cruces generados" : "Generar Cruces")</span>
                     }
                 </button>
             }
@@ -48,9 +40,9 @@
                             style="width:auto"
                             @bind="_jornadaActiva"
                             disabled="@(!EsEtapaActivaSimulable)">
-                        <option value="@ServicioFixture.PrimeraJornada" disabled="@(!ServicioFixture.EsJornadaSeleccionable(ServicioFixture.PrimeraJornada, EstadoTorneo.Fixture))">Jornada 1</option>
-                        <option value="@ServicioFixture.SegundaJornada" disabled="@(!ServicioFixture.EsJornadaSeleccionable(ServicioFixture.SegundaJornada, EstadoTorneo.Fixture))">Jornada 2</option>
-                        <option value="@ServicioFixture.TerceraJornada" disabled="@(!ServicioFixture.EsJornadaSeleccionable(ServicioFixture.TerceraJornada, EstadoTorneo.Fixture))">Jornada 3</option>
+                        <option value="@ServicioFixture.PrimeraJornada" disabled="@(!ControladorFixture.EsJornadaSeleccionable(ServicioFixture.PrimeraJornada, EstadoTorneo.Fixture))">Jornada 1</option>
+                        <option value="@ServicioFixture.SegundaJornada" disabled="@(!ControladorFixture.EsJornadaSeleccionable(ServicioFixture.SegundaJornada, EstadoTorneo.Fixture))">Jornada 2</option>
+                        <option value="@ServicioFixture.TerceraJornada" disabled="@(!ControladorFixture.EsJornadaSeleccionable(ServicioFixture.TerceraJornada, EstadoTorneo.Fixture))">Jornada 3</option>
                     </select>
                 }
                 <button class="btn btn-warning"
@@ -106,7 +98,7 @@
                         }
                     </div>
                     @{
-                        var configActual = ServicioConfiguracionTorneo.ObtenerConfiguracionActual();
+                        var configActual = ControladorConfiguracionTorneo.ObtenerConfiguracionActual();
                     }
                     <div style="font-size:13px; color:var(--text-secondary);">
                         Semilla: <strong>@configActual.SemillaFixture</strong> —
@@ -118,7 +110,7 @@
                         <select class="form-select"
                                 @bind="_motorSimulacionSeleccionado"
                                 disabled="@(!SesionServicio.PuedeEditarPartidos)">
-                            @foreach (var motor in ServicioSimulacion.ObtenerMotoresDisponibles())
+                            @foreach (var motor in ControladorSimulacion.ObtenerMotoresDisponibles())
                             {
                                 <option value="@motor.Tipo">@motor.Nombre</option>
                             }
@@ -205,7 +197,7 @@ else
                 <tr><td>Semilla completar</td><td>@ConfiguracionUsadaParaFixture.SemillaCompletar</td></tr>
                 <tr><td>Semilla cruces</td><td>@ConfiguracionUsadaParaFixture.SemillaCrucesFase</td></tr>
                 <tr><td>Semilla simulacion</td><td>@ConfiguracionUsadaParaFixture.SemillaSimulation</td></tr>
-                <tr><td>Motor simulacion</td><td>@ServicioSimulacion.ObtenerNombreMotor(ConfiguracionUsadaParaFixture.MotorSimulacion)</td></tr>
+                <tr><td>Motor simulacion</td><td>@ControladorSimulacion.ObtenerNombreMotor(ConfiguracionUsadaParaFixture.MotorSimulacion)</td></tr>
                 <tr><td>Max partidos por dia</td><td>@ConfiguracionUsadaParaFixture.MaxPartidosPorDia</td></tr>
                 <tr><td>Separacion entre fechas (dias)</td><td>@ConfiguracionUsadaParaFixture.SeparacionEntreFechas</td></tr>
             </tbody>
@@ -659,7 +651,7 @@ else
         }
 
         SincronizarJornadaActivaConPendiente();
-        _motorSimulacionSeleccionado = ServicioConfiguracionTorneo.ObtenerConfiguracionActual().MotorSimulacion;
+        _motorSimulacionSeleccionado = ControladorConfiguracionTorneo.ObtenerConfiguracionActual().MotorSimulacion;
     }
 
     private static readonly List<EtapasTorneoHelper.EtapaTorneo> EtapasDisponibles =
@@ -671,9 +663,9 @@ else
     private IEnumerable<PosicionEquipo> TablaGrupoSeleccionado =>
         GrupoSeleccionado == null
             ? Enumerable.Empty<PosicionEquipo>()
-            : ServicioClasificacion.CalcularTabla(
+            : ControladorClasificacion.CalcularTabla(
                 GrupoSeleccionado,
-                ServicioConfiguracionTorneo.ObtenerConfiguracionActual());
+                ControladorConfiguracionTorneo.ObtenerConfiguracionActual());
 
     private string EtapaActivaEtiqueta =>
         EtapasDisponibles.FirstOrDefault(e => e.Fase == _etapaActiva)?.Etiqueta ?? string.Empty;
@@ -688,7 +680,7 @@ else
         EstadoTorneo.PartidosEliminatorios.FirstOrDefault(p => p.Fase == FaseTorneo.TercerPuesto);
 
     private ConfiguracionTorneo ConfiguracionUsadaParaFixture =>
-        ServicioConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
+        ControladorConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
 
     private void CrearNuevoTorneo()
     {
@@ -698,10 +690,7 @@ else
 
         _etapaActiva = FaseTorneo.FaseDeGrupos;
         _jornadaActiva = ServicioFixture.PrimeraJornada;
-        EstadoTorneo.ArchivarTorneoActual();
-        ServicioPersistenciaFixture.ArchivarTorneoActual();
-        ServicioEquipo.LimpiarFixtureGenerado();
-        ServicioEstadio.LimpiarFixtureGenerado();
+        ControladorFixture.CrearNuevoTorneo(EstadoTorneo);
         NavigationManager.NavigateTo("/fixture");
     }
 
@@ -734,7 +723,7 @@ else
 
         try
         {
-            OrquestadorFixture.GenerarORegenerarFixture(_motorSimulacionSeleccionado, SesionServicio.UsuarioActual, EstadoTorneo);
+            ControladorFixture.GenerarORegenerarFixture(_motorSimulacionSeleccionado, SesionServicio.UsuarioActual, EstadoTorneo);
             SincronizarJornadaActivaConPendiente();
             Toast.Exito("Fixture generado correctamente.");
         }
@@ -762,7 +751,7 @@ else
 
         SimularPartidos(
             ObtenerPartidosJornadaOFechaActual(),
-            ServicioFixture.ObtenerMensajeExitoSimulacion(_etapaActiva));
+            ControladorFixture.ObtenerMensajeExitoSimulacion(_etapaActiva));
     }
 
     private void SimularFaseActiva()
@@ -783,8 +772,8 @@ else
 
         try
         {
-            var config = ServicioConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
-            OrquestadorSimulacion.SimularYPersistirPartidos(partidos, config, SesionServicio.UsuarioActual, EstadoTorneo);
+            var config = ControladorConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
+            ControladorSimulacion.SimularYPersistirPartidos(partidos, config, SesionServicio.UsuarioActual, EstadoTorneo);
             SincronizarJornadaActivaConPendiente();
             Toast.Exito(mensajeExito);
         }
@@ -804,11 +793,11 @@ else
     }
 
     private bool EsEtapaActivaSimulable =>
-        ServicioFixture.ObtenerFaseActualSimulable(EstadoTorneo) == _etapaActiva;
+        ControladorFixture.ObtenerFaseActualSimulable(EstadoTorneo) == _etapaActiva;
 
     private bool PuedeSimularPartido(Partido? partido) =>
         SesionServicio.PuedeEditarPartidos
-        && ServicioFixture.EsPartidoSimulable(partido, EstadoTorneo, _etapaActiva);
+        && ControladorFixture.EsPartidoSimulable(partido, EstadoTorneo, _etapaActiva);
 
     private bool PuedeSimularJornadaOFecha()
     {
@@ -821,17 +810,17 @@ else
     }
 
     private List<Partido> ObtenerPartidosPendientesEtapaActiva() =>
-        ServicioFixture.ObtenerPartidosPendientesEtapaActiva(EstadoTorneo, _etapaActiva);
+        ControladorFixture.ObtenerPartidosPendientesEtapaActiva(EstadoTorneo, _etapaActiva);
 
     private List<Partido> ObtenerPartidosJornadaOFechaActual() =>
-        ServicioFixture.ObtenerPartidosJornadaOFechaActual(EstadoTorneo, _etapaActiva, _jornadaActiva);
+        ControladorFixture.ObtenerPartidosJornadaOFechaActual(EstadoTorneo, _etapaActiva, _jornadaActiva);
 
     private Partido? ObtenerProximoPartidoSimulable() =>
-        ServicioFixture.ObtenerProximoPartidoSimulable(EstadoTorneo, _etapaActiva);
+        ControladorFixture.ObtenerProximoPartidoSimulable(EstadoTorneo, _etapaActiva);
 
     private void SincronizarJornadaActivaConPendiente()
     {
-        var jornada = ServicioFixture.ObtenerJornadaActivaParaFase(_etapaActiva, EstadoTorneo.Fixture);
+        var jornada = ControladorFixture.ObtenerJornadaActivaParaFase(_etapaActiva, EstadoTorneo.Fixture);
         if (jornada.HasValue)
             _jornadaActiva = jornada.Value;
     }
@@ -839,7 +828,7 @@ else
     private string MensajeCondicionFaseActiva =>
         EstadoTorneo.Fixture == null
             ? string.Empty
-            : ServicioFixture.ObtenerMensajeCondicionFase(_etapaActiva, EstadoTorneo);
+            : ControladorFixture.ObtenerMensajeCondicionFase(_etapaActiva, EstadoTorneo);
 
     private async Task GenerarFaseActiva()
     {
@@ -850,8 +839,8 @@ else
         await Task.Yield();
         try
         {
-            OrquestadorFaseEliminatoria.GenerarFase(_etapaActiva, EstadoTorneo);
-            Toast.Exito(ServicioFixture.ObtenerMensajeExitoGeneracionFase(_etapaActiva));
+            ControladorFaseEliminatoria.GenerarFase(_etapaActiva, EstadoTorneo);
+            Toast.Exito(ControladorFixture.ObtenerMensajeExitoGeneracionFase(_etapaActiva));
         }
         catch (Exception ex) { _error = ex.Message; }
         finally { _generando = false; }
