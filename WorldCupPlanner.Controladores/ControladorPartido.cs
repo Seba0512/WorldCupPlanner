@@ -7,10 +7,19 @@ namespace WorldCupPlanner.Controladores;
 public class ControladorPartido
 {
     private readonly ServicioPartido _servicioPartido;
+    private readonly ServicioOrquestadorPartido? _orquestadorPartido;
 
     public ControladorPartido(ServicioPartido servicioPartido)
     {
         _servicioPartido = servicioPartido;
+    }
+
+    public ControladorPartido(
+        ServicioPartido servicioPartido,
+        ServicioOrquestadorPartido orquestadorPartido)
+        : this(servicioPartido)
+    {
+        _orquestadorPartido = orquestadorPartido;
     }
 
     public Partido? BuscarPartidoPorId(int idPartido) =>
@@ -39,4 +48,26 @@ public class ControladorPartido
 
     public IEnumerable<FaseTorneo> ObtenerFasesDisponibles(IEnumerable<Partido> partidos) =>
         _servicioPartido.ObtenerFasesDisponibles(partidos);
+
+    public void GuardarCambiosPartido(
+        int partidoId,
+        DateTime nuevaFecha,
+        string nombreEstadio,
+        int? golesLocal,
+        int? golesVisitante,
+        Usuario? usuarioActual,
+        EstadoTorneo estadoTorneo)
+    {
+        if (_orquestadorPartido == null)
+            throw new InvalidOperationException("El orquestador de partido no fue configurado.");
+
+        _orquestadorPartido.GuardarCambiosPartido(
+            partidoId,
+            nuevaFecha,
+            nombreEstadio,
+            golesLocal,
+            golesVisitante,
+            usuarioActual,
+            estadoTorneo);
+    }
 }

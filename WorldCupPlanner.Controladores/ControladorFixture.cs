@@ -7,10 +7,47 @@ namespace WorldCupPlanner.Controladores;
 public class ControladorFixture
 {
     private readonly ServicioFixture _servicioFixture;
+    private readonly ServicioOrquestadorFixture? _orquestadorFixture;
+    private readonly ServicioPersistenciaFixture? _persistenciaFixture;
+    private readonly ServicioEquipo? _servicioEquipo;
+    private readonly ServicioEstadio? _servicioEstadio;
 
     public ControladorFixture(ServicioFixture servicioFixture)
     {
         _servicioFixture = servicioFixture;
+    }
+
+    public ControladorFixture(
+        ServicioFixture servicioFixture,
+        ServicioOrquestadorFixture orquestadorFixture)
+        : this(servicioFixture)
+    {
+        _orquestadorFixture = orquestadorFixture;
+    }
+
+    public ControladorFixture(
+        ServicioFixture servicioFixture,
+        ServicioPersistenciaFixture persistenciaFixture,
+        ServicioEquipo servicioEquipo,
+        ServicioEstadio servicioEstadio)
+        : this(servicioFixture)
+    {
+        _persistenciaFixture = persistenciaFixture;
+        _servicioEquipo = servicioEquipo;
+        _servicioEstadio = servicioEstadio;
+    }
+
+    public ControladorFixture(
+        ServicioFixture servicioFixture,
+        ServicioOrquestadorFixture orquestadorFixture,
+        ServicioPersistenciaFixture persistenciaFixture,
+        ServicioEquipo servicioEquipo,
+        ServicioEstadio servicioEstadio)
+        : this(servicioFixture, orquestadorFixture)
+    {
+        _persistenciaFixture = persistenciaFixture;
+        _servicioEquipo = servicioEquipo;
+        _servicioEstadio = servicioEstadio;
     }
 
     public Fixture GenerarFixture(
@@ -70,4 +107,23 @@ public class ControladorFixture
 
     public string ObtenerMensajeExitoGeneracionFase(FaseTorneo fase) =>
         _servicioFixture.ObtenerMensajeExitoGeneracionFase(fase);
+
+    public void GenerarORegenerarFixture(MotorSimulacion motor, Usuario? usuario, EstadoTorneo estadoTorneo)
+    {
+        if (_orquestadorFixture == null)
+            throw new InvalidOperationException("El orquestador de fixture no fue configurado.");
+
+        _orquestadorFixture.GenerarORegenerarFixture(motor, usuario, estadoTorneo);
+    }
+
+    public void CrearNuevoTorneo(EstadoTorneo estadoTorneo)
+    {
+        if (_persistenciaFixture == null || _servicioEquipo == null || _servicioEstadio == null)
+            throw new InvalidOperationException("Los servicios de cierre de torneo no fueron configurados.");
+
+        estadoTorneo.ArchivarTorneoActual();
+        _persistenciaFixture.ArchivarTorneoActual();
+        _servicioEquipo.LimpiarFixtureGenerado();
+        _servicioEstadio.LimpiarFixtureGenerado();
+    }
 }
