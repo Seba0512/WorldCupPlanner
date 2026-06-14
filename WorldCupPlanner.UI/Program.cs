@@ -71,6 +71,7 @@ builder.Services.AddScoped<ServicioRankingDinamico>(sp =>
 builder.Services.AddScoped<ServicioExportacion>();
 builder.Services.AddScoped<ControladorExportacion>();
 builder.Services.AddScoped<ServicioImportacionLegible>();
+builder.Services.AddScoped<ControladorImportacion>();
 builder.Services.AddScoped<ServicioOrquestadorSimulacion>();
 builder.Services.AddScoped<ControladorSimulacion>();
 builder.Services.AddScoped<ServicioOrquestadorFixture>();
