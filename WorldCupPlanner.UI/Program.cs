@@ -72,6 +72,7 @@ builder.Services.AddScoped<ServicioExportacion>();
 builder.Services.AddScoped<ControladorExportacion>();
 builder.Services.AddScoped<ServicioImportacionLegible>();
 builder.Services.AddScoped<ServicioOrquestadorSimulacion>();
+builder.Services.AddScoped<ControladorSimulacion>();
 builder.Services.AddScoped<ServicioOrquestadorFixture>();
 builder.Services.AddScoped<ServicioOrquestadorPartido>();
 builder.Services.AddScoped<ServicioOrquestadorFaseEliminatoria>();
