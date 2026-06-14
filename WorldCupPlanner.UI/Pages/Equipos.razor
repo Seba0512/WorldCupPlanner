@@ -1,10 +1,11 @@
 @page "/equipos"
 @using WorldCupPlanner.Dominio.Entidades
-@inject ServicioEquipo ServicioEquipo
+@using WorldCupPlanner.Controladores
+@inject ControladorEquipo ControladorEquipo
 @inject EstadoTorneo EstadoTorneo
-@inject ServicioConsultasTorneo ServicioConsultasTorneo
-@inject ServicioEstadisticasEquipo ServicioEstadisticasEquipo
-@inject ServicioConfiguracionTorneo ServicioConfiguracionTorneo
+@inject ControladorConsultasTorneo ControladorConsultasTorneo
+@inject ControladorEstadisticasEquipo ControladorEstadisticasEquipo
+@inject ControladorConfiguracionTorneo ControladorConfiguracionTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
@@ -120,7 +121,7 @@
                         <td class="text-center" style="font-weight:700">@estadisticas.Puntos</td>
                         @if (SesionServicio.PuedeGestionarEquipos)
                         {
-                            var equipoBloqueadoPorFixture = ServicioConsultasTorneo.EquipoParticipaEnFixture(EstadoTorneo, equipo);
+                            var equipoBloqueadoPorFixture = ControladorConsultasTorneo.EquipoParticipaEnFixture(EstadoTorneo, equipo);
                             <td style="width:140px; text-align:right">
                                 @if (equipoBloqueadoPorFixture)
                                 {
@@ -214,7 +215,7 @@
             return;
         }
 
-        _maxEquipos = ServicioEquipo.ObtenerMaximoEquipos();
+        _maxEquipos = ControladorEquipo.ObtenerMaximoEquipos();
         CargarDatos();
     }
 
@@ -223,16 +224,16 @@
         _errorCarga = string.Empty;
         try
         {
-            _equipos = ServicioEquipo.Buscar(_ => true);
-            _cuposPorConfederacion = ServicioEquipo.ObtenerCuposConOcupacion(_equipos);
-            _semillaCompletar = ServicioConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
-            _estadisticasPorEquipo = ServicioEstadisticasEquipo.ObtenerEstadisticasPorEquipo(_equipos);
+            _equipos = ControladorEquipo.Buscar(_ => true);
+            _cuposPorConfederacion = ControladorEquipo.ObtenerCuposConOcupacion(_equipos);
+            _semillaCompletar = ControladorConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
+            _estadisticasPorEquipo = ControladorEstadisticasEquipo.ObtenerEstadisticasPorEquipo(_equipos);
         }
         catch (Exception ex)
         {
             _errorCarga = ex.Message;
             _equipos = new();
-            _cuposPorConfederacion = ServicioEquipo.ObtenerCuposConOcupacion(new List<Equipo>());
+            _cuposPorConfederacion = ControladorEquipo.ObtenerCuposConOcupacion(new List<Equipo>());
             _estadisticasPorEquipo = new(StringComparer.OrdinalIgnoreCase);
         }
     }
@@ -258,7 +259,7 @@
         if (_equipoAEliminar == null) return;
         try
         {
-            ServicioEquipo.Eliminar(_equipoAEliminar, SesionServicio.UsuarioActual);
+            ControladorEquipo.Eliminar(_equipoAEliminar, SesionServicio.UsuarioActual);
             Toast.Exito($"Equipo \"{_equipoAEliminar.Nombre}\" eliminado.");
             _equipoAEliminar = null;
             CargarDatos();
@@ -268,12 +269,12 @@
 
     private void Completar()
     {
-        _semillaCompletar = ServicioConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
+        _semillaCompletar = ControladorConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
         try
         {
-            var generados = ServicioEquipo.CompletarEquipos(_semillaCompletar, SesionServicio.UsuarioActual);
+            var generados = ControladorEquipo.CompletarEquipos(_semillaCompletar, SesionServicio.UsuarioActual);
             CargarDatos();
-            _mensajeCompletar = ServicioEquipo.ObtenerMensajeComplecion(generados.Count);
+            _mensajeCompletar = ControladorEquipo.ObtenerMensajeComplecion(generados.Count);
             if (generados.Count > 0) Toast.Exito(_mensajeCompletar);
         }
         catch (Exception ex) { Toast.Error(ex.Message); }

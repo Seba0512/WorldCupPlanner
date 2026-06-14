@@ -1,5 +1,6 @@
 @page "/estadios/crear"
-@inject ServicioEstadio ServicioEstadio
+@using WorldCupPlanner.Controladores
+@inject ControladorEstadio ControladorEstadio
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
@@ -63,7 +64,7 @@
         _error = string.Empty;
         try
         {
-            ServicioEstadio.AgregarEstadio(_estadio, SesionServicio.UsuarioActual);
+            ControladorEstadio.Crear(_estadio, SesionServicio.UsuarioActual);
             Toast.Exito($"Estadio \"{_estadio.Nombre}\" creado correctamente.");
             NavigationManager.NavigateTo("/estadios");
         }

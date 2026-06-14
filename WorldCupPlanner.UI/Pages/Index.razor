@@ -1,7 +1,8 @@
 @page "/"
 @inject SesionServicio SesionServicio
-@inject ServicioDashboard ServicioDashboard
-@inject ServicioNotificacion ServicioNotificacion
+@using WorldCupPlanner.Controladores
+@inject ControladorDashboard ControladorDashboard
+@inject ControladorNotificacion ControladorNotificacion
 
 <PageTitle>Dashboard — WorldCupPlanner 2026</PageTitle>
 
@@ -161,7 +162,7 @@
             ? $"Bienvenido, {SesionServicio.UsuarioActual?.Nombre} {SesionServicio.UsuarioActual?.Apellido}"
             : string.Empty;
 
-        var datos = ServicioDashboard.ObtenerDatos();
+        var datos = ControladorDashboard.ObtenerDatos();
         _equipos          = datos.CantidadEquipos;
         _estadios         = datos.CantidadEstadios;
         _fixture          = datos.FixtureGenerado;
@@ -170,7 +171,7 @@
         _partidos_jugados = datos.PartidosJugados;
 
         if (SesionServicio.UsuarioActual?.TieneRol(RolUsuario.Periodista) == true)
-            _notificaciones = ServicioNotificacion.ObtenerNoLeidas(SesionServicio.UsuarioActual.Id);
+            _notificaciones = ControladorNotificacion.ObtenerNoLeidas(SesionServicio.UsuarioActual.Id);
     }
 
     private void MarcarLeida(int id)
@@ -179,8 +180,8 @@
         if (usuarioActual == null)
             return;
 
-        ServicioNotificacion.MarcarComoLeida(id, usuarioActual);
-        _notificaciones = ServicioNotificacion.ObtenerNoLeidas(usuarioActual.Id);
+        ControladorNotificacion.MarcarComoLeida(id, usuarioActual);
+        _notificaciones = ControladorNotificacion.ObtenerNoLeidas(usuarioActual.Id);
     }
 
     private void MarcarTodasLeidas()
@@ -190,8 +191,8 @@
             return;
 
         foreach (var notificacion in _notificaciones.ToList())
-            ServicioNotificacion.MarcarComoLeida(notificacion.Id, usuarioActual);
+            ControladorNotificacion.MarcarComoLeida(notificacion.Id, usuarioActual);
 
-        _notificaciones = ServicioNotificacion.ObtenerNoLeidas(usuarioActual.Id);
+        _notificaciones = ControladorNotificacion.ObtenerNoLeidas(usuarioActual.Id);
     }
 }

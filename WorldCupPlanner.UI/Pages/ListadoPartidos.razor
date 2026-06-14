@@ -1,7 +1,8 @@
 @page "/partidos"
+@using WorldCupPlanner.Controladores
 @inject EstadoTorneo EstadoTorneo
-@inject ServicioConsultasTorneo ServicioConsultasTorneo
-@inject ServicioPartido ServicioPartido
+@inject ControladorConsultasTorneo ControladorConsultasTorneo
+@inject ControladorPartido ControladorPartido
 
 <PageTitle>Partidos — WorldCupPlanner 2026</PageTitle>
 
@@ -137,10 +138,10 @@ else
     private string _filtroFase = string.Empty;
 
     private IEnumerable<Partido> TodosLosPartidos =>
-        ServicioConsultasTorneo.ObtenerTodosLosPartidos(EstadoTorneo).OrderBy(p => p.Fecha);
+        ControladorConsultasTorneo.ObtenerTodosLosPartidos(EstadoTorneo).OrderBy(p => p.Fecha);
 
     private IEnumerable<Partido> PartidosFiltrados =>
-        ServicioPartido.FiltrarPartidos(TodosLosPartidos, new FiltroPartidos
+        ControladorPartido.FiltrarPartidos(TodosLosPartidos, new FiltroPartidos
         {
             Fecha    = _filtroFecha,
             Estadio  = _filtroEstadio,
@@ -149,13 +150,13 @@ else
         });
 
     private IEnumerable<string> EstadiosDisponibles =>
-        ServicioPartido.ObtenerEstadiosDisponibles(TodosLosPartidos);
+        ControladorPartido.ObtenerEstadiosDisponibles(TodosLosPartidos);
 
     private IEnumerable<string> GruposDisponibles =>
-        ServicioPartido.ObtenerGruposDisponibles(TodosLosPartidos);
+        ControladorPartido.ObtenerGruposDisponibles(TodosLosPartidos);
 
     private IEnumerable<FaseTorneo> FasesDisponibles =>
-        ServicioPartido.ObtenerFasesDisponibles(TodosLosPartidos);
+        ControladorPartido.ObtenerFasesDisponibles(TodosLosPartidos);
 
     private void LimpiarFiltros()
     {

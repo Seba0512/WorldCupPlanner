@@ -1,5 +1,6 @@
 @page "/equipos/crear"
-@inject ServicioEquipo ServicioEquipo
+@using WorldCupPlanner.Controladores
+@inject ControladorEquipo ControladorEquipo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
@@ -66,7 +67,7 @@
     private string _bandera = string.Empty;
 
     private int ObtenerCupo(Confederacion conf) =>
-        ServicioEquipo.ObtenerCuposMaximos().GetValueOrDefault(conf, 0);
+        ControladorEquipo.ObtenerCuposMaximos().GetValueOrDefault(conf, 0);
 
     private async Task CargarBandera(InputFileChangeEventArgs e)
     {
@@ -79,7 +80,7 @@
         try
         {
             _dto.Bandera = _bandera;
-            ServicioEquipo.Crear(_dto, SesionServicio.UsuarioActual);
+            ControladorEquipo.Crear(_dto, SesionServicio.UsuarioActual);
             Toast.Exito($"Equipo \"{_dto.Nombre}\" creado correctamente.");
             NavigationManager.NavigateTo("/equipos");
         }

@@ -1,5 +1,6 @@
 @page "/auditoria"
-@inject ServicioAuditoria ServicioAuditoria
+@using WorldCupPlanner.Controladores
+@inject ControladorAuditoria ControladorAuditoria
 @inject IJSRuntime JS
 
 <GuardiaAdmin>
@@ -65,12 +66,12 @@
 
     protected override void OnInitialized()
     {
-        _registros = ServicioAuditoria.ObtenerTodos();
+        _registros = ControladorAuditoria.ObtenerTodos();
     }
 
     private async Task DescargarLog()
     {
-        var contenido = ServicioAuditoria.ExportarComoTexto(_registros);
+        var contenido = ControladorAuditoria.ExportarComoTexto(_registros);
         await JS.InvokeVoidAsync("descargarArchivo", contenido, "logs_auditoria.txt");
     }
 

@@ -1,7 +1,8 @@
 @page "/estadios/{Nombre}/editar"
-@inject ServicioEstadio ServicioEstadio
+@using WorldCupPlanner.Controladores
+@inject ControladorEstadio ControladorEstadio
 @inject EstadoTorneo EstadoTorneo
-@inject ServicioConsultasTorneo ServicioConsultasTorneo
+@inject ControladorConsultasTorneo ControladorConsultasTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
@@ -68,10 +69,10 @@
 
     protected override void OnInitialized()
     {
-        var original = ServicioEstadio.ObtenerPorNombre(Nombre);
-        _estadio = ServicioEstadio.ClonarParaEdicion(Nombre);
+        var original = ControladorEstadio.ObtenerPorNombre(Nombre);
+        _estadio = ControladorEstadio.ObtenerParaEdicion(Nombre);
         _capacidad = _estadio.Capacidad;
-        _edicionBloqueada = ServicioConsultasTorneo.EstadioParticipaEnFixture(EstadoTorneo, original);
+        _edicionBloqueada = ControladorConsultasTorneo.EstadioParticipaEnFixture(EstadoTorneo, original);
     }
 
     private void Guardar()
@@ -84,7 +85,7 @@
         }
         try
         {
-            ServicioEstadio.EditarEstadio(Nombre, _estadio, SesionServicio.UsuarioActual);
+            ControladorEstadio.Actualizar(Nombre, _estadio, SesionServicio.UsuarioActual);
             Toast.Exito("Estadio actualizado correctamente.");
             NavigationManager.NavigateTo("/estadios");
         }

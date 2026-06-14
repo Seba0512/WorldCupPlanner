@@ -1,6 +1,7 @@
 @page "/fixture/anterior"
+@using WorldCupPlanner.Controladores
 @inject EstadoTorneo EstadoTorneo
-@inject ServicioClasificacion ServicioClasificacion
+@inject ControladorClasificacion ControladorClasificacion
 
 <PageTitle>Torneo anterior — WorldCupPlanner 2026</PageTitle>
 
@@ -413,7 +414,7 @@ else
     private IEnumerable<PosicionEquipo> TablaGrupoSeleccionado =>
         GrupoSeleccionado == null
             ? Enumerable.Empty<PosicionEquipo>()
-            : ServicioClasificacion.CalcularTabla(GrupoSeleccionado);
+            : ControladorClasificacion.CalcularTabla(GrupoSeleccionado);
 
     private string EtapaActivaEtiqueta =>
         EtapasDisponibles.FirstOrDefault(e => e.Fase == _etapaActiva)?.Etiqueta ?? string.Empty;
@@ -427,7 +428,7 @@ else
     private Partido? PartidoTercerPuestoAnterior =>
         EstadoTorneo.PartidosEliminatoriosAnteriores.FirstOrDefault(p => p.Fase == FaseTorneo.TercerPuesto);
 
-    private Equipo? Campeon => ServicioClasificacion.ObtenerCampeon(PartidoFinalAnterior);
+    private Equipo? Campeon => ControladorClasificacion.ObtenerCampeon(PartidoFinalAnterior);
 
     private void SeleccionarEtapa(FaseTorneo fase)
     {

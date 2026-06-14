@@ -1,5 +1,6 @@
 @page "/exportacion"
-@inject ServicioExportacion ServicioExportacion
+@using WorldCupPlanner.Controladores
+@inject ControladorExportacion ControladorExportacion
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
@@ -24,10 +25,10 @@
         Todos los partidos del torneo (fase de grupos y eliminatorias) con fecha, equipos, goles y estadio.
     </p>
     <div class="d-flex gap-2 flex-wrap">
-        <button class="btn btn-secondary" disabled="@_descargando" @onclick='() => Descargar("fixture.csv", "text/csv", () => ServicioExportacion.ExportarFixtureCsv(NombreUsuario))'>
+        <button class="btn btn-secondary" disabled="@_descargando" @onclick='() => Descargar("fixture.csv", "text/csv", () => ControladorExportacion.ExportarFixtureCsv(NombreUsuario))'>
             <span class="oi oi-data-transfer-download" aria-hidden="true"></span> CSV
         </button>
-        <button class="btn btn-secondary" disabled="@_descargando" @onclick='() => Descargar("fixture.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", () => ServicioExportacion.ExportarFixtureXlsx(NombreUsuario))'>
+        <button class="btn btn-secondary" disabled="@_descargando" @onclick='() => Descargar("fixture.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", () => ControladorExportacion.ExportarFixtureXlsx(NombreUsuario))'>
             <span class="oi oi-spreadsheet" aria-hidden="true"></span> Excel
         </button>
     </div>
@@ -114,11 +115,11 @@
         Descargar(
             $"auditoria_{_desde:yyyyMMdd}_{_hasta:yyyyMMdd}.csv",
             "text/csv",
-            () => ServicioExportacion.ExportarAuditoriasCsv(_desde, _hasta, NombreUsuario));
+            () => ControladorExportacion.ExportarAuditoriasCsv(_desde, _hasta, NombreUsuario));
 
     private Task DescargarAuditoriaXlsx() =>
         Descargar(
             $"auditoria_{_desde:yyyyMMdd}_{_hasta:yyyyMMdd}.xlsx",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            () => ServicioExportacion.ExportarAuditoriasXlsx(_desde, _hasta, NombreUsuario));
+            () => ControladorExportacion.ExportarAuditoriasXlsx(_desde, _hasta, NombreUsuario));
 }

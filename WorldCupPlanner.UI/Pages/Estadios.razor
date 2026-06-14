@@ -1,7 +1,8 @@
 @page "/estadios"
-@inject ServicioEstadio ServicioEstadio
+@using WorldCupPlanner.Controladores
+@inject ControladorEstadio ControladorEstadio
 @inject EstadoTorneo EstadoTorneo
-@inject ServicioConsultasTorneo ServicioConsultasTorneo
+@inject ControladorConsultasTorneo ControladorConsultasTorneo
 @inject SesionServicio SesionServicio
 @inject ToastServicio Toast
 
@@ -56,7 +57,7 @@
             <tbody>
                 @foreach (var estadio in _estadios)
                 {
-                    var estadioBloqueadoPorFixture = ServicioConsultasTorneo.EstadioParticipaEnFixture(EstadoTorneo, estadio);
+                    var estadioBloqueadoPorFixture = ControladorConsultasTorneo.EstadioParticipaEnFixture(EstadoTorneo, estadio);
                     <tr>
                         <td style="font-weight:600">@estadio.Nombre</td>
                         <td>@estadio.Ciudad</td>
@@ -101,7 +102,7 @@
 
     protected override void OnInitialized()
     {
-        _estadios = ServicioEstadio.ObtenerEstadios();
+        _estadios = ControladorEstadio.Listar();
     }
 
     private void PedirConfirmacion(Estadio estadio)
@@ -115,10 +116,10 @@
         if (_estadioAEliminar == null) return;
         try
         {
-            ServicioEstadio.EliminarEstadio(_estadioAEliminar, SesionServicio.UsuarioActual);
+            ControladorEstadio.Eliminar(_estadioAEliminar, SesionServicio.UsuarioActual);
             Toast.Exito($"Estadio \"{_estadioAEliminar.Nombre}\" eliminado.");
             _estadioAEliminar = null;
-            _estadios = ServicioEstadio.ObtenerEstadios();
+            _estadios = ControladorEstadio.Listar();
         }
         catch (Exception ex) { Toast.Error(ex.Message); }
     }
