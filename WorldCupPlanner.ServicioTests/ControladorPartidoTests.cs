@@ -53,6 +53,40 @@ public class ControladorPartidoTests
     }
 
     [TestMethod]
+    public void GuardarCambiosPartido_DelegaEnOrquestadorPartido()
+    {
+        var repositorioPartido = new RepositorioPartidoControladorFake();
+        var partido = CrearPartido(1);
+        repositorioPartido.Agregar(partido);
+        var repositorioEstadio = new RepositorioGenericoControladorPartidoFake<Estadio>();
+        repositorioEstadio.Agregar(CrearEstadio("Estadio Nuevo"));
+        var servicioPartido = new ServicioPartido(new ProveedorPartidosRepositorio(repositorioPartido));
+        var orquestador = new ServicioOrquestadorPartido(
+            servicioPartido,
+            new ServicioConfiguracionTorneo(),
+            new ServicioNotificacion(new RepositorioNotificacionControladorPartidoFake()),
+            CrearServicioUsuario(),
+            new ServicioRankingDinamico(),
+            new ServicioEstadio(repositorioEstadio));
+        var controlador = new ControladorPartido(servicioPartido, orquestador);
+        var estado = new EstadoTorneo();
+        estado.AgregarPartidosEliminatorios(new[] { partido });
+        var nuevaFecha = new DateTime(2026, 6, 20, 19, 0, 0);
+
+        controlador.GuardarCambiosPartido(
+            partido.Id,
+            nuevaFecha,
+            "Estadio Nuevo",
+            null,
+            null,
+            null,
+            estado);
+
+        Assert.AreEqual(nuevaFecha, partido.Fecha);
+        Assert.AreEqual("Estadio Nuevo", partido.Estadio!.Nombre);
+    }
+
+    [TestMethod]
     public void CargarResultado_ConGolesNegativos_MantieneValidacionDelServicio()
     {
         var repositorio = new RepositorioPartidoControladorFake();
@@ -118,6 +152,12 @@ public class ControladorPartidoTests
         return new ControladorPartido(servicio);
     }
 
+    private static ServicioUsuario CrearServicioUsuario()
+    {
+        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaControladorPartidoFake());
+        return new ServicioUsuario(new RepositorioUsuarioControladorPartidoFake(), auditoria);
+    }
+
     private static Partido CrearPartido(
         int id,
         FaseTorneo fase = FaseTorneo.FaseDeGrupos,
@@ -169,4 +209,98 @@ file sealed class RepositorioPartidoControladorFake : IRepositorio<Partido>
 
     public List<Partido> Buscar(Func<Partido, bool> predicado) =>
         _partidos.Where(predicado).ToList();
+}
+
+file sealed class RepositorioGenericoControladorPartidoFake<T> : IRepositorio<T>
+{
+    private readonly List<T> _entidades = new();
+
+    public void Agregar(T entidad) => _entidades.Add(entidad);
+
+    public void Actualizar(T entidad)
+    {
+        var indice = _entidades.FindIndex(e => ReferenceEquals(e, entidad));
+        if (indice == -1)
+            _entidades.Add(entidad);
+        else
+            _entidades[indice] = entidad;
+    }
+
+    public void Eliminar(T entidad) => _entidades.Remove(entidad);
+
+    public List<T> Buscar(Func<T, bool> predicado) => _entidades.Where(predicado).ToList();
+}
+
+file sealed class RepositorioNotificacionControladorPartidoFake : IRepositorioNotificacion
+{
+    private readonly List<Notificacion> _notificaciones = new();
+
+    public void Agregar(Notificacion entidad) => _notificaciones.Add(entidad);
+
+    public void Actualizar(Notificacion entidad)
+    {
+        var indice = _notificaciones.FindIndex(n => n.Id == entidad.Id);
+        if (indice == -1)
+            _notificaciones.Add(entidad);
+        else
+            _notificaciones[indice] = entidad;
+    }
+
+    public void Eliminar(Notificacion entidad) => _notificaciones.Remove(entidad);
+
+    public List<Notificacion> Buscar(Func<Notificacion, bool> predicado) =>
+        _notificaciones.Where(predicado).ToList();
+
+    public List<Notificacion> ObtenerPorUsuario(int usuarioId) =>
+        _notificaciones.Where(n => n.UsuarioDestinatarioId == usuarioId).ToList();
+}
+
+file sealed class RepositorioUsuarioControladorPartidoFake : IRepositorioUsuario
+{
+    private readonly List<Usuario> _usuarios = new();
+
+    public void Agregar(Usuario entidad) => _usuarios.Add(entidad);
+
+    public void Actualizar(Usuario entidad)
+    {
+        var indice = _usuarios.FindIndex(u => u.Id == entidad.Id || u.Email == entidad.Email);
+        if (indice == -1)
+            _usuarios.Add(entidad);
+        else
+            _usuarios[indice] = entidad;
+    }
+
+    public void Eliminar(Usuario entidad) => _usuarios.Remove(entidad);
+
+    public List<Usuario> Buscar(Func<Usuario, bool> predicado) => _usuarios.Where(predicado).ToList();
+
+    public Usuario? ObtenerPorEmail(string email) =>
+        _usuarios.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+}
+
+file sealed class RepositorioAuditoriaControladorPartidoFake : IRepositorioConId<Auditoria>
+{
+    private readonly List<Auditoria> _auditorias = new();
+    private int _siguienteId = 1;
+
+    public void Agregar(Auditoria entidad)
+    {
+        SiguienteId();
+        _auditorias.Add(entidad);
+    }
+
+    public void Actualizar(Auditoria entidad)
+    {
+        var indice = _auditorias.FindIndex(a => a.Id == entidad.Id);
+        if (indice == -1)
+            _auditorias.Add(entidad);
+        else
+            _auditorias[indice] = entidad;
+    }
+
+    public void Eliminar(Auditoria entidad) => _auditorias.Remove(entidad);
+
+    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado) => _auditorias.Where(predicado).ToList();
+
+    public int SiguienteId() => _siguienteId++;
 }

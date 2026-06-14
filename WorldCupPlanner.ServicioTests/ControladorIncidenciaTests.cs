@@ -26,6 +26,36 @@ public class ControladorIncidenciaTests
     }
 
     [TestMethod]
+    public void AgregarTarjetaAPartido_DelegaPersistenciaYServicioIncidencia()
+    {
+        var repositorioIncidencia = new RepositorioIncidenciaControladorFake();
+        var repositorioPartido = new RepositorioGenericoControladorIncidenciaFake<Partido>();
+        var persistencia = new ServicioPersistenciaFixture(
+            new RepositorioGenericoControladorIncidenciaFake<Grupo>(),
+            repositorioPartido,
+            new RepositorioTorneoArchivadoControladorIncidenciaFake());
+        var controlador = new ControladorIncidencia(
+            new ServicioIncidencia(repositorioIncidencia),
+            persistencia);
+        var partido = new Partido
+        {
+            Id = 20,
+            EquipoLocal = CrearEquipo("Local"),
+            EquipoVisitante = CrearEquipo("Visitante"),
+            Fecha = new DateTime(2026, 6, 10),
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+
+        controlador.AgregarTarjetaAPartido(partido, "Local", TipoTarjeta.Roja, 44);
+
+        Assert.AreEqual(1, repositorioPartido.Buscar(_ => true).Count);
+        var incidencias = repositorioIncidencia.ObtenerPorPartido(partido.Id);
+        Assert.AreEqual(1, incidencias.Count);
+        Assert.IsInstanceOfType(incidencias[0], typeof(TarjetaRoja));
+        Assert.AreEqual("Local", incidencias[0].Equipo!.Nombre);
+    }
+
+    [TestMethod]
     public void AgregarTarjeta_ConMinutoInvalido_MantieneValidacionDelServicio()
     {
         var controlador = CrearControlador(new RepositorioIncidenciaControladorFake());
@@ -119,4 +149,33 @@ file sealed class RepositorioIncidenciaControladorFake : IRepositorioIncidencia
 
     public List<Incidencia> ObtenerPorPartido(int partidoId) =>
         _incidencias.Where(i => i.PartidoId == partidoId).ToList();
+}
+
+file sealed class RepositorioGenericoControladorIncidenciaFake<T> : IRepositorio<T>
+{
+    private readonly List<T> _entidades = new();
+
+    public void Agregar(T entidad) => _entidades.Add(entidad);
+
+    public void Actualizar(T entidad)
+    {
+        var indice = _entidades.FindIndex(e => ReferenceEquals(e, entidad));
+        if (indice == -1)
+            _entidades.Add(entidad);
+        else
+            _entidades[indice] = entidad;
+    }
+
+    public void Eliminar(T entidad) => _entidades.Remove(entidad);
+
+    public List<T> Buscar(Func<T, bool> predicado) => _entidades.Where(predicado).ToList();
+}
+
+file sealed class RepositorioTorneoArchivadoControladorIncidenciaFake : IRepositorioTorneoArchivado
+{
+    private TorneoArchivado? _torneoArchivado;
+
+    public void Guardar(TorneoArchivado torneoArchivado) => _torneoArchivado = torneoArchivado;
+
+    public TorneoArchivado? Obtener() => _torneoArchivado;
 }

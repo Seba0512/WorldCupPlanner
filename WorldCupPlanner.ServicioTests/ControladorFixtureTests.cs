@@ -1,3 +1,4 @@
+using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Controladores;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
@@ -116,6 +117,43 @@ public class ControladorFixtureTests
         Assert.AreEqual(
             servicio.ObtenerMensajeExitoGeneracionFase(FaseTorneo.Final),
             controlador.ObtenerMensajeExitoGeneracionFase(FaseTorneo.Final));
+    }
+
+    [TestMethod]
+    public void GenerarORegenerarFixture_DelegaEnOrquestadorFixture()
+    {
+        var contexto = CrearContextoOrquestadorFixture();
+        var controlador = new ControladorFixture(contexto.ServicioFixture, contexto.OrquestadorFixture);
+        var estado = new EstadoTorneo();
+
+        controlador.GenerarORegenerarFixture(MotorSimulacion.RankingActualYSemilla, null, estado);
+
+        Assert.IsNotNull(estado.Fixture);
+        Assert.AreEqual(12, estado.Fixture.Grupos.Count);
+        Assert.AreEqual(72, estado.Fixture.Partidos.Count);
+        Assert.AreEqual(12, contexto.RepositorioGrupo.Buscar(_ => true).Count);
+        Assert.AreEqual(72, contexto.RepositorioPartido.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
+    public void CrearNuevoTorneo_DelegaArchivadoPersistenteYLimpiezaDeEstado()
+    {
+        var contexto = CrearContextoOrquestadorFixture();
+        var controlador = new ControladorFixture(
+            contexto.ServicioFixture,
+            contexto.PersistenciaFixture,
+            contexto.ServicioEquipo,
+            contexto.ServicioEstadio);
+        var estado = new EstadoTorneo();
+        contexto.OrquestadorFixture.GenerarORegenerarFixture(MotorSimulacion.RankingActualYSemilla, null, estado);
+
+        controlador.CrearNuevoTorneo(estado);
+
+        Assert.IsNull(estado.Fixture);
+        Assert.IsNotNull(estado.FixtureAnterior);
+        Assert.AreEqual(0, contexto.RepositorioGrupo.Buscar(_ => true).Count);
+        Assert.AreEqual(0, contexto.RepositorioPartido.Buscar(_ => true).Count);
+        Assert.IsNotNull(contexto.RepositorioTorneoArchivado.Obtener());
     }
 
     private static ConfiguracionTorneo CrearConfiguracion() => new()
@@ -245,4 +283,83 @@ public class ControladorFixtureTests
         Fecha = fecha,
         Fase = FaseTorneo.FaseDeGrupos
     };
+
+    private static ContextoOrquestadorFixture CrearContextoOrquestadorFixture()
+    {
+        var repositorioEquipo = new RepositorioGenericoControladorFixtureFake<Equipo>();
+        foreach (var equipo in CrearEquiposValidos())
+            repositorioEquipo.Agregar(equipo);
+
+        var repositorioEstadio = new RepositorioGenericoControladorFixtureFake<Estadio>();
+        foreach (var estadio in CrearEstadiosValidos())
+            repositorioEstadio.Agregar(estadio);
+
+        var repositorioGrupo = new RepositorioGenericoControladorFixtureFake<Grupo>();
+        var repositorioPartido = new RepositorioGenericoControladorFixtureFake<Partido>();
+        var repositorioTorneoArchivado = new RepositorioTorneoArchivadoControladorFixtureFake();
+
+        var servicioFixture = new ServicioFixture();
+        var servicioEquipo = new ServicioEquipo(repositorioEquipo);
+        var servicioEstadio = new ServicioEstadio(repositorioEstadio);
+        var persistenciaFixture = new ServicioPersistenciaFixture(
+            repositorioGrupo,
+            repositorioPartido,
+            repositorioTorneoArchivado);
+        var orquestadorFixture = new ServicioOrquestadorFixture(
+            servicioFixture,
+            servicioEquipo,
+            servicioEstadio,
+            new ServicioConfiguracionTorneo(),
+            persistenciaFixture,
+            new ServicioRankingDinamico(repositorioEquipo));
+
+        return new ContextoOrquestadorFixture(
+            servicioFixture,
+            servicioEquipo,
+            servicioEstadio,
+            persistenciaFixture,
+            orquestadorFixture,
+            repositorioGrupo,
+            repositorioPartido,
+            repositorioTorneoArchivado);
+    }
+}
+
+sealed record ContextoOrquestadorFixture(
+    ServicioFixture ServicioFixture,
+    ServicioEquipo ServicioEquipo,
+    ServicioEstadio ServicioEstadio,
+    ServicioPersistenciaFixture PersistenciaFixture,
+    ServicioOrquestadorFixture OrquestadorFixture,
+    RepositorioGenericoControladorFixtureFake<Grupo> RepositorioGrupo,
+    RepositorioGenericoControladorFixtureFake<Partido> RepositorioPartido,
+    RepositorioTorneoArchivadoControladorFixtureFake RepositorioTorneoArchivado);
+
+sealed class RepositorioGenericoControladorFixtureFake<T> : IRepositorio<T>
+{
+    private readonly List<T> _entidades = new();
+
+    public void Agregar(T entidad) => _entidades.Add(entidad);
+
+    public void Actualizar(T entidad)
+    {
+        var indice = _entidades.FindIndex(e => ReferenceEquals(e, entidad));
+        if (indice == -1)
+            _entidades.Add(entidad);
+        else
+            _entidades[indice] = entidad;
+    }
+
+    public void Eliminar(T entidad) => _entidades.Remove(entidad);
+
+    public List<T> Buscar(Func<T, bool> predicado) => _entidades.Where(predicado).ToList();
+}
+
+sealed class RepositorioTorneoArchivadoControladorFixtureFake : IRepositorioTorneoArchivado
+{
+    private TorneoArchivado? _torneoArchivado;
+
+    public void Guardar(TorneoArchivado torneoArchivado) => _torneoArchivado = torneoArchivado;
+
+    public TorneoArchivado? Obtener() => _torneoArchivado;
 }
