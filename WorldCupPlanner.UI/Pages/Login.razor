@@ -1,6 +1,7 @@
 @page "/login"
 @layout LoginLayout
-@inject ServicioUsuario ServicioUsuario
+@using WorldCupPlanner.Controladores
+@inject ControladorUsuario ControladorUsuario
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 
@@ -50,7 +51,7 @@
         _error = string.Empty;
         try
         {
-            var usuario = ServicioUsuario.Login(_email, _contrasenia);
+            var usuario = ControladorUsuario.LoginParaSesion(_email, _contrasenia);
             SesionServicio.IniciarSesion(usuario);
             NavigationManager.NavigateTo(usuario.DebeCambiarContrasenia ? "/cuenta/cambiar-contrasenia" : "/");
         }

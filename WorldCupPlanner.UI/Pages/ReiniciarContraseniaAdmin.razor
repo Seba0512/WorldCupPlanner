@@ -1,5 +1,7 @@
 @page "/usuarios/{Email}/reiniciar-contrasenia"
-@inject ServicioUsuario ServicioUsuario
+@using WorldCupPlanner.Controladores
+@using WorldCupPlanner.Dominio.DTO
+@inject ControladorUsuario ControladorUsuario
 @inject SesionServicio SesionServicio
 @inject ToastServicio Toast
 
@@ -73,7 +75,7 @@
 
 @code {
     [Parameter] public string Email { get; set; } = string.Empty;
-    private Usuario? _usuario;
+    private UsuarioDTO? _usuario;
     private bool _forzarCambio = true;
     private bool _reinicioRealizado;
     private string _contraseniaTemporal = string.Empty;
@@ -81,7 +83,7 @@
 
     protected override void OnInitialized()
     {
-        _usuario = ServicioUsuario.ObtenerPorEmail(Email);
+        _usuario = ControladorUsuario.ObtenerPorEmail(Email);
     }
 
     private void Reiniciar()
@@ -89,7 +91,7 @@
         if (_usuario == null) return;
         try
         {
-            _contraseniaTemporal = ServicioUsuario.ReiniciarContrasenia(_usuario, SesionServicio.UsuarioActual!, _forzarCambio);
+            _contraseniaTemporal = ControladorUsuario.ReiniciarContrasenia(_usuario.Email, SesionServicio.UsuarioActual!, _forzarCambio);
             _reinicioRealizado = true;
         }
         catch (Exception ex)

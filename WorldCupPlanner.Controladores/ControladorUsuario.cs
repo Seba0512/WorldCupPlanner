@@ -59,6 +59,9 @@ public class ControladorUsuario
     public UsuarioDTO Login(string email, string contrasenia) =>
         UsuarioDTO.FromEntity(_servicioUsuario.Login(email, contrasenia));
 
+    public Usuario LoginParaSesion(string email, string contrasenia) =>
+        _servicioUsuario.Login(email, contrasenia);
+
     public void CambiarContrasenia(string email, CambiarContraseniaDto datos)
     {
         var usuario = ObtenerEntidadPorEmailOExcepcion(email);

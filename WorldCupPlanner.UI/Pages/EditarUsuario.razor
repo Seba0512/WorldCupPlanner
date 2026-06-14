@@ -1,5 +1,8 @@
 @page "/usuarios/{Email}/editar"
-@inject ServicioUsuario ServicioUsuario
+@using System.Globalization
+@using WorldCupPlanner.Controladores
+@using WorldCupPlanner.Dominio.DTO
+@inject ControladorUsuario ControladorUsuario
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
@@ -91,7 +94,7 @@
 
 @code {
     [Parameter] public string Email { get; set; } = string.Empty;
-    private Usuario? _usuario;
+    private UsuarioDTO? _usuario;
     private string _nombre = string.Empty;
     private string _apellido = string.Empty;
     private string _email = string.Empty;
@@ -105,17 +108,17 @@
 
     protected override void OnInitialized()
     {
-        _usuario = ServicioUsuario.ObtenerPorEmail(Email);
+        _usuario = ControladorUsuario.ObtenerPorEmail(Email);
         if (_usuario != null)
         {
             _nombre          = _usuario.Nombre;
             _apellido        = _usuario.Apellido;
             _email           = _usuario.Email;
-            _fechaNacimiento = _usuario.FechaNacimiento;
-            _esAdmin         = _usuario.TieneRol(RolUsuario.AdministradorDelSistema);
-            _esEditor        = _usuario.TieneRol(RolUsuario.Editor);
-            _esPeriodista    = _usuario.TieneRol(RolUsuario.Periodista);
-            _esUltimoAdministrador = ServicioUsuario.EsUltimoAdministrador(_usuario);
+            _fechaNacimiento = DateTime.ParseExact(_usuario.FechaNacimiento, "MM-dd-yyyy", CultureInfo.InvariantCulture);
+            _esAdmin         = _usuario.Roles.Contains(RolUsuario.AdministradorDelSistema);
+            _esEditor        = _usuario.Roles.Contains(RolUsuario.Editor);
+            _esPeriodista    = _usuario.Roles.Contains(RolUsuario.Periodista);
+            _esUltimoAdministrador = ControladorUsuario.EsUltimoAdministrador(_usuario.Email);
         }
     }
 
@@ -128,8 +131,8 @@
         {
             if (_usuario == null) return;
             var nuevosRoles = UsuarioFormHelper.ConstruirRoles(_esAdmin, _esEditor, _esPeriodista);
-            ServicioUsuario.GestionarRoles(_usuario, nuevosRoles);
-            ServicioUsuario.ActualizarUsuario(_usuario, new ActualizacionUsuario
+            ControladorUsuario.GestionarRoles(_usuario.Email, nuevosRoles);
+            ControladorUsuario.Actualizar(_usuario.Email, new ActualizacionUsuario
             {
                 Nombre = _nombre, Apellido = _apellido,
                 Email = _email, FechaNacimiento = _fechaNacimiento.ToString("MM-dd-yyyy")

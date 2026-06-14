@@ -1,5 +1,6 @@
 @page "/usuarios/crear"
-@inject ServicioUsuario ServicioUsuario
+@using WorldCupPlanner.Controladores
+@inject ControladorUsuario ControladorUsuario
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
@@ -113,7 +114,7 @@
         {
             var roles = UsuarioFormHelper.ConstruirRoles(_esAdmin, _esEditor, _esPeriodista);
 
-            ServicioUsuario.CrearUsuario(new NuevoUsuarioDto
+            ControladorUsuario.Crear(new NuevoUsuarioDto
             {
                 Nombre = _nombre,
                 Apellido = _apellido,
