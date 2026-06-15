@@ -1,4 +1,5 @@
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.DTO;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
 
@@ -31,8 +32,20 @@ public class ControladorConsultasTorneo
     public bool EquipoParticipaEnFixture(EstadoTorneo estado, Equipo equipo) =>
         _servicioConsultasTorneo.EquipoParticipaEnFixture(estado, equipo);
 
+    public bool EquipoParticipaEnFixture(EstadoTorneo estado, EquipoDTO equipo) =>
+        EquipoParticipaEnFixture(estado, equipo.ToEntity());
+
+    public bool EquipoParticipaEnFixture(EstadoTorneo estado, string nombreEquipo) =>
+        EquipoParticipaEnFixture(estado, new Equipo { Nombre = nombreEquipo });
+
     public bool EstadioParticipaEnFixture(EstadoTorneo estado, Estadio estadio) =>
         _servicioConsultasTorneo.EstadioParticipaEnFixture(estado, estadio);
+
+    public bool EstadioParticipaEnFixture(EstadoTorneo estado, EstadioDTO estadio) =>
+        EstadioParticipaEnFixture(estado, estadio.ToEntity());
+
+    public bool EstadioParticipaEnFixture(EstadoTorneo estado, string nombreEstadio) =>
+        EstadioParticipaEnFixture(estado, new Estadio { Nombre = nombreEstadio });
 
     public FaseConfiguracionTorneo ObtenerFaseConfiguracion(EstadoTorneo estado, int cantidadEquiposRegistrados) =>
         _servicioConsultasTorneo.ObtenerFaseConfiguracion(estado, cantidadEquiposRegistrados);

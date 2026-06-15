@@ -1,5 +1,6 @@
 @page "/estadios/{Nombre}/editar"
 @using WorldCupPlanner.Controladores
+@using WorldCupPlanner.Dominio.DTO
 @inject ControladorEstadio ControladorEstadio
 @inject EstadoTorneo EstadoTorneo
 @inject ControladorConsultasTorneo ControladorConsultasTorneo
@@ -62,17 +63,16 @@
 
 @code {
     [Parameter] public string Nombre { get; set; } = string.Empty;
-    private Estadio _estadio = new();
+    private EstadioDTO _estadio = new();
     private int? _capacidad;
     private string _error = string.Empty;
     private bool _edicionBloqueada;
 
     protected override void OnInitialized()
     {
-        var original = ControladorEstadio.ObtenerPorNombre(Nombre);
-        _estadio = ControladorEstadio.ObtenerParaEdicion(Nombre);
+        _estadio = ControladorEstadio.ObtenerParaEdicionDTO(Nombre);
         _capacidad = _estadio.Capacidad;
-        _edicionBloqueada = ControladorConsultasTorneo.EstadioParticipaEnFixture(EstadoTorneo, original);
+        _edicionBloqueada = ControladorConsultasTorneo.EstadioParticipaEnFixture(EstadoTorneo, Nombre);
     }
 
     private void Guardar()

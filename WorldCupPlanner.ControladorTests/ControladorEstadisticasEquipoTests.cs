@@ -1,4 +1,5 @@
 using WorldCupPlanner.Controladores;
+using WorldCupPlanner.Dominio.DTO;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
@@ -20,6 +21,20 @@ public class ControladorEstadisticasEquipoTests
         var obtenidas = controlador.ObtenerEstadisticasPorEquipo(equipos);
 
         AssertDiccionariosEquivalentes(esperadas, obtenidas);
+    }
+
+    [TestMethod]
+    public void ObtenerEstadisticasPorEquipo_DesdeDTO_DelegaEnServicioEstadisticasEquipo()
+    {
+        var estado = CrearEstadoTorneo();
+        var servicio = CrearServicio(estado);
+        var controlador = new ControladorEstadisticasEquipo(servicio);
+        var equipos = estado.Fixture!.Grupos[0].Equipos.Select(EquipoDTO.FromEntity).ToList();
+
+        var estadisticas = controlador.ObtenerEstadisticasPorEquipo(equipos);
+
+        Assert.IsTrue(estadisticas.ContainsKey("Uruguay"));
+        Assert.IsTrue(estadisticas.ContainsKey("Francia"));
     }
 
     [TestMethod]

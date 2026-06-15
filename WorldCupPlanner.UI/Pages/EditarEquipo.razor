@@ -1,5 +1,6 @@
 @page "/equipos/{Nombre}/editar"
 @using WorldCupPlanner.Controladores
+@using WorldCupPlanner.Dominio.DTO
 @inject ControladorEquipo ControladorEquipo
 @inject EstadoTorneo EstadoTorneo
 @inject ControladorConsultasTorneo ControladorConsultasTorneo
@@ -71,15 +72,15 @@
 
 @code {
     [Parameter] public string Nombre { get; set; } = string.Empty;
-    private Equipo _equipo = new();
+    private EquipoDTO _equipo = new();
     private string _error = string.Empty;
     private string _bandera = string.Empty;
     private bool _edicionBloqueada;
 
     protected override void OnInitialized()
     {
-        _equipo = ControladorEquipo.ObtenerParaEdicion(Nombre);
-        _bandera = _equipo.Bandera;
+        _equipo = ControladorEquipo.ObtenerParaEdicionDTO(Nombre);
+        _bandera = ControladorEquipo.ObtenerBanderaParaEdicion(Nombre);
         _edicionBloqueada = ControladorConsultasTorneo.EquipoParticipaEnFixture(EstadoTorneo, _equipo);
     }
 
@@ -96,8 +97,7 @@
             if (_edicionBloqueada)
                 throw new InvalidOperationException("No se puede editar un equipo que participa en el fixture generado.");
 
-            _equipo.Bandera = _bandera;
-            ControladorEquipo.Actualizar(_equipo, Nombre, SesionServicio.UsuarioActual);
+            ControladorEquipo.Actualizar(_equipo, Nombre, _bandera, SesionServicio.UsuarioActual);
             Toast.Exito($"Equipo actualizado correctamente.");
             NavigationManager.NavigateTo("/equipos");
         }

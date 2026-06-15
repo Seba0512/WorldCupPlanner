@@ -1,5 +1,6 @@
 @page "/estadios"
 @using WorldCupPlanner.Controladores
+@using WorldCupPlanner.Dominio.DTO
 @inject ControladorEstadio ControladorEstadio
 @inject EstadoTorneo EstadoTorneo
 @inject ControladorConsultasTorneo ControladorConsultasTorneo
@@ -96,16 +97,16 @@
 </GuardiaAdmin>
 
 @code {
-    private List<Estadio> _estadios = new();
-    private Estadio? _estadioAEliminar;
+    private List<EstadioDTO> _estadios = new();
+    private EstadioDTO? _estadioAEliminar;
     private bool _confirmarEliminar;
 
     protected override void OnInitialized()
     {
-        _estadios = ControladorEstadio.Listar();
+        _estadios = ControladorEstadio.ListarDTO();
     }
 
-    private void PedirConfirmacion(Estadio estadio)
+    private void PedirConfirmacion(EstadioDTO estadio)
     {
         _estadioAEliminar = estadio;
         _confirmarEliminar = true;
@@ -116,10 +117,10 @@
         if (_estadioAEliminar == null) return;
         try
         {
-            ControladorEstadio.Eliminar(_estadioAEliminar, SesionServicio.UsuarioActual);
+            ControladorEstadio.Eliminar(_estadioAEliminar.Nombre, SesionServicio.UsuarioActual);
             Toast.Exito($"Estadio \"{_estadioAEliminar.Nombre}\" eliminado.");
             _estadioAEliminar = null;
-            _estadios = ControladorEstadio.Listar();
+            _estadios = ControladorEstadio.ListarDTO();
         }
         catch (Exception ex) { Toast.Error(ex.Message); }
     }

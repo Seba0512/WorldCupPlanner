@@ -1,5 +1,6 @@
 @page "/estadios/crear"
 @using WorldCupPlanner.Controladores
+@using WorldCupPlanner.Dominio.DTO
 @inject ControladorEstadio ControladorEstadio
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
@@ -55,7 +56,7 @@
 </GuardiaAdmin>
 
 @code {
-    private Estadio _estadio = new();
+    private EstadioDTO _estadio = new();
     private int? _capacidad;
     private string _error = string.Empty;
 

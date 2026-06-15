@@ -1,5 +1,6 @@
 @page "/equipos/crear"
 @using WorldCupPlanner.Controladores
+@using WorldCupPlanner.Dominio.DTO
 @inject ControladorEquipo ControladorEquipo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
@@ -62,7 +63,7 @@
 </GuardiaAdmin>
 
 @code {
-    private NuevoEquipoDto _dto = new();
+    private EquipoDTO _dto = new();
     private string _error = string.Empty;
     private string _bandera = string.Empty;
 
@@ -79,8 +80,7 @@
         _error = string.Empty;
         try
         {
-            _dto.Bandera = _bandera;
-            ControladorEquipo.Crear(_dto, SesionServicio.UsuarioActual);
+            ControladorEquipo.Crear(_dto, _bandera, SesionServicio.UsuarioActual);
             Toast.Exito($"Equipo \"{_dto.Nombre}\" creado correctamente.");
             NavigationManager.NavigateTo("/equipos");
         }

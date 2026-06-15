@@ -1,6 +1,6 @@
 @page "/equipos"
-@using WorldCupPlanner.Dominio.Entidades
 @using WorldCupPlanner.Controladores
+@using WorldCupPlanner.Dominio.DTO
 @inject ControladorEquipo ControladorEquipo
 @inject EstadoTorneo EstadoTorneo
 @inject ControladorConsultasTorneo ControladorConsultasTorneo
@@ -101,13 +101,14 @@
                 @foreach (var (equipo, i) in _equipos.Select((e, i) => (e, i + 1)))
                 {
                     var estadisticas = ObtenerEstadisticas(equipo);
+                    var bandera = ObtenerBandera(equipo.Nombre);
                     <tr>
                         <td style="color:var(--text-muted); width:40px">@i</td>
                         <td style="font-weight:600">
                             <div style="display:flex; align-items:center; gap:8px;">
-                                @if (!string.IsNullOrEmpty(equipo.Bandera))
+                                @if (!string.IsNullOrEmpty(bandera))
                                 {
-                                    <img src="@equipo.Bandera" alt="Bandera" style="height:20px; border-radius:2px;" />
+                                    <img src="@bandera" alt="Bandera" style="height:20px; border-radius:2px;" />
                                 }
                                 <span>@equipo.Nombre</span>
                             </div>
@@ -196,14 +197,15 @@
 }
 
 @code {
-    private List<Equipo> _equipos = new();
-    private Equipo? _equipoAEliminar;
+    private List<EquipoDTO> _equipos = new();
+    private EquipoDTO? _equipoAEliminar;
     private bool _confirmarEliminar;
     private string _mensajeCompletar = string.Empty;
     private string _errorCarga = string.Empty;
     private int _semillaCompletar;
     private int _maxEquipos;
     private Dictionary<string, EstadisticasEquipo> _estadisticasPorEquipo = new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, string> _banderasPorEquipo = new(StringComparer.OrdinalIgnoreCase);
 
     private Dictionary<Confederacion, (int registrados, int cupo)> _cuposPorConfederacion = new();
 
@@ -224,31 +226,36 @@
         _errorCarga = string.Empty;
         try
         {
-            _equipos = ControladorEquipo.Buscar(_ => true);
-            _cuposPorConfederacion = ControladorEquipo.ObtenerCuposConOcupacion(_equipos);
+            _equipos = ControladorEquipo.ListarDTO();
+            _cuposPorConfederacion = ControladorEquipo.ObtenerCuposConOcupacionDTO(_equipos);
             _semillaCompletar = ControladorConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
             _estadisticasPorEquipo = ControladorEstadisticasEquipo.ObtenerEstadisticasPorEquipo(_equipos);
+            _banderasPorEquipo = ControladorEquipo.ObtenerBanderasPorEquipo();
         }
         catch (Exception ex)
         {
             _errorCarga = ex.Message;
             _equipos = new();
-            _cuposPorConfederacion = ControladorEquipo.ObtenerCuposConOcupacion(new List<Equipo>());
+            _cuposPorConfederacion = ControladorEquipo.ObtenerCuposConOcupacionDTO(new List<EquipoDTO>());
             _estadisticasPorEquipo = new(StringComparer.OrdinalIgnoreCase);
+            _banderasPorEquipo = new(StringComparer.OrdinalIgnoreCase);
         }
     }
 
-    private EstadisticasEquipo ObtenerEstadisticas(Equipo equipo)
+    private EstadisticasEquipo ObtenerEstadisticas(EquipoDTO equipo)
         => _estadisticasPorEquipo.TryGetValue(equipo.Nombre, out var estadisticas)
             ? estadisticas
             : new EstadisticasEquipo();
+
+    private string ObtenerBandera(string nombre) =>
+        _banderasPorEquipo.TryGetValue(nombre, out var bandera) ? bandera : string.Empty;
 
     private void Reintentar()
     {
         CargarDatos();
     }
 
-    private void PedirConfirmacion(Equipo equipo)
+    private void PedirConfirmacion(EquipoDTO equipo)
     {
         _equipoAEliminar = equipo;
         _confirmarEliminar = true;
@@ -259,7 +266,7 @@
         if (_equipoAEliminar == null) return;
         try
         {
-            ControladorEquipo.Eliminar(_equipoAEliminar, SesionServicio.UsuarioActual);
+            ControladorEquipo.Eliminar(_equipoAEliminar.Nombre, SesionServicio.UsuarioActual);
             Toast.Exito($"Equipo \"{_equipoAEliminar.Nombre}\" eliminado.");
             _equipoAEliminar = null;
             CargarDatos();
@@ -272,7 +279,7 @@
         _semillaCompletar = ControladorConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
         try
         {
-            var generados = ControladorEquipo.CompletarEquipos(_semillaCompletar, SesionServicio.UsuarioActual);
+            var generados = ControladorEquipo.CompletarEquiposDTO(_semillaCompletar, SesionServicio.UsuarioActual);
             CargarDatos();
             _mensajeCompletar = ControladorEquipo.ObtenerMensajeComplecion(generados.Count);
             if (generados.Count > 0) Toast.Exito(_mensajeCompletar);

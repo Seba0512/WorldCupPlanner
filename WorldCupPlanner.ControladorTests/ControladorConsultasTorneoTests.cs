@@ -1,4 +1,5 @@
 using WorldCupPlanner.Controladores;
+using WorldCupPlanner.Dominio.DTO;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
@@ -57,6 +58,26 @@ public class ControladorConsultasTorneoTests
         Assert.IsFalse(controlador.EquipoParticipaEnFixture(estado, equipoAjeno));
         Assert.IsTrue(controlador.EstadioParticipaEnFixture(estado, estadioParticipante));
         Assert.IsFalse(controlador.EstadioParticipaEnFixture(estado, estadioAjeno));
+    }
+
+    [TestMethod]
+    public void ParticipacionEquipoYEstadio_AceptaDTOsSinExigirEntidadesEnUI()
+    {
+        var controlador = CrearControlador();
+        var estado = CrearEstadoTorneo();
+
+        Assert.IsTrue(controlador.EquipoParticipaEnFixture(estado, new EquipoDTO
+        {
+            Nombre = "Uruguay",
+            Confederacion = Confederacion.CONMEBOL,
+            RankingFIFA = 1200
+        }));
+        Assert.IsTrue(controlador.EstadioParticipaEnFixture(estado, new EstadioDTO
+        {
+            Nombre = "Centenario",
+            Ciudad = "Montevideo",
+            Capacidad = 60000
+        }));
     }
 
     [TestMethod]
