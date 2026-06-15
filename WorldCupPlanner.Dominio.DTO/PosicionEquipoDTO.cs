@@ -5,7 +5,11 @@ namespace WorldCupPlanner.Dominio.DTO;
 public class PosicionEquipoDTO
 {
     public EquipoDTO? Equipo { get; set; }
+    public string? EquipoNombre { get; set; }
     public string? GrupoEtiqueta { get; set; }
+    public int Posicion { get; set; }
+    public bool Clasifica { get; set; }
+    public bool EsTercero { get; set; }
     public int PartidosJugados { get; set; }
     public int PartidosGanados { get; set; }
     public int PartidosEmpatados { get; set; }
@@ -21,6 +25,7 @@ public class PosicionEquipoDTO
         {
             Equipo = Equipo?.ToEntity()!,
             Grupo = CrearGrupoDesdeEtiqueta()!,
+            Posicion = Posicion,
             PartidosJugados = PartidosJugados,
             PartidosGanados = PartidosGanados,
             PartidosEmpatados = PartidosEmpatados,
@@ -38,7 +43,11 @@ public class PosicionEquipoDTO
         return new PosicionEquipoDTO
         {
             Equipo = posicion.Equipo == null ? null : EquipoDTO.FromEntity(posicion.Equipo),
+            EquipoNombre = posicion.Equipo?.Nombre,
             GrupoEtiqueta = posicion.Grupo?.Etiqueta,
+            Posicion = posicion.Posicion,
+            Clasifica = posicion.Clasifica,
+            EsTercero = posicion.EsTercero,
             PartidosJugados = posicion.PartidosJugados,
             PartidosGanados = posicion.PartidosGanados,
             PartidosEmpatados = posicion.PartidosEmpatados,

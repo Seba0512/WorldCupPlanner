@@ -1,4 +1,5 @@
 using WorldCupPlanner.Controladores;
+using WorldCupPlanner.Dominio.DTO;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -39,6 +40,42 @@ public class ControladorClasificacionTests
     }
 
     [TestMethod]
+    public void CalcularTablaDTO_DevuelveDatosDeTablaParaUI()
+    {
+        var controlador = new ControladorClasificacion(new ServicioClasificacion());
+        var grupo = CrearGrupoConResultados("A");
+
+        var tabla = controlador.CalcularTablaDTO(grupo).ToList();
+
+        Assert.AreEqual(4, tabla.Count);
+        Assert.IsInstanceOfType(tabla[0], typeof(PosicionEquipoDTO));
+        Assert.AreEqual(1, tabla[0].Posicion);
+        Assert.AreEqual(tabla[0].Equipo?.Nombre, tabla[0].EquipoNombre);
+        Assert.AreEqual("A", tabla[0].GrupoEtiqueta);
+        Assert.IsTrue(tabla[0].Clasifica);
+        Assert.IsFalse(tabla[0].EsTercero);
+    }
+
+    [TestMethod]
+    public void CalcularTablaDTO_RespetaOrdenYDatosDelServicio()
+    {
+        var servicio = new ServicioClasificacion();
+        var controlador = new ControladorClasificacion(servicio);
+        var grupo = CrearGrupoConEmpateTotal("B");
+        var configuracion = new ConfiguracionTorneo { SemillaCrucesFase = 9 };
+
+        var esperada = servicio.CalcularTabla(grupo, configuracion);
+        var obtenida = controlador.CalcularTablaDTO(grupo, configuracion).ToList();
+
+        CollectionAssert.AreEqual(
+            esperada.Select(p => p.Equipo.Nombre).ToList(),
+            obtenida.Select(p => p.EquipoNombre).ToList());
+        CollectionAssert.AreEqual(
+            esperada.Select(p => p.Posicion).ToList(),
+            obtenida.Select(p => p.Posicion).ToList());
+    }
+
+    [TestMethod]
     public void ObtenerClasificadosAFaseEliminatoria_DelegaEnServicioClasificacion()
     {
         var servicio = new ServicioClasificacion();
@@ -72,6 +109,23 @@ public class ControladorClasificacionTests
     }
 
     [TestMethod]
+    public void ObtenerClasificadosAFaseEliminatoriaDTO_DevuelveClasificadosSinExponerDominio()
+    {
+        var controlador = new ControladorClasificacion(new ServicioClasificacion());
+        var fixture = CrearFixtureConDoceGruposResueltos();
+        var configuracion = new ConfiguracionTorneo { SemillaCrucesFase = 3 };
+
+        var clasificados = controlador.ObtenerClasificadosAFaseEliminatoriaDTO(fixture, configuracion);
+
+        Assert.IsInstanceOfType(clasificados, typeof(ClasificadosFaseGruposDTO));
+        Assert.AreEqual(12, clasificados.Primeros.Count);
+        Assert.AreEqual(12, clasificados.Segundos.Count);
+        Assert.AreEqual(8, clasificados.MejoresTerceros.Count);
+        Assert.AreEqual(32, clasificados.Todos.Count);
+        Assert.AreEqual("A", clasificados.GruposDeOrigen.First().Grupo.Etiqueta);
+    }
+
+    [TestMethod]
     public void ObtenerCampeon_DelegaEnServicioClasificacion()
     {
         var servicio = new ServicioClasificacion();
@@ -85,6 +139,22 @@ public class ControladorClasificacionTests
 
         Assert.AreSame(campeonEsperado, campeonObtenido);
         Assert.IsNull(controlador.ObtenerCampeon(null));
+    }
+
+    [TestMethod]
+    public void ObtenerCampeonDTO_DevuelveEquipoDTO()
+    {
+        var controlador = new ControladorClasificacion(new ServicioClasificacion());
+        var local = CrearEquipo("Finalista1");
+        var visitante = CrearEquipo("Finalista2");
+        var final = CrearPartido(local, visitante, 2, 1);
+
+        var campeon = controlador.ObtenerCampeonDTO(final);
+
+        Assert.IsNotNull(campeon);
+        Assert.IsInstanceOfType(campeon, typeof(EquipoDTO));
+        Assert.AreEqual(local.Nombre, campeon.Nombre);
+        Assert.IsNull(controlador.ObtenerCampeonDTO(null));
     }
 
     private Grupo CrearGrupoConResultados(string etiqueta)

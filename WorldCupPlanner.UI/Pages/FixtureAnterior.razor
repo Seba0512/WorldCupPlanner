@@ -1,5 +1,6 @@
 @page "/fixture/anterior"
 @using WorldCupPlanner.Controladores
+@using WorldCupPlanner.Dominio.DTO
 @inject EstadoTorneo EstadoTorneo
 @inject ControladorClasificacion ControladorClasificacion
 
@@ -108,7 +109,7 @@ else
                                                     <span class="badge badge-muted" style="margin-left:6px;">3°</span>
                                                 }
                                             </td>
-                                            <td style="font-weight:700;">@posicion.Equipo.Nombre</td>
+                                            <td style="font-weight:700;">@posicion.EquipoNombre</td>
                                             <td class="text-center">@posicion.PartidosJugados</td>
                                             <td class="text-center">@posicion.PartidosGanados</td>
                                             <td class="text-center">@posicion.PartidosEmpatados</td>
@@ -411,10 +412,10 @@ else
     private Grupo? GrupoSeleccionado =>
         EstadoTorneo.FixtureAnterior?.Grupos.FirstOrDefault(g => g.Etiqueta == _grupoActivo);
 
-    private IEnumerable<PosicionEquipo> TablaGrupoSeleccionado =>
+    private IEnumerable<PosicionEquipoDTO> TablaGrupoSeleccionado =>
         GrupoSeleccionado == null
-            ? Enumerable.Empty<PosicionEquipo>()
-            : ControladorClasificacion.CalcularTabla(GrupoSeleccionado);
+            ? Enumerable.Empty<PosicionEquipoDTO>()
+            : ControladorClasificacion.CalcularTablaDTO(GrupoSeleccionado);
 
     private string EtapaActivaEtiqueta =>
         EtapasDisponibles.FirstOrDefault(e => e.Fase == _etapaActiva)?.Etiqueta ?? string.Empty;
@@ -428,7 +429,7 @@ else
     private Partido? PartidoTercerPuestoAnterior =>
         EstadoTorneo.PartidosEliminatoriosAnteriores.FirstOrDefault(p => p.Fase == FaseTorneo.TercerPuesto);
 
-    private Equipo? Campeon => ControladorClasificacion.ObtenerCampeon(PartidoFinalAnterior);
+    private EquipoDTO? Campeon => ControladorClasificacion.ObtenerCampeonDTO(PartidoFinalAnterior);
 
     private void SeleccionarEtapa(FaseTorneo fase)
     {
