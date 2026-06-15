@@ -768,6 +768,27 @@ a:hover { color: var(--accent-blue-dark); }
 
 .btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 
+/*
+ * Botones warning deshabilitados: Bootstrap aplica background-color:#ffc107 con
+ * especificidad (0,2,0). Se usa el selector .btn.btn-warning:disabled (0,3,0)
+ * para ganar la cascada sin depender del orden de carga.
+ * Se explicitan las propiedades longhand (background-color, background-image)
+ * para evitar que el shorthand `background` interaccione con la regla de Bootstrap.
+ * El estado deshabilitado se señaliza con fondo muy atenuado y borde discontinuo;
+ * el texto queda en 90 % de opacidad → ≥6:1 de contraste sobre el fondo oscuro.
+ */
+.btn.btn-warning:disabled,
+.btn.btn-warning.disabled {
+    background-color: rgba(244, 185, 66, 0.07) !important;
+    background-image: none !important;
+    color: rgba(244, 185, 66, 0.90) !important;
+    border-color: rgba(244, 185, 66, 0.28) !important;
+    border-style: dashed !important;
+    opacity: 1 !important;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 .btn-primary {
     background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-dark));
     color: #fff !important;
@@ -821,14 +842,17 @@ a:hover { color: var(--accent-blue-dark); }
 }
 
 .btn-warning {
-    background: var(--accent-gold-glow);
+    background: rgba(244, 185, 66, 0.22);
     color: var(--accent-gold) !important;
-    border-color: rgba(244,185,66,0.25);
+    border-color: rgba(244, 185, 66, 0.55);
+    font-weight: 700;
 }
 
 .btn-warning:hover {
-    background: rgba(244,185,66,0.2);
+    background: rgba(244, 185, 66, 0.32);
     color: var(--accent-gold) !important;
+    border-color: rgba(244, 185, 66, 0.80);
+    box-shadow: 0 2px 14px rgba(244, 185, 66, 0.25);
     text-decoration: none;
 }
 

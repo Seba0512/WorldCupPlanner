@@ -41,7 +41,7 @@
                     }
                 </button>
             }
-            <div class="btn-group btn-group-sm" role="group" aria-label="Opciones de simulación">
+            <div class="d-flex gap-2 align-items-center">
                 @if (_etapaActiva == FaseTorneo.FaseDeGrupos)
                 {
                     <select class="form-select form-select-sm"
@@ -188,29 +188,6 @@ else
         </div>
     }
 
-    <div class="table-card mb-3">
-        <div class="table-card-header">
-            <span class="table-card-title">Configuración usada para generar el fixture</span>
-        </div>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Parámetro</th>
-                    <th>Valor</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td>Fecha inicio torneo</td><td>@ConfiguracionUsadaParaFixture.FechaInicioTorneo.ToString("yyyy-MM-dd")</td></tr>
-                <tr><td>Semilla fixture</td><td>@ConfiguracionUsadaParaFixture.SemillaFixture</td></tr>
-                <tr><td>Semilla completar</td><td>@ConfiguracionUsadaParaFixture.SemillaCompletar</td></tr>
-                <tr><td>Semilla cruces</td><td>@ConfiguracionUsadaParaFixture.SemillaCrucesFase</td></tr>
-                <tr><td>Semilla simulacion</td><td>@ConfiguracionUsadaParaFixture.SemillaSimulation</td></tr>
-                <tr><td>Motor simulacion</td><td>@ServicioSimulacion.ObtenerNombreMotor(ConfiguracionUsadaParaFixture.MotorSimulacion)</td></tr>
-                <tr><td>Max partidos por dia</td><td>@ConfiguracionUsadaParaFixture.MaxPartidosPorDia</td></tr>
-                <tr><td>Separacion entre fechas (dias)</td><td>@ConfiguracionUsadaParaFixture.SeparacionEntreFechas</td></tr>
-            </tbody>
-        </table>
-    </div>
     <div class="stage-tabs" role="tablist" aria-label="Etapas del torneo">
         @foreach (var etapa in EtapasDisponibles)
         {
@@ -640,6 +617,30 @@ else
             </div>
         }
     }
+
+    <div class="table-card mt-4" style="opacity:0.75">
+        <div class="table-card-header">
+            <span class="table-card-title">Configuración usada para generar el fixture</span>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Parámetro</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Fecha inicio torneo</td><td>@ConfiguracionUsadaParaFixture.FechaInicioTorneo.ToString("yyyy-MM-dd")</td></tr>
+                <tr><td>Semilla fixture</td><td>@ConfiguracionUsadaParaFixture.SemillaFixture</td></tr>
+                <tr><td>Semilla completar</td><td>@ConfiguracionUsadaParaFixture.SemillaCompletar</td></tr>
+                <tr><td>Semilla cruces</td><td>@ConfiguracionUsadaParaFixture.SemillaCrucesFase</td></tr>
+                <tr><td>Semilla simulacion</td><td>@ConfiguracionUsadaParaFixture.SemillaSimulation</td></tr>
+                <tr><td>Motor simulacion</td><td>@ServicioSimulacion.ObtenerNombreMotor(ConfiguracionUsadaParaFixture.MotorSimulacion)</td></tr>
+                <tr><td>Max partidos por dia</td><td>@ConfiguracionUsadaParaFixture.MaxPartidosPorDia</td></tr>
+                <tr><td>Separacion entre fechas (dias)</td><td>@ConfiguracionUsadaParaFixture.SeparacionEntreFechas</td></tr>
+            </tbody>
+        </table>
+    </div>
 }
 
 @code {
