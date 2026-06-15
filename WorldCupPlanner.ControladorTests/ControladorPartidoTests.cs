@@ -5,7 +5,7 @@ using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
-namespace WorldCupPlanner.ServicioTests;
+namespace WorldCupPlanner.ControladorTests;
 
 [TestClass]
 public class ControladorPartidoTests
@@ -304,3 +304,4 @@ file sealed class RepositorioAuditoriaControladorPartidoFake : IRepositorioConId
 
     public int SiguienteId() => _siguienteId++;
 }
+

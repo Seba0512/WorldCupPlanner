@@ -3,7 +3,7 @@ using WorldCupPlanner.Controladores;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Servicios;
 
-namespace WorldCupPlanner.ServicioTests;
+namespace WorldCupPlanner.ControladorTests;
 
 [TestClass]
 public class ControladorEstadioTests
@@ -114,3 +114,4 @@ file sealed class RepositorioEstadioControladorFake : IRepositorio<Estadio>
     public List<Estadio> Buscar(Func<Estadio, bool> predicado) =>
         _estadios.Where(predicado).ToList();
 }
+

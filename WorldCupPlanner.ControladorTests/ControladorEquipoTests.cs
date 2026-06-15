@@ -4,7 +4,7 @@ using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
 
-namespace WorldCupPlanner.ServicioTests;
+namespace WorldCupPlanner.ControladorTests;
 
 [TestClass]
 public class ControladorEquipoTests
@@ -133,3 +133,4 @@ file sealed class RepositorioEquipoControladorFake : IRepositorio<Equipo>
     public List<Equipo> Buscar(Func<Equipo, bool> predicado) =>
         _equipos.Where(predicado).ToList();
 }
+

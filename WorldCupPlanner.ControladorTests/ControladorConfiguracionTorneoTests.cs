@@ -4,7 +4,7 @@ using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
-namespace WorldCupPlanner.ServicioTests;
+namespace WorldCupPlanner.ControladorTests;
 
 [TestClass]
 public class ControladorConfiguracionTorneoTests
@@ -104,3 +104,4 @@ public class ControladorConfiguracionTorneoTests
         return usuario;
     }
 }
+

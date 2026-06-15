@@ -5,7 +5,7 @@ using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
 
-namespace WorldCupPlanner.ServicioTests;
+namespace WorldCupPlanner.ControladorTests;
 
 [TestClass]
 public class ControladorUsuarioTests
@@ -172,3 +172,4 @@ file sealed class RepositorioAuditoriaUsuarioControladorFake : IRepositorioConId
     public List<Auditoria> Buscar(Func<Auditoria, bool> predicado) =>
         _auditorias.Where(predicado).ToList();
 }
+

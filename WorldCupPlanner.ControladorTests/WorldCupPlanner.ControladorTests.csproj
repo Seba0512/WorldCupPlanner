@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>WorldCupPlanner.ControladorTests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WorldCupPlanner.Dominio\WorldCupPlanner.Dominio.csproj" />
+    <ProjectReference Include="..\WorldCupPlanner.Dominio.DTO\WorldCupPlanner.Dominio.DTO.csproj" />
+    <ProjectReference Include="..\WorldCupPlanner.AccesoADatos.Interfaces\WorldCupPlanner.AccesoADatos.Interfaces.csproj" />
+    <ProjectReference Include="..\WorldCupPlanner.Controlador\WorldCupPlanner.Controlador.csproj" />
+    <ProjectReference Include="..\WorldCupPlanner.Servicios\WorldCupPlanner.Servicios.csproj" />
+    <ProjectReference Include="..\WorldCupPlanner.AccesoADatos\WorldCupPlanner.AccesoADatos.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -6,7 +6,7 @@ using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
-namespace WorldCupPlanner.ServicioTests;
+namespace WorldCupPlanner.ControladorTests;
 
 [TestClass]
 public class ControladorImportacionTests
@@ -129,3 +129,4 @@ file sealed class RepositorioEquipoControladorImportacionFake : IRepositorio<Equ
     public List<Equipo> Buscar(Func<Equipo, bool> predicado) =>
         _equipos.Where(predicado).ToList();
 }
+

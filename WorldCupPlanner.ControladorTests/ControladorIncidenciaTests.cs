@@ -5,7 +5,7 @@ using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
-namespace WorldCupPlanner.ServicioTests;
+namespace WorldCupPlanner.ControladorTests;
 
 [TestClass]
 public class ControladorIncidenciaTests
@@ -179,3 +179,4 @@ file sealed class RepositorioTorneoArchivadoControladorIncidenciaFake : IReposit
 
     public TorneoArchivado? Obtener() => _torneoArchivado;
 }
+

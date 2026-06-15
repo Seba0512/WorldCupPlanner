@@ -24,7 +24,6 @@
     <ProjectReference Include="..\WorldCupPlanner.Dominio\WorldCupPlanner.Dominio.csproj" />
     <ProjectReference Include="..\WorldCupPlanner.Dominio.DTO\WorldCupPlanner.Dominio.DTO.csproj" />
     <ProjectReference Include="..\WorldCupPlanner.AccesoADatos.Interfaces\WorldCupPlanner.AccesoADatos.Interfaces.csproj" />
-    <ProjectReference Include="..\WorldCupPlanner.Controladores\WorldCupPlanner.Controladores.csproj" />
     <ProjectReference Include="..\WorldCupPlanner.Servicios\WorldCupPlanner.Servicios.csproj" />
     <ProjectReference Include="..\WorldCupPlanner.AccesoADatos\WorldCupPlanner.AccesoADatos.csproj" />
   </ItemGroup>

@@ -3,7 +3,7 @@ using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
 
-namespace WorldCupPlanner.ServicioTests;
+namespace WorldCupPlanner.ControladorTests;
 
 [TestClass]
 public class ControladorConsultasTorneoTests
@@ -144,3 +144,4 @@ public class ControladorConsultasTorneoTests
         Capacidad = 60000
     };
 }
+

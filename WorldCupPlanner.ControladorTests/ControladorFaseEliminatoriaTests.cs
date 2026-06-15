@@ -4,7 +4,7 @@ using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
 
-namespace WorldCupPlanner.ServicioTests;
+namespace WorldCupPlanner.ControladorTests;
 
 [TestClass]
 public class ControladorFaseEliminatoriaTests
@@ -242,3 +242,4 @@ file sealed class RepositorioTorneoArchivadoControladorFaseFake : IRepositorioTo
 
     public TorneoArchivado? Obtener() => _torneoArchivado;
 }
+

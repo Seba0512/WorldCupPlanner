@@ -4,7 +4,7 @@ using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
 
-namespace WorldCupPlanner.ServicioTests;
+namespace WorldCupPlanner.ControladorTests;
 
 [TestClass]
 public class ControladorDashboardTests
@@ -171,3 +171,4 @@ internal sealed class RepositorioDashboardFake<T> : IRepositorio<T>
     public List<T> Buscar(Func<T, bool> predicado) =>
         _entidades.Where(predicado).ToList();
 }
+

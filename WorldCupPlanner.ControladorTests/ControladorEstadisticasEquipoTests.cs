@@ -3,7 +3,7 @@ using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
 
-namespace WorldCupPlanner.ServicioTests;
+namespace WorldCupPlanner.ControladorTests;
 
 [TestClass]
 public class ControladorEstadisticasEquipoTests
@@ -156,3 +156,4 @@ public class ControladorEstadisticasEquipoTests
         Assert.AreEqual(esperada.Puntos, obtenida.Puntos);
     }
 }
+
