@@ -1,4 +1,6 @@
+using WorldCupPlanner.Dominio.DTO;
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.Controladores;
@@ -6,10 +8,12 @@ namespace WorldCupPlanner.Controladores;
 public class ControladorNotificacion
 {
     private readonly ServicioNotificacion _servicioNotificacion;
+    private readonly ServicioUsuario? _servicioUsuario;
 
-    public ControladorNotificacion(ServicioNotificacion servicioNotificacion)
+    public ControladorNotificacion(ServicioNotificacion servicioNotificacion, ServicioUsuario? servicioUsuario = null)
     {
         _servicioNotificacion = servicioNotificacion;
+        _servicioUsuario = servicioUsuario;
     }
 
     public List<Notificacion> ObtenerNoLeidas(Usuario usuario) =>
@@ -21,9 +25,28 @@ public class ControladorNotificacion
     public void MarcarComoLeida(int notificacionId, Usuario usuario) =>
         _servicioNotificacion.MarcarComoLeida(notificacionId, usuario);
 
+    public void MarcarComoLeida(int notificacionId, UsuarioDTO usuario) =>
+        _servicioNotificacion.MarcarComoLeida(notificacionId, ResolverUsuario(usuario));
+
     public void MarcarTodasComoLeidas(Usuario usuario)
     {
         foreach (var notificacion in _servicioNotificacion.ObtenerNoLeidas(usuario.Id))
             _servicioNotificacion.MarcarComoLeida(notificacion.Id, usuario);
+    }
+
+    public void MarcarTodasComoLeidas(UsuarioDTO usuario)
+    {
+        var entidad = ResolverUsuario(usuario);
+        foreach (var notificacion in _servicioNotificacion.ObtenerNoLeidas(entidad.Id))
+            _servicioNotificacion.MarcarComoLeida(notificacion.Id, entidad);
+    }
+
+    private Usuario ResolverUsuario(UsuarioDTO usuarioActual)
+    {
+        if (_servicioUsuario == null)
+            throw new InvalidOperationException("El servicio de usuario no fue configurado.");
+
+        return _servicioUsuario.ObtenerPorEmail(usuarioActual.Email)
+               ?? throw new EntidadInexistenteExcepcion($"No existe un usuario con el email '{usuarioActual.Email}'.");
     }
 }

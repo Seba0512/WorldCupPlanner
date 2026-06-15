@@ -1,19 +1,19 @@
-using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.DTO;
 using WorldCupPlanner.Dominio.Enumeraciones;
 
 namespace WorldCupPlanner.UI.Data
 {
     public class SesionServicio
     {
-        public Usuario? UsuarioActual { get; private set; }
+        public UsuarioDTO? UsuarioActual { get; private set; }
 
         public bool HaySesion => UsuarioActual != null;
 
-        public bool EsAdministrador => UsuarioActual?.TieneRol(RolUsuario.AdministradorDelSistema) ?? false;
+        public bool EsAdministrador => UsuarioActual?.Roles.Contains(RolUsuario.AdministradorDelSistema) ?? false;
 
-        public bool EsEditor => UsuarioActual?.TieneRol(RolUsuario.Editor) ?? false;
+        public bool EsEditor => UsuarioActual?.Roles.Contains(RolUsuario.Editor) ?? false;
 
-        public bool EsPeriodista => UsuarioActual?.TieneRol(RolUsuario.Periodista) ?? false;
+        public bool EsPeriodista => UsuarioActual?.Roles.Contains(RolUsuario.Periodista) ?? false;
 
         public bool PuedeEditarPartidos => EsAdministrador || EsEditor;
 
@@ -25,7 +25,7 @@ namespace WorldCupPlanner.UI.Data
 
         public event Action? OnChange;
 
-        public void IniciarSesion(Usuario usuario)
+        public void IniciarSesion(UsuarioDTO usuario)
         {
             UsuarioActual = usuario;
             OnChange?.Invoke();

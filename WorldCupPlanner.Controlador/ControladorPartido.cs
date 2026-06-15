@@ -1,5 +1,7 @@
+using WorldCupPlanner.Dominio.DTO;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.Controladores;
@@ -8,16 +10,19 @@ public class ControladorPartido
 {
     private readonly ServicioPartido _servicioPartido;
     private readonly ServicioOrquestadorPartido? _orquestadorPartido;
+    private readonly ServicioUsuario? _servicioUsuario;
 
-    public ControladorPartido(ServicioPartido servicioPartido)
+    public ControladorPartido(ServicioPartido servicioPartido, ServicioUsuario? servicioUsuario = null)
     {
         _servicioPartido = servicioPartido;
+        _servicioUsuario = servicioUsuario;
     }
 
     public ControladorPartido(
         ServicioPartido servicioPartido,
-        ServicioOrquestadorPartido orquestadorPartido)
-        : this(servicioPartido)
+        ServicioOrquestadorPartido orquestadorPartido,
+        ServicioUsuario? servicioUsuario = null)
+        : this(servicioPartido, servicioUsuario)
     {
         _orquestadorPartido = orquestadorPartido;
     }
@@ -55,7 +60,7 @@ public class ControladorPartido
         string nombreEstadio,
         int? golesLocal,
         int? golesVisitante,
-        Usuario? usuarioActual,
+        UsuarioDTO? usuarioActual,
         EstadoTorneo estadoTorneo)
     {
         if (_orquestadorPartido == null)
@@ -67,7 +72,19 @@ public class ControladorPartido
             nombreEstadio,
             golesLocal,
             golesVisitante,
-            usuarioActual,
+            ResolverUsuario(usuarioActual),
             estadoTorneo);
+    }
+
+    private Usuario? ResolverUsuario(UsuarioDTO? usuarioActual)
+    {
+        if (usuarioActual == null)
+            return null;
+
+        if (_servicioUsuario == null)
+            throw new InvalidOperationException("El servicio de usuario no fue configurado.");
+
+        return _servicioUsuario.ObtenerPorEmail(usuarioActual.Email)
+               ?? throw new EntidadInexistenteExcepcion($"No existe un usuario con el email '{usuarioActual.Email}'.");
     }
 }

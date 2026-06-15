@@ -8,7 +8,7 @@
 
 <PageHeader Titulo="Dashboard" Subtitulo="@_saludo" />
 
-@if (SesionServicio.UsuarioActual?.TieneRol(RolUsuario.Periodista) == true)
+@if (SesionServicio.EsPeriodista)
 {
     <div class="table-card mb-4">
         <div class="table-card-header">
@@ -172,7 +172,7 @@
         _partidos         = datos.TotalPartidos;
         _partidos_jugados = datos.PartidosJugados;
 
-        if (SesionServicio.UsuarioActual?.TieneRol(RolUsuario.Periodista) == true)
+        if (SesionServicio.EsPeriodista && SesionServicio.UsuarioActual != null)
             _notificaciones = ControladorNotificacion.ObtenerNoLeidas(SesionServicio.UsuarioActual.Id);
     }
 

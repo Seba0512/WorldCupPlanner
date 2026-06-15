@@ -1,6 +1,7 @@
 using System.Text;
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Controladores;
+using WorldCupPlanner.Dominio.DTO;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -59,7 +60,7 @@ public class ControladorImportacionTests
         var usuarioSinRol = CrearUsuarioSinRol();
 
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
-            controlador.Importar(csv, usuarioSinRol));
+            controlador.Importar(csv, UsuarioDTO.FromEntity(usuarioSinRol)));
     }
 
     [TestMethod]
@@ -73,7 +74,7 @@ public class ControladorImportacionTests
             """);
         var administrador = CrearAdministrador();
 
-        var resultado = controlador.Importar(csv, administrador);
+        var resultado = controlador.Importar(csv, UsuarioDTO.FromEntity(administrador));
 
         Assert.AreEqual(1, resultado.Exitosos);
         Assert.AreEqual(1, repositorioEquipo.Buscar(_ => true).Count);
@@ -81,9 +82,14 @@ public class ControladorImportacionTests
 
     private static ControladorImportacion CrearControlador(IRepositorio<Equipo> repositorioEquipo)
     {
+        var repositorioUsuario = new RepositorioUsuarioControladorImportacionFake();
+        repositorioUsuario.Agregar(CrearUsuarioSinRol());
+        repositorioUsuario.Agregar(CrearAdministrador());
+        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaControladorImportacionFake());
+        var servicioUsuario = new ServicioUsuario(repositorioUsuario, auditoria);
         var servicioEquipo = new ServicioEquipo(repositorioEquipo);
         var servicioImportacion = new ServicioImportacionLegible();
-        return new ControladorImportacion(servicioImportacion, servicioEquipo);
+        return new ControladorImportacion(servicioImportacion, servicioEquipo, servicioUsuario);
     }
 
     private static MemoryStream CrearCsv(string contenido) =>
@@ -91,7 +97,13 @@ public class ControladorImportacionTests
 
     private static Usuario CrearAdministrador()
     {
-        var usuario = CrearUsuarioSinRol();
+        var usuario = new Usuario(new DatosUsuario
+        {
+            Nombre = "Admin",
+            Apellido = "Prueba",
+            Email = "admin@prueba.com",
+            FechaNacimiento = "01-01-1990"
+        });
         usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
         return usuario;
     }
@@ -103,6 +115,30 @@ public class ControladorImportacionTests
         Email = "usuario@prueba.com",
         FechaNacimiento = "01-01-1990"
     });
+}
+
+file sealed class RepositorioUsuarioControladorImportacionFake : IRepositorioUsuario
+{
+    private readonly List<Usuario> _usuarios = new();
+
+    public void Agregar(Usuario usuario) => _usuarios.Add(usuario);
+    public void Actualizar(Usuario usuario) { }
+    public void Eliminar(Usuario usuario) => _usuarios.Remove(usuario);
+    public List<Usuario> Buscar(Func<Usuario, bool> predicado) => _usuarios.Where(predicado).ToList();
+    public Usuario? ObtenerPorEmail(string email) =>
+        _usuarios.FirstOrDefault(u => string.Equals(u.Email, email, StringComparison.OrdinalIgnoreCase));
+}
+
+file sealed class RepositorioAuditoriaControladorImportacionFake : IRepositorioConId<Auditoria>
+{
+    private readonly List<Auditoria> _auditorias = new();
+    private int _siguienteId;
+
+    public int SiguienteId() => ++_siguienteId;
+    public void Agregar(Auditoria auditoria) => _auditorias.Add(auditoria);
+    public void Actualizar(Auditoria auditoria) { }
+    public void Eliminar(Auditoria auditoria) => _auditorias.Remove(auditoria);
+    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado) => _auditorias.Where(predicado).ToList();
 }
 
 file sealed class RepositorioEquipoControladorImportacionFake : IRepositorio<Equipo>

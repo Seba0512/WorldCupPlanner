@@ -51,7 +51,7 @@
         _error = string.Empty;
         try
         {
-            var usuario = ControladorUsuario.LoginParaSesion(_email, _contrasenia);
+            var usuario = ControladorUsuario.Login(_email, _contrasenia);
             SesionServicio.IniciarSesion(usuario);
             NavigationManager.NavigateTo(usuario.DebeCambiarContrasenia ? "/cuenta/cambiar-contrasenia" : "/");
         }

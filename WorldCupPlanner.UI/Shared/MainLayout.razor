@@ -19,7 +19,7 @@
                     {
                         <span class="topbar-role-badge">Admin</span>
                     }
-                    else if (SesionServicio.UsuarioActual?.TieneRol(RolUsuario.Editor) == true)
+                    else if (SesionServicio.EsEditor)
                     {
                         <span class="topbar-role-badge editor">Editor</span>
                     }

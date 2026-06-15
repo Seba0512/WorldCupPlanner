@@ -1,5 +1,7 @@
+using WorldCupPlanner.Dominio.DTO;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.Controladores;
@@ -11,16 +13,19 @@ public class ControladorFixture
     private readonly ServicioPersistenciaFixture? _persistenciaFixture;
     private readonly ServicioEquipo? _servicioEquipo;
     private readonly ServicioEstadio? _servicioEstadio;
+    private readonly ServicioUsuario? _servicioUsuario;
 
-    public ControladorFixture(ServicioFixture servicioFixture)
+    public ControladorFixture(ServicioFixture servicioFixture, ServicioUsuario? servicioUsuario = null)
     {
         _servicioFixture = servicioFixture;
+        _servicioUsuario = servicioUsuario;
     }
 
     public ControladorFixture(
         ServicioFixture servicioFixture,
-        ServicioOrquestadorFixture orquestadorFixture)
-        : this(servicioFixture)
+        ServicioOrquestadorFixture orquestadorFixture,
+        ServicioUsuario? servicioUsuario = null)
+        : this(servicioFixture, servicioUsuario)
     {
         _orquestadorFixture = orquestadorFixture;
     }
@@ -29,8 +34,9 @@ public class ControladorFixture
         ServicioFixture servicioFixture,
         ServicioPersistenciaFixture persistenciaFixture,
         ServicioEquipo servicioEquipo,
-        ServicioEstadio servicioEstadio)
-        : this(servicioFixture)
+        ServicioEstadio servicioEstadio,
+        ServicioUsuario? servicioUsuario = null)
+        : this(servicioFixture, servicioUsuario)
     {
         _persistenciaFixture = persistenciaFixture;
         _servicioEquipo = servicioEquipo;
@@ -42,8 +48,9 @@ public class ControladorFixture
         ServicioOrquestadorFixture orquestadorFixture,
         ServicioPersistenciaFixture persistenciaFixture,
         ServicioEquipo servicioEquipo,
-        ServicioEstadio servicioEstadio)
-        : this(servicioFixture, orquestadorFixture)
+        ServicioEstadio servicioEstadio,
+        ServicioUsuario? servicioUsuario = null)
+        : this(servicioFixture, orquestadorFixture, servicioUsuario)
     {
         _persistenciaFixture = persistenciaFixture;
         _servicioEquipo = servicioEquipo;
@@ -108,12 +115,12 @@ public class ControladorFixture
     public string ObtenerMensajeExitoGeneracionFase(FaseTorneo fase) =>
         _servicioFixture.ObtenerMensajeExitoGeneracionFase(fase);
 
-    public void GenerarORegenerarFixture(MotorSimulacion motor, Usuario? usuario, EstadoTorneo estadoTorneo)
+    public void GenerarORegenerarFixture(MotorSimulacion motor, UsuarioDTO? usuario, EstadoTorneo estadoTorneo)
     {
         if (_orquestadorFixture == null)
             throw new InvalidOperationException("El orquestador de fixture no fue configurado.");
 
-        _orquestadorFixture.GenerarORegenerarFixture(motor, usuario, estadoTorneo);
+        _orquestadorFixture.GenerarORegenerarFixture(motor, ResolverUsuario(usuario), estadoTorneo);
     }
 
     public void CrearNuevoTorneo(EstadoTorneo estadoTorneo)
@@ -125,5 +132,17 @@ public class ControladorFixture
         _persistenciaFixture.ArchivarTorneoActual();
         _servicioEquipo.LimpiarFixtureGenerado();
         _servicioEstadio.LimpiarFixtureGenerado();
+    }
+
+    private Usuario? ResolverUsuario(UsuarioDTO? usuarioActual)
+    {
+        if (usuarioActual == null)
+            return null;
+
+        if (_servicioUsuario == null)
+            throw new InvalidOperationException("El servicio de usuario no fue configurado.");
+
+        return _servicioUsuario.ObtenerPorEmail(usuarioActual.Email)
+               ?? throw new EntidadInexistenteExcepcion($"No existe un usuario con el email '{usuarioActual.Email}'.");
     }
 }

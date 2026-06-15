@@ -9,10 +9,12 @@ namespace WorldCupPlanner.Controladores;
 public class ControladorEquipo
 {
     private readonly ServicioEquipo _servicioEquipo;
+    private readonly ServicioUsuario? _servicioUsuario;
 
-    public ControladorEquipo(ServicioEquipo servicioEquipo)
+    public ControladorEquipo(ServicioEquipo servicioEquipo, ServicioUsuario? servicioUsuario = null)
     {
         _servicioEquipo = servicioEquipo;
+        _servicioUsuario = servicioUsuario;
     }
 
     public List<Equipo> Listar() =>
@@ -38,17 +40,17 @@ public class ControladorEquipo
             .Where(e => !string.IsNullOrEmpty(e.Bandera))
             .ToDictionary(e => e.Nombre, e => e.Bandera, StringComparer.OrdinalIgnoreCase);
 
-    public void Crear(NuevoEquipoDto equipo, Usuario? usuarioActual = null) =>
-        _servicioEquipo.Crear(equipo, usuarioActual);
+    public void Crear(NuevoEquipoDto equipo, UsuarioDTO? usuarioActual = null) =>
+        _servicioEquipo.Crear(equipo, ResolverUsuario(usuarioActual));
 
-    public void Crear(EquipoDTO equipo, string? bandera = null, Usuario? usuarioActual = null) =>
+    public void Crear(EquipoDTO equipo, string? bandera = null, UsuarioDTO? usuarioActual = null) =>
         _servicioEquipo.Crear(new NuevoEquipoDto
         {
             Nombre = equipo.Nombre,
             Confederacion = equipo.Confederacion,
             RankingFIFA = equipo.RankingFIFA,
             Bandera = bandera ?? string.Empty
-        }, usuarioActual);
+        }, ResolverUsuario(usuarioActual));
 
     public void Agregar(Equipo equipo, Usuario? usuarioActual = null) =>
         _servicioEquipo.Agregar(equipo, usuarioActual);
@@ -56,27 +58,27 @@ public class ControladorEquipo
     public void Actualizar(Equipo equipo, string nombreOriginal, Usuario? usuarioActual = null) =>
         _servicioEquipo.EditarEquipo(equipo, nombreOriginal, usuarioActual);
 
-    public void Actualizar(EquipoDTO equipo, string nombreOriginal, string? bandera = null, Usuario? usuarioActual = null)
+    public void Actualizar(EquipoDTO equipo, string nombreOriginal, string? bandera = null, UsuarioDTO? usuarioActual = null)
     {
         var entidad = equipo.ToEntity();
         entidad.Bandera = bandera ?? string.Empty;
-        _servicioEquipo.EditarEquipo(entidad, nombreOriginal, usuarioActual);
+        _servicioEquipo.EditarEquipo(entidad, nombreOriginal, ResolverUsuario(usuarioActual));
     }
 
     public void Eliminar(Equipo equipo, Usuario? usuarioActual = null) =>
         _servicioEquipo.Eliminar(equipo, usuarioActual);
 
-    public void Eliminar(string nombre, Usuario? usuarioActual = null)
+    public void Eliminar(string nombre, UsuarioDTO? usuarioActual = null)
     {
         var equipo = _servicioEquipo.Buscar(e => string.Equals(e.Nombre, nombre, StringComparison.OrdinalIgnoreCase))
             .FirstOrDefault() ?? throw new EntidadInexistenteExcepcion("El equipo no existe.");
-        _servicioEquipo.Eliminar(equipo, usuarioActual);
+        _servicioEquipo.Eliminar(equipo, ResolverUsuario(usuarioActual));
     }
 
-    public List<Equipo> CompletarEquipos(int semilla, Usuario? usuarioActual = null) =>
-        _servicioEquipo.CompletarEquipos(semilla, usuarioActual);
+    public List<Equipo> CompletarEquipos(int semilla, UsuarioDTO? usuarioActual = null) =>
+        _servicioEquipo.CompletarEquipos(semilla, ResolverUsuario(usuarioActual));
 
-    public List<EquipoDTO> CompletarEquiposDTO(int semilla, Usuario? usuarioActual = null) =>
+    public List<EquipoDTO> CompletarEquiposDTO(int semilla, UsuarioDTO? usuarioActual = null) =>
         CompletarEquipos(semilla, usuarioActual).Select(EquipoDTO.FromEntity).ToList();
 
     public string ObtenerMensajeComplecion(int cantidadGenerados) =>
@@ -105,4 +107,16 @@ public class ControladorEquipo
 
     public void LimpiarFixtureGenerado() =>
         _servicioEquipo.LimpiarFixtureGenerado();
+
+    private Usuario? ResolverUsuario(UsuarioDTO? usuarioActual)
+    {
+        if (usuarioActual == null)
+            return null;
+
+        if (_servicioUsuario == null)
+            throw new InvalidOperationException("El servicio de usuario no fue configurado.");
+
+        return _servicioUsuario.ObtenerPorEmail(usuarioActual.Email)
+               ?? throw new EntidadInexistenteExcepcion($"No existe un usuario con el email '{usuarioActual.Email}'.");
+    }
 }

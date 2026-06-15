@@ -59,9 +59,6 @@ public class ControladorUsuario
     public UsuarioDTO Login(string email, string contrasenia) =>
         UsuarioDTO.FromEntity(_servicioUsuario.Login(email, contrasenia));
 
-    public Usuario LoginParaSesion(string email, string contrasenia) =>
-        _servicioUsuario.Login(email, contrasenia);
-
     public void CambiarContrasenia(string email, CambiarContraseniaDto datos)
     {
         var usuario = ObtenerEntidadPorEmailOExcepcion(email);
@@ -70,14 +67,15 @@ public class ControladorUsuario
 
     public string ReiniciarContrasenia(
         string email,
-        Usuario administrador,
+        UsuarioDTO administrador,
         bool forzarCambio = false)
     {
         var usuario = ObtenerEntidadPorEmailOExcepcion(email);
-        return _servicioUsuario.ReiniciarContrasenia(usuario, administrador, forzarCambio);
+        var entidadAdministrador = ObtenerEntidadPorEmailOExcepcion(administrador.Email);
+        return _servicioUsuario.ReiniciarContrasenia(usuario, entidadAdministrador, forzarCambio);
     }
 
-    private Usuario ObtenerEntidadPorEmailOExcepcion(string email) =>
+    public Usuario ObtenerEntidadPorEmailOExcepcion(string email) =>
         _servicioUsuario.ObtenerPorEmail(email)
         ?? throw new EntidadInexistenteExcepcion($"No existe un usuario con el email '{email}'.");
 }
