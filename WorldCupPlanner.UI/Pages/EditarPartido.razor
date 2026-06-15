@@ -101,12 +101,12 @@ else
 
         <div class="form-section">
             <div class="form-group">
-                <label class="form-label">Fecha y hora</label>
+                <label class="form-label">Fecha y hora <span style="color:red">*</span></label>
                 <input type="datetime-local" class="form-control" @bind="_nuevaFecha" />
             </div>
 
             <div class="form-group">
-                <label class="form-label">Estadio</label>
+                <label class="form-label">Estadio <span style="color:red">*</span></label>
                 <select class="form-select" @bind="_nombreEstadio">
                     @foreach (var estadio in _estadios)
                     {
@@ -118,13 +118,13 @@ else
             <div class="row g-3">
                 <div class="col-sm-6">
                     <div class="form-group">
-                        <label class="form-label">Goles — @_partido.EquipoLocal?.Nombre</label>
+                        <label class="form-label">Goles — @_partido.EquipoLocal?.Nombre <span style="color:red">*</span></label>
                         <input type="number" class="form-control" @bind="_golesLocal" min="0" />
                     </div>
                 </div>
                 <div class="col-sm-6">
                     <div class="form-group">
-                        <label class="form-label">Goles — @_partido.EquipoVisitante?.Nombre</label>
+                        <label class="form-label">Goles — @_partido.EquipoVisitante?.Nombre <span style="color:red">*</span></label>
                         <input type="number" class="form-control" @bind="_golesVisitante" min="0" />
                     </div>
                 </div>

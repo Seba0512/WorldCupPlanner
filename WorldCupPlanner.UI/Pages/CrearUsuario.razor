@@ -20,20 +20,20 @@
     <div class="row g-3">
         <div class="col-sm-6">
             <div class="form-group">
-                <label class="form-label">Nombre</label>
+                <label class="form-label">Nombre <span style="color:red">*</span></label>
                 <input type="text" class="form-control" @bind="_nombre" placeholder="Juan" />
             </div>
         </div>
         <div class="col-sm-6">
             <div class="form-group">
-                <label class="form-label">Apellido</label>
+                <label class="form-label">Apellido <span style="color:red">*</span></label>
                 <input type="text" class="form-control" @bind="_apellido" placeholder="García" />
             </div>
         </div>
     </div>
 
     <div class="form-group">
-        <label class="form-label">Correo electrónico</label>
+        <label class="form-label">Correo electrónico <span style="color:red">*</span></label>
         <input type="email" class="form-control @(_emailConError ? "is-invalid" : string.Empty)"
                @bind="_email" @oninput="() => _emailConError = false" placeholder="usuario@ejemplo.com" />
         @if (_emailConError)
@@ -43,18 +43,18 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">Fecha de nacimiento</label>
+        <label class="form-label">Fecha de nacimiento <span style="color:red">*</span></label>
         <input type="date" class="form-control" @bind="_fechaNacimiento" />
     </div>
 
     <div class="form-group">
-        <label class="form-label">Contraseña</label>
+        <label class="form-label">Contraseña <span style="color:red">*</span></label>
         <input type="password" class="form-control" @bind="_contrasenia" placeholder="••••••••" />
         <span class="form-hint">Mínimo 8 caracteres. Debe incluir mayúscula, minúscula, número y carácter especial.</span>
     </div>
 
     <div class="form-group">
-        <label class="form-label">Confirmar contraseña</label>
+        <label class="form-label">Confirmar contraseña <span style="color:red">*</span></label>
         <input type="password" class="form-control" @bind="_confirmarContrasenia" placeholder="••••••••" />
     </div>
 
