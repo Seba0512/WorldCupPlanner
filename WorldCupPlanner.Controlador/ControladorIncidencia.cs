@@ -8,6 +8,7 @@ public class ControladorIncidencia
 {
     private readonly ServicioIncidencia _servicioIncidencia;
     private readonly ServicioPersistenciaFixture? _persistenciaFixture;
+    private readonly ServicioPartido? _servicioPartido;
 
     public ControladorIncidencia(ServicioIncidencia servicioIncidencia)
     {
@@ -20,6 +21,15 @@ public class ControladorIncidencia
         : this(servicioIncidencia)
     {
         _persistenciaFixture = persistenciaFixture;
+    }
+
+    public ControladorIncidencia(
+        ServicioIncidencia servicioIncidencia,
+        ServicioPersistenciaFixture persistenciaFixture,
+        ServicioPartido servicioPartido)
+        : this(servicioIncidencia, persistenciaFixture)
+    {
+        _servicioPartido = servicioPartido;
     }
 
     public Equipo ResolverEquipoPorRol(Partido partido, string rolEquipo) =>
@@ -42,5 +52,15 @@ public class ControladorIncidencia
         _persistenciaFixture.GuardarPartidos(new[] { partido });
         var equipo = _servicioIncidencia.ResolverEquipoPorRol(partido, rolEquipo);
         _servicioIncidencia.AgregarTarjeta(partido.Id, tipo, minuto, equipo);
+    }
+
+    public void AgregarTarjetaAPartido(int partidoId, string rolEquipo, TipoTarjeta tipo, int minuto)
+    {
+        if (_servicioPartido == null)
+            throw new InvalidOperationException("El servicio de partido no fue configurado.");
+
+        var partido = _servicioPartido.BuscarPartidoPorId(partidoId)
+                      ?? throw new InvalidOperationException("El partido no existe.");
+        AgregarTarjetaAPartido(partido, rolEquipo, tipo, minuto);
     }
 }

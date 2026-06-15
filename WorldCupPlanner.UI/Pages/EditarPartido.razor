@@ -1,5 +1,6 @@
 @page "/partidos/{Id:int}/editar"
 @using WorldCupPlanner.Controladores
+@using WorldCupPlanner.Dominio.DTO
 @inject ControladorPartido ControladorPartido
 @inject ControladorEstadio ControladorEstadio
 @inject ControladorIncidencia ControladorIncidencia
@@ -25,7 +26,7 @@ else
                 <span style="font-family:var(--font-heading); font-size:18px; font-weight:700;">
                     @_partido.EquipoLocal?.Nombre
                 </span>
-                @if (_partido.FueDefinidoPorPenales() && ReferenceEquals(_partido.GanadorPorPenales, _partido.EquipoLocal))
+                @if (ControladorPartido.EsGanadorPorPenales(_partido, _partido.EquipoLocal))
                 {
                     <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:rgb(251,146,60); margin-top:3px;">
                         Ganador por penales
@@ -33,7 +34,7 @@ else
                 }
             </div>
             <div style="display:flex; align-items:center; gap:8px; padding:8px 16px; background:var(--bg-raised); border-radius:var(--radius);">
-                @if (_partido.EstaJugado())
+                @if (ControladorPartido.EstaJugado(_partido))
                 {
                     <span class="score-box">@_partido.GolesLocal</span>
                     <span class="score-sep" style="font-size:16px">—</span>
@@ -48,7 +49,7 @@ else
                 <span style="font-family:var(--font-heading); font-size:18px; font-weight:700;">
                     @_partido.EquipoVisitante?.Nombre
                 </span>
-                @if (_partido.FueDefinidoPorPenales() && ReferenceEquals(_partido.GanadorPorPenales, _partido.EquipoVisitante))
+                @if (ControladorPartido.EsGanadorPorPenales(_partido, _partido.EquipoVisitante))
                 {
                     <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:rgb(251,146,60); margin-top:3px;">
                         Ganador por penales
@@ -56,15 +57,15 @@ else
                 }
             </div>
         </div>
-        @if (_partido.Grupo != null)
+        @if (!string.IsNullOrWhiteSpace(_partido.GrupoEtiqueta))
         {
-            <div style="margin-top:8px"><span class="badge badge-muted">Grupo @_partido.Grupo.Etiqueta</span></div>
+            <div style="margin-top:8px"><span class="badge badge-muted">Grupo @_partido.GrupoEtiqueta</span></div>
         }
         else
         {
             <div style="margin-top:8px; display:flex; align-items:center; justify-content:center; gap:8px;">
                 <span class="badge badge-blue">@_partido.Fase.ToEtiqueta()</span>
-                @if (_partido.FueDefinidoPorPenales())
+                @if (ControladorPartido.FueDefinidoPorPenales(_partido))
                 {
                     <span class="badge badge-penalty">Definido por penales</span>
                 }
@@ -89,7 +90,7 @@ else
             </div>
         }
 
-        @if (_partido.Grupo == null)
+        @if (string.IsNullOrWhiteSpace(_partido.GrupoEtiqueta))
         {
             <div class="alert alert-info" style="font-size:13px;">
                 <span class="oi oi-info" aria-hidden="true"></span>
@@ -192,9 +193,9 @@ else
 
 @code {
     [Parameter] public int Id { get; set; }
-    private Partido? _partido;
+    private PartidoDTO? _partido;
     private bool EsFaseBloqueadaParaPartidoActual => _partido != null && ControladorPartido.EsFaseBloqueada(_partido.Fase);
-    private List<Estadio> _estadios = new();
+    private List<EstadioDTO> _estadios = new();
     private DateTime _nuevaFecha;
     private string _nombreEstadio = string.Empty;
     private int? _golesLocal;
@@ -219,8 +220,8 @@ else
             return;
         }
 
-        _estadios = ControladorEstadio.Listar();
-        _partido  = ControladorPartido.BuscarPartidoPorId(Id);
+        _estadios = ControladorEstadio.ListarDTO();
+        _partido  = ControladorPartido.BuscarPartidoPorIdDTO(Id);
         if (_partido != null)
         {
             _nuevaFecha     = _partido.Fecha;
@@ -237,14 +238,12 @@ else
         try
         {
             if (_partido == null) return;
-            ControladorPartido.GuardarCambiosPartido(
-                _partido.Id,
-                _nuevaFecha,
-                _nombreEstadio,
-                _golesLocal,
-                _golesVisitante,
-                SesionServicio.UsuarioActual,
-                EstadoTorneo);
+            _partido.Fecha = _nuevaFecha;
+            _partido.Estadio = _estadios.FirstOrDefault(e => e.Nombre == _nombreEstadio);
+            _partido.GolesLocal = _golesLocal;
+            _partido.GolesVisitante = _golesVisitante;
+
+            ControladorPartido.GuardarCambiosPartido(_partido, SesionServicio.UsuarioActual, EstadoTorneo);
             Toast.Exito("Partido actualizado correctamente.");
             NavigationManager.NavigateTo("/fixture");
         }
@@ -257,7 +256,7 @@ else
         _error = string.Empty;
         try
         {
-            ControladorIncidencia.AgregarTarjetaAPartido(_partido, _equipoTarjeta, _tipoTarjeta, _minutoTarjeta);
+            ControladorIncidencia.AgregarTarjetaAPartido(_partido.Id, _equipoTarjeta, _tipoTarjeta, _minutoTarjeta);
             _incidencias = ControladorIncidencia.ObtenerIncidencias(_partido.Id);
         }
         catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }

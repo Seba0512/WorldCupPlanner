@@ -1,5 +1,6 @@
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Controladores;
+using WorldCupPlanner.Dominio.DTO;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -34,6 +35,36 @@ public class ControladorPartidoTests
         var partidos = controlador.ObtenerPartidos();
 
         Assert.AreEqual(2, partidos.Count);
+    }
+
+    [TestMethod]
+    public void BuscarPartidoPorIdDTO_DevuelvePartidoDTO()
+    {
+        var repositorio = new RepositorioPartidoControladorFake();
+        var partido = CrearPartido(1, grupo: "A");
+        repositorio.Agregar(partido);
+        var controlador = CrearControlador(repositorio);
+
+        var encontrado = controlador.BuscarPartidoPorIdDTO(1);
+
+        Assert.IsNotNull(encontrado);
+        Assert.AreEqual(partido.Id, encontrado.Id);
+        Assert.AreEqual(partido.EquipoLocal!.Nombre, encontrado.EquipoLocal!.Nombre);
+        Assert.AreEqual("A", encontrado.GrupoEtiqueta);
+    }
+
+    [TestMethod]
+    public void ObtenerPartidosDTO_DevuelvePartidosDTO()
+    {
+        var repositorio = new RepositorioPartidoControladorFake();
+        repositorio.Agregar(CrearPartido(1));
+        repositorio.Agregar(CrearPartido(2));
+        var controlador = CrearControlador(repositorio);
+
+        var partidos = controlador.ObtenerPartidosDTO();
+
+        Assert.AreEqual(2, partidos.Count);
+        Assert.IsInstanceOfType(partidos[0], typeof(PartidoDTO));
     }
 
     [TestMethod]
@@ -123,6 +154,51 @@ public class ControladorPartidoTests
 
         Assert.AreEqual(1, filtrados.Count);
         Assert.AreEqual("A", filtrados[0].Grupo!.Etiqueta);
+    }
+
+    [TestMethod]
+    public void FiltrarPartidosDTO_MantieneFiltros()
+    {
+        var controlador = CrearControlador(new RepositorioPartidoControladorFake());
+        var partidos = new List<PartidoDTO>
+        {
+            PartidoDTO.FromEntity(CrearPartido(1, estadio: "Estadio A", grupo: "A")),
+            PartidoDTO.FromEntity(CrearPartido(2, estadio: "Estadio B", grupo: "B"))
+        };
+
+        var filtrados = controlador.FiltrarPartidosDTO(partidos, new FiltroPartidos { Grupo = "A" }).ToList();
+
+        Assert.AreEqual(1, filtrados.Count);
+        Assert.AreEqual("A", filtrados[0].GrupoEtiqueta);
+    }
+
+    [TestMethod]
+    public void GuardarCambiosPartido_ConPartidoDTO_DelegaEnOrquestadorPartido()
+    {
+        var repositorioPartido = new RepositorioPartidoControladorFake();
+        var partido = CrearPartido(1);
+        repositorioPartido.Agregar(partido);
+        var repositorioEstadio = new RepositorioGenericoControladorPartidoFake<Estadio>();
+        repositorioEstadio.Agregar(CrearEstadio("Estadio DTO"));
+        var servicioPartido = new ServicioPartido(new ProveedorPartidosRepositorio(repositorioPartido));
+        var orquestador = new ServicioOrquestadorPartido(
+            servicioPartido,
+            new ServicioConfiguracionTorneo(),
+            new ServicioNotificacion(new RepositorioNotificacionControladorPartidoFake()),
+            CrearServicioUsuario(),
+            new ServicioRankingDinamico(),
+            new ServicioEstadio(repositorioEstadio));
+        var controlador = new ControladorPartido(servicioPartido, orquestador);
+        var estado = new EstadoTorneo();
+        estado.AgregarPartidosEliminatorios(new[] { partido });
+        var partidoDto = PartidoDTO.FromEntity(partido);
+        partidoDto.Fecha = new DateTime(2026, 6, 25, 20, 0, 0);
+        partidoDto.Estadio = EstadioDTO.FromEntity(CrearEstadio("Estadio DTO"));
+
+        controlador.GuardarCambiosPartido(partidoDto, null, estado);
+
+        Assert.AreEqual(partidoDto.Fecha, partido.Fecha);
+        Assert.AreEqual("Estadio DTO", partido.Estadio!.Nombre);
     }
 
     [TestMethod]

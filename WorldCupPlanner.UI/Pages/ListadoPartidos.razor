@@ -1,5 +1,6 @@
 @page "/partidos"
 @using WorldCupPlanner.Controladores
+@using WorldCupPlanner.Dominio.DTO
 @inject EstadoTorneo EstadoTorneo
 @inject ControladorConsultasTorneo ControladorConsultasTorneo
 @inject ControladorPartido ControladorPartido
@@ -98,10 +99,10 @@ else
                                 @partido.EquipoLocal?.Nombre
                             </td>
                             <td style="text-align:center; font-family:var(--font-heading); font-weight:700; white-space:nowrap">
-                                @if (partido.EstaJugado())
+                                @if (ControladorPartido.EstaJugado(partido))
                                 {
                                     <span>@partido.GolesLocal — @partido.GolesVisitante</span>
-                                    @if (partido.FueDefinidoPorPenales())
+                                    @if (ControladorPartido.FueDefinidoPorPenales(partido))
                                     {
                                         <span class="badge badge-penalty" style="margin-left:6px; font-size:10px;">(pen.)</span>
                                     }
@@ -114,9 +115,9 @@ else
                             <td style="font-weight:600">@partido.EquipoVisitante?.Nombre</td>
                             <td style="color:var(--text-secondary)">@partido.Estadio?.Nombre</td>
                             <td>
-                                @if (partido.Grupo != null)
+                                @if (!string.IsNullOrWhiteSpace(partido.GrupoEtiqueta))
                                 {
-                                    <span class="badge badge-muted">Grupo @partido.Grupo.Etiqueta</span>
+                                    <span class="badge badge-muted">Grupo @partido.GrupoEtiqueta</span>
                                 }
                                 else
                                 {
@@ -137,11 +138,12 @@ else
     private string _filtroGrupo = string.Empty;
     private string _filtroFase = string.Empty;
 
-    private IEnumerable<Partido> TodosLosPartidos =>
-        ControladorConsultasTorneo.ObtenerTodosLosPartidos(EstadoTorneo).OrderBy(p => p.Fecha);
+    private IEnumerable<PartidoDTO> TodosLosPartidos =>
+        ControladorPartido.ConvertirADTOs(ControladorConsultasTorneo.ObtenerTodosLosPartidos(EstadoTorneo))
+            .OrderBy(p => p.Fecha);
 
-    private IEnumerable<Partido> PartidosFiltrados =>
-        ControladorPartido.FiltrarPartidos(TodosLosPartidos, new FiltroPartidos
+    private IEnumerable<PartidoDTO> PartidosFiltrados =>
+        ControladorPartido.FiltrarPartidosDTO(TodosLosPartidos, new FiltroPartidos
         {
             Fecha    = _filtroFecha,
             Estadio  = _filtroEstadio,
@@ -150,13 +152,13 @@ else
         });
 
     private IEnumerable<string> EstadiosDisponibles =>
-        ControladorPartido.ObtenerEstadiosDisponibles(TodosLosPartidos);
+        ControladorPartido.ObtenerEstadiosDisponiblesDTO(TodosLosPartidos);
 
     private IEnumerable<string> GruposDisponibles =>
-        ControladorPartido.ObtenerGruposDisponibles(TodosLosPartidos);
+        ControladorPartido.ObtenerGruposDisponiblesDTO(TodosLosPartidos);
 
     private IEnumerable<FaseTorneo> FasesDisponibles =>
-        ControladorPartido.ObtenerFasesDisponibles(TodosLosPartidos);
+        ControladorPartido.ObtenerFasesDisponiblesDTO(TodosLosPartidos);
 
     private void LimpiarFiltros()
     {
