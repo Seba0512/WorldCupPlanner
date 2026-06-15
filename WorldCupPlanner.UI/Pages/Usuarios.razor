@@ -106,7 +106,7 @@
             _usuarioAEliminar = null;
             _usuarios = ControladorUsuario.Listar();
         }
-        catch (Exception ex) { Toast.Error(ex.Message); }
+        catch (Exception ex) { Toast.Error(MensajeErrorHelper.ParaUsuario(ex)); }
     }
 
 }

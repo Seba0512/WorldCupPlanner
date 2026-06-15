@@ -234,7 +234,7 @@
         }
         catch (Exception ex)
         {
-            _errorCarga = ex.Message;
+            _errorCarga = MensajeErrorHelper.ParaUsuario(ex);
             _equipos = new();
             _cuposPorConfederacion = ControladorEquipo.ObtenerCuposConOcupacionDTO(new List<EquipoDTO>());
             _estadisticasPorEquipo = new(StringComparer.OrdinalIgnoreCase);
@@ -271,7 +271,7 @@
             _equipoAEliminar = null;
             CargarDatos();
         }
-        catch (Exception ex) { Toast.Error(ex.Message); }
+        catch (Exception ex) { Toast.Error(MensajeErrorHelper.ParaUsuario(ex)); }
     }
 
     private void Completar()
@@ -284,6 +284,6 @@
             _mensajeCompletar = ControladorEquipo.ObtenerMensajeComplecion(generados.Count);
             if (generados.Count > 0) Toast.Exito(_mensajeCompletar);
         }
-        catch (Exception ex) { Toast.Error(ex.Message); }
+        catch (Exception ex) { Toast.Error(MensajeErrorHelper.ParaUsuario(ex)); }
     }
 }

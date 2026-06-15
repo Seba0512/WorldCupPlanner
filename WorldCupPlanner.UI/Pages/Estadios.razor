@@ -122,7 +122,7 @@
             _estadioAEliminar = null;
             _estadios = ControladorEstadio.ListarDTO();
         }
-        catch (Exception ex) { Toast.Error(ex.Message); }
+        catch (Exception ex) { Toast.Error(MensajeErrorHelper.ParaUsuario(ex)); }
     }
 
 }

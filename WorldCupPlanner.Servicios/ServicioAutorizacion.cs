@@ -10,7 +10,7 @@ public class ServicioAutorizacion
     {
         if (!usuario.TieneRol(rolRequerido))
             throw new AccesoDenegadoExcepcion(
-                $"El usuario no tiene el rol requerido: {rolRequerido}.");
+                "No tenés los permisos necesarios para realizar esta acción.");
     }
 
     public void VerificarEsAdministrador(Usuario usuario)
@@ -34,6 +34,6 @@ public class ServicioAutorizacion
     {
         if (!roles.Any(usuario.TieneRol))
             throw new AccesoDenegadoExcepcion(
-                $"El usuario debe tener al menos uno de los roles: {string.Join(", ", roles)}.");
+                "No tenés los permisos necesarios para realizar esta acción.");
     }
 }

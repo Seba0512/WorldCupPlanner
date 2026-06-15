@@ -29,7 +29,7 @@ public class ServicioEstadio
         if (solicitante != null)
             _autorizacion.VerificarEsAdministrador(solicitante);
         if (!estadio.EsValido())
-            throw new EntidadInvalidaExcepcion("El estadio no es valido.");
+            throw new EntidadInvalidaExcepcion("El estadio no es válido.");
         if (_repositorioEstadio.Buscar(e => NombresIguales(e.Nombre, estadio.Nombre)).Count > 0)
             throw new EntidadYaExistenteExcepcion("Ya existe un estadio con ese nombre.");
         _repositorioEstadio.Agregar(estadio);
@@ -44,7 +44,7 @@ public class ServicioEstadio
         if (solicitante != null)
             _autorizacion.VerificarEsAdministrador(solicitante);
         if (!estadio.EsValido())
-            throw new EntidadInvalidaExcepcion("El estadio no es valido.");
+            throw new EntidadInvalidaExcepcion("El estadio no es válido.");
         var existente = _repositorioEstadio.Buscar(e => ReferenceEquals(e, estadio) || NombresIguales(e.Nombre, nombreOriginal)).FirstOrDefault();
         if (existente == null)
             throw new EntidadInvalidaExcepcion("El estadio no existe.");

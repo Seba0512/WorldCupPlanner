@@ -100,12 +100,12 @@ else
 
         <div class="form-section">
             <div class="form-group">
-                <label class="form-label">Fecha y hora</label>
+                <label class="form-label">Fecha y hora <span style="color:red">*</span></label>
                 <input type="datetime-local" class="form-control" @bind="_nuevaFecha" />
             </div>
 
             <div class="form-group">
-                <label class="form-label">Estadio</label>
+                <label class="form-label">Estadio <span style="color:red">*</span></label>
                 <select class="form-select" @bind="_nombreEstadio">
                     @foreach (var estadio in _estadios)
                     {
@@ -117,13 +117,13 @@ else
             <div class="row g-3">
                 <div class="col-sm-6">
                     <div class="form-group">
-                        <label class="form-label">Goles — @_partido.EquipoLocal?.Nombre</label>
+                        <label class="form-label">Goles — @_partido.EquipoLocal?.Nombre <span style="color:red">*</span></label>
                         <input type="number" class="form-control" @bind="_golesLocal" min="0" />
                     </div>
                 </div>
                 <div class="col-sm-6">
                     <div class="form-group">
-                        <label class="form-label">Goles — @_partido.EquipoVisitante?.Nombre</label>
+                        <label class="form-label">Goles — @_partido.EquipoVisitante?.Nombre <span style="color:red">*</span></label>
                         <input type="number" class="form-control" @bind="_golesVisitante" min="0" />
                     </div>
                 </div>
@@ -248,7 +248,7 @@ else
             Toast.Exito("Partido actualizado correctamente.");
             NavigationManager.NavigateTo("/fixture");
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
 
     private void AgregarTarjeta()
@@ -260,7 +260,7 @@ else
             ControladorIncidencia.AgregarTarjetaAPartido(_partido, _equipoTarjeta, _tipoTarjeta, _minutoTarjeta);
             _incidencias = ControladorIncidencia.ObtenerIncidencias(_partido.Id);
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
 
     private void EliminarTarjeta(int id)
@@ -271,7 +271,7 @@ else
             ControladorIncidencia.EliminarIncidencia(id);
             _incidencias = ControladorIncidencia.ObtenerIncidencias(_partido!.Id);
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
 
 

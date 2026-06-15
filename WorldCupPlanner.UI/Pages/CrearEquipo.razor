@@ -16,17 +16,26 @@
     {
         <div class="alert alert-danger">
             <span class="oi oi-warning" aria-hidden="true"></span> @_error
+            @if (_erroresCampos.Count > 0)
+            {
+                <ul class="mb-0 mt-1">
+                    @foreach (var item in _erroresCampos)
+                    {
+                        <li>@item</li>
+                    }
+                </ul>
+            }
         </div>
     }
 
     <div class="form-group">
-        <label class="form-label">Nombre del equipo</label>
+        <label class="form-label">Nombre del equipo <span style="color:red">*</span></label>
         <input type="text" class="form-control" @bind="_dto.Nombre" placeholder="Ej: Argentina" maxlength="60" />
         <span class="form-hint">1–60 caracteres. Debe ser único en el sistema.</span>
     </div>
 
     <div class="form-group">
-        <label class="form-label">Confederación</label>
+        <label class="form-label">Confederación <span style="color:red">*</span></label>
         <select class="form-select" @bind="_dto.Confederacion">
             <option value="">— Seleccioná una confederación —</option>
             @foreach (var conf in Enum.GetValues<Confederacion>())
@@ -37,7 +46,7 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">Puntos FIFA</label>
+        <label class="form-label">Puntos FIFA <span style="color:red">*</span></label>
         <input type="number" class="form-control" @bind="_dto.RankingFIFA" min="300" max="2500" placeholder="Ej: 1580" />
         <span class="form-hint">Valor entre 300 y 2500.</span>
     </div>
@@ -65,6 +74,7 @@
 @code {
     private EquipoDTO _dto = new();
     private string _error = string.Empty;
+    private List<string> _erroresCampos = [];
     private string _bandera = string.Empty;
 
     private int ObtenerCupo(Confederacion conf) =>
@@ -78,12 +88,55 @@
     private void Guardar()
     {
         _error = string.Empty;
+        _erroresCampos = [];
+
+        var camposInvalidos = ValidarCampos();
+        if (camposInvalidos.Count == 1)
+        {
+            _error = MensajeLargoParaCampo(camposInvalidos[0]);
+            return;
+        }
+        if (camposInvalidos.Count > 1)
+        {
+            _error = "No se pudo guardar el equipo. Por favor, revisá los siguientes campos:";
+            _erroresCampos = camposInvalidos.Select(MensajeCortoParaCampo).ToList();
+            return;
+        }
+
         try
         {
             ControladorEquipo.Crear(_dto, _bandera, SesionServicio.UsuarioActual);
             Toast.Exito($"Equipo \"{_dto.Nombre}\" creado correctamente.");
             NavigationManager.NavigateTo("/equipos");
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
+
+    private List<string> ValidarCampos()
+    {
+        var errores = new List<string>();
+        if (string.IsNullOrWhiteSpace(_dto.Nombre))
+            errores.Add("nombre");
+        if (_dto.Confederacion == null)
+            errores.Add("confederacion");
+        if (_dto.RankingFIFA < 300 || _dto.RankingFIFA > 2500)
+            errores.Add("ranking");
+        return errores;
+    }
+
+    private static string MensajeLargoParaCampo(string campo) => campo switch
+    {
+        "nombre"        => "El nombre del equipo es obligatorio. Por favor, ingresá un nombre antes de guardar.",
+        "confederacion" => "Debés seleccionar una confederación para el equipo antes de guardar.",
+        "ranking"       => "Los puntos FIFA deben estar entre 300 y 2500. Por favor, ingresá un valor válido.",
+        _               => "El equipo no es válido."
+    };
+
+    private static string MensajeCortoParaCampo(string campo) => campo switch
+    {
+        "nombre"        => "El nombre del equipo es obligatorio.",
+        "confederacion" => "Debés seleccionar una confederación.",
+        "ranking"       => "Los puntos FIFA deben estar entre 300 y 2500.",
+        _               => "Campo inválido."
+    };
 }

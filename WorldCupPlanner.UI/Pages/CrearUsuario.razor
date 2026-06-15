@@ -15,26 +15,35 @@
     {
         <div class="alert alert-danger">
             <span class="oi oi-warning" aria-hidden="true"></span> @_error
+            @if (_erroresCampos.Count > 0)
+            {
+                <ul class="mb-0 mt-1">
+                    @foreach (var item in _erroresCampos)
+                    {
+                        <li>@item</li>
+                    }
+                </ul>
+            }
         </div>
     }
 
     <div class="row g-3">
         <div class="col-sm-6">
             <div class="form-group">
-                <label class="form-label">Nombre</label>
+                <label class="form-label">Nombre <span style="color:red">*</span></label>
                 <input type="text" class="form-control" @bind="_nombre" placeholder="Juan" />
             </div>
         </div>
         <div class="col-sm-6">
             <div class="form-group">
-                <label class="form-label">Apellido</label>
+                <label class="form-label">Apellido <span style="color:red">*</span></label>
                 <input type="text" class="form-control" @bind="_apellido" placeholder="García" />
             </div>
         </div>
     </div>
 
     <div class="form-group">
-        <label class="form-label">Correo electrónico</label>
+        <label class="form-label">Correo electrónico <span style="color:red">*</span></label>
         <input type="email" class="form-control @(_emailConError ? "is-invalid" : string.Empty)"
                @bind="_email" @oninput="() => _emailConError = false" placeholder="usuario@ejemplo.com" />
         @if (_emailConError)
@@ -44,18 +53,18 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">Fecha de nacimiento</label>
+        <label class="form-label">Fecha de nacimiento <span style="color:red">*</span></label>
         <input type="date" class="form-control" @bind="_fechaNacimiento" />
     </div>
 
     <div class="form-group">
-        <label class="form-label">Contraseña</label>
+        <label class="form-label">Contraseña <span style="color:red">*</span></label>
         <input type="password" class="form-control" @bind="_contrasenia" placeholder="••••••••" />
         <span class="form-hint">Mínimo 8 caracteres. Debe incluir mayúscula, minúscula, número y carácter especial.</span>
     </div>
 
     <div class="form-group">
-        <label class="form-label">Confirmar contraseña</label>
+        <label class="form-label">Confirmar contraseña <span style="color:red">*</span></label>
         <input type="password" class="form-control" @bind="_confirmarContrasenia" placeholder="••••••••" />
     </div>
 
@@ -104,12 +113,31 @@
     private bool _esEditor = true;
     private bool _esPeriodista;
     private string _error = string.Empty;
+    private List<string> _erroresCampos = [];
     private bool _emailConError;
+
+    private static readonly System.Text.RegularExpressions.Regex PatronEmail =
+        new(@"^[^\s@]+@[^\s@]+\.[^\s@]+$");
 
     private void Guardar()
     {
         _error = string.Empty;
+        _erroresCampos = [];
         _emailConError = false;
+
+        var camposInvalidos = ValidarCampos();
+        if (camposInvalidos.Count == 1)
+        {
+            _error = MensajeLargoParaCampo(camposInvalidos[0]);
+            return;
+        }
+        if (camposInvalidos.Count > 1)
+        {
+            _error = "No se pudo crear el usuario. Por favor, revisá los siguientes campos:";
+            _erroresCampos = camposInvalidos.Select(MensajeCortoParaCampo).ToList();
+            return;
+        }
+
         try
         {
             var roles = UsuarioFormHelper.ConstruirRoles(_esAdmin, _esEditor, _esPeriodista);
@@ -129,6 +157,46 @@
             NavigationManager.NavigateTo("/usuarios");
         }
         catch (EntidadYaExistenteExcepcion ex) { _error = ex.Message; _emailConError = true; }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
+
+    private List<string> ValidarCampos()
+    {
+        var errores = new List<string>();
+        if (string.IsNullOrWhiteSpace(_nombre))
+            errores.Add("nombre");
+        if (string.IsNullOrWhiteSpace(_apellido))
+            errores.Add("apellido");
+        if (string.IsNullOrWhiteSpace(_email))
+            errores.Add("email_vacio");
+        else if (!PatronEmail.IsMatch(_email))
+            errores.Add("email_formato");
+        if (string.IsNullOrWhiteSpace(_contrasenia))
+            errores.Add("contrasenia");
+        else if (_contrasenia != _confirmarContrasenia)
+            errores.Add("contrasenia_no_coincide");
+        return errores;
+    }
+
+    private static string MensajeLargoParaCampo(string campo) => campo switch
+    {
+        "nombre"                  => "El nombre del usuario es obligatorio. Por favor, ingresá el nombre antes de guardar.",
+        "apellido"                => "El apellido del usuario es obligatorio. Por favor, ingresá el apellido antes de guardar.",
+        "email_vacio"             => "El correo electrónico es obligatorio. Por favor, ingresá una dirección de email antes de guardar.",
+        "email_formato"           => "El correo electrónico ingresado no tiene un formato válido. Usá el formato usuario@dominio.com.",
+        "contrasenia"             => "La contraseña es obligatoria. Por favor, ingresá una contraseña antes de guardar.",
+        "contrasenia_no_coincide" => "Las contraseñas no coinciden. Asegurate de ingresar la misma contraseña en ambos campos.",
+        _                         => "El usuario no es válido."
+    };
+
+    private static string MensajeCortoParaCampo(string campo) => campo switch
+    {
+        "nombre"                  => "El nombre del usuario es obligatorio.",
+        "apellido"                => "El apellido del usuario es obligatorio.",
+        "email_vacio"             => "El correo electrónico es obligatorio.",
+        "email_formato"           => "El correo electrónico no tiene un formato válido.",
+        "contrasenia"             => "La contraseña es obligatoria.",
+        "contrasenia_no_coincide" => "Las contraseñas no coinciden.",
+        _                         => "Campo inválido."
+    };
 }
