@@ -110,37 +110,44 @@ public class ServicioUsuario
     private List<string> AplicarActualizacionesDeCampos(Usuario usuarioActual, ActualizacionUsuario actualizacion)
     {
         var campos = new List<string>();
-
-        if (actualizacion.Email != null)
-        {
-            var emailNuevo = actualizacion.Email.Trim();
-            if (!emailNuevo.Equals(usuarioActual.Email, StringComparison.OrdinalIgnoreCase))
-            {
-                ValidarEmailUnico(emailNuevo, actualizacion.EjecutadoPor);
-                usuarioActual.ActualizarEmail(emailNuevo);
-                campos.Add($"email: {emailNuevo}");
-            }
-        }
-
-        if (actualizacion.Nombre != null)
-        {
-            usuarioActual.ActualizarNombre(actualizacion.Nombre);
-            campos.Add($"nombre: {actualizacion.Nombre}");
-        }
-
-        if (actualizacion.Apellido != null)
-        {
-            usuarioActual.ActualizarApellido(actualizacion.Apellido);
-            campos.Add($"apellido: {actualizacion.Apellido}");
-        }
-
-        if (actualizacion.FechaNacimiento != null)
-        {
-            usuarioActual.ActualizarFechaNacimiento(actualizacion.FechaNacimiento);
-            campos.Add($"fechaNacimiento: {actualizacion.FechaNacimiento}");
-        }
-
+        AplicarCambioEmail(usuarioActual, actualizacion, campos);
+        AplicarCambioNombre(usuarioActual, actualizacion, campos);
+        AplicarCambioApellido(usuarioActual, actualizacion, campos);
+        AplicarCambioFechaDeNacimiento(usuarioActual, actualizacion, campos);
         return campos;
+    }
+
+    private void AplicarCambioEmail(Usuario usuarioActual, ActualizacionUsuario actualizacion, List<string> campos)
+    {
+        if (actualizacion.Email == null) return;
+
+        var emailNuevo = actualizacion.Email.Trim();
+        if (emailNuevo.Equals(usuarioActual.Email, StringComparison.OrdinalIgnoreCase)) return;
+
+        ValidarEmailUnico(emailNuevo, actualizacion.EjecutadoPor);
+        usuarioActual.ActualizarEmail(emailNuevo);
+        campos.Add($"email: {emailNuevo}");
+    }
+
+    private static void AplicarCambioNombre(Usuario usuarioActual, ActualizacionUsuario actualizacion, List<string> campos)
+    {
+        if (actualizacion.Nombre == null) return;
+        usuarioActual.ActualizarNombre(actualizacion.Nombre);
+        campos.Add($"nombre: {actualizacion.Nombre}");
+    }
+
+    private static void AplicarCambioApellido(Usuario usuarioActual, ActualizacionUsuario actualizacion, List<string> campos)
+    {
+        if (actualizacion.Apellido == null) return;
+        usuarioActual.ActualizarApellido(actualizacion.Apellido);
+        campos.Add($"apellido: {actualizacion.Apellido}");
+    }
+
+    private static void AplicarCambioFechaDeNacimiento(Usuario usuarioActual, ActualizacionUsuario actualizacion, List<string> campos)
+    {
+        if (actualizacion.FechaNacimiento == null) return;
+        usuarioActual.ActualizarFechaNacimiento(actualizacion.FechaNacimiento);
+        campos.Add($"fechaNacimiento: {actualizacion.FechaNacimiento}");
     }
 
     private static string ConstruirDetalleAuditoria(string email, List<string> campos)

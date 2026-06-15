@@ -92,25 +92,41 @@ public class ServicioRankingDinamico
     public List<CambioRanking> RecalcularRankings(Usuario? usuario = null, int? partidoReferenciaId = null)
     {
         if (_repositorioEquipo == null || _repositorioPartido == null)
-            return new List<CambioRanking>();
+            return [];
 
         var equipos = _repositorioEquipo.Buscar(_ => true);
-        var rankingPersistidoAntes = equipos.ToDictionary(ClaveEquipo, e => e.RankingFIFA);
-        var rankingInicialPersistidoAntes = equipos.ToDictionary(ClaveEquipo, e => e.RankingInicial);
-        var rankingAntesDelPartidoReferencia = new Dictionary<string, int>();
+        var instantaneas = TomarInstantaneas(equipos);
 
+        RestablecerRankingsIniciales(equipos);
+        AplicarPartidosJugados(equipos, partidoReferenciaId, instantaneas.RankingAntesReferencia);
+
+        return PersistirCambios(equipos, instantaneas, usuario);
+    }
+
+    private static InstantaneasRanking TomarInstantaneas(List<Equipo> equipos)
+    {
+        return new InstantaneasRanking(
+            equipos.ToDictionary(ClaveEquipo, e => e.RankingFIFA),
+            equipos.ToDictionary(ClaveEquipo, e => e.RankingInicial),
+            new Dictionary<string, int>());
+    }
+
+    private static void RestablecerRankingsIniciales(List<Equipo> equipos)
+    {
         foreach (var equipo in equipos)
         {
             equipo.RankingInicial = ObtenerRankingInicial(equipo);
             equipo.RankingFIFA = equipo.RankingInicial;
         }
+    }
 
-        var partidosJugados = _repositorioPartido.Buscar(p => p.EstaJugado())
+    private void AplicarPartidosJugados(List<Equipo> equipos, int? partidoReferenciaId, Dictionary<string, int> rankingAntesReferencia)
+    {
+        var partidos = _repositorioPartido!.Buscar(p => p.EstaJugado())
             .OrderBy(p => p.Fecha)
-            .ThenBy(p => p.Id)
-            .ToList();
+            .ThenBy(p => p.Id);
 
-        foreach (var partido in partidosJugados)
+        foreach (var partido in partidos)
         {
             var local = ResolverEquipo(partido.EquipoLocal, equipos);
             var visitante = ResolverEquipo(partido.EquipoVisitante, equipos);
@@ -119,31 +135,33 @@ public class ServicioRankingDinamico
 
             var rankingLocalOriginal = local.RankingFIFA;
             var rankingVisitanteOriginal = visitante.RankingFIFA;
+
             if (partidoReferenciaId.HasValue && partido.Id == partidoReferenciaId.Value)
             {
-                rankingAntesDelPartidoReferencia[ClaveEquipo(local)] = rankingLocalOriginal;
-                rankingAntesDelPartidoReferencia[ClaveEquipo(visitante)] = rankingVisitanteOriginal;
+                rankingAntesReferencia[ClaveEquipo(local)] = rankingLocalOriginal;
+                rankingAntesReferencia[ClaveEquipo(visitante)] = rankingVisitanteOriginal;
             }
 
             var resultadoLocal = DeterminarResultado(partido.GolesLocal!.Value, partido.GolesVisitante!.Value);
-
             local.RankingFIFA = ActualizarRanking(rankingLocalOriginal, rankingVisitanteOriginal, resultadoLocal, partido.Fase);
             visitante.RankingFIFA = ActualizarRanking(rankingVisitanteOriginal, rankingLocalOriginal, 1.0 - resultadoLocal, partido.Fase);
         }
+    }
 
+    private List<CambioRanking> PersistirCambios(List<Equipo> equipos, InstantaneasRanking instantaneas, Usuario? usuario)
+    {
         var cambios = new List<CambioRanking>();
 
         foreach (var equipo in equipos)
         {
             var clave = ClaveEquipo(equipo);
-            var rankingAntes = rankingPersistidoAntes[clave];
-            var rankingInicialAntes = rankingInicialPersistidoAntes[clave];
+            var rankingAntes = instantaneas.RankingAntes[clave];
+            var cambioPersistido = rankingAntes != equipo.RankingFIFA || instantaneas.RankingInicialAntes[clave] != equipo.RankingInicial;
 
-            var cambioPersistido = rankingAntes != equipo.RankingFIFA || rankingInicialAntes != equipo.RankingInicial;
             if (cambioPersistido)
-                _repositorioEquipo.Actualizar(equipo);
+                _repositorioEquipo!.Actualizar(equipo);
 
-            var rankingAnteriorAuditado = rankingAntesDelPartidoReferencia.GetValueOrDefault(clave, rankingAntes);
+            var rankingAnteriorAuditado = instantaneas.RankingAntesReferencia.GetValueOrDefault(clave, rankingAntes);
             if (cambioPersistido && rankingAnteriorAuditado != equipo.RankingFIFA)
                 cambios.Add(new CambioRanking(equipo.Nombre, rankingAnteriorAuditado, equipo.RankingFIFA));
         }
@@ -269,3 +287,8 @@ public class ServicioRankingDinamico
 }
 
 public record CambioRanking(string NombreEquipo, int RankingAnterior, int RankingNuevo);
+
+internal record InstantaneasRanking(
+    Dictionary<string, int> RankingAntes,
+    Dictionary<string, int> RankingInicialAntes,
+    Dictionary<string, int> RankingAntesReferencia);

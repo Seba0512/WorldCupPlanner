@@ -238,14 +238,14 @@ else
         try
         {
             if (_partido == null) return;
-            OrquestadorPartido.GuardarCambiosPartido(
+            OrquestadorPartido.GuardarCambiosPartido(new ComandoGuardarPartido(
                 _partido.Id,
                 _nuevaFecha,
                 _nombreEstadio,
                 _golesLocal,
                 _golesVisitante,
                 SesionServicio.UsuarioActual,
-                EstadoTorneo);
+                EstadoTorneo));
             Toast.Exito("Partido actualizado correctamente.");
             NavigationManager.NavigateTo("/fixture");
         }

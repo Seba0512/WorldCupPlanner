@@ -27,35 +27,28 @@ public class ServicioOrquestadorPartido
         _estadio = estadio;
     }
 
-    public void GuardarCambiosPartido(
-        int partidoId,
-        DateTime nuevaFecha,
-        string nombreEstadio,
-        int? golesLocal,
-        int? golesVisitante,
-        Usuario? usuarioActual,
-        EstadoTorneo estadoTorneo)
+    public void GuardarCambiosPartido(ComandoGuardarPartido comando)
     {
-        var estadio = _estadio.ObtenerPorNombre(nombreEstadio);
-        _partido.EditarFechaYEstadio(partidoId, nuevaFecha, estadio);
+        var estadio = _estadio.ObtenerPorNombre(comando.NombreEstadio);
+        _partido.EditarFechaYEstadio(comando.PartidoId, comando.NuevaFecha, estadio);
 
-        if (golesLocal.HasValue && golesVisitante.HasValue)
+        if (comando.GolesLocal.HasValue && comando.GolesVisitante.HasValue)
         {
             var config = _configuracion.ObtenerConfiguracionUsadaParaFixture();
-            _partido.AplicarResultadoConPenales(partidoId, new ContextoResultadoPartido
+            _partido.AplicarResultadoConPenales(comando.PartidoId, new ContextoResultadoPartido
             {
-                GolesLocal = golesLocal.Value,
-                GolesVisitante = golesVisitante.Value,
+                GolesLocal = comando.GolesLocal.Value,
+                GolesVisitante = comando.GolesVisitante.Value,
                 SemillaSimulation = config.SemillaSimulation,
                 Notificacion = _notificacion,
                 Periodistas = _usuario.ObtenerPeriodistas()
             });
-            _rankingDinamico.RecalcularRankings(usuarioActual, partidoId);
+            _rankingDinamico.RecalcularRankings(comando.UsuarioActual, comando.PartidoId);
         }
 
-        var actualizado = _partido.BuscarPartidoPorId(partidoId);
+        var actualizado = _partido.BuscarPartidoPorId(comando.PartidoId);
         if (actualizado != null)
-            estadoTorneo.ActualizarPartido(actualizado);
-        _rankingDinamico.SincronizarRankingsEnEstado(estadoTorneo);
+            comando.EstadoTorneo.ActualizarPartido(actualizado);
+        _rankingDinamico.SincronizarRankingsEnEstado(comando.EstadoTorneo);
     }
 }

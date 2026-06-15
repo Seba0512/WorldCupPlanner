@@ -1,5 +1,6 @@
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -116,7 +117,12 @@ public class ServicioImportacionLegible
             servicioEquipo.Agregar(equipo);
             return true;
         }
-        catch (Exception ex)
+        catch (EntidadInvalidaExcepcion ex)
+        {
+            errores.Add($"Equipo \"{equipo.Nombre}\": {ex.Message}");
+            return false;
+        }
+        catch (EntidadYaExistenteExcepcion ex)
         {
             errores.Add($"Equipo \"{equipo.Nombre}\": {ex.Message}");
             return false;

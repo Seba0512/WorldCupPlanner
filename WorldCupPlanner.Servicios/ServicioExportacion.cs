@@ -48,31 +48,14 @@ public class ServicioExportacion
     public byte[] ExportarAuditoriasXlsx(DateTime desde, DateTime hasta, string usuario)
     {
         var registros = ObtenerAuditoriasEnRango(desde, hasta);
-        var nombreArchivo = $"auditoria_{FormatearFecha(desde)}_{FormatearFecha(hasta)}.xlsx";
-        RegistrarExportacion(usuario, nombreArchivo);
+        RegistrarExportacion(usuario, $"auditoria_{FormatearFecha(desde)}_{FormatearFecha(hasta)}.xlsx");
 
         using var workbook = new XLWorkbook();
-        var ws = workbook.Worksheets.Add("Auditoría");
+        var hoja = workbook.Worksheets.Add("Auditoría");
+        EscribirEncabezadosAuditoriaXlsx(hoja);
+        EscribirFilasAuditoriaXlsx(hoja, registros);
+        AplicarAnchosAuditoria(hoja);
 
-        ws.Cell(1, 1).Value = "Id";
-        ws.Cell(1, 2).Value = "Timestamp";
-        ws.Cell(1, 3).Value = "Usuario";
-        ws.Cell(1, 4).Value = "Accion";
-        ws.Cell(1, 5).Value = "Detalle";
-        AplicarEstiloEncabezado(ws.Row(1));
-
-        for (var i = 0; i < registros.Count; i++)
-        {
-            var fila = i + 2;
-            var r = registros[i];
-            ws.Cell(fila, 1).Value = r.Id;
-            ws.Cell(fila, 2).Value = r.Timestamp;
-            ws.Cell(fila, 3).Value = r.Usuario;
-            ws.Cell(fila, 4).Value = r.Accion;
-            ws.Cell(fila, 5).Value = r.Detalle;
-        }
-
-        AplicarAnchosAuditoria(ws);
         using var memory = new MemoryStream();
         workbook.SaveAs(memory);
         return memory.ToArray();
@@ -97,38 +80,14 @@ public class ServicioExportacion
     public byte[] ExportarFixtureXlsx(string usuario)
     {
         RegistrarExportacion(usuario, "fixture.xlsx");
+        var partidos = _consultasTorneo.ObtenerTodosLosPartidos(_estadoTorneo);
 
         using var workbook = new XLWorkbook();
-        var ws = workbook.Worksheets.Add("Fixture");
+        var hoja = workbook.Worksheets.Add("Fixture");
+        EscribirEncabezadosFixtureXlsx(hoja);
+        EscribirFilasFixtureXlsx(hoja, partidos);
+        AplicarAnchosFixture(hoja);
 
-        ws.Cell(1, 1).Value = "Id";
-        ws.Cell(1, 2).Value = "Fecha";
-        ws.Cell(1, 3).Value = "Grupo";
-        ws.Cell(1, 4).Value = "Fase";
-        ws.Cell(1, 5).Value = "Equipo Local";
-        ws.Cell(1, 6).Value = "Goles Local";
-        ws.Cell(1, 7).Value = "Goles Visitante";
-        ws.Cell(1, 8).Value = "Equipo Visitante";
-        ws.Cell(1, 9).Value = "Estadio";
-        AplicarEstiloEncabezado(ws.Row(1));
-
-        var partidos = _consultasTorneo.ObtenerTodosLosPartidos(_estadoTorneo);
-        for (var i = 0; i < partidos.Count; i++)
-        {
-            var fila = i + 2;
-            var p = partidos[i];
-            ws.Cell(fila, 1).Value = p.Id;
-            ws.Cell(fila, 2).Value = p.Fecha.ToString("dd/MM/yyyy HH:mm");
-            ws.Cell(fila, 3).Value = p.Grupo?.Etiqueta ?? "";
-            ws.Cell(fila, 4).Value = p.Fase.ToString();
-            ws.Cell(fila, 5).Value = p.EquipoLocal?.Nombre ?? "";
-            if (p.GolesLocal.HasValue) ws.Cell(fila, 6).Value = p.GolesLocal.Value;
-            if (p.GolesVisitante.HasValue) ws.Cell(fila, 7).Value = p.GolesVisitante.Value;
-            ws.Cell(fila, 8).Value = p.EquipoVisitante?.Nombre ?? "";
-            ws.Cell(fila, 9).Value = p.Estadio?.Nombre ?? "";
-        }
-
-        AplicarAnchosFixture(ws);
         using var memory = new MemoryStream();
         workbook.SaveAs(memory);
         return memory.ToArray();
@@ -206,6 +165,62 @@ public class ServicioExportacion
         csv.WriteField(p.EquipoVisitante?.Nombre ?? "");
         csv.WriteField(p.Estadio?.Nombre ?? "");
         csv.NextRecord();
+    }
+
+    private static void EscribirEncabezadosAuditoriaXlsx(IXLWorksheet hoja)
+    {
+        hoja.Cell(1, 1).Value = "Id";
+        hoja.Cell(1, 2).Value = "Timestamp";
+        hoja.Cell(1, 3).Value = "Usuario";
+        hoja.Cell(1, 4).Value = "Accion";
+        hoja.Cell(1, 5).Value = "Detalle";
+        AplicarEstiloEncabezado(hoja.Row(1));
+    }
+
+    private static void EscribirFilasAuditoriaXlsx(IXLWorksheet hoja, List<Auditoria> registros)
+    {
+        for (var i = 0; i < registros.Count; i++)
+        {
+            var fila = i + 2;
+            var registro = registros[i];
+            hoja.Cell(fila, 1).Value = registro.Id;
+            hoja.Cell(fila, 2).Value = registro.Timestamp;
+            hoja.Cell(fila, 3).Value = registro.Usuario;
+            hoja.Cell(fila, 4).Value = registro.Accion;
+            hoja.Cell(fila, 5).Value = registro.Detalle;
+        }
+    }
+
+    private static void EscribirEncabezadosFixtureXlsx(IXLWorksheet hoja)
+    {
+        hoja.Cell(1, 1).Value = "Id";
+        hoja.Cell(1, 2).Value = "Fecha";
+        hoja.Cell(1, 3).Value = "Grupo";
+        hoja.Cell(1, 4).Value = "Fase";
+        hoja.Cell(1, 5).Value = "Equipo Local";
+        hoja.Cell(1, 6).Value = "Goles Local";
+        hoja.Cell(1, 7).Value = "Goles Visitante";
+        hoja.Cell(1, 8).Value = "Equipo Visitante";
+        hoja.Cell(1, 9).Value = "Estadio";
+        AplicarEstiloEncabezado(hoja.Row(1));
+    }
+
+    private static void EscribirFilasFixtureXlsx(IXLWorksheet hoja, List<Partido> partidos)
+    {
+        for (var i = 0; i < partidos.Count; i++)
+        {
+            var fila = i + 2;
+            var partido = partidos[i];
+            hoja.Cell(fila, 1).Value = partido.Id;
+            hoja.Cell(fila, 2).Value = partido.Fecha.ToString("dd/MM/yyyy HH:mm");
+            hoja.Cell(fila, 3).Value = partido.Grupo?.Etiqueta ?? "";
+            hoja.Cell(fila, 4).Value = partido.Fase.ToString();
+            hoja.Cell(fila, 5).Value = partido.EquipoLocal?.Nombre ?? "";
+            if (partido.GolesLocal.HasValue) hoja.Cell(fila, 6).Value = partido.GolesLocal.Value;
+            if (partido.GolesVisitante.HasValue) hoja.Cell(fila, 7).Value = partido.GolesVisitante.Value;
+            hoja.Cell(fila, 8).Value = partido.EquipoVisitante?.Nombre ?? "";
+            hoja.Cell(fila, 9).Value = partido.Estadio?.Nombre ?? "";
+        }
     }
 
     private static void AplicarEstiloEncabezado(IXLRow fila)

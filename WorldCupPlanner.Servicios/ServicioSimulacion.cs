@@ -24,6 +24,12 @@ public class ServicioSimulacion
     private const int AmarillasMaximasExclusivo = 4;
     private const double ProbabilidadAmarillaExtra = 0.35;
     private const double ProbabilidadRoja = 0.12;
+    private const double PuntosPorPartidoForma = 3.0;
+    private const double OffsetDiferenciaGoles = 3.0;
+    private const double RangoDiferenciaGoles = 6.0;
+    private const double PesoRatioPuntos = 0.55;
+    private const double PesoRatioDiferencia = 0.30;
+    private const double PesoRatioGoles = 0.15;
     private readonly ServicioAuditoria? _auditoria;
 
     public ServicioSimulacion(ServicioAuditoria? auditoria = null)
@@ -211,32 +217,36 @@ public class ServicioSimulacion
             .ToList();
 
         if (!partidosJugados.Any())
-        {
             return FormaNeutral;
-        }
 
+        var estadisticas = AcumularEstadisticas(partidosJugados, equipo);
+        return CalcularRatioForma(estadisticas);
+    }
+
+    private EstadisticasForma AcumularEstadisticas(List<Partido> partidos, Equipo equipo)
+    {
         var puntos = 0;
         var golesAFavor = 0;
         var golesEnContra = 0;
 
-        foreach (var partido in partidosJugados)
+        foreach (var partido in partidos)
         {
             var esLocal = EsMismoEquipo(partido.EquipoLocal, equipo);
-            var golesPropios = esLocal ? partido.GolesLocal!.Value : partido.GolesVisitante!.Value;
-            var golesRivales = esLocal ? partido.GolesVisitante!.Value : partido.GolesLocal!.Value;
-
-            golesAFavor += golesPropios;
-            golesEnContra += golesRivales;
+            golesAFavor  += esLocal ? partido.GolesLocal!.Value  : partido.GolesVisitante!.Value;
+            golesEnContra += esLocal ? partido.GolesVisitante!.Value : partido.GolesLocal!.Value;
             puntos += CalcularPuntosDeForma(partido, equipo);
         }
 
-        var cantidad = partidosJugados.Count;
-        var ratioPuntos = puntos / (cantidad * 3.0);
-        var promedioDiferencia = (golesAFavor - golesEnContra) / (double)cantidad;
-        var ratioDiferencia = Math.Clamp((promedioDiferencia + 3) / 6.0, 0, 1);
-        var ratioGoles = Math.Clamp(golesAFavor / (cantidad * 3.0), 0, 1);
+        return new EstadisticasForma(puntos, golesAFavor, golesEnContra, partidos.Count);
+    }
 
-        return ratioPuntos * 0.55 + ratioDiferencia * 0.30 + ratioGoles * 0.15;
+    private static double CalcularRatioForma(EstadisticasForma e)
+    {
+        var ratioPuntos      = e.Puntos / (e.CantidadPartidos * PuntosPorPartidoForma);
+        var promedioDif      = (e.GolesAFavor - e.GolesEnContra) / (double)e.CantidadPartidos;
+        var ratioDiferencia  = Math.Clamp((promedioDif + OffsetDiferenciaGoles) / RangoDiferenciaGoles, 0, 1);
+        var ratioGoles       = Math.Clamp(e.GolesAFavor / (e.CantidadPartidos * PuntosPorPartidoForma), 0, 1);
+        return ratioPuntos * PesoRatioPuntos + ratioDiferencia * PesoRatioDiferencia + ratioGoles * PesoRatioGoles;
     }
 
     private int CalcularPuntosDeForma(Partido partido, Equipo equipo)
@@ -361,3 +371,5 @@ public class ServicioSimulacion
         partido.Incidencias.Add(tarjeta);
     }
 }
+
+internal record EstadisticasForma(int Puntos, int GolesAFavor, int GolesEnContra, int CantidadPartidos);
