@@ -1,5 +1,7 @@
+using WorldCupPlanner.Dominio.DTO;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.Controladores;
@@ -41,6 +43,9 @@ public class ControladorIncidencia
     public List<Incidencia> ObtenerIncidencias(int partidoId) =>
         _servicioIncidencia.ObtenerIncidencias(partidoId);
 
+    public List<IncidenciaDTO> ObtenerIncidenciasDTO(int partidoId) =>
+        ObtenerIncidencias(partidoId).Select(IncidenciaDTO.FromEntity).ToList();
+
     public void EliminarIncidencia(int incidenciaId) =>
         _servicioIncidencia.EliminarIncidencia(incidenciaId);
 
@@ -60,7 +65,7 @@ public class ControladorIncidencia
             throw new InvalidOperationException("El servicio de partido no fue configurado.");
 
         var partido = _servicioPartido.BuscarPartidoPorId(partidoId)
-                      ?? throw new InvalidOperationException("El partido no existe.");
+                      ?? throw new EntidadInexistenteExcepcion("El partido no existe.");
         AgregarTarjetaAPartido(partido, rolEquipo, tipo, minuto);
     }
 }

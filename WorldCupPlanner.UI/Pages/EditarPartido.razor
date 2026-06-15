@@ -141,11 +141,11 @@ else
                         @foreach (var inc in _incidencias)
                         {
                             <div class="d-flex align-items-center gap-2" style="padding: 6px 0; border-bottom: 1px solid var(--border-subtle);">
-                                <span class="badge @(inc is TarjetaRoja ? "badge-red" : "badge-gold")" style="min-width:70px; text-align:center;">
-                                    @(inc is TarjetaRoja ? "Roja" : "Amarilla")
+                                <span class="badge @(inc.Tipo == TipoTarjeta.Roja ? "badge-red" : "badge-gold")" style="min-width:70px; text-align:center;">
+                                    @(inc.Tipo == TipoTarjeta.Roja ? "Roja" : "Amarilla")
                                 </span>
-                                <span style="flex:1; font-size:14px;">@inc.Equipo?.Nombre</span>
-                                <span style="font-size:13px; color:var(--text-secondary);">min. @inc.MinutoDelPartido</span>
+                                <span style="flex:1; font-size:14px;">@inc.EquipoNombre</span>
+                                <span style="font-size:13px; color:var(--text-secondary);">min. @inc.Minuto</span>
                                 <button class="btn btn-danger btn-sm" @onclick="() => EliminarTarjeta(inc.Id)">
                                     <span class="oi oi-trash" aria-hidden="true"></span>
                                 </button>
@@ -201,7 +201,7 @@ else
     private int? _golesLocal;
     private int? _golesVisitante;
     private string _error = string.Empty;
-    private List<Incidencia> _incidencias = new();
+    private List<IncidenciaDTO> _incidencias = new();
     private string _equipoTarjeta = "Local";
     private int _minutoTarjeta = 1;
     private TipoTarjeta _tipoTarjeta = TipoTarjeta.Amarilla;
@@ -228,7 +228,7 @@ else
             _nombreEstadio  = _partido.Estadio?.Nombre ?? string.Empty;
             _golesLocal     = _partido.GolesLocal;
             _golesVisitante = _partido.GolesVisitante;
-            _incidencias    = ControladorIncidencia.ObtenerIncidencias(Id);
+            _incidencias    = ControladorIncidencia.ObtenerIncidenciasDTO(Id);
         }
     }
 
@@ -257,7 +257,7 @@ else
         try
         {
             ControladorIncidencia.AgregarTarjetaAPartido(_partido.Id, _equipoTarjeta, _tipoTarjeta, _minutoTarjeta);
-            _incidencias = ControladorIncidencia.ObtenerIncidencias(_partido.Id);
+            _incidencias = ControladorIncidencia.ObtenerIncidenciasDTO(_partido.Id);
         }
         catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
@@ -268,7 +268,7 @@ else
         try
         {
             ControladorIncidencia.EliminarIncidencia(id);
-            _incidencias = ControladorIncidencia.ObtenerIncidencias(_partido!.Id);
+            _incidencias = ControladorIncidencia.ObtenerIncidenciasDTO(_partido!.Id);
         }
         catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }

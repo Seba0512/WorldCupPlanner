@@ -80,6 +80,56 @@ public class ControladorIncidenciaTests
     }
 
     [TestMethod]
+    public void ObtenerIncidenciasDTO_DevuelveDatosParaUI()
+    {
+        var repositorio = new RepositorioIncidenciaControladorFake();
+        var controlador = CrearControlador(repositorio);
+        controlador.AgregarTarjeta(1, TipoTarjeta.Amarilla, 20, CrearEquipo("A"));
+        controlador.AgregarTarjeta(1, TipoTarjeta.Roja, 70, CrearEquipo("B"));
+
+        var incidencias = controlador.ObtenerIncidenciasDTO(1);
+
+        Assert.AreEqual(2, incidencias.Count);
+        Assert.AreEqual(TipoTarjeta.Amarilla, incidencias[0].Tipo);
+        Assert.AreEqual(20, incidencias[0].Minuto);
+        Assert.AreEqual("A", incidencias[0].EquipoNombre);
+        Assert.AreEqual(TipoTarjeta.Roja, incidencias[1].Tipo);
+        Assert.AreEqual("B", incidencias[1].Equipo!.Nombre);
+    }
+
+    [TestMethod]
+    public void AgregarTarjetaAPartido_ConPartidoIdYRol_DelegaCorrectamente()
+    {
+        var repositorioIncidencia = new RepositorioIncidenciaControladorFake();
+        var repositorioPartido = new RepositorioGenericoControladorIncidenciaFake<Partido>();
+        var persistencia = new ServicioPersistenciaFixture(
+            new RepositorioGenericoControladorIncidenciaFake<Grupo>(),
+            repositorioPartido,
+            new RepositorioTorneoArchivadoControladorIncidenciaFake());
+        var partido = new Partido
+        {
+            Id = 30,
+            EquipoLocal = CrearEquipo("Local"),
+            EquipoVisitante = CrearEquipo("Visitante"),
+            Fecha = new DateTime(2026, 6, 10),
+            Fase = FaseTorneo.FaseDeGrupos
+        };
+        repositorioPartido.Agregar(partido);
+        var servicioPartido = new ServicioPartido(new ProveedorPartidosRepositorio(repositorioPartido));
+        var controlador = new ControladorIncidencia(
+            new ServicioIncidencia(repositorioIncidencia),
+            persistencia,
+            servicioPartido);
+
+        controlador.AgregarTarjetaAPartido(partido.Id, "Visitante", TipoTarjeta.Roja, 44);
+
+        var incidencias = controlador.ObtenerIncidenciasDTO(partido.Id);
+        Assert.AreEqual(1, incidencias.Count);
+        Assert.AreEqual(TipoTarjeta.Roja, incidencias[0].Tipo);
+        Assert.AreEqual("Visitante", incidencias[0].EquipoNombre);
+    }
+
+    [TestMethod]
     public void EliminarIncidencia_DelegaEnServicio()
     {
         var repositorio = new RepositorioIncidenciaControladorFake();
