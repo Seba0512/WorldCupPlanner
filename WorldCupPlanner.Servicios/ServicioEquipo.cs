@@ -247,7 +247,7 @@ namespace WorldCupPlanner.Servicios
         private void ValidarEquipo(Equipo equipo)
         {
             if (!equipo.EsValido())
-                throw new EntidadInvalidaExcepcion("El equipo no es valido.");
+                throw new EntidadInvalidaExcepcion("El equipo no es válido.");
         }
 
         private static void AsegurarRankingInicial(Equipo equipo)

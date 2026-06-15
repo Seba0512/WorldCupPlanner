@@ -104,7 +104,7 @@
             _usuarioAEliminar = null;
             _usuarios = ServicioUsuario.ObtenerTodosLosUsuarios();
         }
-        catch (Exception ex) { Toast.Error(ex.Message); }
+        catch (Exception ex) { Toast.Error(MensajeErrorHelper.ParaUsuario(ex)); }
     }
 
 }

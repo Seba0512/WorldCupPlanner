@@ -14,6 +14,15 @@
     {
         <div class="alert alert-danger">
             <span class="oi oi-warning" aria-hidden="true"></span> @_error
+            @if (_erroresCampos.Count > 0)
+            {
+                <ul class="mb-0 mt-1">
+                    @foreach (var item in _erroresCampos)
+                    {
+                        <li>@item</li>
+                    }
+                </ul>
+            }
         </div>
     }
 
@@ -101,7 +110,11 @@
     private bool _esPeriodista;
     private bool _esUltimoAdministrador;
     private string _error = string.Empty;
+    private List<string> _erroresCampos = [];
     private bool _emailConError;
+
+    private static readonly System.Text.RegularExpressions.Regex PatronEmail =
+        new(@"^[^\s@]+@[^\s@]+\.[^\s@]+$");
 
     protected override void OnInitialized()
     {
@@ -122,8 +135,23 @@
     private void Guardar()
     {
         _error = string.Empty;
+        _erroresCampos = [];
         _emailConError = false;
         _email = _email.Trim();
+
+        var camposInvalidos = ValidarCampos();
+        if (camposInvalidos.Count == 1)
+        {
+            _error = MensajeLargoParaCampo(camposInvalidos[0]);
+            return;
+        }
+        if (camposInvalidos.Count > 1)
+        {
+            _error = "No se pudo guardar el usuario. Por favor, revisá los siguientes campos:";
+            _erroresCampos = camposInvalidos.Select(MensajeCortoParaCampo).ToList();
+            return;
+        }
+
         try
         {
             if (_usuario == null) return;
@@ -138,6 +166,38 @@
             NavigationManager.NavigateTo("/usuarios");
         }
         catch (EntidadYaExistenteExcepcion ex) { _error = ex.Message; _emailConError = true; }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
+
+    private List<string> ValidarCampos()
+    {
+        var errores = new List<string>();
+        if (string.IsNullOrWhiteSpace(_nombre))
+            errores.Add("nombre");
+        if (string.IsNullOrWhiteSpace(_apellido))
+            errores.Add("apellido");
+        if (string.IsNullOrWhiteSpace(_email))
+            errores.Add("email_vacio");
+        else if (!PatronEmail.IsMatch(_email))
+            errores.Add("email_formato");
+        return errores;
+    }
+
+    private static string MensajeLargoParaCampo(string campo) => campo switch
+    {
+        "nombre"        => "El nombre del usuario es obligatorio. Por favor, ingresá el nombre antes de guardar.",
+        "apellido"      => "El apellido del usuario es obligatorio. Por favor, ingresá el apellido antes de guardar.",
+        "email_vacio"   => "El correo electrónico es obligatorio. Por favor, ingresá una dirección de email antes de guardar.",
+        "email_formato" => "El correo electrónico ingresado no tiene un formato válido. Usá el formato usuario@dominio.com.",
+        _               => "El usuario no es válido."
+    };
+
+    private static string MensajeCortoParaCampo(string campo) => campo switch
+    {
+        "nombre"        => "El nombre del usuario es obligatorio.",
+        "apellido"      => "El apellido del usuario es obligatorio.",
+        "email_vacio"   => "El correo electrónico es obligatorio.",
+        "email_formato" => "El correo electrónico no tiene un formato válido.",
+        _               => "Campo inválido."
+    };
 }

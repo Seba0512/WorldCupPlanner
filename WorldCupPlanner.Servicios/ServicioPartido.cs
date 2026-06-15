@@ -44,7 +44,7 @@ public class ServicioPartido
     {
         if (nuevoEstadio == null || !nuevoEstadio.EsValido())
         {
-            throw new EntidadInvalidaExcepcion("El estadio del partido no es valido.");
+            throw new EntidadInvalidaExcepcion("El estadio del partido no es válido.");
         }
 
         var partido = ObtenerPartidoPorId(idPartido);

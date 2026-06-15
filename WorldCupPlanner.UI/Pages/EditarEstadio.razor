@@ -16,6 +16,15 @@
     {
         <div class="alert alert-danger">
             <span class="oi oi-warning" aria-hidden="true"></span> @_error
+            @if (_erroresCampos.Count > 0)
+            {
+                <ul class="mb-0 mt-1">
+                    @foreach (var item in _erroresCampos)
+                    {
+                        <li>@item</li>
+                    }
+                </ul>
+            }
         </div>
     }
     @if (_edicionBloqueada)
@@ -64,6 +73,7 @@
     private Estadio _estadio = new();
     private int? _capacidad;
     private string _error = string.Empty;
+    private List<string> _erroresCampos = [];
     private bool _edicionBloqueada;
 
     protected override void OnInitialized()
@@ -77,17 +87,61 @@
     private void Guardar()
     {
         _error = string.Empty;
+        _erroresCampos = [];
+
         if (_edicionBloqueada)
         {
             _error = "No se puede editar un estadio que participa en el fixture generado.";
             return;
         }
+
+        var camposInvalidos = ValidarCampos();
+        if (camposInvalidos.Count == 1)
+        {
+            _error = MensajeLargoParaCampo(camposInvalidos[0]);
+            return;
+        }
+        if (camposInvalidos.Count > 1)
+        {
+            _error = "No se pudo guardar el estadio. Por favor, revisá los siguientes campos:";
+            _erroresCampos = camposInvalidos.Select(MensajeCortoParaCampo).ToList();
+            return;
+        }
+
         try
         {
             ServicioEstadio.EditarEstadio(Nombre, _estadio, SesionServicio.UsuarioActual);
             Toast.Exito("Estadio actualizado correctamente.");
             NavigationManager.NavigateTo("/estadios");
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
+
+    private List<string> ValidarCampos()
+    {
+        var errores = new List<string>();
+        if (string.IsNullOrWhiteSpace(_estadio.Nombre))
+            errores.Add("nombre");
+        if (string.IsNullOrWhiteSpace(_estadio.Ciudad))
+            errores.Add("ciudad");
+        if (_capacidad == null || _capacidad < 20000)
+            errores.Add("capacidad");
+        return errores;
+    }
+
+    private static string MensajeLargoParaCampo(string campo) => campo switch
+    {
+        "nombre"    => "El nombre del estadio es obligatorio. Por favor, ingresá un nombre antes de guardar.",
+        "ciudad"    => "La ciudad es un campo obligatorio. Por favor, ingresá la ciudad del estadio.",
+        "capacidad" => "La capacidad del estadio debe ser de al menos 20.000 espectadores. El valor ingresado no cumple con el mínimo requerido.",
+        _           => "El estadio no es válido."
+    };
+
+    private static string MensajeCortoParaCampo(string campo) => campo switch
+    {
+        "nombre"    => "El nombre del estadio es obligatorio.",
+        "ciudad"    => "La ciudad es un campo obligatorio.",
+        "capacidad" => "La capacidad debe ser de al menos 20.000 espectadores.",
+        _           => "Campo inválido."
+    };
 }

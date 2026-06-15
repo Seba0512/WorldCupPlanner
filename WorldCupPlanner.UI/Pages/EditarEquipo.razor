@@ -16,6 +16,15 @@
     {
         <div class="alert alert-danger">
             <span class="oi oi-warning" aria-hidden="true"></span> @_error
+            @if (_erroresCampos.Count > 0)
+            {
+                <ul class="mb-0 mt-1">
+                    @foreach (var item in _erroresCampos)
+                    {
+                        <li>@item</li>
+                    }
+                </ul>
+            }
         </div>
     }
     @if (_edicionBloqueada)
@@ -72,6 +81,7 @@
     [Parameter] public string Nombre { get; set; } = string.Empty;
     private Equipo _equipo = new();
     private string _error = string.Empty;
+    private List<string> _erroresCampos = [];
     private string _bandera = string.Empty;
     private bool _edicionBloqueada;
 
@@ -90,17 +100,59 @@
     private void Guardar()
     {
         _error = string.Empty;
+        _erroresCampos = [];
+
+        if (_edicionBloqueada)
+        {
+            _error = "No se puede editar un equipo que participa en el fixture generado.";
+            return;
+        }
+
+        var camposInvalidos = ValidarCampos();
+        if (camposInvalidos.Count == 1)
+        {
+            _error = MensajeLargoParaCampo(camposInvalidos[0]);
+            return;
+        }
+        if (camposInvalidos.Count > 1)
+        {
+            _error = "No se pudo guardar el equipo. Por favor, revisá los siguientes campos:";
+            _erroresCampos = camposInvalidos.Select(MensajeCortoParaCampo).ToList();
+            return;
+        }
+
         try
         {
-            if (_edicionBloqueada)
-                throw new InvalidOperationException("No se puede editar un equipo que participa en el fixture generado.");
-
             _equipo.Bandera = _bandera;
             ServicioEquipo.EditarEquipo(_equipo, Nombre, SesionServicio.UsuarioActual);
             Toast.Exito($"Equipo actualizado correctamente.");
             NavigationManager.NavigateTo("/equipos");
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
+
+    private List<string> ValidarCampos()
+    {
+        var errores = new List<string>();
+        if (string.IsNullOrWhiteSpace(_equipo.Nombre))
+            errores.Add("nombre");
+        if (_equipo.RankingFIFA < 300 || _equipo.RankingFIFA > 2500)
+            errores.Add("ranking");
+        return errores;
+    }
+
+    private static string MensajeLargoParaCampo(string campo) => campo switch
+    {
+        "nombre"  => "El nombre del equipo es obligatorio. Por favor, ingresá un nombre antes de guardar.",
+        "ranking" => "Los puntos FIFA deben estar entre 300 y 2500. Por favor, ingresá un valor válido.",
+        _         => "El equipo no es válido."
+    };
+
+    private static string MensajeCortoParaCampo(string campo) => campo switch
+    {
+        "nombre"  => "El nombre del equipo es obligatorio.",
+        "ranking" => "Los puntos FIFA deben estar entre 300 y 2500.",
+        _         => "Campo inválido."
+    };
 
 }

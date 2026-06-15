@@ -739,7 +739,7 @@ else
             SincronizarJornadaActivaConPendiente();
             Toast.Exito("Fixture generado correctamente.");
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
 
     private void SimularPartido(Partido? partido)
@@ -791,7 +791,7 @@ else
         }
         catch (Exception ex)
         {
-            _error = ex.Message;
+            _error = MensajeErrorHelper.ParaUsuario(ex);
         }
     }
 
@@ -854,7 +854,7 @@ else
             OrquestadorFaseEliminatoria.GenerarFase(_etapaActiva, EstadoTorneo);
             Toast.Exito(ServicioFixture.ObtenerMensajeExitoGeneracionFase(_etapaActiva));
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
         finally { _generando = false; }
     }
 

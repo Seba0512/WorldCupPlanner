@@ -14,6 +14,15 @@
     {
         <div class="alert alert-danger">
             <span class="oi oi-warning" aria-hidden="true"></span> @_error
+            @if (_erroresCampos.Count > 0)
+            {
+                <ul class="mb-0 mt-1">
+                    @foreach (var item in _erroresCampos)
+                    {
+                        <li>@item</li>
+                    }
+                </ul>
+            }
         </div>
     }
 
@@ -63,6 +72,7 @@
 @code {
     private NuevoEquipoDto _dto = new();
     private string _error = string.Empty;
+    private List<string> _erroresCampos = [];
     private string _bandera = string.Empty;
 
     private int ObtenerCupo(Confederacion conf) =>
@@ -76,6 +86,21 @@
     private void Guardar()
     {
         _error = string.Empty;
+        _erroresCampos = [];
+
+        var camposInvalidos = ValidarCampos();
+        if (camposInvalidos.Count == 1)
+        {
+            _error = MensajeLargoParaCampo(camposInvalidos[0]);
+            return;
+        }
+        if (camposInvalidos.Count > 1)
+        {
+            _error = "No se pudo guardar el equipo. Por favor, revisá los siguientes campos:";
+            _erroresCampos = camposInvalidos.Select(MensajeCortoParaCampo).ToList();
+            return;
+        }
+
         try
         {
             _dto.Bandera = _bandera;
@@ -83,6 +108,34 @@
             Toast.Exito($"Equipo \"{_dto.Nombre}\" creado correctamente.");
             NavigationManager.NavigateTo("/equipos");
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
+
+    private List<string> ValidarCampos()
+    {
+        var errores = new List<string>();
+        if (string.IsNullOrWhiteSpace(_dto.Nombre))
+            errores.Add("nombre");
+        if (_dto.Confederacion == null)
+            errores.Add("confederacion");
+        if (_dto.RankingFIFA < 300 || _dto.RankingFIFA > 2500)
+            errores.Add("ranking");
+        return errores;
+    }
+
+    private static string MensajeLargoParaCampo(string campo) => campo switch
+    {
+        "nombre"        => "El nombre del equipo es obligatorio. Por favor, ingresá un nombre antes de guardar.",
+        "confederacion" => "Debés seleccionar una confederación para el equipo antes de guardar.",
+        "ranking"       => "Los puntos FIFA deben estar entre 300 y 2500. Por favor, ingresá un valor válido.",
+        _               => "El equipo no es válido."
+    };
+
+    private static string MensajeCortoParaCampo(string campo) => campo switch
+    {
+        "nombre"        => "El nombre del equipo es obligatorio.",
+        "confederacion" => "Debés seleccionar una confederación.",
+        "ranking"       => "Los puntos FIFA deben estar entre 300 y 2500.",
+        _               => "Campo inválido."
+    };
 }

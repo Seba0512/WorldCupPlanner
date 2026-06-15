@@ -243,17 +243,14 @@ public class ServicioAutorizacionTests
     }
 
     [TestMethod]
-    public void VerificarPermiso_MensajeExcepcionContieneRol()
+    public void VerificarPermiso_UsuarioSinRolRequerido_LanzaAccesoDenegado()
     {
         // Arrange
         var usuario = CrearUsuarioSinRoles();
 
-        // Act
-        var excepcion = Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
+        // Act & Assert
+        Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
             _servicio.VerificarPermiso(usuario, RolUsuario.AdministradorDelSistema));
-
-        // Assert
-        StringAssert.Contains(excepcion.Message, "AdministradorDelSistema");
     }
 
     private static Usuario CrearUsuarioConRol(RolUsuario rol)

@@ -249,7 +249,7 @@ else
             Toast.Exito("Partido actualizado correctamente.");
             NavigationManager.NavigateTo("/fixture");
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
 
     private void AgregarTarjeta()
@@ -263,7 +263,7 @@ else
             ServicioIncidencia.AgregarTarjeta(_partido.Id, _tipoTarjeta, _minutoTarjeta, equipo);
             _incidencias = ServicioIncidencia.ObtenerIncidencias(_partido.Id);
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
 
     private void EliminarTarjeta(int id)
@@ -274,7 +274,7 @@ else
             ServicioIncidencia.EliminarIncidencia(id);
             _incidencias = ServicioIncidencia.ObtenerIncidencias(_partido!.Id);
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
 
 

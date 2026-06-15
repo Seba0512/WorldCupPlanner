@@ -21,11 +21,20 @@
     {
         <div class="alert alert-danger">
             <span class="oi oi-warning" aria-hidden="true"></span> @_error
+            @if (_erroresCampos.Count > 0)
+            {
+                <ul class="mb-0 mt-1">
+                    @foreach (var item in _erroresCampos)
+                    {
+                        <li>@item</li>
+                    }
+                </ul>
+            }
         </div>
     }
 
     <div class="form-group">
-        <label class="form-label">Contraseña actual</label>
+        <label class="form-label">Contraseña actual <span style="color:red">*</span></label>
         <div class="password-input-wrapper">
             <input type="@(_verActual ? "text" : "password")" class="form-control"
                    @bind-value="_contraseniaActual" @bind-value:event="oninput"
@@ -37,7 +46,7 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">Nueva contraseña</label>
+        <label class="form-label">Nueva contraseña <span style="color:red">*</span></label>
         <div class="password-input-wrapper">
             <input type="@(_verNueva ? "text" : "password")" class="form-control"
                    @bind-value="_nuevaContrasenia" @bind-value:event="oninput"
@@ -50,7 +59,7 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">Confirmar nueva contraseña</label>
+        <label class="form-label">Confirmar nueva contraseña <span style="color:red">*</span></label>
         <div class="password-input-wrapper">
             <input type="@(_verConfirmar ? "text" : "password")" class="form-control @(_confirmarConError ? "is-invalid" : string.Empty)"
                    @bind-value="_confirmarContrasenia" @bind-value:event="oninput"
@@ -84,6 +93,7 @@
     private bool _verNueva;
     private bool _verConfirmar;
     private string _error = string.Empty;
+    private List<string> _erroresCampos = [];
     private bool _confirmarConError;
     private bool _esCambioForzado;
 
@@ -100,7 +110,27 @@
     private void Guardar()
     {
         _error = string.Empty;
+        _erroresCampos = [];
         _confirmarConError = false;
+
+        var camposInvalidos = ValidarCampos();
+        if (camposInvalidos.Count > 0)
+        {
+            if (camposInvalidos.Count == 1)
+                _error = MensajeLargoParaCampo(camposInvalidos[0]);
+            else
+            {
+                _error = "No se pudo cambiar la contraseña. Por favor, revisá los siguientes campos:";
+                _erroresCampos = camposInvalidos.Select(MensajeCortoParaCampo).ToList();
+            }
+            return;
+        }
+
+        if (_nuevaContrasenia != _confirmarContrasenia)
+        {
+            _confirmarConError = true;
+            return;
+        }
 
         try
         {
@@ -119,7 +149,35 @@
         }
         catch (Exception ex)
         {
-            _error = ex.Message;
+            _error = MensajeErrorHelper.ParaUsuario(ex);
         }
     }
+
+    private List<string> ValidarCampos()
+    {
+        var errores = new List<string>();
+        if (string.IsNullOrWhiteSpace(_contraseniaActual))
+            errores.Add("contrasenia_actual");
+        if (string.IsNullOrWhiteSpace(_nuevaContrasenia))
+            errores.Add("nueva_contrasenia");
+        if (string.IsNullOrWhiteSpace(_confirmarContrasenia))
+            errores.Add("confirmar_contrasenia");
+        return errores;
+    }
+
+    private static string MensajeLargoParaCampo(string campo) => campo switch
+    {
+        "contrasenia_actual"    => "La contraseña actual es obligatoria. Por favor, ingresá tu contraseña actual antes de continuar.",
+        "nueva_contrasenia"     => "La nueva contraseña es obligatoria. Por favor, ingresá la nueva contraseña.",
+        "confirmar_contrasenia" => "Debés confirmar la nueva contraseña. Por favor, repetila en el campo de confirmación.",
+        _                       => "Hay campos obligatorios sin completar."
+    };
+
+    private static string MensajeCortoParaCampo(string campo) => campo switch
+    {
+        "contrasenia_actual"    => "La contraseña actual es obligatoria.",
+        "nueva_contrasenia"     => "La nueva contraseña es obligatoria.",
+        "confirmar_contrasenia" => "Debés confirmar la nueva contraseña.",
+        _                       => "Campo obligatorio."
+    };
 }
