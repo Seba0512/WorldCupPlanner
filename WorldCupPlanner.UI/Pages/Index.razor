@@ -15,10 +15,12 @@
             <span class="table-card-title">Notificaciones</span>
             @if (_notificaciones.Any())
             {
-                <span class="badge badge-blue">@_notificaciones.Count</span>
-                <button class="btn btn-success btn-sm" @onclick="MarcarTodasLeidas">
-                    <span class="oi oi-check" aria-hidden="true"></span> Marcar todo como leído
-                </button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="badge badge-blue">@_notificaciones.Count</span>
+                    <button class="btn btn-success btn-sm" @onclick="MarcarTodasLeidas">
+                        <span class="oi oi-check" aria-hidden="true"></span> Marcar todo como leído
+                    </button>
+                </div>
             }
         </div>
         <div style="padding: 16px;">

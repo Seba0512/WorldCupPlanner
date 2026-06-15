@@ -1,10 +1,10 @@
 @page "/configuracion"
 @using WorldCupPlanner.Controladores
+@using WorldCupPlanner.UI.Data
 @inject ControladorConfiguracionTorneo ControladorConfiguracionTorneo
 @inject ControladorSimulacion ControladorSimulacion
 @inject SesionServicio SesionServicio
 @inject ToastServicio Toast
-@using WorldCupPlanner.UI.Data
 
 <PageTitle>Configuración del torneo — WorldCupPlanner 2026</PageTitle>
 
@@ -33,107 +33,119 @@ else if (!SesionServicio.EsAdministrador)
     </div>
 }
 
-<div class="row g-3">
-    <div class="col-lg-8">
-        <div class="glass-card" style="padding:32px;">
-            <h5 style="font-family:var(--font-heading); font-size:16px; font-weight:700; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
-                @if (!ControladorConfiguracionTorneo.EsConfiguracionModificable)
-                {
+@if (!ControladorConfiguracionTorneo.EsConfiguracionModificable)
+{
+    var usada = ControladorConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
+
+    <div class="row g-3 align-items-stretch mb-3">
+        <div class="col-lg-6 d-flex">
+            <div class="glass-card w-100" style="padding:32px;">
+                <h5 style="font-family:var(--font-heading); font-size:16px; font-weight:700; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
                     <span class="oi oi-lock-locked" aria-hidden="true" style="color:var(--text-secondary);"></span>
                     <text>Configuración bloqueada (solo lectura)</text>
-                }
-                else
-                {
-                    <text>Parámetros del torneo</text>
-                }
-            </h5>
+                </h5>
 
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="form-label">Fecha de inicio del torneo</label>
-                    <input type="date"
-                           class="form-control"
-                           value="@_formulario.FechaInicioTorneo.ToString("yyyy-MM-dd")"
-                           @onchange="CambiarFechaInicio"
-                           disabled="@(!PuedeEditar)" />
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Fecha de inicio del torneo</label>
+                        <input type="date"
+                               class="form-control"
+                               value="@_formulario.FechaInicioTorneo.ToString("yyyy-MM-dd")"
+                               @onchange="CambiarFechaInicio"
+                               disabled="true" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Hora de inicio de partidos</label>
+                        <input type="time"
+                               class="form-control"
+                               value="@_formulario.HoraInicioPartidos.ToString(@"hh\:mm")"
+                               @onchange="CambiarHoraInicio"
+                               disabled="true" />
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Hora de inicio de partidos</label>
-                    <input type="time"
-                           class="form-control"
-                           value="@_formulario.HoraInicioPartidos.ToString(@"hh\:mm")"
-                           @onchange="CambiarHoraInicio"
-                           disabled="@(!PuedeEditar)" />
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Máx. partidos por día</label>
+                        <input type="number" class="form-control" @bind="_formulario.MaxPartidosPorDia"
+                               disabled="true" min="1" max="12" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Separación entre fechas (días)</label>
+                        <input type="number" class="form-control" @bind="_formulario.SeparacionEntreFechas"
+                               disabled="true" min="1" max="14" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Separación entre partidos (horas)</label>
+                        <input type="number" class="form-control" @bind="_formulario.SeparacionHorasEntrePartidos"
+                               disabled="true" min="1" max="12" />
+                    </div>
+                </div>
+
+                <hr style="border-color:rgba(255,255,255,0.1); margin:24px 0;" />
+
+                <h6 style="font-size:12px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:16px;">
+                    Semillas de aleatoriedad
+                </h6>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Semilla fixture</label>
+                        <input type="number" class="form-control" @bind="_formulario.SemillaFixture"
+                               disabled="true" min="0" step="1" />
+                        <span class="form-hint">Determina el orden de los bombos.</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Semilla de generación automática</label>
+                        <input type="number" class="form-control" @bind="_formulario.SemillaCompletar"
+                               disabled="true" min="0" step="1" />
+                        <span class="form-hint">La misma semilla genera siempre los mismos equipos y rankings ficticios al completar.</span>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Semilla cruces de fase</label>
+                        <input type="number" class="form-control" @bind="_formulario.SemillaCrucesFase"
+                               disabled="true" min="0" step="1" />
+                        <span class="form-hint">Sorteo de cruces eliminatorios.</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Semilla simulación</label>
+                        <input type="number" class="form-control" @bind="_formulario.SemillaSimulation"
+                               disabled="true" min="0" step="1" />
+                        <span class="form-hint">Simulación de resultados de partidos.</span>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="row g-3 mb-3">
-                <div class="col-md-4">
-                    <label class="form-label">Máx. partidos por día</label>
-                    <input type="number" class="form-control" @bind="_formulario.MaxPartidosPorDia"
-                           disabled="@(!PuedeEditar)" min="1" max="12" />
+        <div class="col-lg-6 d-flex">
+            <div class="table-card w-100">
+                <div class="table-card-header">
+                    <span class="table-card-title">Configuración utilizada</span>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Separación entre fechas (días)</label>
-                    <input type="number" class="form-control" @bind="_formulario.SeparacionEntreFechas"
-                           disabled="@(!PuedeEditar)" min="1" max="14" />
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Separación entre partidos (horas)</label>
-                    <input type="number" class="form-control" @bind="_formulario.SeparacionHorasEntrePartidos"
-                           disabled="@(!PuedeEditar)" min="1" max="12" />
-                </div>
+                <table class="data-table">
+                    <tbody>
+                        <tr><td>Fecha inicio</td><td>@usada.FechaInicioTorneo.ToString("yyyy-MM-dd")</td></tr>
+                        <tr><td>Hora inicio</td><td>@usada.HoraInicioPartidos.ToString(@"hh\:mm")</td></tr>
+                        <tr><td>Máx. partidos/día</td><td>@usada.MaxPartidosPorDia</td></tr>
+                        <tr><td>Separación fechas</td><td>@usada.SeparacionEntreFechas días</td></tr>
+                        <tr><td>Sep. entre partidos</td><td>@usada.SeparacionHorasEntrePartidos h</td></tr>
+                        <tr><td>Semilla fixture</td><td>@usada.SemillaFixture</td></tr>
+                        <tr><td>Semilla gen. automática</td><td>@usada.SemillaCompletar</td></tr>
+                        <tr><td>Semilla cruces</td><td>@usada.SemillaCrucesFase</td></tr>
+                        <tr><td>Semilla simulación</td><td>@usada.SemillaSimulation</td></tr>
+                        <tr><td>Motor simulación</td><td>@ControladorSimulacion.ObtenerNombreMotor(usada.MotorSimulacion)</td></tr>
+                    </tbody>
+                </table>
             </div>
-
-            <hr style="border-color:rgba(255,255,255,0.1); margin:24px 0;" />
-
-            <h6 style="font-size:12px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:16px;">
-                Semillas de aleatoriedad
-            </h6>
-
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="form-label">Semilla fixture</label>
-                    <input type="number" class="form-control" @bind="_formulario.SemillaFixture"
-                           disabled="@(!PuedeEditar)" min="0" step="1" />
-                    <span class="form-hint">Determina el orden de los bombos.</span>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Semilla de generación automática</label>
-                    <input type="number" class="form-control" @bind="_formulario.SemillaCompletar"
-                           disabled="@(!PuedeEditar)" min="0" step="1" />
-                    <span class="form-hint">La misma semilla genera siempre los mismos equipos y rankings ficticios al completar.</span>
-                </div>
-            </div>
-
-            <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                    <label class="form-label">Semilla cruces de fase</label>
-                    <input type="number" class="form-control" @bind="_formulario.SemillaCrucesFase"
-                           disabled="@(!PuedeEditar)" min="0" step="1" />
-                    <span class="form-hint">Sorteo de cruces eliminatorios.</span>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Semilla simulación</label>
-                    <input type="number" class="form-control" @bind="_formulario.SemillaSimulation"
-                           disabled="@(!PuedeEditar)" min="0" step="1" />
-                    <span class="form-hint">Simulación de resultados de partidos.</span>
-                </div>
-            </div>
-
-            @if (PuedeEditar)
-            {
-                <button type="button" class="btn btn-primary" @onclick="GuardarConfiguracion">
-                    <span class="oi oi-check" aria-hidden="true"></span> Guardar configuración
-                </button>
-            }
         </div>
     </div>
 
-    <div class="col-lg-4">
-        @if (!ControladorConfiguracionTorneo.EsConfiguracionModificable)
-        {
-            <div class="table-card mb-3">
+    <div class="row g-3">
+        <div class="col-12">
+            <div class="table-card">
                 <div class="table-card-header">
                     <span class="table-card-title">Trazabilidad</span>
                 </div>
@@ -143,9 +155,101 @@ else if (!SesionServicio.EsAdministrador)
                     Para aplicar nuevos parámetros, es necesario crear un nuevo torneo desde la sección <strong>Fixture</strong>.
                 </div>
             </div>
-        }
-        else
-        {
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="glass-card" style="padding:32px;">
+                <h5 style="font-family:var(--font-heading); font-size:16px; font-weight:700; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+                    <text>Parámetros del torneo</text>
+                </h5>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Fecha de inicio del torneo</label>
+                        <input type="date"
+                               class="form-control"
+                               value="@_formulario.FechaInicioTorneo.ToString("yyyy-MM-dd")"
+                               @onchange="CambiarFechaInicio"
+                               disabled="@(!PuedeEditar)" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Hora de inicio de partidos</label>
+                        <input type="time"
+                               class="form-control"
+                               value="@_formulario.HoraInicioPartidos.ToString(@"hh\:mm")"
+                               @onchange="CambiarHoraInicio"
+                               disabled="@(!PuedeEditar)" />
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Máx. partidos por día</label>
+                        <input type="number" class="form-control" @bind="_formulario.MaxPartidosPorDia"
+                               disabled="@(!PuedeEditar)" min="1" max="12" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Separación entre fechas (días)</label>
+                        <input type="number" class="form-control" @bind="_formulario.SeparacionEntreFechas"
+                               disabled="@(!PuedeEditar)" min="1" max="14" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Separación entre partidos (horas)</label>
+                        <input type="number" class="form-control" @bind="_formulario.SeparacionHorasEntrePartidos"
+                               disabled="@(!PuedeEditar)" min="1" max="12" />
+                    </div>
+                </div>
+
+                <hr style="border-color:rgba(255,255,255,0.1); margin:24px 0;" />
+
+                <h6 style="font-size:12px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:16px;">
+                    Semillas de aleatoriedad
+                </h6>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Semilla fixture</label>
+                        <input type="number" class="form-control" @bind="_formulario.SemillaFixture"
+                               disabled="@(!PuedeEditar)" min="0" step="1" />
+                        <span class="form-hint">Determina el orden de los bombos.</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Semilla de generación automática</label>
+                        <input type="number" class="form-control" @bind="_formulario.SemillaCompletar"
+                               disabled="@(!PuedeEditar)" min="0" step="1" />
+                        <span class="form-hint">La misma semilla genera siempre los mismos equipos y rankings ficticios al completar.</span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Semilla cruces de fase</label>
+                        <input type="number" class="form-control" @bind="_formulario.SemillaCrucesFase"
+                               disabled="@(!PuedeEditar)" min="0" step="1" />
+                        <span class="form-hint">Sorteo de cruces eliminatorios.</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Semilla simulación</label>
+                        <input type="number" class="form-control" @bind="_formulario.SemillaSimulation"
+                               disabled="@(!PuedeEditar)" min="0" step="1" />
+                        <span class="form-hint">Simulación de resultados de partidos.</span>
+                    </div>
+                </div>
+
+                @if (PuedeEditar)
+                {
+                    <button type="button" class="btn btn-primary" @onclick="GuardarConfiguracion">
+                        <span class="oi oi-check" aria-hidden="true"></span> Guardar configuración
+                    </button>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-4">
             <div class="table-card mb-3">
                 <div class="table-card-header">
                     <span class="table-card-title">Información</span>
@@ -156,35 +260,9 @@ else if (!SesionServicio.EsAdministrador)
                     <p><strong>Permisos:</strong> Solo los administradores pueden modificar estos parámetros.</p>
                 </div>
             </div>
-        }
-
-        @if (!ControladorConfiguracionTorneo.EsConfiguracionModificable)
-        {
-            <div class="table-card">
-                <div class="table-card-header">
-                    <span class="table-card-title">Configuración utilizada</span>
-                </div>
-                <table class="data-table">
-                    <tbody>
-                        @{
-                            var usada = ControladorConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
-                        }
-                        <tr><td>Fecha inicio</td><td>@usada.FechaInicioTorneo.ToString("yyyy-MM-dd")</td></tr>
-                        <tr><td>Hora inicio</td><td>@usada.HoraInicioPartidos.ToString(@"hh\:mm")</td></tr>
-                        <tr><td>Máx. partidos/día</td><td>@usada.MaxPartidosPorDia</td></tr>
-                        <tr><td>Separación fechas</td><td>@usada.SeparacionEntreFechas días</td></tr>
-                        <tr><td>Sep. entre partidos</td><td>@usada.SeparacionHorasEntrePartidos h</td></tr>
-                        <tr><td>Semilla fixture</td><td>@usada.SemillaFixture</td></tr>
-                        <tr><td>Semilla gen. automática</td><td>@usada.SemillaCompletar</td></tr>
-                        <tr><td>Semilla cruces</td><td>@usada.SemillaCrucesFase</td></tr>
-                        <tr><td>Semilla simulación</td><td>@usada.SemillaSimulation</td></tr>
-                        <tr><td>Motor simulacion</td><td>@ControladorSimulacion.ObtenerNombreMotor(usada.MotorSimulacion)</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        }
+        </div>
     </div>
-</div>
+}
 
 @code {
     private ConfiguracionTorneo _formulario = new();
