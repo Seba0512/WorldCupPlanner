@@ -286,8 +286,8 @@ public class ServicioImportacionLegibleTests
         // Arrange
         var csv = CrearCSV(
             "Nombre,Confederacion,RankingFIFA,Bandera",
-            "Uruguay,CONMEBOL,1000,data:image/png;base64,dXJ1Z3VheQ==",
-            "Argentina,CONMEBOL,1100,data:image/png;base64,YXJnZW50aW5h");
+            $"Uruguay,CONMEBOL,1000,{SvgDePrueba.DataUri}",
+            $"Argentina,CONMEBOL,1100,{SvgDePrueba.DataUri}");
 
         // Act
         var resultado = _servicio.Importar(csv, _servicioEquipo);
@@ -296,7 +296,7 @@ public class ServicioImportacionLegibleTests
         Assert.AreEqual(2, resultado.Exitosos);
         Assert.AreEqual(0, resultado.Errores.Count);
         var uruguay = _servicioEquipo.Buscar(e => e.Nombre == "Uruguay")[0];
-        Assert.AreEqual("data:image/png;base64,dXJ1Z3VheQ==", uruguay.Bandera);
+        Assert.AreEqual(SvgDePrueba.DataUri, uruguay.Bandera);
     }
 
     [TestMethod]
@@ -305,9 +305,9 @@ public class ServicioImportacionLegibleTests
         // Arrange
         var csv = CrearCSV(
             "Nombre,Confederacion,RankingFIFA,Bandera",
-            "Uruguay,CONMEBOL,1000,data:image/png;base64,dXJ1Z3VheQ==",
+            $"Uruguay,CONMEBOL,1000,{SvgDePrueba.DataUri}",
             "Argentina,CONMEBOL,1100,",
-            "Brasil,CONMEBOL,800,data:image/png;base64,YnJhc2ls");
+            $"Brasil,CONMEBOL,800,{SvgDePrueba.DataUri}");
 
         // Act
         var resultado = _servicio.Importar(csv, _servicioEquipo);
@@ -376,9 +376,9 @@ public class ServicioImportacionLegibleTests
         // Arrange
         var csv = CrearCSV(
             "Nombre,Confederacion,RankingFIFA,Bandera",
-            "Uruguay,CONMEBOL,1000,data:image/png;base64,dXJ1Z3VheQ==",
+            $"Uruguay,CONMEBOL,1000,{SvgDePrueba.DataUri}",
             "Argentina,CONMEBOL,1100",
-            "Brasil,CONMEBOL,800,data:image/png;base64,YnJhc2ls");
+            $"Brasil,CONMEBOL,800,{SvgDePrueba.DataUri}");
 
         // Act
         var resultado = _servicio.Importar(csv, _servicioEquipo);
@@ -394,10 +394,10 @@ public class ServicioImportacionLegibleTests
         // Arrange — caso crítico: mayoría con bandera, algunos sin; deben coexistir sin rechazos
         var csv = CrearCSV(
             "Nombre,Confederacion,RankingFIFA,Bandera",
-            "Uruguay,CONMEBOL,1000,data:image/png;base64,dXJ1Z3VheQ==",
+            $"Uruguay,CONMEBOL,1000,{SvgDePrueba.DataUri}",
             "Argentina,CONMEBOL,1100,",
-            "Brasil,CONMEBOL,800,data:image/png;base64,YnJhc2ls",
-            "Chile,CONMEBOL,900,data:image/png;base64,Y2hpbGU=",
+            $"Brasil,CONMEBOL,800,{SvgDePrueba.DataUri}",
+            $"Chile,CONMEBOL,900,{SvgDePrueba.DataUri}",
             "Paraguay,CONMEBOL,1200,");
 
         // Act
@@ -469,7 +469,8 @@ public class ServicioImportacionLegibleTests
     public void Importar_CSVConBanderaQueSuperaLongitudMaxima_ReportaErrorEspecifico()
     {
         // Arrange — bandera de 2.800.001 caracteres (supera el límite de 2.800.000)
-        var banderaGigante = "data:image/png;base64," + new string('A', 2_800_001 - "data:image/png;base64,".Length);
+        var prefijo = "data:image/svg+xml;base64,";
+        var banderaGigante = prefijo + new string('A', 2_800_001 - prefijo.Length);
         var csv = CrearCSV(
             "Nombre,Confederacion,RankingFIFA,Bandera",
             $"Uruguay,CONMEBOL,1000,{banderaGigante}");
@@ -671,6 +672,123 @@ public class ServicioImportacionLegibleTests
         Assert.AreEqual(1, resultado.Exitosos);
     }
 
+    // ── Bandera: URL SVG ─────────────────────────────────────────────────────
+
+    [TestMethod]
+    public void Importar_CSVConBanderaComoUrlSvg_DescargaYAlmacenaEnBase64()
+    {
+        // Arrange
+        var descargador = new DescargadorStub(SvgDePrueba.Contenido);
+        var servicio = new ServicioImportacionLegible(descargador: descargador);
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA,Bandera",
+            "Uruguay,CONMEBOL,1000,https://flagcdn.com/uy.svg");
+
+        // Act
+        var resultado = servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(1, resultado.Exitosos);
+        Assert.AreEqual(0, resultado.Errores.Count);
+        var uruguay = _servicioEquipo.Buscar(e => e.Nombre == "Uruguay")[0];
+        Assert.AreEqual(SvgDePrueba.DataUri, uruguay.Bandera);
+    }
+
+    [TestMethod]
+    public void Importar_CSVConBanderaUrlInaccesible_ReportaError()
+    {
+        // Arrange
+        var descargador = new DescargadorQueSimulaError();
+        var servicio = new ServicioImportacionLegible(descargador: descargador);
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA,Bandera",
+            "Uruguay,CONMEBOL,1000,https://flagcdn.com/uy.svg");
+
+        // Act
+        var resultado = servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(0, resultado.Exitosos);
+        Assert.AreEqual(1, resultado.Errores.Count);
+        StringAssert.Contains(resultado.Errores[0], "Bandera");
+    }
+
+    [TestMethod]
+    public void Importar_CSVConBanderaUrlQueNoEsSvg_ReportaError()
+    {
+        // Arrange
+        var descargador = new DescargadorStub("<html><body>not an svg</body></html>");
+        var servicio = new ServicioImportacionLegible(descargador: descargador);
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA,Bandera",
+            "Uruguay,CONMEBOL,1000,https://example.com/imagen.png");
+
+        // Act
+        var resultado = servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(0, resultado.Exitosos);
+        Assert.AreEqual(1, resultado.Errores.Count);
+        StringAssert.Contains(resultado.Errores[0], "Bandera");
+        StringAssert.Contains(resultado.Errores[0], "SVG");
+    }
+
+    [TestMethod]
+    public void Importar_CSVConBanderaUrlSinDescargadorConfigurado_ReportaError()
+    {
+        // Arrange — sin descargador: las URLs no pueden resolverse
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA,Bandera",
+            "Uruguay,CONMEBOL,1000,https://flagcdn.com/uy.svg");
+
+        // Act
+        var resultado = _servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(0, resultado.Exitosos);
+        Assert.AreEqual(1, resultado.Errores.Count);
+        StringAssert.Contains(resultado.Errores[0], "Bandera");
+    }
+
+    // ── Bandera: Base64 puro ─────────────────────────────────────────────────
+
+    [TestMethod]
+    public void Importar_CSVConBanderaBase64PuroSvgValido_AlmacenaComoDataUri()
+    {
+        // Arrange
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA,Bandera",
+            $"Uruguay,CONMEBOL,1000,{SvgDePrueba.Base64}");
+
+        // Act
+        var resultado = _servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(1, resultado.Exitosos);
+        Assert.AreEqual(0, resultado.Errores.Count);
+        var uruguay = _servicioEquipo.Buscar(e => e.Nombre == "Uruguay")[0];
+        Assert.AreEqual(SvgDePrueba.DataUri, uruguay.Bandera);
+    }
+
+    [TestMethod]
+    public void Importar_CSVConBanderaBase64PuroQueNoEsSvg_ReportaError()
+    {
+        // Arrange — Base64 de contenido HTML (no SVG)
+        var base64Html = Convert.ToBase64String(Encoding.UTF8.GetBytes("<html></html>"));
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA,Bandera",
+            $"Uruguay,CONMEBOL,1000,{base64Html}");
+
+        // Act
+        var resultado = _servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(0, resultado.Exitosos);
+        Assert.AreEqual(1, resultado.Errores.Count);
+        StringAssert.Contains(resultado.Errores[0], "Bandera");
+        StringAssert.Contains(resultado.Errores[0], "SVG");
+    }
+
     // ── Autorización ─────────────────────────────────────────────────────────
 
     [TestMethod]
@@ -745,6 +863,28 @@ public class ServicioImportacionLegibleTests
             FechaNacimiento = "01-01-1990"
         });
     }
+}
+
+// SVG mínimo de prueba y sus representaciones derivadas.
+// Todos los tests que necesiten un SVG válido deben usar estas constantes.
+file static class SvgDePrueba
+{
+    internal const string Contenido = "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>";
+    internal static readonly string Base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(Contenido));
+    internal static string DataUri => "data:image/svg+xml;base64," + Base64;
+}
+
+file sealed class DescargadorStub : IDescargadorContenido
+{
+    private readonly string _contenido;
+    public DescargadorStub(string contenido) => _contenido = contenido;
+    public string Descargar(string url) => _contenido;
+}
+
+file sealed class DescargadorQueSimulaError : IDescargadorContenido
+{
+    public string Descargar(string url) =>
+        throw new InvalidOperationException($"No se pudo conectar a \"{url}\".");
 }
 
 file sealed class RepositorioEquipoStub : IRepositorio<Equipo>

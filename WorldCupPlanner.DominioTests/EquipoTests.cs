@@ -144,7 +144,7 @@ public class EquipoTests
             Nombre = "Uruguay",
             RankingFIFA = 1000,
             Confederacion = Confederacion.CONMEBOL,
-            Bandera = "data:image/png;base64,dXJ1Z3VheQ=="
+            Bandera = "data:image/svg+xml;base64,dXJ1Z3VheQ=="
         };
 
         // Act
@@ -182,7 +182,7 @@ public class EquipoTests
             Nombre = "Uruguay",
             RankingFIFA = 1000,
             Confederacion = Confederacion.CONMEBOL,
-            Bandera = "data:image/png,dXJ1Z3VheQ=="
+            Bandera = "data:image/svg+xml,dXJ1Z3VheQ=="
         };
 
         // Act
@@ -201,7 +201,7 @@ public class EquipoTests
             Nombre = "Uruguay",
             RankingFIFA = 1000,
             Confederacion = Confederacion.CONMEBOL,
-            Bandera = "data:image/png;base64," + new string('A', 2_800_000)
+            Bandera = "data:image/svg+xml;base64," + new string('A', 2_800_000)
         };
 
         // Act
@@ -215,7 +215,7 @@ public class EquipoTests
     public void Equipo_ConBanderaEnElLimiteDeTamano_EsValido()
     {
         // Arrange — exactamente 2 800 000 caracteres en el campo Bandera
-        var prefijo = "data:image/png;base64,";
+        var prefijo = "data:image/svg+xml;base64,";
         var equipo = new Equipo
         {
             Nombre = "Uruguay",
@@ -229,5 +229,24 @@ public class EquipoTests
 
         // Assert
         Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void Equipo_ConBanderaConTipoNoSvg_NoEsValido()
+    {
+        // Arrange
+        var equipo = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL,
+            Bandera = "data:image/png;base64,dXJ1Z3VheQ=="
+        };
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
     }
 }

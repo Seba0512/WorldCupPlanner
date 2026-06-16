@@ -67,7 +67,7 @@
                 <img src="@_equipo.Bandera" alt="Bandera" style="height:40px; border-radius:4px;" />
             </div>
         }
-        <InputFile OnChange="CargarBandera" accept="image/*" class="form-control" disabled="@_edicionBloqueada" />
+        <InputFile OnChange="CargarBandera" accept="image/svg+xml" class="form-control" disabled="@_edicionBloqueada" />
     </div>
 
     <div class="d-flex gap-2 mt-2">
@@ -94,7 +94,12 @@
 
     private async Task CargarBandera(InputFileChangeEventArgs e)
     {
-        _equipo.Bandera = await ArchivoHelper.ConvertirABase64DataUri(e.File);
+        try
+        {
+            _equipo.Bandera = await ArchivoHelper.ConvertirABase64DataUri(e.File);
+            _error = string.Empty;
+        }
+        catch (ArgumentException ex) { _error = ex.Message; }
     }
 
     private void Guardar()

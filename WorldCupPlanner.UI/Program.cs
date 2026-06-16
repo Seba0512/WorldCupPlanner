@@ -8,6 +8,7 @@ using WorldCupPlanner.Servicios;
 using Microsoft.EntityFrameworkCore;
 using WorldCupPlanner.AccesoADatos;
 using WorldCupPlanner.Controladores;
+using WorldCupPlanner.UI.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +71,7 @@ builder.Services.AddScoped<ServicioRankingDinamico>(sp =>
         sp.GetRequiredService<ServicioConsultasTorneo>()));
 builder.Services.AddScoped<ServicioExportacion>();
 builder.Services.AddScoped<ControladorExportacion>();
+builder.Services.AddHttpClient<IDescargadorContenido, DescargadorHttpSvg>();
 builder.Services.AddScoped<ServicioImportacionLegible>();
 builder.Services.AddScoped<ControladorImportacion>();
 builder.Services.AddScoped<ServicioOrquestadorSimulacion>();
