@@ -53,10 +53,10 @@
 
     <div class="mb-3">
         <label class="form-label">Bandera del país</label>
-        @if (!string.IsNullOrEmpty(_bandera))
+        @if (!string.IsNullOrEmpty(_dto.Bandera))
         {
             <div style="margin-bottom:8px">
-                <img src="@_bandera" alt="Bandera" style="height:40px; border-radius:4px;" />
+                <img src="@_dto.Bandera" alt="Bandera" style="height:40px; border-radius:4px;" />
             </div>
         }
         <InputFile OnChange="CargarBandera" accept="image/*" class="form-control" />
@@ -75,14 +75,13 @@
     private EquipoDTO _dto = new();
     private string _error = string.Empty;
     private List<string> _erroresCampos = [];
-    private string _bandera = string.Empty;
 
     private int ObtenerCupo(Confederacion conf) =>
         ControladorEquipo.ObtenerCuposMaximos().GetValueOrDefault(conf, 0);
 
     private async Task CargarBandera(InputFileChangeEventArgs e)
     {
-        _bandera = await ArchivoHelper.ConvertirABase64DataUri(e.File);
+        _dto.Bandera = await ArchivoHelper.ConvertirABase64DataUri(e.File);
     }
 
     private void Guardar()
@@ -105,7 +104,7 @@
 
         try
         {
-            ControladorEquipo.Crear(_dto, _bandera, SesionServicio.UsuarioActual);
+            ControladorEquipo.Crear(_dto, SesionServicio.UsuarioActual);
             Toast.Exito($"Equipo \"{_dto.Nombre}\" creado correctamente.");
             NavigationManager.NavigateTo("/equipos");
         }

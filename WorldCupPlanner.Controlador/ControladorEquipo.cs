@@ -32,9 +32,6 @@ public class ControladorEquipo
     public EquipoDTO ObtenerParaEdicionDTO(string nombre) =>
         EquipoDTO.FromEntity(ObtenerParaEdicion(nombre));
 
-    public string ObtenerBanderaParaEdicion(string nombre) =>
-        ObtenerParaEdicion(nombre).Bandera;
-
     public Dictionary<string, string> ObtenerBanderasPorEquipo() =>
         Listar()
             .Where(e => !string.IsNullOrEmpty(e.Bandera))
@@ -43,13 +40,13 @@ public class ControladorEquipo
     public void Crear(NuevoEquipoDto equipo, UsuarioDTO? usuarioActual = null) =>
         _servicioEquipo.Crear(equipo, ResolverUsuario(usuarioActual));
 
-    public void Crear(EquipoDTO equipo, string? bandera = null, UsuarioDTO? usuarioActual = null) =>
+    public void Crear(EquipoDTO equipo, UsuarioDTO? usuarioActual = null) =>
         _servicioEquipo.Crear(new NuevoEquipoDto
         {
             Nombre = equipo.Nombre,
             Confederacion = equipo.Confederacion,
             RankingFIFA = equipo.RankingFIFA,
-            Bandera = bandera ?? string.Empty
+            Bandera = equipo.Bandera
         }, ResolverUsuario(usuarioActual));
 
     public void Agregar(Equipo equipo, Usuario? usuarioActual = null) =>
@@ -58,12 +55,8 @@ public class ControladorEquipo
     public void Actualizar(Equipo equipo, string nombreOriginal, Usuario? usuarioActual = null) =>
         _servicioEquipo.EditarEquipo(equipo, nombreOriginal, usuarioActual);
 
-    public void Actualizar(EquipoDTO equipo, string nombreOriginal, string? bandera = null, UsuarioDTO? usuarioActual = null)
-    {
-        var entidad = equipo.ToEntity();
-        entidad.Bandera = bandera ?? string.Empty;
-        _servicioEquipo.EditarEquipo(entidad, nombreOriginal, ResolverUsuario(usuarioActual));
-    }
+    public void Actualizar(EquipoDTO equipo, string nombreOriginal, UsuarioDTO? usuarioActual = null) =>
+        _servicioEquipo.EditarEquipo(equipo.ToEntity(), nombreOriginal, ResolverUsuario(usuarioActual));
 
     public void Eliminar(Equipo equipo, Usuario? usuarioActual = null) =>
         _servicioEquipo.Eliminar(equipo, usuarioActual);

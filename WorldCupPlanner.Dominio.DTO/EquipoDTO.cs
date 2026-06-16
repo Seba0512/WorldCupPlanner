@@ -8,16 +8,15 @@ namespace WorldCupPlanner.Dominio.DTO
         public string Nombre { get; set; } = string.Empty;
         public int RankingFIFA { get; set; }
         public Confederacion? Confederacion { get; set; }
+        public string Bandera { get; set; } = string.Empty;
 
-        public Equipo ToEntity()
+        public Equipo ToEntity() => new Equipo
         {
-            return new Equipo
-            {
-                Nombre = Nombre,
-                RankingFIFA = RankingFIFA,
-                Confederacion = Confederacion
-            };
-        }
+            Nombre = Nombre,
+            RankingFIFA = RankingFIFA,
+            Confederacion = Confederacion,
+            Bandera = Bandera
+        };
 
         public static EquipoDTO FromEntity(Equipo equipo)
         {
@@ -27,7 +26,8 @@ namespace WorldCupPlanner.Dominio.DTO
             {
                 Nombre = equipo.Nombre,
                 RankingFIFA = equipo.RankingFIFA,
-                Confederacion = equipo.Confederacion
+                Confederacion = equipo.Confederacion,
+                Bandera = equipo.Bandera
             };
         }
     }

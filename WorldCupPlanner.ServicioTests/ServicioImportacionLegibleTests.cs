@@ -286,8 +286,8 @@ public class ServicioImportacionLegibleTests
         // Arrange
         var csv = CrearCSV(
             "Nombre,Confederacion,RankingFIFA,Bandera",
-            "Uruguay,CONMEBOL,1000,uruguay.png",
-            "Argentina,CONMEBOL,1100,argentina.png");
+            "Uruguay,CONMEBOL,1000,data:image/png;base64,dXJ1Z3VheQ==",
+            "Argentina,CONMEBOL,1100,data:image/png;base64,YXJnZW50aW5h");
 
         // Act
         var resultado = _servicio.Importar(csv, _servicioEquipo);
@@ -296,7 +296,7 @@ public class ServicioImportacionLegibleTests
         Assert.AreEqual(2, resultado.Exitosos);
         Assert.AreEqual(0, resultado.Errores.Count);
         var uruguay = _servicioEquipo.Buscar(e => e.Nombre == "Uruguay")[0];
-        Assert.AreEqual("uruguay.png", uruguay.Bandera);
+        Assert.AreEqual("data:image/png;base64,dXJ1Z3VheQ==", uruguay.Bandera);
     }
 
     [TestMethod]
@@ -305,9 +305,9 @@ public class ServicioImportacionLegibleTests
         // Arrange
         var csv = CrearCSV(
             "Nombre,Confederacion,RankingFIFA,Bandera",
-            "Uruguay,CONMEBOL,1000,uruguay.png",
+            "Uruguay,CONMEBOL,1000,data:image/png;base64,dXJ1Z3VheQ==",
             "Argentina,CONMEBOL,1100,",
-            "Brasil,CONMEBOL,800,brasil.png");
+            "Brasil,CONMEBOL,800,data:image/png;base64,YnJhc2ls");
 
         // Act
         var resultado = _servicio.Importar(csv, _servicioEquipo);
@@ -376,9 +376,9 @@ public class ServicioImportacionLegibleTests
         // Arrange
         var csv = CrearCSV(
             "Nombre,Confederacion,RankingFIFA,Bandera",
-            "Uruguay,CONMEBOL,1000,uruguay.png",
+            "Uruguay,CONMEBOL,1000,data:image/png;base64,dXJ1Z3VheQ==",
             "Argentina,CONMEBOL,1100",
-            "Brasil,CONMEBOL,800,brasil.png");
+            "Brasil,CONMEBOL,800,data:image/png;base64,YnJhc2ls");
 
         // Act
         var resultado = _servicio.Importar(csv, _servicioEquipo);
@@ -386,6 +386,101 @@ public class ServicioImportacionLegibleTests
         // Assert
         Assert.AreEqual(2, resultado.Exitosos);
         Assert.AreEqual(1, resultado.Errores.Count);
+    }
+
+    [TestMethod]
+    public void Importar_CasoCritico_CincoEquiposBanderaMixta_ImportaTodos()
+    {
+        // Arrange — caso crítico: mayoría con bandera, algunos sin; deben coexistir sin rechazos
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA,Bandera",
+            "Uruguay,CONMEBOL,1000,data:image/png;base64,dXJ1Z3VheQ==",
+            "Argentina,CONMEBOL,1100,",
+            "Brasil,CONMEBOL,800,data:image/png;base64,YnJhc2ls",
+            "Chile,CONMEBOL,900,data:image/png;base64,Y2hpbGU=",
+            "Paraguay,CONMEBOL,1200,");
+
+        // Act
+        var resultado = _servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(5, resultado.Exitosos);
+        Assert.AreEqual(0, resultado.Errores.Count);
+        Assert.AreEqual(5, _servicioEquipo.Buscar(_ => true).Count);
+    }
+
+    [TestMethod]
+    public void Importar_CSVConBanderaEnFormatoInvalido_ReportaErrorEspecifico()
+    {
+        // Arrange — valor que no es Data URI Base64
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA,Bandera",
+            "Uruguay,CONMEBOL,1000,uruguay.png");
+
+        // Act
+        var resultado = _servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(0, resultado.Exitosos);
+        Assert.AreEqual(1, resultado.Errores.Count);
+        StringAssert.Contains(resultado.Errores[0], "Bandera");
+        StringAssert.Contains(resultado.Errores[0], "Base64");
+    }
+
+    [TestMethod]
+    public void Importar_CSVConBanderaConPrefijoDataPeroSinMarcadorBase64_ReportaError()
+    {
+        // Arrange — tiene prefijo "data:" pero falta ";base64,"
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA,Bandera",
+            "Uruguay,CONMEBOL,1000,data:image/png,dXJ1Z3VheQ==");
+
+        // Act
+        var resultado = _servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(0, resultado.Exitosos);
+        Assert.AreEqual(1, resultado.Errores.Count);
+        StringAssert.Contains(resultado.Errores[0], "Bandera");
+    }
+
+    [TestMethod]
+    public void Importar_BanderaFaltante_AlmacenaValorPorDefecto()
+    {
+        // Arrange
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA,Bandera",
+            "Uruguay,CONMEBOL,1000,",
+            "Argentina,CONMEBOL,1100,");
+
+        // Act
+        var resultado = _servicio.Importar(csv, _servicioEquipo);
+
+        // Assert — valor por defecto para bandera faltante
+        Assert.AreEqual(2, resultado.Exitosos);
+        Assert.AreEqual(0, resultado.Errores.Count);
+        var uruguay = _servicioEquipo.Buscar(e => e.Nombre == "Uruguay")[0];
+        var argentina = _servicioEquipo.Buscar(e => e.Nombre == "Argentina")[0];
+        Assert.AreEqual(string.Empty, uruguay.Bandera);
+        Assert.AreEqual(string.Empty, argentina.Bandera);
+    }
+
+    [TestMethod]
+    public void Importar_CSVConBanderaQueSuperaLongitudMaxima_ReportaErrorEspecifico()
+    {
+        // Arrange — bandera de 2.800.001 caracteres (supera el límite de 2.800.000)
+        var banderaGigante = "data:image/png;base64," + new string('A', 2_800_001 - "data:image/png;base64,".Length);
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA,Bandera",
+            $"Uruguay,CONMEBOL,1000,{banderaGigante}");
+
+        // Act
+        var resultado = _servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(0, resultado.Exitosos);
+        Assert.AreEqual(1, resultado.Errores.Count);
+        StringAssert.Contains(resultado.Errores[0], "Bandera");
     }
 
     // ── Estado parcial ───────────────────────────────────────────────────────

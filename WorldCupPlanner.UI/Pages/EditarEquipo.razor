@@ -61,10 +61,10 @@
 
     <div class="mb-3">
         <label class="form-label">Bandera del país</label>
-        @if (!string.IsNullOrEmpty(_bandera))
+        @if (!string.IsNullOrEmpty(_equipo.Bandera))
         {
             <div style="margin-bottom:8px">
-                <img src="@_bandera" alt="Bandera" style="height:40px; border-radius:4px;" />
+                <img src="@_equipo.Bandera" alt="Bandera" style="height:40px; border-radius:4px;" />
             </div>
         }
         <InputFile OnChange="CargarBandera" accept="image/*" class="form-control" disabled="@_edicionBloqueada" />
@@ -84,19 +84,17 @@
     private EquipoDTO _equipo = new();
     private string _error = string.Empty;
     private List<string> _erroresCampos = [];
-    private string _bandera = string.Empty;
     private bool _edicionBloqueada;
 
     protected override void OnInitialized()
     {
         _equipo = ControladorEquipo.ObtenerParaEdicionDTO(Nombre);
-        _bandera = ControladorEquipo.ObtenerBanderaParaEdicion(Nombre);
         _edicionBloqueada = ControladorConsultasTorneo.EquipoParticipaEnFixture(EstadoTorneo, _equipo);
     }
 
     private async Task CargarBandera(InputFileChangeEventArgs e)
     {
-        _bandera = await ArchivoHelper.ConvertirABase64DataUri(e.File);
+        _equipo.Bandera = await ArchivoHelper.ConvertirABase64DataUri(e.File);
     }
 
     private void Guardar()
@@ -128,7 +126,7 @@
             if (_edicionBloqueada)
                 throw new InvalidOperationException("No se puede editar un equipo que participa en el fixture generado.");
 
-            ControladorEquipo.Actualizar(_equipo, Nombre, _bandera, SesionServicio.UsuarioActual);
+            ControladorEquipo.Actualizar(_equipo, Nombre, SesionServicio.UsuarioActual);
             Toast.Exito($"Equipo actualizado correctamente.");
             NavigationManager.NavigateTo("/equipos");
         }

@@ -14,6 +14,9 @@ public class ServicioImportacionLegible
     private const int IndiceConfederacion = 1;
     private const int IndiceRankingFIFA = 2;
     private const int IndiceBandera = 3;
+    private const string PrefijoDataUri = "data:";
+    private const string MarcadorBase64 = ";base64,";
+    private const int TamanoMaximoBanderaCaracteres = 2_800_000;
 
     private readonly ServicioAuditoria? _auditoria;
     private readonly ServicioAutorizacion _autorizacion;
@@ -100,9 +103,20 @@ public class ServicioImportacionLegible
         if (rankingFIFA == null) return null;
 
         var bandera = incluyeBandera ? columnas[IndiceBandera].Trim() : "";
+        if (!BanderaEsValida(bandera))
+        {
+            contexto.Errores.Add($"Línea {contexto.NumeroDeLinea} ({nombre}): Bandera debe ser un Data URI en formato Base64 (data:...;base64,...).");
+            return null;
+        }
 
         return new Equipo { Nombre = nombre, Confederacion = confederacion.Value, RankingFIFA = rankingFIFA.Value, Bandera = bandera };
     }
+
+    private static bool BanderaEsValida(string bandera) =>
+        string.IsNullOrEmpty(bandera) ||
+        (bandera.Length <= TamanoMaximoBanderaCaracteres &&
+         bandera.StartsWith(PrefijoDataUri) &&
+         bandera.Contains(MarcadorBase64));
 
     private static Confederacion? ParsearConfederacion(string texto, ContextoDeLinea contexto, string nombreEquipo)
     {

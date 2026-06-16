@@ -115,4 +115,119 @@ public class EquipoTests
         // Assert
         Assert.IsFalse(resultado);
     }
+
+    [TestMethod]
+    public void Equipo_ConBanderaVacia_EsValido()
+    {
+        // Arrange
+        var equipo = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL,
+            Bandera = ""
+        };
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void Equipo_ConBanderaEnFormatoDataUriBase64_EsValido()
+    {
+        // Arrange
+        var equipo = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL,
+            Bandera = "data:image/png;base64,dXJ1Z3VheQ=="
+        };
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void Equipo_ConBanderaQueNoEsDataUri_NoEsValido()
+    {
+        // Arrange
+        var equipo = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL,
+            Bandera = "uruguay.png"
+        };
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Equipo_ConBanderaConPrefijoDataPeroSinMarcadorBase64_NoEsValido()
+    {
+        // Arrange
+        var equipo = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL,
+            Bandera = "data:image/png,dXJ1Z3VheQ=="
+        };
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Equipo_ConBanderaQueSuperaElTamanoMaximo_NoEsValido()
+    {
+        // Arrange — Data URI válido en formato pero excede los 2 800 000 caracteres
+        var equipo = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL,
+            Bandera = "data:image/png;base64," + new string('A', 2_800_000)
+        };
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsFalse(resultado);
+    }
+
+    [TestMethod]
+    public void Equipo_ConBanderaEnElLimiteDeTamano_EsValido()
+    {
+        // Arrange — exactamente 2 800 000 caracteres en el campo Bandera
+        var prefijo = "data:image/png;base64,";
+        var equipo = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL,
+            Bandera = prefijo + new string('A', 2_800_000 - prefijo.Length)
+        };
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
 }

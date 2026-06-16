@@ -69,13 +69,14 @@ public class ControladorEquipoTests
         {
             Nombre = "Nuevo DTO",
             Confederacion = Confederacion.UEFA,
-            RankingFIFA = 1500
-        }, "bandera-data");
+            RankingFIFA = 1500,
+            Bandera = "data:image/png;base64,YmFuZGVyYQ=="
+        });
 
         var creado = repositorio.Buscar(_ => true).Single();
         Assert.AreEqual("Nuevo DTO", creado.Nombre);
         Assert.AreEqual(1500, creado.RankingFIFA);
-        Assert.AreEqual("bandera-data", creado.Bandera);
+        Assert.AreEqual("data:image/png;base64,YmFuZGVyYQ==", creado.Bandera);
     }
 
     [TestMethod]
@@ -105,12 +106,13 @@ public class ControladorEquipoTests
         {
             Nombre = "Original",
             Confederacion = Confederacion.UEFA,
-            RankingFIFA = 1700
-        }, "Original", "bandera-actualizada");
+            RankingFIFA = 1700,
+            Bandera = "data:image/png;base64,YWN0dWFsaXphZGE="
+        }, "Original");
 
         var persistido = controlador.Buscar(e => e.Nombre == "Original").Single();
         Assert.AreEqual(1700, persistido.RankingFIFA);
-        Assert.AreEqual("bandera-actualizada", persistido.Bandera);
+        Assert.AreEqual("data:image/png;base64,YWN0dWFsaXphZGE=", persistido.Bandera);
     }
 
     [TestMethod]
@@ -154,11 +156,11 @@ public class ControladorEquipoTests
     }
 
     [TestMethod]
-    public void ObtenerParaEdicionDTO_DevuelveCopiaComoDTO()
+    public void ObtenerParaEdicionDTO_DevuelveCopiaConBandera()
     {
         var repositorio = new RepositorioEquipoControladorFake();
         var equipo = CrearEquipo("Uruguay", Confederacion.CONMEBOL);
-        equipo.Bandera = "bandera";
+        equipo.Bandera = "data:image/png;base64,dXJ1Z3VheQ==";
         repositorio.Agregar(equipo);
         var controlador = CrearControlador(repositorio);
 
@@ -167,7 +169,7 @@ public class ControladorEquipoTests
         Assert.AreEqual(equipo.Nombre, copia.Nombre);
         Assert.AreEqual(equipo.RankingFIFA, copia.RankingFIFA);
         Assert.AreEqual(equipo.Confederacion, copia.Confederacion);
-        Assert.AreEqual("bandera", controlador.ObtenerBanderaParaEdicion("Uruguay"));
+        Assert.AreEqual("data:image/png;base64,dXJ1Z3VheQ==", copia.Bandera);
     }
 
     [TestMethod]
