@@ -70,9 +70,109 @@ public class ControladorSimulacionTests
                 new EstadoTorneo()));
     }
 
+    [TestMethod]
+    public void SimularPartido_ConPartidoId_ResuelvePartidoYDelega()
+    {
+        var contexto = CrearContextoSimulacion();
+        var controlador = CrearControlador(
+            repositorioPartido: contexto.RepositorioPartidos,
+            servicioConfiguracionTorneo: CrearServicioConfiguracion());
+
+        controlador.SimularPartido(
+            contexto.Partido.Id,
+            contexto.EstadoTorneo,
+            usuarioActual: null);
+
+        Assert.IsTrue(contexto.Partido.EstaJugado());
+        Assert.AreEqual(1, contexto.RepositorioPartidos.Buscar(_ => true).Count);
+        Assert.AreSame(contexto.Partido, contexto.RepositorioPartidos.Buscar(_ => true)[0]);
+    }
+
+    [TestMethod]
+    public void SimularPartido_ConPartidoInexistente_LanzaExcepcion()
+    {
+        var controlador = CrearControlador(
+            servicioConfiguracionTorneo: CrearServicioConfiguracion());
+
+        Assert.ThrowsException<EntidadInexistenteExcepcion>(() =>
+            controlador.SimularPartido(
+                999,
+                new EstadoTorneo(),
+                usuarioActual: null));
+    }
+
+    [TestMethod]
+    public void EsPartidoSimulable_ConPartidoId_UsaReglaDeFixture()
+    {
+        var contexto = CrearContextoSimulacion();
+        var controlador = CrearControlador(servicioFixture: new ServicioFixture());
+
+        Assert.IsTrue(controlador.EsPartidoSimulable(
+            contexto.Partido.Id,
+            contexto.EstadoTorneo,
+            FaseTorneo.FaseDeGrupos));
+    }
+
+    [TestMethod]
+    public void SimularJornadaOFecha_ConJornada_ResuelvePartidosYDelega()
+    {
+        var contexto = CrearContextoSimulacion();
+        var controlador = CrearControlador(
+            repositorioPartido: contexto.RepositorioPartidos,
+            servicioConfiguracionTorneo: CrearServicioConfiguracion(),
+            servicioFixture: new ServicioFixture());
+
+        controlador.SimularJornadaOFecha(
+            FaseTorneo.FaseDeGrupos,
+            ServicioFixture.PrimeraJornada,
+            contexto.EstadoTorneo,
+            usuarioActual: null);
+
+        Assert.IsTrue(contexto.Partido.EstaJugado());
+        Assert.AreEqual(1, contexto.RepositorioPartidos.Buscar(_ => true).Count);
+        Assert.AreSame(contexto.Partido, contexto.RepositorioPartidos.Buscar(_ => true)[0]);
+    }
+
+    [TestMethod]
+    public void SimularJornadaOFecha_SinPartidosPendientes_PropagaValidacionDelOrquestador()
+    {
+        var contexto = CrearContextoSimulacion();
+        var controlador = CrearControlador(
+            servicioConfiguracionTorneo: CrearServicioConfiguracion(),
+            servicioFixture: new ServicioFixture());
+
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            controlador.SimularJornadaOFecha(
+                FaseTorneo.FaseDeGrupos,
+                ServicioFixture.SegundaJornada,
+                contexto.EstadoTorneo,
+                usuarioActual: null));
+
+        Assert.IsFalse(contexto.Partido.EstaJugado());
+    }
+
+    [TestMethod]
+    public void HayPartidosJornadaOFechaSimulables_UsaReglaDeFixture()
+    {
+        var contexto = CrearContextoSimulacion();
+        var controlador = CrearControlador(servicioFixture: new ServicioFixture());
+
+        Assert.IsTrue(controlador.HayPartidosJornadaOFechaSimulables(
+            FaseTorneo.FaseDeGrupos,
+            ServicioFixture.PrimeraJornada,
+            contexto.EstadoTorneo));
+
+        Assert.IsFalse(controlador.HayPartidosJornadaOFechaSimulables(
+            FaseTorneo.FaseDeGrupos,
+            ServicioFixture.SegundaJornada,
+            contexto.EstadoTorneo));
+    }
+
     private static ControladorSimulacion CrearControlador(
         ServicioSimulacion? servicioSimulacion = null,
-        RepositorioGenericoControladorSimulacionFake<Partido>? repositorioPartido = null)
+        RepositorioGenericoControladorSimulacionFake<Partido>? repositorioPartido = null,
+        ServicioConfiguracionTorneo? servicioConfiguracionTorneo = null,
+        ServicioFixture? servicioFixture = null)
     {
         servicioSimulacion ??= new ServicioSimulacion();
         repositorioPartido ??= new RepositorioGenericoControladorSimulacionFake<Partido>();
@@ -96,7 +196,11 @@ public class ControladorSimulacionTests
             notificacion,
             consultas);
 
-        return new ControladorSimulacion(servicioSimulacion, orquestador);
+        return new ControladorSimulacion(
+            servicioSimulacion,
+            orquestador,
+            servicioConfiguracionTorneo: servicioConfiguracionTorneo,
+            servicioFixture: servicioFixture);
     }
 
     private static ContextoSimulacionControlador CrearContextoSimulacion()
@@ -128,6 +232,13 @@ public class ControladorSimulacionTests
         SemillaSimulation = 7,
         MotorSimulacion = MotorSimulacion.RankingActualYSemilla
     };
+
+    private static ServicioConfiguracionTorneo CrearServicioConfiguracion()
+    {
+        var servicio = new ServicioConfiguracionTorneo();
+        servicio.RegistrarFixtureGenerado(CrearConfiguracion());
+        return servicio;
+    }
 
     private static Equipo CrearEquipo(int id, string nombre) => new()
     {

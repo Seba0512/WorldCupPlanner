@@ -275,7 +275,6 @@ else
                 </div>
                 @foreach (var partido in GrupoSeleccionadoDTO.Partidos)
                 {
-                    var partidoDominio = ObtenerPartidoDominio(partido);
                     <div class="match-card @(ControladorFixture.EstaJugado(partido) && (ControladorFixture.EsGanador(partido, partido.EquipoLocal) || ControladorFixture.EsGanador(partido, partido.EquipoVisitante)) ? "match-winner" : "")">
                         <div class="match-team @(ControladorFixture.EsGanador(partido, partido.EquipoLocal) ? "match-winner" : "")">
                             @partido.EquipoLocal?.Nombre
@@ -302,9 +301,9 @@ else
                         {
                             <button type="button"
                                     class="btn btn-warning btn-sm"
-                                    disabled="@(!PuedeSimularPartido(partidoDominio))"
+                                    disabled="@(!PuedeSimularPartido(partido.Id))"
                                     style="margin-left:8px; flex-shrink:0"
-                                    @onclick="() => SimularPartido(partidoDominio)">
+                                    @onclick="() => SimularPartido(partido.Id)">
                                 Simular partido
                             </button>
                             <a href="/partidos/@partido.Id/editar" class="btn btn-success btn-sm" style="margin-left:8px; flex-shrink:0">
@@ -332,7 +331,6 @@ else
             <!-- ── FINAL ───────────────────────────────────────── -->
             @if (PartidoFinalDTO != null)
             {
-                var partidoFinalDominio = ObtenerPartidoDominio(PartidoFinalDTO);
                 <div class="table-card mb-4"
                      style="border-color:rgba(244,185,66,0.35); box-shadow:var(--shadow-gold);">
                     <div class="table-card-header"
@@ -429,9 +427,9 @@ else
                         {
                             <button type="button"
                                     class="btn btn-warning btn-sm"
-                                    disabled="@(!PuedeSimularPartido(partidoFinalDominio))"
+                                    disabled="@(!PuedeSimularPartido(PartidoFinalDTO.Id))"
                                     style="margin-left:8px; flex-shrink:0;"
-                                    @onclick="() => SimularPartido(partidoFinalDominio)">
+                                    @onclick="() => SimularPartido(PartidoFinalDTO.Id)">
                                 Simular partido
                             </button>
                             <a href="/partidos/@PartidoFinalDTO.Id/editar"
@@ -461,7 +459,6 @@ else
             <!-- ── TERCER PUESTO ──────────────────────────────── -->
             @if (PartidoTercerPuestoDTO != null)
             {
-                var partidoTercerPuestoDominio = ObtenerPartidoDominio(PartidoTercerPuestoDTO);
                 <div class="table-card">
                     <div class="table-card-header">
                         <div style="display:flex; align-items:center; gap:8px;">
@@ -519,9 +516,9 @@ else
                         {
                             <button type="button"
                                     class="btn btn-warning btn-sm"
-                                    disabled="@(!PuedeSimularPartido(partidoTercerPuestoDominio))"
+                                    disabled="@(!PuedeSimularPartido(PartidoTercerPuestoDTO.Id))"
                                     style="margin-left:8px; flex-shrink:0;"
-                                    @onclick="() => SimularPartido(partidoTercerPuestoDominio)">
+                                    @onclick="() => SimularPartido(PartidoTercerPuestoDTO.Id)">
                                 Simular partido
                             </button>
                             <a href="/partidos/@PartidoTercerPuestoDTO.Id/editar"
@@ -555,7 +552,6 @@ else
                 </div>
                 @foreach (var partido in PartidosEtapaActivaDTO)
                 {
-                    var partidoDominio = ObtenerPartidoDominio(partido);
                     <div class="match-card">
                         <div style="display:flex; flex-direction:column; min-width:0; flex:1;">
                             <div class="match-team @(ControladorFixture.EsGanador(partido, partido.EquipoLocal) ? "match-winner" : "")">
@@ -600,9 +596,9 @@ else
                         {
                             <button type="button"
                                     class="btn btn-warning btn-sm"
-                                    disabled="@(!PuedeSimularPartido(partidoDominio))"
+                                    disabled="@(!PuedeSimularPartido(partido.Id))"
                                     style="margin-left:8px; flex-shrink:0"
-                                    @onclick="() => SimularPartido(partidoDominio)">
+                                    @onclick="() => SimularPartido(partido.Id)">
                                 Simular partido
                             </button>
                             <a href="/partidos/@partido.Id/editar" class="btn btn-success btn-sm" style="margin-left:8px; flex-shrink:0">
@@ -748,18 +744,28 @@ else
         catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }
     }
 
-    private void SimularPartido(Partido? partido)
+    private void SimularPartido(int partidoId)
     {
         if (!PuedeModificarTorneo())
             return;
 
-        if (partido == null || !PuedeSimularPartido(partido))
+        if (!PuedeSimularPartido(partidoId))
         {
             _error = "Solo se puede simular el próximo partido pendiente del calendario.";
             return;
         }
 
-        SimularPartidos(new List<Partido> { partido }, "Partido simulado correctamente.");
+        _error = string.Empty;
+        try
+        {
+            ControladorSimulacion.SimularPartido(partidoId, EstadoTorneo, SesionServicio.UsuarioActual);
+            SincronizarJornadaActivaConPendiente();
+            Toast.Exito("Partido simulado correctamente.");
+        }
+        catch (Exception ex)
+        {
+            _error = MensajeErrorHelper.ParaUsuario(ex);
+        }
     }
 
     private void SimularJornadaOFecha()
@@ -767,9 +773,21 @@ else
         if (!PuedeModificarTorneo())
             return;
 
-        SimularPartidos(
-            ObtenerPartidosJornadaOFechaActual(),
-            ControladorFixture.ObtenerMensajeExitoSimulacion(_etapaActiva));
+        _error = string.Empty;
+        try
+        {
+            ControladorSimulacion.SimularJornadaOFecha(
+                _etapaActiva,
+                _jornadaActiva,
+                EstadoTorneo,
+                SesionServicio.UsuarioActual);
+            SincronizarJornadaActivaConPendiente();
+            Toast.Exito(ControladorFixture.ObtenerMensajeExitoSimulacion(_etapaActiva));
+        }
+        catch (Exception ex)
+        {
+            _error = MensajeErrorHelper.ParaUsuario(ex);
+        }
     }
 
     private void SimularFaseActiva()
@@ -813,13 +831,17 @@ else
     private bool EsEtapaActivaSimulable =>
         ControladorFixture.ObtenerFaseActualSimulable(EstadoTorneo) == _etapaActiva;
 
-    private bool PuedeSimularPartido(Partido? partido) =>
+    private bool PuedeSimularPartido(int partidoId) =>
         SesionServicio.PuedeEditarPartidos
-        && ControladorFixture.EsPartidoSimulable(partido, EstadoTorneo, _etapaActiva);
+        && ControladorSimulacion.EsPartidoSimulable(partidoId, EstadoTorneo, _etapaActiva);
 
     private bool PuedeSimularJornadaOFecha()
     {
-        return SesionServicio.PuedeEditarPartidos && ObtenerPartidosJornadaOFechaActual().Any();
+        return SesionServicio.PuedeEditarPartidos
+               && ControladorSimulacion.HayPartidosJornadaOFechaSimulables(
+                   _etapaActiva,
+                   _jornadaActiva,
+                   EstadoTorneo);
     }
 
     private bool PuedeSimularFaseActiva()
@@ -829,9 +851,6 @@ else
 
     private List<Partido> ObtenerPartidosPendientesEtapaActiva() =>
         ControladorFixture.ObtenerPartidosPendientesEtapaActiva(EstadoTorneo, _etapaActiva);
-
-    private List<Partido> ObtenerPartidosJornadaOFechaActual() =>
-        ControladorFixture.ObtenerPartidosJornadaOFechaActual(EstadoTorneo, _etapaActiva, _jornadaActiva);
 
     private Partido? ObtenerProximoPartidoSimulable() =>
         ControladorFixture.ObtenerProximoPartidoSimulable(EstadoTorneo, _etapaActiva);
