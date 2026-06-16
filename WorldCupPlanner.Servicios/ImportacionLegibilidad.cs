@@ -6,11 +6,14 @@ namespace WorldCupPlanner.Servicios;
 public class ServicioImportacionLegible
 {
     private const char SeparadorCSV = ',';
-    private const string EncabezadoEsperado = "Nombre,Confederacion,RankingFIFA";
-    private const int CantidadDeColumnasEsperada = 3;
+    private const string EncabezadoEsperadoBase = "Nombre,Confederacion,RankingFIFA";
+    private const string EncabezadoConBandera = "Nombre,Confederacion,RankingFIFA,Bandera";
+    private const int CantidadDeColumnasBase = 3;
+    private const int CantidadDeColumnasConBandera = 4;
     private const int IndiceNombre = 0;
     private const int IndiceConfederacion = 1;
     private const int IndiceRankingFIFA = 2;
+    private const int IndiceBandera = 3;
 
     private readonly ServicioAuditoria? _auditoria;
     private readonly ServicioAutorizacion _autorizacion;
@@ -29,10 +32,10 @@ public class ServicioImportacionLegible
         using var lector = new StreamReader(csv);
         var errores = new List<string>();
 
-        if (!EncabezadoEsValido(lector, errores))
+        if (!EncabezadoEsValido(lector, errores, out var incluyeBandera))
             return new ResultadoImportacion(0, errores);
 
-        var exitosos = ContarImportacionesExitosas(lector, servicioEquipo, errores);
+        var exitosos = ContarImportacionesExitosas(lector, servicioEquipo, errores, incluyeBandera);
 
         var nombreUsuario = solicitante?.Email ?? "Sistema";
         _auditoria?.Registrar(nombreUsuario, "Importacion",
@@ -41,15 +44,22 @@ public class ServicioImportacionLegible
         return new ResultadoImportacion(exitosos, errores);
     }
 
-    private static bool EncabezadoEsValido(StreamReader lector, List<string> errores)
+    private static bool EncabezadoEsValido(StreamReader lector, List<string> errores, out bool incluyeBandera)
     {
+        incluyeBandera = false;
         var primeraLinea = lector.ReadLine()?.Trim();
-        if (primeraLinea == EncabezadoEsperado) return true;
-        errores.Add($"Encabezado inválido. Se esperaba: {EncabezadoEsperado}");
+        if (primeraLinea == EncabezadoConBandera)
+        {
+            incluyeBandera = true;
+            return true;
+        }
+        if (primeraLinea == EncabezadoEsperadoBase)
+            return true;
+        errores.Add($"Encabezado inválido. Se esperaba: {EncabezadoEsperadoBase} o {EncabezadoConBandera}");
         return false;
     }
 
-    private static int ContarImportacionesExitosas(StreamReader lector, ServicioEquipo servicioEquipo, List<string> errores)
+    private static int ContarImportacionesExitosas(StreamReader lector, ServicioEquipo servicioEquipo, List<string> errores, bool incluyeBandera)
     {
         var exitosos = 0;
         var numeroDeLinea = 1;
@@ -59,19 +69,20 @@ public class ServicioImportacionLegible
             numeroDeLinea++;
             if (string.IsNullOrWhiteSpace(lineaActual)) continue;
 
-            var equipo = ParsearEquipo(lineaActual, new ContextoDeLinea(numeroDeLinea, errores));
+            var equipo = ParsearEquipo(lineaActual, new ContextoDeLinea(numeroDeLinea, errores), incluyeBandera);
             if (equipo != null && AgregarAlServicio(equipo, servicioEquipo, errores))
                 exitosos++;
         }
         return exitosos;
     }
 
-    private static Equipo? ParsearEquipo(string lineaCSV, ContextoDeLinea contexto)
+    private static Equipo? ParsearEquipo(string lineaCSV, ContextoDeLinea contexto, bool incluyeBandera)
     {
         var columnas = lineaCSV.Split(SeparadorCSV);
-        if (columnas.Length != CantidadDeColumnasEsperada)
+        var cantidadEsperada = incluyeBandera ? CantidadDeColumnasConBandera : CantidadDeColumnasBase;
+        if (columnas.Length != cantidadEsperada)
         {
-            contexto.Errores.Add($"Línea {contexto.NumeroDeLinea}: se esperaban {CantidadDeColumnasEsperada} columnas.");
+            contexto.Errores.Add($"Línea {contexto.NumeroDeLinea}: se esperaban {cantidadEsperada} columnas.");
             return null;
         }
 
@@ -88,7 +99,9 @@ public class ServicioImportacionLegible
         var rankingFIFA = ParsearRankingFIFA(columnas[IndiceRankingFIFA].Trim(), contexto, nombre);
         if (rankingFIFA == null) return null;
 
-        return new Equipo { Nombre = nombre, Confederacion = confederacion.Value, RankingFIFA = rankingFIFA.Value };
+        var bandera = incluyeBandera ? columnas[IndiceBandera].Trim() : "";
+
+        return new Equipo { Nombre = nombre, Confederacion = confederacion.Value, RankingFIFA = rankingFIFA.Value, Bandera = bandera };
     }
 
     private static Confederacion? ParsearConfederacion(string texto, ContextoDeLinea contexto, string nombreEquipo)
