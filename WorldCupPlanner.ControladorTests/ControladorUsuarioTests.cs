@@ -83,6 +83,28 @@ public class ControladorUsuarioTests
     }
 
     [TestMethod]
+    public void Actualizar_ConActualizacionUsuarioDTO_DelegaEnServicio()
+    {
+        var repositorio = new RepositorioUsuarioControladorFake();
+        repositorio.Agregar(CrearUsuario("usuario@mail.com", RolUsuario.Editor));
+        var controlador = CrearControlador(repositorio);
+
+        controlador.Actualizar("usuario@mail.com", new ActualizacionUsuarioDTO
+        {
+            Nombre = "Editado",
+            Apellido = "DesdeDTO",
+            Email = "editado.dto@mail.com",
+            FechaNacimiento = "03-03-1992"
+        });
+
+        var actualizado = repositorio.ObtenerPorEmail("editado.dto@mail.com");
+        Assert.IsNotNull(actualizado);
+        Assert.AreEqual("Editado", actualizado.Nombre);
+        Assert.AreEqual("DesdeDTO", actualizado.Apellido);
+        Assert.AreEqual(new DateTime(1992, 3, 3), actualizado.FechaNacimiento);
+    }
+
+    [TestMethod]
     public void Eliminar_DelegaEnServicio()
     {
         var repositorio = new RepositorioUsuarioControladorFake();

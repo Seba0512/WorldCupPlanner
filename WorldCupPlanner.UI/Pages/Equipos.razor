@@ -204,7 +204,7 @@
     private string _errorCarga = string.Empty;
     private int _semillaCompletar;
     private int _maxEquipos;
-    private Dictionary<string, EstadisticasEquipo> _estadisticasPorEquipo = new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, EstadisticasEquipoDTO> _estadisticasPorEquipo = new(StringComparer.OrdinalIgnoreCase);
     private Dictionary<string, string> _banderasPorEquipo = new(StringComparer.OrdinalIgnoreCase);
 
     private Dictionary<Confederacion, (int registrados, int cupo)> _cuposPorConfederacion = new();
@@ -229,7 +229,7 @@
             _equipos = ControladorEquipo.ListarDTO();
             _cuposPorConfederacion = ControladorEquipo.ObtenerCuposConOcupacionDTO(_equipos);
             _semillaCompletar = ControladorConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
-            _estadisticasPorEquipo = ControladorEstadisticasEquipo.ObtenerEstadisticasPorEquipo(_equipos);
+            _estadisticasPorEquipo = ControladorEstadisticasEquipo.ObtenerEstadisticasPorEquipoDTO(_equipos);
             _banderasPorEquipo = ControladorEquipo.ObtenerBanderasPorEquipo();
         }
         catch (Exception ex)
@@ -242,10 +242,10 @@
         }
     }
 
-    private EstadisticasEquipo ObtenerEstadisticas(EquipoDTO equipo)
+    private EstadisticasEquipoDTO ObtenerEstadisticas(EquipoDTO equipo)
         => _estadisticasPorEquipo.TryGetValue(equipo.Nombre, out var estadisticas)
             ? estadisticas
-            : new EstadisticasEquipo();
+            : new EstadisticasEquipoDTO();
 
     private string ObtenerBandera(string nombre) =>
         _banderasPorEquipo.TryGetValue(nombre, out var bandera) ? bandera : string.Empty;

@@ -159,7 +159,7 @@
             if (_usuario == null) return;
             var nuevosRoles = UsuarioFormHelper.ConstruirRoles(_esAdmin, _esEditor, _esPeriodista);
             ControladorUsuario.GestionarRoles(_usuario.Email, nuevosRoles);
-            ControladorUsuario.Actualizar(_usuario.Email, new ActualizacionUsuario
+            ControladorUsuario.Actualizar(_usuario.Email, new ActualizacionUsuarioDTO
             {
                 Nombre = _nombre, Apellido = _apellido,
                 Email = _email, FechaNacimiento = _fechaNacimiento.ToString("MM-dd-yyyy")

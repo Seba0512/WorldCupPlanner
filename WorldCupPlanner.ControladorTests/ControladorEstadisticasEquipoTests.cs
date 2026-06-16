@@ -62,6 +62,31 @@ public class ControladorEstadisticasEquipoTests
     }
 
     [TestMethod]
+    public void ObtenerEstadisticasPorEquipoDTO_DevuelveDiccionarioParaUI()
+    {
+        var estado = CrearEstadoTorneo();
+        var controlador = new ControladorEstadisticasEquipo(CrearServicio(estado));
+        var equipos = estado.Fixture!.Grupos[0].Equipos.Select(EquipoDTO.FromEntity).ToList();
+
+        var estadisticas = controlador.ObtenerEstadisticasPorEquipoDTO(equipos);
+        var uruguay = estadisticas["Uruguay"];
+        var japon = estadisticas["Japon"];
+
+        Assert.IsInstanceOfType(uruguay, typeof(EstadisticasEquipoDTO));
+        Assert.AreEqual(2, uruguay.PartidosJugados);
+        Assert.AreEqual(3, uruguay.GolesAFavor);
+        Assert.AreEqual(4, uruguay.GolesEnContra);
+        Assert.AreEqual(-1, uruguay.DiferenciaGoles);
+        Assert.AreEqual(3, uruguay.Puntos);
+
+        Assert.AreEqual(1, japon.PartidosJugados);
+        Assert.AreEqual(3, japon.GolesAFavor);
+        Assert.AreEqual(1, japon.GolesEnContra);
+        Assert.AreEqual(2, japon.DiferenciaGoles);
+        Assert.AreEqual(0, japon.Puntos);
+    }
+
+    [TestMethod]
     public void ObtenerEstadisticas_DelegaConsultaPuntualEnServicioEstadisticasEquipo()
     {
         var estado = CrearEstadoTorneo();
@@ -88,6 +113,23 @@ public class ControladorEstadisticasEquipoTests
         Assert.AreEqual(0, estadisticas.GolesAFavor);
         Assert.AreEqual(0, estadisticas.GolesEnContra);
         Assert.AreEqual(0, estadisticas.DiferenciaGoles);
+        Assert.AreEqual(0, estadisticas.Puntos);
+    }
+
+    [TestMethod]
+    public void ObtenerEstadisticasDTO_DevuelveDatosParaUI()
+    {
+        var estado = CrearEstadoTorneo();
+        var controlador = new ControladorEstadisticasEquipo(CrearServicio(estado));
+        var equipo = estado.Fixture!.Grupos[0].Equipos.Single(e => e.Nombre == "Francia");
+
+        var estadisticas = controlador.ObtenerEstadisticasDTO(EquipoDTO.FromEntity(equipo));
+
+        Assert.IsInstanceOfType(estadisticas, typeof(EstadisticasEquipoDTO));
+        Assert.AreEqual(1, estadisticas.PartidosJugados);
+        Assert.AreEqual(1, estadisticas.GolesAFavor);
+        Assert.AreEqual(2, estadisticas.GolesEnContra);
+        Assert.AreEqual(-1, estadisticas.DiferenciaGoles);
         Assert.AreEqual(0, estadisticas.Puntos);
     }
 

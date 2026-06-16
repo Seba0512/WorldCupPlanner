@@ -35,6 +35,9 @@ public class ControladorUsuario
         _servicioUsuario.ActualizarUsuario(usuario, actualizacion, solicitante);
     }
 
+    public void Actualizar(string emailActual, ActualizacionUsuarioDTO actualizacion, UsuarioDTO? solicitante = null) =>
+        Actualizar(emailActual, actualizacion.ToEntity(), ResolverUsuarioOpcional(solicitante));
+
     public void Eliminar(string email, string? ejecutadoPor = null, Usuario? solicitante = null)
     {
         var usuario = ObtenerEntidadPorEmailOExcepcion(email);
@@ -78,4 +81,7 @@ public class ControladorUsuario
     public Usuario ObtenerEntidadPorEmailOExcepcion(string email) =>
         _servicioUsuario.ObtenerPorEmail(email)
         ?? throw new EntidadInexistenteExcepcion($"No existe un usuario con el email '{email}'.");
+
+    private Usuario? ResolverUsuarioOpcional(UsuarioDTO? usuarioActual) =>
+        usuarioActual == null ? null : ObtenerEntidadPorEmailOExcepcion(usuarioActual.Email);
 }
