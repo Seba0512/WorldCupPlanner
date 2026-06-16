@@ -168,6 +168,60 @@ public class ControladorSimulacionTests
             contexto.EstadoTorneo));
     }
 
+    [TestMethod]
+    public void SimularFaseActiva_ConFase_ResuelvePartidosYDelega()
+    {
+        var contexto = CrearContextoSimulacion();
+        var controlador = CrearControlador(
+            repositorioPartido: contexto.RepositorioPartidos,
+            servicioConfiguracionTorneo: CrearServicioConfiguracion(),
+            servicioFixture: new ServicioFixture());
+
+        controlador.SimularFaseActiva(
+            FaseTorneo.FaseDeGrupos,
+            contexto.EstadoTorneo,
+            usuarioActual: null);
+
+        Assert.IsTrue(contexto.Partido.EstaJugado());
+        Assert.AreEqual(1, contexto.RepositorioPartidos.Buscar(_ => true).Count);
+        Assert.AreSame(contexto.Partido, contexto.RepositorioPartidos.Buscar(_ => true)[0]);
+    }
+
+    [TestMethod]
+    public void SimularFaseActiva_SinPartidosPendientes_PropagaValidacionDelOrquestador()
+    {
+        var contexto = CrearContextoSimulacion();
+        contexto.Partido.GolesLocal = 1;
+        contexto.Partido.GolesVisitante = 0;
+        var controlador = CrearControlador(
+            servicioConfiguracionTorneo: CrearServicioConfiguracion(),
+            servicioFixture: new ServicioFixture());
+
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            controlador.SimularFaseActiva(
+                FaseTorneo.FaseDeGrupos,
+                contexto.EstadoTorneo,
+                usuarioActual: null));
+    }
+
+    [TestMethod]
+    public void HayPartidosFaseActivaSimulables_UsaReglaDeFixture()
+    {
+        var contexto = CrearContextoSimulacion();
+        var controlador = CrearControlador(servicioFixture: new ServicioFixture());
+
+        Assert.IsTrue(controlador.HayPartidosFaseActivaSimulables(
+            FaseTorneo.FaseDeGrupos,
+            contexto.EstadoTorneo));
+
+        contexto.Partido.GolesLocal = 1;
+        contexto.Partido.GolesVisitante = 0;
+
+        Assert.IsFalse(controlador.HayPartidosFaseActivaSimulables(
+            FaseTorneo.FaseDeGrupos,
+            contexto.EstadoTorneo));
+    }
+
     private static ControladorSimulacion CrearControlador(
         ServicioSimulacion? servicioSimulacion = null,
         RepositorioGenericoControladorSimulacionFake<Partido>? repositorioPartido = null,

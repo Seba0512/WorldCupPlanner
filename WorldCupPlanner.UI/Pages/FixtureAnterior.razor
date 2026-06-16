@@ -415,16 +415,11 @@ else
     private List<GrupoDTO> GruposFixtureAnterior =>
         ControladorFixture.ObtenerGruposAnterioresDTO(EstadoTorneo);
 
-    private Grupo? GrupoSeleccionado =>
-        EstadoTorneo.FixtureAnterior?.Grupos.FirstOrDefault(g => g.Etiqueta == _grupoActivo);
-
     private GrupoDTO? GrupoSeleccionadoDTO =>
         ControladorFixture.ObtenerGrupoAnteriorDTO(EstadoTorneo, _grupoActivo);
 
     private IEnumerable<PosicionEquipoDTO> TablaGrupoSeleccionado =>
-        GrupoSeleccionado == null
-            ? Enumerable.Empty<PosicionEquipoDTO>()
-            : ControladorClasificacion.CalcularTablaDTO(GrupoSeleccionado);
+        ControladorClasificacion.CalcularTablaAnteriorDTO(EstadoTorneo, _grupoActivo);
 
     private string EtapaActivaEtiqueta =>
         EtapasDisponibles.FirstOrDefault(e => e.Fase == _etapaActiva)?.Etiqueta ?? string.Empty;

@@ -7,10 +7,14 @@ namespace WorldCupPlanner.Controladores;
 public class ControladorClasificacion
 {
     private readonly ServicioClasificacion _servicioClasificacion;
+    private readonly ServicioConfiguracionTorneo? _servicioConfiguracionTorneo;
 
-    public ControladorClasificacion(ServicioClasificacion servicioClasificacion)
+    public ControladorClasificacion(
+        ServicioClasificacion servicioClasificacion,
+        ServicioConfiguracionTorneo? servicioConfiguracionTorneo = null)
     {
         _servicioClasificacion = servicioClasificacion;
+        _servicioConfiguracionTorneo = servicioConfiguracionTorneo;
     }
 
     public List<PosicionEquipo> CalcularTabla(Grupo grupo) =>
@@ -24,6 +28,26 @@ public class ControladorClasificacion
 
     public List<PosicionEquipoDTO> CalcularTablaDTO(Grupo grupo, ConfiguracionTorneo configuracionTorneo) =>
         CalcularTabla(grupo, configuracionTorneo).Select(PosicionEquipoDTO.FromEntity).ToList();
+
+    public List<PosicionEquipoDTO> CalcularTablaDTO(EstadoTorneo estadoTorneo, string grupoEtiqueta)
+    {
+        var grupo = estadoTorneo.Fixture?.Grupos.FirstOrDefault(g => g.Etiqueta == grupoEtiqueta);
+        if (grupo == null)
+            return new List<PosicionEquipoDTO>();
+
+        var configuracion = _servicioConfiguracionTorneo?.ObtenerConfiguracionActual();
+        return configuracion == null
+            ? CalcularTablaDTO(grupo)
+            : CalcularTablaDTO(grupo, configuracion);
+    }
+
+    public List<PosicionEquipoDTO> CalcularTablaAnteriorDTO(EstadoTorneo estadoTorneo, string grupoEtiqueta)
+    {
+        var grupo = estadoTorneo.FixtureAnterior?.Grupos.FirstOrDefault(g => g.Etiqueta == grupoEtiqueta);
+        return grupo == null
+            ? new List<PosicionEquipoDTO>()
+            : CalcularTablaDTO(grupo);
+    }
 
     public ClasificadosFaseGrupos ObtenerClasificadosAFaseEliminatoria(
         Fixture fixture,

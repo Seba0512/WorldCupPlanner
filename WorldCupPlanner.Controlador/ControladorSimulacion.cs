@@ -68,6 +68,21 @@ public class ControladorSimulacion
         EstadoTorneo estadoTorneo) =>
         ObtenerPartidosJornadaOFechaActual(etapaActiva, jornadaActiva, estadoTorneo).Any();
 
+    public void SimularFaseActiva(
+        FaseTorneo etapaActiva,
+        EstadoTorneo estadoTorneo,
+        UsuarioDTO? usuarioActual)
+    {
+        var partidos = ObtenerPartidosPendientesEtapaActiva(etapaActiva, estadoTorneo);
+        var configuracion = ObtenerConfiguracionUsadaParaFixture();
+        SimularYPersistirPartidos(partidos, configuracion, usuarioActual, estadoTorneo);
+    }
+
+    public bool HayPartidosFaseActivaSimulables(
+        FaseTorneo etapaActiva,
+        EstadoTorneo estadoTorneo) =>
+        ObtenerPartidosPendientesEtapaActiva(etapaActiva, estadoTorneo).Any();
+
     public bool EsPartidoSimulable(
         int partidoId,
         EstadoTorneo estadoTorneo,
@@ -90,6 +105,16 @@ public class ControladorSimulacion
             throw new InvalidOperationException("El servicio de fixture no fue configurado.");
 
         return _servicioFixture.ObtenerPartidosJornadaOFechaActual(estadoTorneo, etapaActiva, jornadaActiva);
+    }
+
+    private List<Partido> ObtenerPartidosPendientesEtapaActiva(
+        FaseTorneo etapaActiva,
+        EstadoTorneo estadoTorneo)
+    {
+        if (_servicioFixture == null)
+            throw new InvalidOperationException("El servicio de fixture no fue configurado.");
+
+        return _servicioFixture.ObtenerPartidosPendientesEtapaActiva(estadoTorneo, etapaActiva);
     }
 
     private Partido ResolverPartido(int partidoId, EstadoTorneo estadoTorneo)

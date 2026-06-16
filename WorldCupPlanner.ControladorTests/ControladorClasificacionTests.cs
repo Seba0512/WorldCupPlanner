@@ -76,6 +76,57 @@ public class ControladorClasificacionTests
     }
 
     [TestMethod]
+    public void CalcularTablaDTO_ConGrupoEtiqueta_ResuelveGrupoYDevuelveTabla()
+    {
+        var servicio = new ServicioClasificacion();
+        var servicioConfiguracion = new ServicioConfiguracionTorneo();
+        var controlador = new ControladorClasificacion(servicio, servicioConfiguracion);
+        var grupo = CrearGrupoConResultados("A");
+        var estado = CrearEstadoConFixture(grupo);
+
+        var esperada = servicio.CalcularTabla(grupo, servicioConfiguracion.ObtenerConfiguracionActual());
+        var obtenida = controlador.CalcularTablaDTO(estado, "A");
+
+        CollectionAssert.AreEqual(
+            esperada.Select(p => p.Equipo.Nombre).ToList(),
+            obtenida.Select(p => p.EquipoNombre).ToList());
+        CollectionAssert.AreEqual(
+            esperada.Select(p => p.Posicion).ToList(),
+            obtenida.Select(p => p.Posicion).ToList());
+    }
+
+    [TestMethod]
+    public void CalcularTablaDTO_ConGrupoInexistente_DevuelveVacio()
+    {
+        var controlador = new ControladorClasificacion(new ServicioClasificacion());
+        var estado = CrearEstadoConFixture(CrearGrupoConResultados("A"));
+
+        var tabla = controlador.CalcularTablaDTO(estado, "Z");
+
+        Assert.AreEqual(0, tabla.Count);
+    }
+
+    [TestMethod]
+    public void CalcularTablaAnteriorDTO_ConGrupoEtiqueta_ResuelveGrupoAnteriorYDevuelveTabla()
+    {
+        var servicio = new ServicioClasificacion();
+        var controlador = new ControladorClasificacion(servicio);
+        var grupo = CrearGrupoConResultados("A");
+        var estado = CrearEstadoConFixture(grupo);
+        estado.ArchivarTorneoActual();
+
+        var esperada = servicio.CalcularTabla(grupo);
+        var obtenida = controlador.CalcularTablaAnteriorDTO(estado, "A");
+
+        CollectionAssert.AreEqual(
+            esperada.Select(p => p.Equipo.Nombre).ToList(),
+            obtenida.Select(p => p.EquipoNombre).ToList());
+        CollectionAssert.AreEqual(
+            esperada.Select(p => p.Posicion).ToList(),
+            obtenida.Select(p => p.Posicion).ToList());
+    }
+
+    [TestMethod]
     public void ObtenerClasificadosAFaseEliminatoria_DelegaEnServicioClasificacion()
     {
         var servicio = new ServicioClasificacion();
@@ -229,6 +280,15 @@ public class ControladorClasificacionTests
         grupo.Partidos.Add(CrearPartido(equipo3, equipo4, 1, 0));
 
         return grupo;
+    }
+
+    private static EstadoTorneo CrearEstadoConFixture(Grupo grupo)
+    {
+        var fixture = new Fixture();
+        fixture.Grupos.Add(grupo);
+        var estado = new EstadoTorneo();
+        estado.EstablecerFixture(fixture);
+        return estado;
     }
 
     private Equipo CrearEquipo(string nombre, Confederacion confederacion = Confederacion.UEFA) => new()

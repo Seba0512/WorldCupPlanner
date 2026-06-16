@@ -665,18 +665,11 @@ else
     private List<GrupoDTO> GruposFixtureActual =>
         ControladorFixture.ObtenerGruposDTO(EstadoTorneo);
 
-    private Grupo? GrupoSeleccionado =>
-        EstadoTorneo.Fixture?.Grupos.FirstOrDefault(g => g.Etiqueta == _grupoActivo);
-
     private GrupoDTO? GrupoSeleccionadoDTO =>
         ControladorFixture.ObtenerGrupoDTO(EstadoTorneo, _grupoActivo);
 
     private IEnumerable<PosicionEquipoDTO> TablaGrupoSeleccionado =>
-        GrupoSeleccionado == null
-            ? Enumerable.Empty<PosicionEquipoDTO>()
-            : ControladorClasificacion.CalcularTablaDTO(
-                GrupoSeleccionado,
-                ControladorConfiguracionTorneo.ObtenerConfiguracionActual());
+        ControladorClasificacion.CalcularTablaDTO(EstadoTorneo, _grupoActivo);
 
     private string EtapaActivaEtiqueta =>
         EtapasDisponibles.FirstOrDefault(e => e.Fase == _etapaActiva)?.Etiqueta ?? string.Empty;
@@ -795,23 +788,15 @@ else
         if (!PuedeModificarTorneo())
             return;
 
-        SimularPartidos(
-            ObtenerPartidosPendientesEtapaActiva(),
-            "Fase simulada correctamente.");
-    }
-
-    private void SimularPartidos(List<Partido> partidos, string mensajeExito)
-    {
         _error = string.Empty;
-        if (!PuedeModificarTorneo())
-            return;
-
         try
         {
-            var config = ControladorConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
-            ControladorSimulacion.SimularYPersistirPartidos(partidos, config, SesionServicio.UsuarioActual, EstadoTorneo);
+            ControladorSimulacion.SimularFaseActiva(
+                _etapaActiva,
+                EstadoTorneo,
+                SesionServicio.UsuarioActual);
             SincronizarJornadaActivaConPendiente();
-            Toast.Exito(mensajeExito);
+            Toast.Exito("Fase simulada correctamente.");
         }
         catch (Exception ex)
         {
@@ -846,11 +831,9 @@ else
 
     private bool PuedeSimularFaseActiva()
     {
-        return SesionServicio.PuedeEditarPartidos && ObtenerPartidosPendientesEtapaActiva().Any();
+        return SesionServicio.PuedeEditarPartidos
+               && ControladorSimulacion.HayPartidosFaseActivaSimulables(_etapaActiva, EstadoTorneo);
     }
-
-    private List<Partido> ObtenerPartidosPendientesEtapaActiva() =>
-        ControladorFixture.ObtenerPartidosPendientesEtapaActiva(EstadoTorneo, _etapaActiva);
 
     private Partido? ObtenerProximoPartidoSimulable() =>
         ControladorFixture.ObtenerProximoPartidoSimulable(EstadoTorneo, _etapaActiva);
