@@ -22,6 +22,14 @@ public class ControladorNotificacion
     public List<Notificacion> ObtenerNoLeidas(int usuarioId) =>
         _servicioNotificacion.ObtenerNoLeidas(usuarioId);
 
+    public List<NotificacionDTO> ObtenerNoLeidasDTO(UsuarioDTO usuario) =>
+        ObtenerNoLeidasDTO(usuario.Id);
+
+    public List<NotificacionDTO> ObtenerNoLeidasDTO(int usuarioId) =>
+        _servicioNotificacion.ObtenerNoLeidas(usuarioId)
+            .Select(NotificacionDTO.FromEntity)
+            .ToList();
+
     public void MarcarComoLeida(int notificacionId, Usuario usuario) =>
         _servicioNotificacion.MarcarComoLeida(notificacionId, usuario);
 
