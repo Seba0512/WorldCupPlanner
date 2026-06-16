@@ -1,5 +1,6 @@
 @page "/importar"
 @using WorldCupPlanner.Controladores
+@using WorldCupPlanner.Dominio.DTO
 @inject ControladorImportacion ControladorImportacion
 @inject ControladorEquipo ControladorEquipo
 @inject EstadoTorneo EstadoTorneo
@@ -140,7 +141,7 @@
     private string _error = string.Empty;
     private bool _importando;
 
-    private List<Equipo> _equipos = new();
+    private List<EquipoDTO> _equipos = new();
     private int _equiposFaltantes;
     private string _estadoTexto = string.Empty;
     private string _estadoBadgeClase = string.Empty;
@@ -166,9 +167,9 @@
 
     private void ActualizarEstado()
     {
-        _equipos = ControladorEquipo.Buscar(_ => true);
+        _equipos = ControladorEquipo.ListarDTO();
         _equiposFaltantes = ControladorEquipo.ObtenerCantidadFaltante(_equipos.Count);
-        _cuposPorConfederacion = ControladorEquipo.ObtenerCuposConOcupacion(_equipos);
+        _cuposPorConfederacion = ControladorEquipo.ObtenerCuposConOcupacionDTO(_equipos);
 
         var fase = ControladorConsultasTorneo.ObtenerFaseConfiguracion(EstadoTorneo, _equipos.Count);
         (_estadoTexto, _estadoBadgeClase) = fase switch

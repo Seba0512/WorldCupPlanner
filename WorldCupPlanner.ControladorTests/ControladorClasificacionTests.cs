@@ -122,7 +122,15 @@ public class ControladorClasificacionTests
         Assert.AreEqual(12, clasificados.Segundos.Count);
         Assert.AreEqual(8, clasificados.MejoresTerceros.Count);
         Assert.AreEqual(32, clasificados.Todos.Count);
-        Assert.AreEqual("A", clasificados.GruposDeOrigen.First().Grupo.Etiqueta);
+        Assert.AreEqual(32, clasificados.GruposDeOrigen.Count);
+
+        CollectionAssert.AreEquivalent(
+            clasificados.Todos.Select(equipo => equipo.Nombre).ToList(),
+            clasificados.GruposDeOrigen.Select(origen => origen.Equipo.Nombre).ToList());
+        Assert.IsTrue(clasificados.GruposDeOrigen.All(origen => !string.IsNullOrWhiteSpace(origen.Grupo.Etiqueta)));
+        Assert.IsTrue(clasificados.GruposDeOrigen.All(origen => origen.Grupo.Equipos.Count == 4));
+        Assert.IsTrue(clasificados.GruposDeOrigen.All(origen =>
+            origen.Grupo.Equipos.Any(equipo => equipo.Nombre == origen.Equipo.Nombre)));
     }
 
     [TestMethod]

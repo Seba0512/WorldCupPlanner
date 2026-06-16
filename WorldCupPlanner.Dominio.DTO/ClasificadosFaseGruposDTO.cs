@@ -16,36 +16,6 @@ public class ClasificadosFaseGruposDTO
             .Concat(MejoresTerceros)
             .ToList();
 
-    public ClasificadosFaseGrupos ToEntity()
-    {
-        var equiposPorNombre = new Dictionary<string, Equipo>();
-
-        Equipo MaterializarEquipo(EquipoClasificadoDTO equipoDto)
-        {
-            if (equiposPorNombre.TryGetValue(equipoDto.Nombre, out var existente))
-                return existente;
-
-            var equipo = equipoDto.ToEntity();
-            equiposPorNombre[equipo.Nombre] = equipo;
-            return equipo;
-        }
-
-        var clasificados = new ClasificadosFaseGrupos
-        {
-            Primeros = Primeros.Select(MaterializarEquipo).ToList(),
-            Segundos = Segundos.Select(MaterializarEquipo).ToList(),
-            MejoresTerceros = MejoresTerceros.Select(MaterializarEquipo).ToList()
-        };
-
-        foreach (var origen in GruposDeOrigen)
-        {
-            var equipo = MaterializarEquipo(origen.Equipo);
-            clasificados.GruposDeOrigen[equipo] = origen.Grupo.ToEntity(equiposPorNombre);
-        }
-
-        return clasificados;
-    }
-
     public static ClasificadosFaseGruposDTO FromEntity(ClasificadosFaseGrupos clasificados)
     {
         ArgumentNullException.ThrowIfNull(clasificados);
@@ -68,16 +38,6 @@ public class EquipoClasificadoDTO
     public int RankingFIFA { get; set; }
     public Confederacion? Confederacion { get; set; }
 
-    public Equipo ToEntity()
-    {
-        return new Equipo
-        {
-            Nombre = Nombre,
-            RankingFIFA = RankingFIFA,
-            Confederacion = Confederacion
-        };
-    }
-
     public static EquipoClasificadoDTO FromEntity(Equipo equipo)
     {
         ArgumentNullException.ThrowIfNull(equipo);
@@ -95,22 +55,6 @@ public class GrupoClasificadoDTO
 {
     public string Etiqueta { get; set; } = string.Empty;
     public List<EquipoClasificadoDTO> Equipos { get; set; } = [];
-
-    public Grupo ToEntity(Dictionary<string, Equipo>? equiposPorNombre = null)
-    {
-        var equipos = Equipos.Select(equipoDto =>
-        {
-            if (equiposPorNombre != null &&
-                equiposPorNombre.TryGetValue(equipoDto.Nombre, out var existente))
-                return existente;
-
-            var equipo = equipoDto.ToEntity();
-            equiposPorNombre?.TryAdd(equipo.Nombre, equipo);
-            return equipo;
-        }).ToList();
-
-        return new Grupo(Etiqueta, equipos);
-    }
 
     public static GrupoClasificadoDTO FromEntity(Grupo grupo)
     {
