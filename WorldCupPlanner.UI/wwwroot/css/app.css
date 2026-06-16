@@ -1563,7 +1563,11 @@ a:hover { color: var(--accent-blue-dark); }
 }
 
 .ayuda-credencial-admineditor {
-    border-left-color: var(--accent-green);
+    border-left-color: #BF395A;
+}
+
+.ayuda-credencial-periodista {
+    border-left-color: #00C853;
 }
 
 .ayuda-credencial-rol {
@@ -1575,9 +1579,10 @@ a:hover { color: var(--accent-blue-dark); }
     margin-bottom: 8px;
 }
 
-.ayuda-credencial-admin .ayuda-credencial-rol    { color: var(--accent-blue); }
-.ayuda-credencial-editor .ayuda-credencial-rol   { color: var(--accent-gold); }
-.ayuda-credencial-admineditor .ayuda-credencial-rol { color: var(--accent-green); }
+.ayuda-credencial-admin .ayuda-credencial-rol       { color: var(--accent-blue); }
+.ayuda-credencial-editor .ayuda-credencial-rol      { color: var(--accent-gold); }
+.ayuda-credencial-admineditor .ayuda-credencial-rol { color: #BF395A; }
+.ayuda-credencial-periodista .ayuda-credencial-rol  { color: #00C853; }
 
 .ayuda-credencial-campo {
     display: flex;
