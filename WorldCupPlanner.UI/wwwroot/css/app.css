@@ -1244,7 +1244,7 @@ a:hover { color: var(--accent-blue-dark); }
     white-space: nowrap;
 }
 
-.match-winner .match-team { color: var(--accent-gold); }
+.match-team.match-winner { color: var(--accent-gold); font-weight: 700; }
 
 /* ── 18. LOGIN LAYOUT ──────────────────────────────────── */
 .login-page {

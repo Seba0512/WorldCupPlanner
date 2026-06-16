@@ -92,14 +92,13 @@ public class ServicioImportacionLegible
         bool incluyeBandera,
         IDescargadorContenido? descargador)
     {
-        var cantidadEsperada = incluyeBandera ? CantidadDeColumnasConBandera : CantidadDeColumnasBase;
-
-        // Limitar el split al número de columnas esperadas para que el contenido de la
-        // columna Bandera (que puede contener comas en el formato Data URI) quede íntegro.
-        var columnas = lineaCSV.Split(SeparadorCSV, cantidadEsperada);
-        if (columnas.Length != cantidadEsperada)
+        // Split con máximo de columnas para preservar comas internas en Data URIs.
+        // Con encabezado Bandera: se aceptan 3 o 4 columnas por fila (Bandera es opcional).
+        var splitMaximo = incluyeBandera ? CantidadDeColumnasConBandera : CantidadDeColumnasBase;
+        var columnas = lineaCSV.Split(SeparadorCSV, splitMaximo);
+        if (columnas.Length < CantidadDeColumnasBase)
         {
-            contexto.Errores.Add($"Línea {contexto.NumeroDeLinea}: se esperaban {cantidadEsperada} columnas.");
+            contexto.Errores.Add($"Línea {contexto.NumeroDeLinea}: se esperaban al menos {CantidadDeColumnasBase} columnas.");
             return null;
         }
 
@@ -117,7 +116,7 @@ public class ServicioImportacionLegible
         if (rankingFIFA == null) return null;
 
         var bandera = string.Empty;
-        if (incluyeBandera)
+        if (incluyeBandera && columnas.Length == CantidadDeColumnasConBandera)
         {
             try
             {

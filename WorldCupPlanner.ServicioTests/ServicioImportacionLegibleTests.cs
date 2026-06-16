@@ -354,9 +354,9 @@ public class ServicioImportacionLegibleTests
     }
 
     [TestMethod]
-    public void Importar_CSVConEncabezadoBandera_FilaConTresColumnas_ReportaError()
+    public void Importar_CSVConEncabezadoBandera_FilaConTresColumnas_ImportaConBanderaVacia()
     {
-        // Arrange — el encabezado declara Bandera pero la fila no la tiene
+        // Arrange — el encabezado declara Bandera pero la fila solo tiene 3 columnas
         var csv = CrearCSV(
             "Nombre,Confederacion,RankingFIFA,Bandera",
             "Uruguay,CONMEBOL,1000");
@@ -364,16 +364,17 @@ public class ServicioImportacionLegibleTests
         // Act
         var resultado = _servicio.Importar(csv, _servicioEquipo);
 
-        // Assert
-        Assert.AreEqual(0, resultado.Exitosos);
-        Assert.AreEqual(1, resultado.Errores.Count);
-        StringAssert.Contains(resultado.Errores[0], "4 columnas");
+        // Assert — Bandera es opcional por fila; se importa con bandera vacía
+        Assert.AreEqual(1, resultado.Exitosos);
+        Assert.AreEqual(0, resultado.Errores.Count);
+        var uruguay = _servicioEquipo.Buscar(e => e.Nombre == "Uruguay")[0];
+        Assert.AreEqual(string.Empty, uruguay.Bandera);
     }
 
     [TestMethod]
-    public void Importar_CSVConEncabezadoBandera_SoloUnaFilaSinBandera_ImportaRestoyReportaError()
+    public void Importar_CSVConEncabezadoBandera_AlgunasFilasSinBandera_ImportaTodos()
     {
-        // Arrange
+        // Arrange — mezcla de filas con y sin bandera con encabezado Bandera
         var csv = CrearCSV(
             "Nombre,Confederacion,RankingFIFA,Bandera",
             $"Uruguay,CONMEBOL,1000,{SvgDePrueba.DataUri}",
@@ -383,9 +384,11 @@ public class ServicioImportacionLegibleTests
         // Act
         var resultado = _servicio.Importar(csv, _servicioEquipo);
 
-        // Assert
-        Assert.AreEqual(2, resultado.Exitosos);
-        Assert.AreEqual(1, resultado.Errores.Count);
+        // Assert — Argentina se importa con bandera vacía; los tres equipos son exitosos
+        Assert.AreEqual(3, resultado.Exitosos);
+        Assert.AreEqual(0, resultado.Errores.Count);
+        var argentina = _servicioEquipo.Buscar(e => e.Nombre == "Argentina")[0];
+        Assert.AreEqual(string.Empty, argentina.Bandera);
     }
 
     [TestMethod]
@@ -787,6 +790,91 @@ public class ServicioImportacionLegibleTests
         Assert.AreEqual(1, resultado.Errores.Count);
         StringAssert.Contains(resultado.Errores[0], "Bandera");
         StringAssert.Contains(resultado.Errores[0], "SVG");
+    }
+
+    // ── Escenarios Bandera Opcional ──────────────────────────────────────────
+
+    [TestMethod]
+    public void Importar_Escenario1_SinColumnaBandera_TodosLosEquiposImportados()
+    {
+        // Arrange — ningún equipo tiene bandera; el encabezado no la declara
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA",
+            "Argentina,CONMEBOL,1885",
+            "Brasil,CONMEBOL,1830",
+            "Uruguay,CONMEBOL,1785");
+
+        // Act
+        var resultado = _servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(3, resultado.Exitosos);
+        Assert.AreEqual(0, resultado.Errores.Count);
+        Assert.AreEqual(3, _servicioEquipo.Buscar(e => string.IsNullOrEmpty(e.Bandera)).Count);
+    }
+
+    [TestMethod]
+    public void Importar_Escenario2_TodosConBandera_ImportaEquiposConBandera()
+    {
+        // Arrange — todos los equipos tienen bandera; el encabezado la declara
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA,Bandera",
+            $"Argentina,CONMEBOL,1885,{SvgDePrueba.DataUri}",
+            $"Brasil,CONMEBOL,1830,{SvgDePrueba.DataUri}",
+            $"Uruguay,CONMEBOL,1785,{SvgDePrueba.DataUri}");
+
+        // Act
+        var resultado = _servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(3, resultado.Exitosos);
+        Assert.AreEqual(0, resultado.Errores.Count);
+        Assert.AreEqual(3, _servicioEquipo.Buscar(e => e.Bandera == SvgDePrueba.DataUri).Count);
+    }
+
+    [TestMethod]
+    public void Importar_Escenario3_AlgunosConBanderaOtrosSin_ImportaTodosLosEquipos()
+    {
+        // Arrange — mezcla de filas con y sin bandera; el encabezado la declara
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA,Bandera",
+            "Argentina,CONMEBOL,1885",
+            $"Brasil,CONMEBOL,1830,{SvgDePrueba.DataUri}",
+            $"Uruguay,CONMEBOL,1785,{SvgDePrueba.DataUri}",
+            "Chile,CONMEBOL,1700");
+
+        // Act
+        var resultado = _servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(4, resultado.Exitosos);
+        Assert.AreEqual(0, resultado.Errores.Count);
+        Assert.AreEqual(string.Empty, _servicioEquipo.Buscar(e => e.Nombre == "Argentina")[0].Bandera);
+        Assert.AreEqual(string.Empty, _servicioEquipo.Buscar(e => e.Nombre == "Chile")[0].Bandera);
+        Assert.AreEqual(SvgDePrueba.DataUri, _servicioEquipo.Buscar(e => e.Nombre == "Brasil")[0].Bandera);
+    }
+
+    [TestMethod]
+    public void Importar_ValidacionFinal_ArgentinaSinBanderaOtrosConUrl_ImportaTresEquipos()
+    {
+        // Arrange — caso exacto del enunciado: Argentina sin bandera, Brasil y Uruguay con URL SVG
+        var descargador = new DescargadorStub(SvgDePrueba.Contenido);
+        var servicio = new ServicioImportacionLegible(descargador: descargador);
+        var csv = CrearCSV(
+            "Nombre,Confederacion,RankingFIFA,Bandera",
+            "Argentina,CONMEBOL,1885",
+            "Brasil,CONMEBOL,1830,https://flagcdn.com/br.svg",
+            "Uruguay,CONMEBOL,1785,https://flagcdn.com/uy.svg");
+
+        // Act
+        var resultado = servicio.Importar(csv, _servicioEquipo);
+
+        // Assert
+        Assert.AreEqual(3, resultado.Exitosos);
+        Assert.AreEqual(0, resultado.Errores.Count);
+        Assert.AreEqual(string.Empty, _servicioEquipo.Buscar(e => e.Nombre == "Argentina")[0].Bandera);
+        Assert.AreEqual(SvgDePrueba.DataUri, _servicioEquipo.Buscar(e => e.Nombre == "Brasil")[0].Bandera);
+        Assert.AreEqual(SvgDePrueba.DataUri, _servicioEquipo.Buscar(e => e.Nombre == "Uruguay")[0].Bandera);
     }
 
     // ── Autorización ─────────────────────────────────────────────────────────

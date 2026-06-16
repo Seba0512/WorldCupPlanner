@@ -275,7 +275,7 @@ else
                 </div>
                 @foreach (var partido in GrupoSeleccionadoDTO.Partidos)
                 {
-                    <div class="match-card @(ControladorFixture.EstaJugado(partido) && (ControladorFixture.EsGanador(partido, partido.EquipoLocal) || ControladorFixture.EsGanador(partido, partido.EquipoVisitante)) ? "match-winner" : "")">
+                    <div class="match-card">
                         <div class="match-team @(ControladorFixture.EsGanador(partido, partido.EquipoLocal) ? "match-winner" : "")">
                             @partido.EquipoLocal?.Nombre
                         </div>
