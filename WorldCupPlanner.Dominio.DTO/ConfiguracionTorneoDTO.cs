@@ -1,4 +1,5 @@
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
 
 namespace WorldCupPlanner.Dominio.DTO;
 
@@ -8,6 +9,7 @@ public class ConfiguracionTorneoDTO
     public int SemillaCompletar { get; set; }
     public int SemillaCrucesFase { get; set; }
     public int SemillaSimulation { get; set; }
+    public MotorSimulacion MotorSimulacion { get; set; } = MotorSimulacion.RankingActualYSemilla;
     public DateTime FechaInicioTorneo { get; set; }
     public int MaxPartidosPorDia { get; set; }
     public int SeparacionEntreFechas { get; set; }
@@ -22,6 +24,7 @@ public class ConfiguracionTorneoDTO
             SemillaCompletar = SemillaCompletar,
             SemillaCrucesFase = SemillaCrucesFase,
             SemillaSimulation = SemillaSimulation,
+            MotorSimulacion = MotorSimulacion,
             FechaInicioTorneo = FechaInicioTorneo,
             MaxPartidosPorDia = MaxPartidosPorDia,
             SeparacionEntreFechas = SeparacionEntreFechas,
@@ -40,6 +43,7 @@ public class ConfiguracionTorneoDTO
             SemillaCompletar = configuracion.SemillaCompletar,
             SemillaCrucesFase = configuracion.SemillaCrucesFase,
             SemillaSimulation = configuracion.SemillaSimulation,
+            MotorSimulacion = configuracion.MotorSimulacion,
             FechaInicioTorneo = configuracion.FechaInicioTorneo,
             MaxPartidosPorDia = configuracion.MaxPartidosPorDia,
             SeparacionEntreFechas = configuracion.SeparacionEntreFechas,

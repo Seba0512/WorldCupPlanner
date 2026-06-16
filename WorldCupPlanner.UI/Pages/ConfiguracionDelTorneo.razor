@@ -1,5 +1,6 @@
 @page "/configuracion"
 @using WorldCupPlanner.Controladores
+@using WorldCupPlanner.Dominio.DTO
 @using WorldCupPlanner.UI.Data
 @inject ControladorConfiguracionTorneo ControladorConfiguracionTorneo
 @inject ControladorSimulacion ControladorSimulacion
@@ -35,7 +36,7 @@ else if (!SesionServicio.EsAdministrador)
 
 @if (!ControladorConfiguracionTorneo.EsConfiguracionModificable)
 {
-    var usada = ControladorConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
+    var usada = ControladorConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixtureDTO();
 
     <div class="row g-3 align-items-stretch mb-3">
         <div class="col-lg-6 d-flex">
@@ -265,7 +266,7 @@ else
 }
 
 @code {
-    private ConfiguracionTorneo _formulario = new();
+    private ConfiguracionTorneoDTO _formulario = new();
     private string _error = string.Empty;
 
     private bool PuedeEditar =>
@@ -273,7 +274,7 @@ else
 
     protected override void OnInitialized()
     {
-        _formulario = ControladorConfiguracionTorneo.ObtenerConfiguracionActual();
+        _formulario = ControladorConfiguracionTorneo.ObtenerConfiguracionActualDTO();
     }
 
     private void CambiarFechaInicio(ChangeEventArgs e)

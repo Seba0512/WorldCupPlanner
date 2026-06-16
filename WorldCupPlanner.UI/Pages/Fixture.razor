@@ -99,7 +99,7 @@
                         }
                     </div>
                     @{
-                        var configActual = ControladorConfiguracionTorneo.ObtenerConfiguracionActual();
+                        var configActual = ControladorConfiguracionTorneo.ObtenerConfiguracionActualDTO();
                     }
                     <div style="font-size:13px; color:var(--text-secondary);">
                         Semilla: <strong>@configActual.SemillaFixture</strong> —
@@ -654,7 +654,7 @@ else
         }
 
         SincronizarJornadaActivaConPendiente();
-        _motorSimulacionSeleccionado = ControladorConfiguracionTorneo.ObtenerConfiguracionActual().MotorSimulacion;
+        _motorSimulacionSeleccionado = ControladorConfiguracionTorneo.ObtenerConfiguracionActualDTO().MotorSimulacion;
     }
 
     private static readonly List<EtapasTorneoHelper.EtapaTorneo> EtapasDisponibles =
@@ -694,8 +694,8 @@ else
     private EquipoDTO? Campeon =>
         ControladorClasificacion.ObtenerCampeonDTO(PartidoFinal);
 
-    private ConfiguracionTorneo ConfiguracionUsadaParaFixture =>
-        ControladorConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
+    private ConfiguracionTorneoDTO ConfiguracionUsadaParaFixture =>
+        ControladorConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixtureDTO();
 
     private void CrearNuevoTorneo()
     {

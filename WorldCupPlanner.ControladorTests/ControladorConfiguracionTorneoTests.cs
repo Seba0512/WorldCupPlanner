@@ -25,6 +25,20 @@ public class ControladorConfiguracionTorneoTests
     }
 
     [TestMethod]
+    public void ObtenerConfiguracionActualDTO_DevuelveDatosParaUI()
+    {
+        var servicio = new ServicioConfiguracionTorneo();
+        var controlador = new ControladorConfiguracionTorneo(servicio);
+
+        var configuracion = controlador.ObtenerConfiguracionActualDTO();
+
+        Assert.AreEqual(0, configuracion.SemillaFixture);
+        Assert.AreEqual(0, configuracion.SemillaCompletar);
+        Assert.AreEqual(MotorSimulacion.RankingActualYSemilla, configuracion.MotorSimulacion);
+        Assert.AreEqual(3, configuracion.MaxPartidosPorDia);
+    }
+
+    [TestMethod]
     public void ModificarConfiguracion_DelegaEnServicioYMantieneComportamiento()
     {
         var servicio = new ServicioConfiguracionTorneo();
@@ -49,6 +63,41 @@ public class ControladorConfiguracionTorneoTests
         Assert.AreEqual(16, configuracion.SemillaSimulation);
         Assert.AreEqual(4, configuracion.MaxPartidosPorDia);
         Assert.AreEqual(2, configuracion.SeparacionEntreFechas);
+    }
+
+    [TestMethod]
+    public void ModificarConfiguracion_ConConfiguracionDTO_DelegaEnServicio()
+    {
+        var servicio = new ServicioConfiguracionTorneo();
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var controlador = CrearControlador(servicio, administrador);
+        var administradorDto = UsuarioDTO.FromEntity(administrador);
+
+        controlador.ModificarConfiguracion(administradorDto, new ConfiguracionTorneoDTO
+        {
+            SemillaFixture = 22,
+            SemillaCompletar = 5,
+            SemillaCrucesFase = 9,
+            SemillaSimulation = 18,
+            MotorSimulacion = MotorSimulacion.RankingYForma,
+            MaxPartidosPorDia = 5,
+            SeparacionEntreFechas = 4,
+            FechaInicioTorneo = new DateTime(2026, 6, 2),
+            HoraInicioPartidos = new TimeSpan(15, 0, 0),
+            SeparacionHorasEntrePartidos = 3
+        });
+
+        var configuracion = servicio.ObtenerConfiguracionActual();
+        Assert.AreEqual(22, configuracion.SemillaFixture);
+        Assert.AreEqual(5, configuracion.SemillaCompletar);
+        Assert.AreEqual(9, configuracion.SemillaCrucesFase);
+        Assert.AreEqual(18, configuracion.SemillaSimulation);
+        Assert.AreEqual(MotorSimulacion.RankingYForma, configuracion.MotorSimulacion);
+        Assert.AreEqual(5, configuracion.MaxPartidosPorDia);
+        Assert.AreEqual(4, configuracion.SeparacionEntreFechas);
+        Assert.AreEqual(new DateTime(2026, 6, 2), configuracion.FechaInicioTorneo);
+        Assert.AreEqual(new TimeSpan(15, 0, 0), configuracion.HoraInicioPartidos);
+        Assert.AreEqual(3, configuracion.SeparacionHorasEntrePartidos);
     }
 
     [TestMethod]
@@ -80,6 +129,28 @@ public class ControladorConfiguracionTorneoTests
         var obtenida = controlador.ObtenerConfiguracionUsadaParaFixture();
         Assert.AreEqual(5, obtenida.SemillaFixture);
         Assert.AreEqual(6, obtenida.SemillaCompletar);
+    }
+
+    [TestMethod]
+    public void ObtenerConfiguracionUsadaParaFixtureDTO_DevuelveDatosParaUI()
+    {
+        var servicio = new ServicioConfiguracionTorneo();
+        var controlador = new ControladorConfiguracionTorneo(servicio);
+        var configuracionUsada = new ConfiguracionTorneoDTO
+        {
+            SemillaFixture = 7,
+            SemillaCompletar = 8,
+            MotorSimulacion = MotorSimulacion.AleatorioPuro,
+            MaxPartidosPorDia = 4
+        };
+
+        controlador.RegistrarFixtureGenerado(configuracionUsada);
+
+        var obtenida = controlador.ObtenerConfiguracionUsadaParaFixtureDTO();
+        Assert.AreEqual(7, obtenida.SemillaFixture);
+        Assert.AreEqual(8, obtenida.SemillaCompletar);
+        Assert.AreEqual(MotorSimulacion.AleatorioPuro, obtenida.MotorSimulacion);
+        Assert.AreEqual(4, obtenida.MaxPartidosPorDia);
     }
 
     [TestMethod]
