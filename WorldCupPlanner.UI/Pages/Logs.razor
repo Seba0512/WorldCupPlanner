@@ -1,5 +1,6 @@
 @page "/auditoria"
 @using WorldCupPlanner.Controladores
+@using WorldCupPlanner.Dominio.DTO
 @inject ControladorAuditoria ControladorAuditoria
 @inject IJSRuntime JS
 
@@ -62,11 +63,11 @@
 </GuardiaAdmin>
 
 @code {
-    private List<Auditoria> _registros = new();
+    private List<AuditoriaDTO> _registros = new();
 
     protected override void OnInitialized()
     {
-        _registros = ControladorAuditoria.ObtenerTodos();
+        _registros = ControladorAuditoria.ObtenerTodosDTO();
     }
 
     private async Task DescargarLog()
