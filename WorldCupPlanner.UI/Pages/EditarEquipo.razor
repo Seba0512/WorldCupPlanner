@@ -1,12 +1,14 @@
 @page "/equipos/{Nombre}/editar"
 @using WorldCupPlanner.Controladores
 @using WorldCupPlanner.Dominio.DTO
+@using WorldCupPlanner.Servicios
 @inject ControladorEquipo ControladorEquipo
 @inject EstadoTorneo EstadoTorneo
 @inject ControladorConsultasTorneo ControladorConsultasTorneo
 @inject SesionServicio SesionServicio
 @inject NavigationManager NavigationManager
 @inject ToastServicio Toast
+@inject IDescargadorContenido DescargadorContenido
 
 <GuardiaAdmin>
 <PageTitle>Editar equipo — WorldCupPlanner 2026</PageTitle>
@@ -68,6 +70,18 @@
             </div>
         }
         <InputFile OnChange="CargarBandera" accept="image/svg+xml" class="form-control" disabled="@_edicionBloqueada" />
+        <span class="form-hint">Archivo SVG, o ingresá una URL SVG o valor Base64:</span>
+        <div class="input-group mt-1">
+            <input type="text" class="form-control" @bind="_urlOBase64"
+                   placeholder="https://... o Base64 puro o data:image/svg+xml;base64,..."
+                   disabled="@_edicionBloqueada" />
+            <button type="button" class="btn btn-outline-secondary" @onclick="NormalizarBanderaDesdeTexto"
+                    disabled="@_edicionBloqueada">Cargar</button>
+        </div>
+        @if (!string.IsNullOrEmpty(_errorBandera))
+        {
+            <div class="text-danger small mt-1">@_errorBandera</div>
+        }
     </div>
 
     <div class="d-flex gap-2 mt-2">
@@ -83,6 +97,8 @@
     [Parameter] public string Nombre { get; set; } = string.Empty;
     private EquipoDTO _equipo = new();
     private string _error = string.Empty;
+    private string _errorBandera = string.Empty;
+    private string _urlOBase64 = string.Empty;
     private List<string> _erroresCampos = [];
     private bool _edicionBloqueada;
 
@@ -98,8 +114,22 @@
         {
             _equipo.Bandera = await ArchivoHelper.ConvertirABase64DataUri(e.File);
             _error = string.Empty;
+            _errorBandera = string.Empty;
         }
         catch (ArgumentException ex) { _error = ex.Message; }
+    }
+
+    private async Task NormalizarBanderaDesdeTexto()
+    {
+        if (string.IsNullOrWhiteSpace(_urlOBase64)) return;
+        try
+        {
+            _equipo.Bandera = await Task.Run(() =>
+                NormalizadorBanderaCsv.Normalizar(_urlOBase64.Trim(), DescargadorContenido));
+            _urlOBase64 = string.Empty;
+            _errorBandera = string.Empty;
+        }
+        catch (Exception ex) { _errorBandera = ex.Message; }
     }
 
     private void Guardar()
