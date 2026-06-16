@@ -9,17 +9,6 @@ public class DatosUsuarioDTO
     public string Email { get; set; } = string.Empty;
     public string FechaNacimiento { get; set; } = string.Empty;
 
-    public DatosUsuario ToEntity()
-    {
-        return new DatosUsuario
-        {
-            Nombre = Nombre,
-            Apellido = Apellido,
-            Email = Email,
-            FechaNacimiento = FechaNacimiento
-        };
-    }
-
     public static DatosUsuarioDTO FromEntity(DatosUsuario datos)
     {
         ArgumentNullException.ThrowIfNull(datos);

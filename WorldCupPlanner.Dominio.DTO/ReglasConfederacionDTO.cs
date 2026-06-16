@@ -7,11 +7,6 @@ public class ReglasConfederacionDTO
 {
     public List<CupoConfederacionDTO> CuposPorConfederacion { get; set; } = [];
 
-    public IReadOnlyDictionary<Confederacion, int> ToEntity()
-    {
-        return CuposPorConfederacion.ToDictionary(cupo => cupo.Confederacion, cupo => cupo.Cupos);
-    }
-
     public static ReglasConfederacionDTO FromEntity()
     {
         return new ReglasConfederacionDTO
