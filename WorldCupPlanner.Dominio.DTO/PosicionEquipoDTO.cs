@@ -19,23 +19,6 @@ public class PosicionEquipoDTO
     public int GolesEnContra { get; set; }
     public int DiferenciaGoles { get; set; }
 
-    public PosicionEquipo ToEntity()
-    {
-        return new PosicionEquipo
-        {
-            Equipo = Equipo?.ToEntity()!,
-            Grupo = CrearGrupoDesdeEtiqueta()!,
-            Posicion = Posicion,
-            PartidosJugados = PartidosJugados,
-            PartidosGanados = PartidosGanados,
-            PartidosEmpatados = PartidosEmpatados,
-            PartidosPerdidos = PartidosPerdidos,
-            Puntos = Puntos,
-            GolesAFavor = GolesAFavor,
-            GolesEnContra = GolesEnContra
-        };
-    }
-
     public static PosicionEquipoDTO FromEntity(PosicionEquipo posicion)
     {
         ArgumentNullException.ThrowIfNull(posicion);
@@ -57,12 +40,5 @@ public class PosicionEquipoDTO
             GolesEnContra = posicion.GolesEnContra,
             DiferenciaGoles = posicion.DiferenciaGoles
         };
-    }
-
-    private Grupo? CrearGrupoDesdeEtiqueta()
-    {
-        return string.IsNullOrWhiteSpace(GrupoEtiqueta)
-            ? null
-            : new Grupo(GrupoEtiqueta);
     }
 }

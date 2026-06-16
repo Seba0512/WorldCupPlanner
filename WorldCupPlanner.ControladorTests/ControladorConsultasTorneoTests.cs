@@ -23,6 +23,21 @@ public class ControladorConsultasTorneoTests
     }
 
     [TestMethod]
+    public void ObtenerTodosLosPartidosDTO_DevuelvePartidosParaUI()
+    {
+        var controlador = CrearControlador();
+        var estado = CrearEstadoTorneo();
+
+        var partidos = controlador.ObtenerTodosLosPartidosDTO(estado);
+
+        Assert.AreEqual(2, partidos.Count);
+        Assert.IsInstanceOfType(partidos[0], typeof(PartidoDTO));
+        Assert.IsTrue(partidos.Any(p => p.Fase == FaseTorneo.FaseDeGrupos));
+        Assert.IsTrue(partidos.Any(p => p.Fase == FaseTorneo.Final));
+        Assert.IsTrue(partidos.Any(p => p.EquipoLocal?.Nombre == "Uruguay"));
+    }
+
+    [TestMethod]
     public void ObtenerPartidosDeFase_DevuelveSoloLaFaseSolicitada()
     {
         var controlador = CrearControlador();

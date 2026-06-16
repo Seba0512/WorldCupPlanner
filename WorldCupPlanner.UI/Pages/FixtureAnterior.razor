@@ -5,16 +5,16 @@
 @inject ControladorClasificacion ControladorClasificacion
 @inject ControladorFixture ControladorFixture
 
-<PageTitle>Torneo anterior — WorldCupPlanner 2026</PageTitle>
+<PageTitle>Torneo anterior â€” WorldCupPlanner 2026</PageTitle>
 
-<PageHeader Titulo="Torneo anterior" Subtitulo="Torneo anterior — solo lectura" UrlVolver="/fixture" TextoVolver="Volver al fixture" />
+<PageHeader Titulo="Torneo anterior" Subtitulo="Torneo anterior â€” solo lectura" UrlVolver="/fixture" TextoVolver="Volver al fixture" />
 
 @if (FixtureAnteriorDTO == null)
 {
     <div class="empty-state">
-        <div class="empty-state-icon">📋</div>
+        <div class="empty-state-icon">ðŸ“‹</div>
         <div class="empty-state-title">No hay torneo anterior</div>
-        <div class="empty-state-text">Aún no se ha finalizado ningún torneo.</div>
+        <div class="empty-state-text">AÃºn no se ha finalizado ningÃºn torneo.</div>
         <a href="/fixture" class="btn btn-primary">Ir al fixture</a>
     </div>
 }
@@ -25,8 +25,8 @@ else
         <div class="alert" style="background:linear-gradient(135deg,rgba(244,185,66,0.12),rgba(244,185,66,0.04));
                                   border-color:rgba(244,185,66,0.3) !important; color:var(--accent-gold) !important;
                                   margin-bottom:20px; font-size:15px; font-weight:600;">
-            <span style="font-size:22px; line-height:1; flex-shrink:0;">🏆</span>
-            <span>Campeón del torneo: <strong>@Campeon.Nombre</strong></span>
+            <span style="font-size:22px; line-height:1; flex-shrink:0;">ðŸ†</span>
+            <span>CampeÃ³n del torneo: <strong>@Campeon.Nombre</strong></span>
         </div>
     }
 
@@ -36,7 +36,7 @@ else
             Solo lectura
         </span>
         <span style="font-size:13px; color:var(--text-muted);">
-            Consulta histórica del torneo finalizado — no se pueden editar ni simular partidos.
+            Consulta histÃ³rica del torneo finalizado â€” no se pueden editar ni simular partidos.
         </span>
     </div>
 
@@ -76,14 +76,14 @@ else
 
                     <div class="table-card mb-3">
                         <div class="table-card-header">
-                            <span class="table-card-title">Tabla de posiciones — Grupo @GrupoSeleccionadoDTO.Etiqueta</span>
+                            <span class="table-card-title">Tabla de posiciones â€” Grupo @GrupoSeleccionadoDTO.Etiqueta</span>
                             <span style="font-size:12px; color:var(--text-secondary)">4 equipos</span>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-dark table-sm mb-0" style="font-size:13px; vertical-align:middle;">
                                 <thead>
                                     <tr style="color:var(--text-secondary); text-transform:uppercase; font-size:11px; letter-spacing:0.04em;">
-                                        <th style="width:72px;">Posición</th>
+                                        <th style="width:72px;">PosiciÃ³n</th>
                                         <th>Equipo</th>
                                         <th class="text-center">PJ</th>
                                         <th class="text-center">PG</th>
@@ -103,11 +103,11 @@ else
                                                 <span style="font-weight:700;">@posicion.Posicion</span>
                                                 @if (posicion.Clasifica)
                                                 {
-                                                    <span class="badge badge-green" style="margin-left:6px;">Clasificó</span>
+                                                    <span class="badge badge-green" style="margin-left:6px;">ClasificÃ³</span>
                                                 }
                                                 else if (posicion.EsTercero)
                                                 {
-                                                    <span class="badge badge-muted" style="margin-left:6px;">3°</span>
+                                                    <span class="badge badge-muted" style="margin-left:6px;">3Â°</span>
                                                 }
                                             </td>
                                             <td style="font-weight:700;">@posicion.EquipoNombre</td>
@@ -128,7 +128,7 @@ else
 
                     <div class="table-card mb-4">
                         <div class="table-card-header">
-                            <span class="table-card-title">Partidos — Grupo @GrupoSeleccionadoDTO.Etiqueta</span>
+                            <span class="table-card-title">Partidos â€” Grupo @GrupoSeleccionadoDTO.Etiqueta</span>
                             <span style="font-size:12px; color:var(--text-secondary)">@GrupoSeleccionadoDTO.Partidos.Count partidos</span>
                         </div>
                         @foreach (var partido in GrupoSeleccionadoDTO.Partidos.OrderBy(p => p.Fecha))
@@ -145,7 +145,7 @@ else
                                     @if (ControladorFixture.EstaJugado(partido))
                                     {
                                         <span class="score-box" style="color:@(ControladorFixture.EsGanador(partido, partido.EquipoLocal) ? "var(--accent-gold)" : "var(--text-primary)")">@partido.GolesLocal</span>
-                                        <span class="score-sep">—</span>
+                                        <span class="score-sep">â€”</span>
                                         <span class="score-box" style="color:@(ControladorFixture.EsGanador(partido, partido.EquipoVisitante) ? "var(--accent-gold)" : "var(--text-primary)")">@partido.GolesVisitante</span>
                                     }
                                     else
@@ -172,17 +172,17 @@ else
         }
         else if (_etapaActiva == FaseTorneo.Final)
         {
-            @if (PartidoFinalAnterior == null && PartidoTercerPuestoAnterior == null)
+            @if (PartidoFinalAnteriorDTO == null && PartidoTercerPuestoAnteriorDTO == null)
             {
                 <div class="empty-state">
-                    <div class="empty-state-icon">🏆</div>
+                    <div class="empty-state-icon">ðŸ†</div>
                     <div class="empty-state-title">Sin datos de final</div>
                     <div class="empty-state-text">No hay registros de la final para este torneo anterior.</div>
                 </div>
             }
             else
             {
-                @if (PartidoFinalAnterior != null)
+                @if (PartidoFinalAnteriorDTO != null)
                 {
                     <div class="table-card mb-4"
                          style="border-color:rgba(244,185,66,0.35); box-shadow:var(--shadow-gold);">
@@ -190,7 +190,7 @@ else
                              style="background:linear-gradient(135deg,rgba(244,185,66,0.12),rgba(244,185,66,0.04));
                                     border-bottom-color:rgba(244,185,66,0.2);">
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <span style="font-size:22px; line-height:1">🏆</span>
+                                <span style="font-size:22px; line-height:1">ðŸ†</span>
                                 <div>
                                     <div class="table-card-title"
                                          style="color:var(--accent-gold); font-size:17px; letter-spacing:0.02em;">
@@ -208,54 +208,54 @@ else
                         <div class="match-card" style="padding:28px 20px; gap:16px;">
                             <div style="flex:1; text-align:left;">
                                 <div style="font-family:var(--font-heading); font-size:18px; font-weight:700;
-                                            color:@(PartidoFinalAnterior.EsGanador(PartidoFinalAnterior.EquipoLocal) ? "var(--accent-gold)" : "var(--text-primary)");">
-                                    @(PartidoFinalAnterior.EquipoLocal?.Nombre ?? "—")
+                                            color:@(ControladorFixture.EsGanador(PartidoFinalAnteriorDTO, PartidoFinalAnteriorDTO.EquipoLocal) ? "var(--accent-gold)" : "var(--text-primary)");">
+                                    @(PartidoFinalAnteriorDTO.EquipoLocal?.Nombre ?? "â€”")
                                 </div>
-                                @if (PartidoFinalAnterior.EsGanador(PartidoFinalAnterior.EquipoLocal))
+                                @if (ControladorFixture.EsGanador(PartidoFinalAnteriorDTO, PartidoFinalAnteriorDTO.EquipoLocal))
                                 {
                                     <div style="font-size:10px; font-weight:700; text-transform:uppercase;
                                                 letter-spacing:0.1em; color:var(--accent-gold); margin-top:4px;">
-                                        🥇 Campeón
+                                        ðŸ¥‡ CampeÃ³n
                                     </div>
                                 }
                             </div>
 
                             <div class="match-score" style="min-width:100px; flex-direction:column; gap:4px;">
-                                @if (PartidoFinalAnterior.EstaJugado())
+                                @if (ControladorFixture.EstaJugado(PartidoFinalAnteriorDTO))
                                 {
                                     <div style="display:flex; align-items:center; gap:10px;">
                                         <span class="score-box"
                                               style="font-size:32px; color:var(--accent-gold); min-width:36px;">
-                                            @PartidoFinalAnterior.GolesLocal
+                                            @PartidoFinalAnteriorDTO.GolesLocal
                                         </span>
-                                        <span class="score-sep" style="font-size:18px;">—</span>
+                                        <span class="score-sep" style="font-size:18px;">â€”</span>
                                         <span class="score-box"
                                               style="font-size:32px; color:var(--accent-gold); min-width:36px;">
-                                            @PartidoFinalAnterior.GolesVisitante
+                                            @PartidoFinalAnteriorDTO.GolesVisitante
                                         </span>
                                     </div>
                                 }
                                 <div style="font-size:11px; color:var(--text-muted); white-space:nowrap;">
-                                    @PartidoFinalAnterior.Fecha.ToString("dd/MM/yy HH:mm")
+                                    @PartidoFinalAnteriorDTO.Fecha.ToString("dd/MM/yy HH:mm")
                                 </div>
-                                @if (PartidoFinalAnterior.Estadio != null)
+                                @if (PartidoFinalAnteriorDTO.Estadio != null)
                                 {
                                     <div style="font-size:10px; color:var(--text-muted); white-space:nowrap;">
-                                        @PartidoFinalAnterior.Estadio.Nombre
+                                        @PartidoFinalAnteriorDTO.Estadio.Nombre
                                     </div>
                                 }
                             </div>
 
                             <div style="flex:1; text-align:right;">
                                 <div style="font-family:var(--font-heading); font-size:18px; font-weight:700;
-                                            color:@(PartidoFinalAnterior.EsGanador(PartidoFinalAnterior.EquipoVisitante) ? "var(--accent-gold)" : "var(--text-primary)");">
-                                    @(PartidoFinalAnterior.EquipoVisitante?.Nombre ?? "—")
+                                            color:@(ControladorFixture.EsGanador(PartidoFinalAnteriorDTO, PartidoFinalAnteriorDTO.EquipoVisitante) ? "var(--accent-gold)" : "var(--text-primary)");">
+                                    @(PartidoFinalAnteriorDTO.EquipoVisitante?.Nombre ?? "â€”")
                                 </div>
-                                @if (PartidoFinalAnterior.EsGanador(PartidoFinalAnterior.EquipoVisitante))
+                                @if (ControladorFixture.EsGanador(PartidoFinalAnteriorDTO, PartidoFinalAnteriorDTO.EquipoVisitante))
                                 {
                                     <div style="font-size:10px; font-weight:700; text-transform:uppercase;
                                                 letter-spacing:0.1em; color:var(--accent-gold); margin-top:4px;">
-                                        🥇 Campeón
+                                        ðŸ¥‡ CampeÃ³n
                                     </div>
                                 }
                             </div>
@@ -263,7 +263,7 @@ else
                     </div>
                 }
 
-                @if (PartidoFinalAnterior != null && PartidoTercerPuestoAnterior != null)
+                @if (PartidoFinalAnteriorDTO != null && PartidoTercerPuestoAnteriorDTO != null)
                 {
                     <div style="display:flex; align-items:center; gap:16px; margin:32px 0 24px;">
                         <div style="flex:1; height:1px; background:var(--border-default);"></div>
@@ -276,31 +276,31 @@ else
                     </div>
                 }
 
-                @if (PartidoTercerPuestoAnterior != null)
+                @if (PartidoTercerPuestoAnteriorDTO != null)
                 {
                     <div class="table-card">
                         <div class="table-card-header">
                             <div style="display:flex; align-items:center; gap:8px;">
-                                <span style="font-size:18px; line-height:1">🥉</span>
+                                <span style="font-size:18px; line-height:1">ðŸ¥‰</span>
                                 <span class="table-card-title">Tercer Puesto</span>
                             </div>
-                            <span class="badge badge-muted">3° lugar</span>
+                            <span class="badge badge-muted">3Â° lugar</span>
                         </div>
                         <div class="match-card">
                             <div class="match-team"
-                                 style="color:@(PartidoTercerPuestoAnterior.EsGanador(PartidoTercerPuestoAnterior.EquipoLocal) ? "var(--text-primary)" : "var(--text-secondary)");">
-                                @(PartidoTercerPuestoAnterior.EquipoLocal?.Nombre ?? "—")
-                                @if (PartidoTercerPuestoAnterior.EsGanador(PartidoTercerPuestoAnterior.EquipoLocal))
+                                 style="color:@(ControladorFixture.EsGanador(PartidoTercerPuestoAnteriorDTO, PartidoTercerPuestoAnteriorDTO.EquipoLocal) ? "var(--text-primary)" : "var(--text-secondary)");">
+                                @(PartidoTercerPuestoAnteriorDTO.EquipoLocal?.Nombre ?? "â€”")
+                                @if (ControladorFixture.EsGanador(PartidoTercerPuestoAnteriorDTO, PartidoTercerPuestoAnteriorDTO.EquipoLocal))
                                 {
-                                    <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent-green); margin-top:2px;">🥉 3° Puesto</div>
+                                    <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent-green); margin-top:2px;">ðŸ¥‰ 3Â° Puesto</div>
                                 }
                             </div>
                             <div class="match-score">
-                                @if (PartidoTercerPuestoAnterior.EstaJugado())
+                                @if (ControladorFixture.EstaJugado(PartidoTercerPuestoAnteriorDTO))
                                 {
-                                    <span class="score-box">@PartidoTercerPuestoAnterior.GolesLocal</span>
-                                    <span class="score-sep">—</span>
-                                    <span class="score-box">@PartidoTercerPuestoAnterior.GolesVisitante</span>
+                                    <span class="score-box">@PartidoTercerPuestoAnteriorDTO.GolesLocal</span>
+                                    <span class="score-sep">â€”</span>
+                                    <span class="score-box">@PartidoTercerPuestoAnteriorDTO.GolesVisitante</span>
                                 }
                                 else
                                 {
@@ -308,18 +308,18 @@ else
                                 }
                             </div>
                             <div class="match-team right"
-                                 style="color:@(PartidoTercerPuestoAnterior.EsGanador(PartidoTercerPuestoAnterior.EquipoVisitante) ? "var(--text-primary)" : "var(--text-secondary)");">
-                                @if (PartidoTercerPuestoAnterior.EsGanador(PartidoTercerPuestoAnterior.EquipoVisitante))
+                                 style="color:@(ControladorFixture.EsGanador(PartidoTercerPuestoAnteriorDTO, PartidoTercerPuestoAnteriorDTO.EquipoVisitante) ? "var(--text-primary)" : "var(--text-secondary)");">
+                                @if (ControladorFixture.EsGanador(PartidoTercerPuestoAnteriorDTO, PartidoTercerPuestoAnteriorDTO.EquipoVisitante))
                                 {
-                                    <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent-green); margin-top:2px; text-align:right;">🥉 3° Puesto</div>
+                                    <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent-green); margin-top:2px; text-align:right;">ðŸ¥‰ 3Â° Puesto</div>
                                 }
-                                @(PartidoTercerPuestoAnterior.EquipoVisitante?.Nombre ?? "—")
+                                @(PartidoTercerPuestoAnteriorDTO.EquipoVisitante?.Nombre ?? "â€”")
                             </div>
                             <div class="match-meta" style="margin-left:12px; min-width:120px; text-align:right;">
-                                <div>@PartidoTercerPuestoAnterior.Fecha.ToString("dd/MM/yy HH:mm")</div>
-                                @if (PartidoTercerPuestoAnterior.Estadio != null)
+                                <div>@PartidoTercerPuestoAnteriorDTO.Fecha.ToString("dd/MM/yy HH:mm")</div>
+                                @if (PartidoTercerPuestoAnteriorDTO.Estadio != null)
                                 {
-                                    <div style="margin-top:2px; font-size:10px; color:var(--text-muted);">@PartidoTercerPuestoAnterior.Estadio.Nombre</div>
+                                    <div style="margin-top:2px; font-size:10px; color:var(--text-muted);">@PartidoTercerPuestoAnteriorDTO.Estadio.Nombre</div>
                                 }
                             </div>
                         </div>
@@ -329,10 +329,10 @@ else
         }
         else
         {
-            @if (!PartidosEtapaActiva.Any())
+            @if (!PartidosEtapaActivaDTO.Any())
             {
                 <div class="empty-state">
-                    <div class="empty-state-icon">⚽</div>
+                    <div class="empty-state-icon">âš½</div>
                     <div class="empty-state-title">Sin datos para esta etapa</div>
                     <div class="empty-state-text">No hay partidos registrados para @EtapaActivaEtiqueta en el torneo anterior.</div>
                 </div>
@@ -342,32 +342,32 @@ else
                 <div class="table-card">
                     <div class="table-card-header">
                         <span class="table-card-title">@EtapaActivaEtiqueta</span>
-                        <span class="badge badge-blue">@PartidosEtapaActiva.Count partidos</span>
+                        <span class="badge badge-blue">@PartidosEtapaActivaDTO.Count partidos</span>
                     </div>
-                    @foreach (var partido in PartidosEtapaActiva.OrderBy(p => p.Fecha))
+                    @foreach (var partido in PartidosEtapaActivaDTO.OrderBy(p => p.Fecha))
                     {
                         <div class="match-card">
                             <div class="match-team"
-                                 style="color:@(partido.EsGanador(partido.EquipoLocal) ? "var(--accent-gold)" : "var(--text-primary)")">
-                                <div>@(partido.EquipoLocal?.Nombre ?? "—")</div>
-                                @if (partido.EsGanador(partido.EquipoLocal))
+                                 style="color:@(ControladorFixture.EsGanador(partido, partido.EquipoLocal) ? "var(--accent-gold)" : "var(--text-primary)")">
+                                <div>@(partido.EquipoLocal?.Nombre ?? "â€”")</div>
+                                @if (ControladorFixture.EsGanador(partido, partido.EquipoLocal))
                                 {
                                     <div style="font-size:10px; font-weight:700; text-transform:uppercase;
                                                 letter-spacing:0.05em; color:var(--accent-green); margin-top:2px;">
-                                        ✓ Avanzó
+                                        âœ“ AvanzÃ³
                                     </div>
                                 }
                             </div>
                             <div class="match-score">
-                                @if (partido.EstaJugado())
+                                @if (ControladorFixture.EstaJugado(partido))
                                 {
                                     <span class="score-box"
-                                          style="color:@(partido.EsGanador(partido.EquipoLocal) ? "var(--accent-gold)" : "var(--text-primary)")">
+                                          style="color:@(ControladorFixture.EsGanador(partido, partido.EquipoLocal) ? "var(--accent-gold)" : "var(--text-primary)")">
                                         @partido.GolesLocal
                                     </span>
-                                    <span class="score-sep">—</span>
+                                    <span class="score-sep">â€”</span>
                                     <span class="score-box"
-                                          style="color:@(partido.EsGanador(partido.EquipoVisitante) ? "var(--accent-gold)" : "var(--text-primary)")">
+                                          style="color:@(ControladorFixture.EsGanador(partido, partido.EquipoVisitante) ? "var(--accent-gold)" : "var(--text-primary)")">
                                         @partido.GolesVisitante
                                     </span>
                                 }
@@ -377,15 +377,15 @@ else
                                 }
                             </div>
                             <div class="match-team right"
-                                 style="color:@(partido.EsGanador(partido.EquipoVisitante) ? "var(--accent-gold)" : "var(--text-primary)")">
-                                @if (partido.EsGanador(partido.EquipoVisitante))
+                                 style="color:@(ControladorFixture.EsGanador(partido, partido.EquipoVisitante) ? "var(--accent-gold)" : "var(--text-primary)")">
+                                @if (ControladorFixture.EsGanador(partido, partido.EquipoVisitante))
                                 {
                                     <div style="font-size:10px; font-weight:700; text-transform:uppercase;
                                                 letter-spacing:0.05em; color:var(--accent-green); margin-top:2px; text-align:right;">
-                                        ✓ Avanzó
+                                        âœ“ AvanzÃ³
                                     </div>
                                 }
-                                <div>@(partido.EquipoVisitante?.Nombre ?? "—")</div>
+                                <div>@(partido.EquipoVisitante?.Nombre ?? "â€”")</div>
                             </div>
                             <div class="match-meta" style="margin-left:12px; text-align:right; min-width:120px;">
                                 <div>@partido.Fecha.ToString("dd/MM/yy HH:mm")</div>
@@ -402,7 +402,6 @@ else
 
     </div>
 }
-
 @code {
     private string _grupoActivo = "A";
     private FaseTorneo _etapaActiva = FaseTorneo.FaseDeGrupos;
@@ -430,14 +429,17 @@ else
     private string EtapaActivaEtiqueta =>
         EtapasDisponibles.FirstOrDefault(e => e.Fase == _etapaActiva)?.Etiqueta ?? string.Empty;
 
-    private List<Partido> PartidosEtapaActiva =>
-        EstadoTorneo.PartidosEliminatoriosAnteriores.Where(p => p.Fase == _etapaActiva).ToList();
+    private List<PartidoDTO> PartidosEtapaActivaDTO =>
+        ControladorFixture.ObtenerPartidosEliminatoriosAnterioresPorFaseDTO(EstadoTorneo, _etapaActiva);
+
+    private PartidoDTO? PartidoFinalAnteriorDTO =>
+        ControladorFixture.ObtenerFinalAnteriorDTO(EstadoTorneo);
+
+    private PartidoDTO? PartidoTercerPuestoAnteriorDTO =>
+        ControladorFixture.ObtenerTercerPuestoAnteriorDTO(EstadoTorneo);
 
     private Partido? PartidoFinalAnterior =>
         EstadoTorneo.PartidosEliminatoriosAnteriores.FirstOrDefault(p => p.Fase == FaseTorneo.Final);
-
-    private Partido? PartidoTercerPuestoAnterior =>
-        EstadoTorneo.PartidosEliminatoriosAnteriores.FirstOrDefault(p => p.Fase == FaseTorneo.TercerPuesto);
 
     private EquipoDTO? Campeon => ControladorClasificacion.ObtenerCampeonDTO(PartidoFinalAnterior);
 

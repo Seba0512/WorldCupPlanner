@@ -139,7 +139,7 @@ else
     private string _filtroFase = string.Empty;
 
     private IEnumerable<PartidoDTO> TodosLosPartidos =>
-        ControladorPartido.ConvertirADTOs(ControladorConsultasTorneo.ObtenerTodosLosPartidos(EstadoTorneo))
+        ControladorConsultasTorneo.ObtenerTodosLosPartidosDTO(EstadoTorneo)
             .OrderBy(p => p.Fecha);
 
     private IEnumerable<PartidoDTO> PartidosFiltrados =>

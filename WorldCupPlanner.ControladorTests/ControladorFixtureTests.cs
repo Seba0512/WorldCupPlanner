@@ -155,6 +155,57 @@ public class ControladorFixtureTests
     }
 
     [TestMethod]
+    public void ObtenerPartidosEliminatoriosDTO_DevuelvePartidosParaUI()
+    {
+        var controlador = new ControladorFixture(new ServicioFixture());
+        var estado = CrearEstadoConPartidosEliminatorios();
+
+        var partidos = controlador.ObtenerPartidosEliminatoriosDTO(estado);
+        var cuartos = controlador.ObtenerPartidosEliminatoriosPorFaseDTO(estado, FaseTorneo.Cuartos);
+
+        Assert.AreEqual(2, partidos.Count);
+        Assert.IsInstanceOfType(partidos[0], typeof(PartidoDTO));
+        Assert.AreEqual(1, cuartos.Count);
+        Assert.AreEqual("Local Cuartos", cuartos[0].EquipoLocal?.Nombre);
+        Assert.AreEqual(FaseTorneo.Cuartos, cuartos[0].Fase);
+    }
+
+    [TestMethod]
+    public void ObtenerFinalYTercerPuestoDTO_DevuelvePartidosParaUI()
+    {
+        var controlador = new ControladorFixture(new ServicioFixture());
+        var estado = CrearEstadoConFinalYTercerPuesto();
+
+        var final = controlador.ObtenerFinalDTO(estado);
+        var tercerPuesto = controlador.ObtenerTercerPuestoDTO(estado);
+
+        Assert.IsNotNull(final);
+        Assert.IsNotNull(tercerPuesto);
+        Assert.AreEqual("Final Local", final.EquipoLocal?.Nombre);
+        Assert.AreEqual(FaseTorneo.Final, final.Fase);
+        Assert.AreEqual("Tercer Local", tercerPuesto.EquipoLocal?.Nombre);
+        Assert.AreEqual(FaseTorneo.TercerPuesto, tercerPuesto.Fase);
+    }
+
+    [TestMethod]
+    public void ObtenerPartidosEliminatoriosAnterioresDTO_DevuelvePartidosParaUI()
+    {
+        var controlador = new ControladorFixture(new ServicioFixture());
+        var estado = CrearEstadoConFinalYTercerPuesto();
+        estado.ArchivarTorneoActual();
+
+        var partidos = controlador.ObtenerPartidosEliminatoriosAnterioresDTO(estado);
+        var final = controlador.ObtenerFinalAnteriorDTO(estado);
+        var tercerPuesto = controlador.ObtenerTercerPuestoAnteriorDTO(estado);
+
+        Assert.AreEqual(2, partidos.Count);
+        Assert.IsNotNull(final);
+        Assert.IsNotNull(tercerPuesto);
+        Assert.AreEqual(FaseTorneo.Final, final.Fase);
+        Assert.AreEqual(FaseTorneo.TercerPuesto, tercerPuesto.Fase);
+    }
+
+    [TestMethod]
     public void Mensajes_DelegaTextosDeExitoEnServicioFixture()
     {
         var servicio = new ServicioFixture();
@@ -301,6 +352,48 @@ public class ControladorFixtureTests
         estado.EstablecerFixture(new Fixture { Grupos = { grupo } });
 
         return (estado, proximoPartido, segundoPartido);
+    }
+
+    private static EstadoTorneo CrearEstadoConPartidosEliminatorios()
+    {
+        var estado = new EstadoTorneo();
+        estado.AgregarPartidosEliminatorios(new[]
+        {
+            CrearPartidoEliminatorio("Local Cuartos", "Visitante Cuartos", FaseTorneo.Cuartos, 10),
+            CrearPartidoEliminatorio("Local Semi", "Visitante Semi", FaseTorneo.Semifinal, 11)
+        });
+
+        return estado;
+    }
+
+    private static EstadoTorneo CrearEstadoConFinalYTercerPuesto()
+    {
+        var estado = new EstadoTorneo();
+        estado.AgregarPartidosEliminatorios(new[]
+        {
+            CrearPartidoEliminatorio("Final Local", "Final Visitante", FaseTorneo.Final, 20),
+            CrearPartidoEliminatorio("Tercer Local", "Tercer Visitante", FaseTorneo.TercerPuesto, 21)
+        });
+
+        return estado;
+    }
+
+    private static Partido CrearPartidoEliminatorio(
+        string local,
+        string visitante,
+        FaseTorneo fase,
+        int id)
+    {
+        var partido = CrearPartido(
+            CrearEquipo(local, Confederacion.UEFA, id * 2),
+            CrearEquipo(visitante, Confederacion.CONMEBOL, id * 2 + 1),
+            CrearEstadio($"Estadio {id}"),
+            new DateTime(2026, 7, 1).AddDays(id),
+            id);
+        partido.Fase = fase;
+        partido.GolesLocal = 2;
+        partido.GolesVisitante = 1;
+        return partido;
     }
 
     private static Equipo CrearEquipo(string nombre, Confederacion confederacion, int id) => new()

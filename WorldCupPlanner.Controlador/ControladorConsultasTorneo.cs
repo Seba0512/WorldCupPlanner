@@ -17,6 +17,9 @@ public class ControladorConsultasTorneo
     public List<Partido> ObtenerTodosLosPartidos(EstadoTorneo estado) =>
         _servicioConsultasTorneo.ObtenerTodosLosPartidos(estado);
 
+    public List<PartidoDTO> ObtenerTodosLosPartidosDTO(EstadoTorneo estado) =>
+        ObtenerTodosLosPartidos(estado).Select(PartidoDTO.FromEntity).ToList();
+
     public IEnumerable<Equipo> ObtenerTodosLosEquipos(EstadoTorneo estado) =>
         _servicioConsultasTorneo.ObtenerTodosLosEquipos(estado);
 

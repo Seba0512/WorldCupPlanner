@@ -228,7 +228,7 @@
         {
             _equipos = ControladorEquipo.ListarDTO();
             _cuposPorConfederacion = ControladorEquipo.ObtenerCuposConOcupacionDTO(_equipos);
-            _semillaCompletar = ControladorConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
+            _semillaCompletar = ControladorConfiguracionTorneo.ObtenerConfiguracionActualDTO().SemillaCompletar;
             _estadisticasPorEquipo = ControladorEstadisticasEquipo.ObtenerEstadisticasPorEquipoDTO(_equipos);
             _banderasPorEquipo = ControladorEquipo.ObtenerBanderasPorEquipo();
         }
@@ -276,7 +276,7 @@
 
     private void Completar()
     {
-        _semillaCompletar = ControladorConfiguracionTorneo.ObtenerConfiguracionActual().SemillaCompletar;
+        _semillaCompletar = ControladorConfiguracionTorneo.ObtenerConfiguracionActualDTO().SemillaCompletar;
         try
         {
             var generados = ControladorEquipo.CompletarEquiposDTO(_semillaCompletar, SesionServicio.UsuarioActual);

@@ -127,6 +127,30 @@ public class ControladorFixture
     public GrupoDTO? ObtenerGrupoAnteriorDTO(EstadoTorneo estado, string etiqueta) =>
         ObtenerGruposAnterioresDTO(estado).FirstOrDefault(grupo => grupo.Etiqueta == etiqueta);
 
+    public List<PartidoDTO> ObtenerPartidosEliminatoriosDTO(EstadoTorneo estado) =>
+        estado.PartidosEliminatorios.Select(PartidoDTO.FromEntity).ToList();
+
+    public List<PartidoDTO> ObtenerPartidosEliminatoriosAnterioresDTO(EstadoTorneo estado) =>
+        estado.PartidosEliminatoriosAnteriores.Select(PartidoDTO.FromEntity).ToList();
+
+    public List<PartidoDTO> ObtenerPartidosEliminatoriosPorFaseDTO(EstadoTorneo estado, FaseTorneo fase) =>
+        ObtenerPartidosEliminatoriosDTO(estado).Where(partido => partido.Fase == fase).ToList();
+
+    public List<PartidoDTO> ObtenerPartidosEliminatoriosAnterioresPorFaseDTO(EstadoTorneo estado, FaseTorneo fase) =>
+        ObtenerPartidosEliminatoriosAnterioresDTO(estado).Where(partido => partido.Fase == fase).ToList();
+
+    public PartidoDTO? ObtenerFinalDTO(EstadoTorneo estado) =>
+        ObtenerPartidosEliminatoriosDTO(estado).FirstOrDefault(partido => partido.Fase == FaseTorneo.Final);
+
+    public PartidoDTO? ObtenerTercerPuestoDTO(EstadoTorneo estado) =>
+        ObtenerPartidosEliminatoriosDTO(estado).FirstOrDefault(partido => partido.Fase == FaseTorneo.TercerPuesto);
+
+    public PartidoDTO? ObtenerFinalAnteriorDTO(EstadoTorneo estado) =>
+        ObtenerPartidosEliminatoriosAnterioresDTO(estado).FirstOrDefault(partido => partido.Fase == FaseTorneo.Final);
+
+    public PartidoDTO? ObtenerTercerPuestoAnteriorDTO(EstadoTorneo estado) =>
+        ObtenerPartidosEliminatoriosAnterioresDTO(estado).FirstOrDefault(partido => partido.Fase == FaseTorneo.TercerPuesto);
+
     public bool EstaJugado(PartidoDTO partido) =>
         partido.GolesLocal.HasValue && partido.GolesVisitante.HasValue;
 
