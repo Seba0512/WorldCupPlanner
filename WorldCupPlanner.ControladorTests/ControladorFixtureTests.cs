@@ -1,5 +1,6 @@
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Controladores;
+using WorldCupPlanner.Dominio.DTO;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -103,6 +104,54 @@ public class ControladorFixtureTests
 
         CollectionAssert.AreEqual(pendientesEsperados, pendientesObtenidos);
         CollectionAssert.AreEqual(jornadaEsperada, jornadaObtenida);
+    }
+
+    [TestMethod]
+    public void ObtenerFixtureDTO_DevuelveGruposYPartidosParaUI()
+    {
+        var controlador = new ControladorFixture(new ServicioFixture());
+        var (estado, _, _) = CrearEstadoConDosPartidosPendientes();
+
+        var fixtureDto = controlador.ObtenerFixtureDTO(estado);
+
+        Assert.IsNotNull(fixtureDto);
+        Assert.AreEqual(1, fixtureDto.Grupos.Count);
+        Assert.AreEqual(2, fixtureDto.Partidos.Count);
+        Assert.AreEqual("A", fixtureDto.Grupos[0].Etiqueta);
+        Assert.AreEqual("E1", fixtureDto.Grupos[0].Equipos[0].Nombre);
+        Assert.AreEqual("E2", fixtureDto.Grupos[0].Partidos[0].EquipoVisitante?.Nombre);
+    }
+
+    [TestMethod]
+    public void ObtenerFixtureAnteriorDTO_DevuelveDatosDelTorneoAnterior()
+    {
+        var controlador = new ControladorFixture(new ServicioFixture());
+        var (estado, _, _) = CrearEstadoConDosPartidosPendientes();
+        estado.ArchivarTorneoActual();
+
+        var fixtureDto = controlador.ObtenerFixtureAnteriorDTO(estado);
+
+        Assert.IsNull(controlador.ObtenerFixtureDTO(estado));
+        Assert.IsNotNull(fixtureDto);
+        Assert.AreEqual(1, fixtureDto.Grupos.Count);
+        Assert.AreEqual(2, fixtureDto.Partidos.Count);
+        Assert.AreEqual("A", fixtureDto.Grupos[0].Etiqueta);
+    }
+
+    [TestMethod]
+    public void ObtenerGruposDTO_DevuelveGruposSinExponerDominio()
+    {
+        var controlador = new ControladorFixture(new ServicioFixture());
+        var (estado, _, _) = CrearEstadoConDosPartidosPendientes();
+
+        var grupos = controlador.ObtenerGruposDTO(estado);
+        var grupo = controlador.ObtenerGrupoDTO(estado, "A");
+
+        Assert.AreEqual(1, grupos.Count);
+        Assert.IsInstanceOfType(grupos[0], typeof(GrupoDTO));
+        Assert.IsNotNull(grupo);
+        Assert.AreEqual("A", grupo.Etiqueta);
+        Assert.AreEqual(4, grupo.Equipos.Count);
     }
 
     [TestMethod]

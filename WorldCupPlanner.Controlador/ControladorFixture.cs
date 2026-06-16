@@ -109,6 +109,45 @@ public class ControladorFixture
         int jornadaActiva) =>
         _servicioFixture.ObtenerPartidosJornadaOFechaActual(estado, etapaActiva, jornadaActiva);
 
+    public FixtureDTO? ObtenerFixtureDTO(EstadoTorneo estado) =>
+        estado.Fixture == null ? null : FixtureDTO.FromEntity(estado.Fixture);
+
+    public FixtureDTO? ObtenerFixtureAnteriorDTO(EstadoTorneo estado) =>
+        estado.FixtureAnterior == null ? null : FixtureDTO.FromEntity(estado.FixtureAnterior);
+
+    public List<GrupoDTO> ObtenerGruposDTO(EstadoTorneo estado) =>
+        ObtenerFixtureDTO(estado)?.Grupos ?? [];
+
+    public List<GrupoDTO> ObtenerGruposAnterioresDTO(EstadoTorneo estado) =>
+        ObtenerFixtureAnteriorDTO(estado)?.Grupos ?? [];
+
+    public GrupoDTO? ObtenerGrupoDTO(EstadoTorneo estado, string etiqueta) =>
+        ObtenerGruposDTO(estado).FirstOrDefault(grupo => grupo.Etiqueta == etiqueta);
+
+    public GrupoDTO? ObtenerGrupoAnteriorDTO(EstadoTorneo estado, string etiqueta) =>
+        ObtenerGruposAnterioresDTO(estado).FirstOrDefault(grupo => grupo.Etiqueta == etiqueta);
+
+    public bool EstaJugado(PartidoDTO partido) =>
+        partido.GolesLocal.HasValue && partido.GolesVisitante.HasValue;
+
+    public bool EsEmpate(PartidoDTO partido) =>
+        EstaJugado(partido) && partido.GolesLocal == partido.GolesVisitante;
+
+    public bool FueDefinidoPorPenales(PartidoDTO partido) =>
+        EsEmpate(partido) && partido.GanadorPorPenales != null;
+
+    public bool EsGanador(PartidoDTO partido, EquipoDTO? equipo)
+    {
+        if (!EstaJugado(partido) || equipo == null)
+            return false;
+
+        if (FueDefinidoPorPenales(partido))
+            return partido.GanadorPorPenales?.Nombre == equipo.Nombre;
+
+        return (partido.EquipoLocal?.Nombre == equipo.Nombre && partido.GolesLocal > partido.GolesVisitante)
+               || (partido.EquipoVisitante?.Nombre == equipo.Nombre && partido.GolesVisitante > partido.GolesLocal);
+    }
+
     public string ObtenerMensajeExitoSimulacion(FaseTorneo fase) =>
         _servicioFixture.ObtenerMensajeExitoSimulacion(fase);
 

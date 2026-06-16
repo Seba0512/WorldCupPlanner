@@ -3,12 +3,13 @@
 @using WorldCupPlanner.Dominio.DTO
 @inject EstadoTorneo EstadoTorneo
 @inject ControladorClasificacion ControladorClasificacion
+@inject ControladorFixture ControladorFixture
 
 <PageTitle>Torneo anterior — WorldCupPlanner 2026</PageTitle>
 
 <PageHeader Titulo="Torneo anterior" Subtitulo="Torneo anterior — solo lectura" UrlVolver="/fixture" TextoVolver="Volver al fixture" />
 
-@if (EstadoTorneo.FixtureAnterior == null)
+@if (FixtureAnteriorDTO == null)
 {
     <div class="empty-state">
         <div class="empty-state-icon">📋</div>
@@ -57,7 +58,7 @@ else
         @if (_etapaActiva == FaseTorneo.FaseDeGrupos)
         {
             <div class="group-tabs" role="tablist" aria-label="Grupos de la fase de grupos">
-                @foreach (var grupo in EstadoTorneo.FixtureAnterior.Grupos)
+                @foreach (var grupo in GruposFixtureAnterior)
                 {
                     <button class="group-tab @(_grupoActivo == grupo.Etiqueta ? "active" : "")"
                             role="tab"
@@ -69,13 +70,13 @@ else
                 }
             </div>
 
-            @if (GrupoSeleccionado != null)
+            @if (GrupoSeleccionadoDTO != null)
             {
                 <div @key="(_etapaActiva, _grupoActivo)" class="tab-content-animated">
 
                     <div class="table-card mb-3">
                         <div class="table-card-header">
-                            <span class="table-card-title">Tabla de posiciones — Grupo @GrupoSeleccionado.Etiqueta</span>
+                            <span class="table-card-title">Tabla de posiciones — Grupo @GrupoSeleccionadoDTO.Etiqueta</span>
                             <span style="font-size:12px; color:var(--text-secondary)">4 equipos</span>
                         </div>
                         <div class="table-responsive">
@@ -127,32 +128,32 @@ else
 
                     <div class="table-card mb-4">
                         <div class="table-card-header">
-                            <span class="table-card-title">Partidos — Grupo @GrupoSeleccionado.Etiqueta</span>
-                            <span style="font-size:12px; color:var(--text-secondary)">@GrupoSeleccionado.Partidos.Count partidos</span>
+                            <span class="table-card-title">Partidos — Grupo @GrupoSeleccionadoDTO.Etiqueta</span>
+                            <span style="font-size:12px; color:var(--text-secondary)">@GrupoSeleccionadoDTO.Partidos.Count partidos</span>
                         </div>
-                        @foreach (var partido in GrupoSeleccionado.Partidos.OrderBy(p => p.Fecha))
+                        @foreach (var partido in GrupoSeleccionadoDTO.Partidos.OrderBy(p => p.Fecha))
                         {
                             <div class="match-card">
-                                <div class="match-team" style="color:@(partido.EsGanador(partido.EquipoLocal) ? "var(--accent-gold)" : "var(--text-primary)")">
+                                <div class="match-team" style="color:@(ControladorFixture.EsGanador(partido, partido.EquipoLocal) ? "var(--accent-gold)" : "var(--text-primary)")">
                                     <div>@partido.EquipoLocal?.Nombre</div>
-                                    @if (partido.EstaJugado() && partido.EsEmpate())
+                                    @if (ControladorFixture.EstaJugado(partido) && ControladorFixture.EsEmpate(partido))
                                     {
                                         <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-top:2px;">Empate</div>
                                     }
                                 </div>
                                 <div class="match-score">
-                                    @if (partido.EstaJugado())
+                                    @if (ControladorFixture.EstaJugado(partido))
                                     {
-                                        <span class="score-box" style="color:@(partido.EsGanador(partido.EquipoLocal) ? "var(--accent-gold)" : "var(--text-primary)")">@partido.GolesLocal</span>
+                                        <span class="score-box" style="color:@(ControladorFixture.EsGanador(partido, partido.EquipoLocal) ? "var(--accent-gold)" : "var(--text-primary)")">@partido.GolesLocal</span>
                                         <span class="score-sep">—</span>
-                                        <span class="score-box" style="color:@(partido.EsGanador(partido.EquipoVisitante) ? "var(--accent-gold)" : "var(--text-primary)")">@partido.GolesVisitante</span>
+                                        <span class="score-box" style="color:@(ControladorFixture.EsGanador(partido, partido.EquipoVisitante) ? "var(--accent-gold)" : "var(--text-primary)")">@partido.GolesVisitante</span>
                                     }
                                     else
                                     {
                                         <span style="font-size:12px; color:var(--text-muted)">vs</span>
                                     }
                                 </div>
-                                <div class="match-team right" style="color:@(partido.EsGanador(partido.EquipoVisitante) ? "var(--accent-gold)" : "var(--text-primary)")">
+                                <div class="match-team right" style="color:@(ControladorFixture.EsGanador(partido, partido.EquipoVisitante) ? "var(--accent-gold)" : "var(--text-primary)")">
                                     <div>@partido.EquipoVisitante?.Nombre</div>
                                 </div>
                                 <div class="match-meta" style="margin-left:12px; text-align:right; min-width:120px;">
@@ -409,8 +410,17 @@ else
     private static readonly List<EtapasTorneoHelper.EtapaTorneo> EtapasDisponibles =
         EtapasTorneoHelper.EtapasDisponibles;
 
+    private FixtureDTO? FixtureAnteriorDTO =>
+        ControladorFixture.ObtenerFixtureAnteriorDTO(EstadoTorneo);
+
+    private List<GrupoDTO> GruposFixtureAnterior =>
+        ControladorFixture.ObtenerGruposAnterioresDTO(EstadoTorneo);
+
     private Grupo? GrupoSeleccionado =>
         EstadoTorneo.FixtureAnterior?.Grupos.FirstOrDefault(g => g.Etiqueta == _grupoActivo);
+
+    private GrupoDTO? GrupoSeleccionadoDTO =>
+        ControladorFixture.ObtenerGrupoAnteriorDTO(EstadoTorneo, _grupoActivo);
 
     private IEnumerable<PosicionEquipoDTO> TablaGrupoSeleccionado =>
         GrupoSeleccionado == null

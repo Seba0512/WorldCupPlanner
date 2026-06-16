@@ -158,7 +158,7 @@ else
     <div class="row g-2 mb-3">
         <div class="col-auto">
             <span class="badge badge-green" style="font-size:12px; padding:5px 12px">
-                <span class="oi oi-check" aria-hidden="true"></span> Fixture generado — @EstadoTorneo.Fixture.Partidos.Count partidos
+                <span class="oi oi-check" aria-hidden="true"></span> Fixture generado — @FixtureActualDTO?.Partidos.Count partidos
             </span>
         </div>
     </div>
@@ -201,7 +201,7 @@ else
     {
         <!-- Tabs de grupos -->
         <div class="group-tabs" role="tablist" aria-label="Grupos de la fase de grupos">
-            @foreach (var grupo in EstadoTorneo.Fixture.Grupos)
+            @foreach (var grupo in GruposFixtureActual)
             {
                 <button class="group-tab @(_grupoActivo == grupo.Etiqueta ? "active" : "")"
                         role="tab"
@@ -214,11 +214,11 @@ else
         </div>
 
         <!-- Partidos del grupo activo -->
-        @if (GrupoSeleccionado != null)
+        @if (GrupoSeleccionadoDTO != null)
         {
             <div class="table-card mb-3">
                 <div class="table-card-header">
-                    <span class="table-card-title">Tabla de posiciones — Grupo @GrupoSeleccionado.Etiqueta</span>
+                    <span class="table-card-title">Tabla de posiciones — Grupo @GrupoSeleccionadoDTO.Etiqueta</span>
                     <span style="font-size:12px; color:var(--text-secondary)">4 equipos</span>
                 </div>
                 <div class="table-responsive">
@@ -270,17 +270,18 @@ else
 
             <div class="table-card mb-4">
                 <div class="table-card-header">
-                    <span class="table-card-title">Grupo @GrupoSeleccionado.Etiqueta</span>
-                    <span style="font-size:12px; color:var(--text-secondary)">@GrupoSeleccionado.Partidos.Count partidos</span>
+                    <span class="table-card-title">Grupo @GrupoSeleccionadoDTO.Etiqueta</span>
+                    <span style="font-size:12px; color:var(--text-secondary)">@GrupoSeleccionadoDTO.Partidos.Count partidos</span>
                 </div>
-                @foreach (var partido in GrupoSeleccionado.Partidos)
+                @foreach (var partido in GrupoSeleccionadoDTO.Partidos)
                 {
-                    <div class="match-card @(partido.EstaJugado() && partido.Ganador() != null ? "match-winner" : "")">
-                        <div class="match-team @(partido.EstaJugado() && partido.Ganador() == partido.EquipoLocal ? "match-winner" : "")">
+                    var partidoDominio = ObtenerPartidoDominio(partido);
+                    <div class="match-card @(ControladorFixture.EstaJugado(partido) && (ControladorFixture.EsGanador(partido, partido.EquipoLocal) || ControladorFixture.EsGanador(partido, partido.EquipoVisitante)) ? "match-winner" : "")">
+                        <div class="match-team @(ControladorFixture.EsGanador(partido, partido.EquipoLocal) ? "match-winner" : "")">
                             @partido.EquipoLocal?.Nombre
                         </div>
                         <div class="match-score">
-                            @if (partido.EstaJugado())
+                            @if (ControladorFixture.EstaJugado(partido))
                             {
                                 <span class="score-box">@partido.GolesLocal</span>
                                 <span class="score-sep">—</span>
@@ -291,7 +292,7 @@ else
                                 <span style="font-size:12px; color:var(--text-muted)">vs</span>
                             }
                         </div>
-                        <div class="match-team right @(partido.EstaJugado() && partido.Ganador() == partido.EquipoVisitante ? "match-winner" : "")">
+                        <div class="match-team right @(ControladorFixture.EsGanador(partido, partido.EquipoVisitante) ? "match-winner" : "")">
                             @partido.EquipoVisitante?.Nombre
                         </div>
                         <div class="match-meta" style="margin-left:12px; text-align:right; min-width:110px">
@@ -301,9 +302,9 @@ else
                         {
                             <button type="button"
                                     class="btn btn-warning btn-sm"
-                                    disabled="@(!PuedeSimularPartido(partido))"
+                                    disabled="@(!PuedeSimularPartido(partidoDominio))"
                                     style="margin-left:8px; flex-shrink:0"
-                                    @onclick="() => SimularPartido(partido)">
+                                    @onclick="() => SimularPartido(partidoDominio)">
                                 Simular partido
                             </button>
                             <a href="/partidos/@partido.Id/editar" class="btn btn-success btn-sm" style="margin-left:8px; flex-shrink:0">
@@ -659,8 +660,17 @@ else
     private static readonly List<EtapasTorneoHelper.EtapaTorneo> EtapasDisponibles =
         EtapasTorneoHelper.EtapasDisponibles;
 
+    private FixtureDTO? FixtureActualDTO =>
+        ControladorFixture.ObtenerFixtureDTO(EstadoTorneo);
+
+    private List<GrupoDTO> GruposFixtureActual =>
+        ControladorFixture.ObtenerGruposDTO(EstadoTorneo);
+
     private Grupo? GrupoSeleccionado =>
         EstadoTorneo.Fixture?.Grupos.FirstOrDefault(g => g.Etiqueta == _grupoActivo);
+
+    private GrupoDTO? GrupoSeleccionadoDTO =>
+        ControladorFixture.ObtenerGrupoDTO(EstadoTorneo, _grupoActivo);
 
     private IEnumerable<PosicionEquipoDTO> TablaGrupoSeleccionado =>
         GrupoSeleccionado == null
@@ -822,6 +832,10 @@ else
 
     private Partido? ObtenerProximoPartidoSimulable() =>
         ControladorFixture.ObtenerProximoPartidoSimulable(EstadoTorneo, _etapaActiva);
+
+    private Partido? ObtenerPartidoDominio(PartidoDTO partido) =>
+        EstadoTorneo.Fixture?.Partidos.FirstOrDefault(p => p.Id == partido.Id)
+        ?? EstadoTorneo.PartidosEliminatorios.FirstOrDefault(p => p.Id == partido.Id);
 
     private void SincronizarJornadaActivaConPendiente()
     {
