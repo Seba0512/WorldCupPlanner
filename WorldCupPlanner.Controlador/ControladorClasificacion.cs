@@ -1,5 +1,6 @@
 using WorldCupPlanner.Dominio.DTO;
 using WorldCupPlanner.Dominio.Entidades;
+using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.Controladores;
@@ -66,5 +67,21 @@ public class ControladorClasificacion
     {
         var campeon = ObtenerCampeon(partidoFinal);
         return campeon == null ? null : EquipoDTO.FromEntity(campeon);
+    }
+
+    public EquipoDTO? ObtenerCampeonDTO(EstadoTorneo estadoTorneo)
+    {
+        var partidoFinal = estadoTorneo.PartidosEliminatorios
+            .FirstOrDefault(p => p.Fase == FaseTorneo.Final);
+
+        return ObtenerCampeonDTO(partidoFinal);
+    }
+
+    public EquipoDTO? ObtenerCampeonAnteriorDTO(EstadoTorneo estadoTorneo)
+    {
+        var partidoFinal = estadoTorneo.PartidosEliminatoriosAnteriores
+            .FirstOrDefault(p => p.Fase == FaseTorneo.Final);
+
+        return ObtenerCampeonDTO(partidoFinal);
     }
 }

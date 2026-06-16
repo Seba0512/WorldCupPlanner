@@ -213,7 +213,69 @@ public class ControladorClasificacionTests
         Assert.IsNotNull(campeon);
         Assert.IsInstanceOfType(campeon, typeof(EquipoDTO));
         Assert.AreEqual(local.Nombre, campeon.Nombre);
-        Assert.IsNull(controlador.ObtenerCampeonDTO(null));
+        Assert.IsNull(controlador.ObtenerCampeonDTO((Partido?)null));
+    }
+
+    [TestMethod]
+    public void ObtenerCampeonDTO_ConFinalJugado_DevuelveGanadorComoDTO()
+    {
+        var controlador = new ControladorClasificacion(new ServicioClasificacion());
+        var local = CrearEquipo("Finalista1");
+        var visitante = CrearEquipo("Finalista2");
+        var final = CrearPartido(local, visitante, 2, 1);
+        final.Fase = FaseTorneo.Final;
+        var estado = new EstadoTorneo();
+        estado.PartidosEliminatorios.Add(final);
+
+        var campeon = controlador.ObtenerCampeonDTO(estado);
+
+        Assert.IsNotNull(campeon);
+        Assert.AreEqual(local.Nombre, campeon.Nombre);
+    }
+
+    [TestMethod]
+    public void ObtenerCampeonDTO_SinFinalJugado_DevuelveNull()
+    {
+        var controlador = new ControladorClasificacion(new ServicioClasificacion());
+        var local = CrearEquipo("Finalista1");
+        var visitante = CrearEquipo("Finalista2");
+        var final = CrearPartido(local, visitante, 0, 0);
+        final.Fase = FaseTorneo.Final;
+        final.GolesLocal = null;
+        final.GolesVisitante = null;
+        var estado = new EstadoTorneo();
+        estado.PartidosEliminatorios.Add(final);
+
+        var campeon = controlador.ObtenerCampeonDTO(estado);
+
+        Assert.IsNull(campeon);
+    }
+
+    [TestMethod]
+    public void ObtenerCampeonAnteriorDTO_ConFinalAnteriorJugado_DevuelveGanadorComoDTO()
+    {
+        var controlador = new ControladorClasificacion(new ServicioClasificacion());
+        var local = CrearEquipo("Finalista1");
+        var visitante = CrearEquipo("Finalista2");
+        var final = CrearPartido(local, visitante, 1, 3);
+        final.Fase = FaseTorneo.Final;
+        var estado = new EstadoTorneo();
+        estado.PartidosEliminatoriosAnteriores.Add(final);
+
+        var campeon = controlador.ObtenerCampeonAnteriorDTO(estado);
+
+        Assert.IsNotNull(campeon);
+        Assert.AreEqual(visitante.Nombre, campeon.Nombre);
+    }
+
+    [TestMethod]
+    public void ObtenerCampeonAnteriorDTO_SinFixtureAnterior_DevuelveNull()
+    {
+        var controlador = new ControladorClasificacion(new ServicioClasificacion());
+
+        var campeon = controlador.ObtenerCampeonAnteriorDTO(new EstadoTorneo());
+
+        Assert.IsNull(campeon);
     }
 
     private Grupo CrearGrupoConResultados(string etiqueta)

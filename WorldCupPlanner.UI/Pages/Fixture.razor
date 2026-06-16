@@ -684,7 +684,7 @@ else
         ControladorFixture.ObtenerTercerPuestoDTO(EstadoTorneo);
 
     private EquipoDTO? Campeon =>
-        ControladorClasificacion.ObtenerCampeonDTO(ObtenerPartidoDominio(PartidoFinalDTO));
+        ControladorClasificacion.ObtenerCampeonDTO(EstadoTorneo);
 
     private ConfiguracionTorneoDTO ConfiguracionUsadaParaFixture =>
         ControladorConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixtureDTO();
@@ -837,12 +837,6 @@ else
 
     private Partido? ObtenerProximoPartidoSimulable() =>
         ControladorFixture.ObtenerProximoPartidoSimulable(EstadoTorneo, _etapaActiva);
-
-    private Partido? ObtenerPartidoDominio(PartidoDTO? partido) =>
-        partido == null
-            ? null
-            : EstadoTorneo.Fixture?.Partidos.FirstOrDefault(p => p.Id == partido.Id)
-              ?? EstadoTorneo.PartidosEliminatorios.FirstOrDefault(p => p.Id == partido.Id);
 
     private void SincronizarJornadaActivaConPendiente()
     {

@@ -433,10 +433,8 @@ else
     private PartidoDTO? PartidoTercerPuestoAnteriorDTO =>
         ControladorFixture.ObtenerTercerPuestoAnteriorDTO(EstadoTorneo);
 
-    private Partido? PartidoFinalAnterior =>
-        EstadoTorneo.PartidosEliminatoriosAnteriores.FirstOrDefault(p => p.Fase == FaseTorneo.Final);
-
-    private EquipoDTO? Campeon => ControladorClasificacion.ObtenerCampeonDTO(PartidoFinalAnterior);
+    private EquipoDTO? Campeon =>
+        ControladorClasificacion.ObtenerCampeonAnteriorDTO(EstadoTorneo);
 
     private void SeleccionarEtapa(FaseTorneo fase)
     {
