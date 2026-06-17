@@ -5,14 +5,9 @@ using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
-public class RepositorioIncidenciaSql : IRepositorioIncidencia
+public class RepositorioIncidenciaSql : RepositorioBase<Incidencia>, IRepositorioIncidencia
 {
-    private readonly SqlContext _contexto;
-
-    public RepositorioIncidenciaSql(SqlContext contexto)
-    {
-        _contexto = contexto;
-    }
+    public RepositorioIncidenciaSql(SqlContext contexto) : base(contexto) { }
 
     public void Agregar(Incidencia entidad)
     {
@@ -29,7 +24,7 @@ public class RepositorioIncidenciaSql : IRepositorioIncidencia
         if (!existe)
             throw new EntidadInexistenteExcepcion("La incidencia no existe.");
 
-        DesvincularInstanciaLocal(entidad.Id, entidad);
+        DesvincularInstanciaLocal(_contexto.Incidencias, entidad.Id, entidad);
         _contexto.Incidencias.Update(entidad);
         _contexto.SaveChanges();
     }
@@ -62,33 +57,10 @@ public class RepositorioIncidenciaSql : IRepositorioIncidencia
             .ToList();
     }
 
-    private void DesvincularInstanciaLocal(int id, Incidencia entidad)
-    {
-        var local = _contexto.Incidencias.Local.FirstOrDefault(i => i.Id == id);
-        if (local != null && !ReferenceEquals(local, entidad))
-            _contexto.Entry(local).State = EntityState.Detached;
-    }
-
     private Equipo ResolverEquipoExistente(Equipo equipo)
     {
-        if (equipo.Id > 0)
-        {
-            var localPorId = _contexto.Equipos.Local.FirstOrDefault(e => e.Id == equipo.Id);
-            if (localPorId != null)
-                return localPorId;
-
-            var existentePorId = _contexto.Equipos.FirstOrDefault(e => e.Id == equipo.Id);
-            if (existentePorId != null)
-                return existentePorId;
-        }
-
-        var localPorNombre = _contexto.Equipos.Local.FirstOrDefault(e => e.Nombre == equipo.Nombre);
-        if (localPorNombre != null)
-            return localPorNombre;
-
-        var existentePorNombre = _contexto.Equipos.FirstOrDefault(e => e.Nombre == equipo.Nombre);
-        if (existentePorNombre != null)
-            return existentePorNombre;
+        var encontrado = BuscarEquipoEnContexto(equipo);
+        if (encontrado != null) return encontrado;
 
         _contexto.Entry(equipo).State = EntityState.Unchanged;
         return equipo;

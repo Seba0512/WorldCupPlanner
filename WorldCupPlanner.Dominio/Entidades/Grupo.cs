@@ -2,7 +2,7 @@
 
 namespace WorldCupPlanner.Dominio.Entidades;
 
-public class Grupo
+public class Grupo : IEntidadConId
 {
     private const char EtiquetaMinima = 'A';
     private const char EtiquetaMaxima = 'L';

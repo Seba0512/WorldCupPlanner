@@ -2,7 +2,7 @@
 
 namespace WorldCupPlanner.Dominio.Entidades
 {
-    public class Equipo
+    public class Equipo : IEntidadConId
     {
         private static readonly string[] PrefijosBanderaValidos =
         [
@@ -19,6 +19,12 @@ namespace WorldCupPlanner.Dominio.Entidades
         public int RankingInicial { get; set; }
         public Confederacion? Confederacion { get; set; }
         public string Bandera { get; set; } = "";
+
+        public void InicializarRankingInicial()
+        {
+            if (RankingInicial == 0)
+                RankingInicial = RankingFIFA;
+        }
 
         public bool EsValido()
         {

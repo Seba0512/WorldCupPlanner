@@ -1,6 +1,6 @@
 namespace WorldCupPlanner.Dominio.Entidades;
 
-public abstract class Incidencia
+public abstract class Incidencia : IEntidadConId
 {
     public int Id { get; set; }
     public int MinutoDelPartido { get; set; }

@@ -5,14 +5,9 @@ using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
-public class RepositorioUsuarioSql : IRepositorioUsuario, IRepositorioConClaveEditable<Usuario>
+public class RepositorioUsuarioSql : RepositorioBase<Usuario>, IRepositorioUsuario, IRepositorioConClaveEditable<Usuario>
 {
-    private readonly SqlContext _contexto;
-
-    public RepositorioUsuarioSql(SqlContext contexto)
-    {
-        _contexto = contexto;
-    }
+    public RepositorioUsuarioSql(SqlContext contexto) : base(contexto) { }
 
     public void Agregar(Usuario usuario)
     {
@@ -26,7 +21,7 @@ public class RepositorioUsuarioSql : IRepositorioUsuario, IRepositorioConClaveEd
         if (!existe)
             throw new EntidadInexistenteExcepcion("El usuario no existe.");
 
-        DesvincularInstanciaLocal(usuario.Id, usuario);
+        DesvincularInstanciaLocal(_contexto.Usuarios, usuario.Id, usuario);
         _contexto.Usuarios.Update(usuario);
         _contexto.SaveChanges();
     }
@@ -37,7 +32,7 @@ public class RepositorioUsuarioSql : IRepositorioUsuario, IRepositorioConClaveEd
         if (!existe)
             throw new EntidadInexistenteExcepcion("El usuario no existe.");
 
-        DesvincularInstanciaLocal(usuario.Id, usuario);
+        DesvincularInstanciaLocal(_contexto.Usuarios, usuario.Id, usuario);
         _contexto.Usuarios.Update(usuario);
         _contexto.SaveChanges();
     }
@@ -65,16 +60,9 @@ public class RepositorioUsuarioSql : IRepositorioUsuario, IRepositorioConClaveEd
 
     private Usuario? ObtenerUsuarioPersistido(Usuario usuario)
     {
-        if (usuario.Id > 0)
+        if (usuario.Id > IdNoAsignado)
             return _contexto.Usuarios.FirstOrDefault(u => u.Id == usuario.Id);
 
         return _contexto.Usuarios.FirstOrDefault(u => u.Email == usuario.Email);
-    }
-
-    private void DesvincularInstanciaLocal(int id, Usuario entidad)
-    {
-        var local = _contexto.Usuarios.Local.FirstOrDefault(u => u.Id == id);
-        if (local != null && !ReferenceEquals(local, entidad))
-            _contexto.Entry(local).State = EntityState.Detached;
     }
 }

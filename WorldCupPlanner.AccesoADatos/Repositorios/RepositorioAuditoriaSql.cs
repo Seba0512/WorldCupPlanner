@@ -5,14 +5,9 @@ using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
-public class RepositorioAuditoriaSql : IRepositorioConId<Auditoria>
+public class RepositorioAuditoriaSql : RepositorioBase<Auditoria>, IRepositorioConId<Auditoria>
 {
-    private readonly SqlContext _contexto;
-
-    public RepositorioAuditoriaSql(SqlContext contexto)
-    {
-        _contexto = contexto;
-    }
+    public RepositorioAuditoriaSql(SqlContext contexto) : base(contexto) { }
 
     public int SiguienteId()
     {
@@ -31,7 +26,7 @@ public class RepositorioAuditoriaSql : IRepositorioConId<Auditoria>
         if (!existe)
             throw new EntidadInexistenteExcepcion("El log de auditoría no existe.");
 
-        DesvincularInstanciaLocal(entidad.Id, entidad);
+        DesvincularInstanciaLocal(_contexto.Auditorias, entidad.Id, entidad);
         _contexto.Auditorias.Update(entidad);
         _contexto.SaveChanges();
     }
@@ -49,12 +44,5 @@ public class RepositorioAuditoriaSql : IRepositorioConId<Auditoria>
     public List<Auditoria> Buscar(Func<Auditoria, bool> predicado)
     {
         return _contexto.Auditorias.AsNoTracking().Where(predicado).ToList();
-    }
-
-    private void DesvincularInstanciaLocal(int id, Auditoria entidad)
-    {
-        var local = _contexto.Auditorias.Local.FirstOrDefault(a => a.Id == id);
-        if (local != null && !ReferenceEquals(local, entidad))
-            _contexto.Entry(local).State = EntityState.Detached;
     }
 }

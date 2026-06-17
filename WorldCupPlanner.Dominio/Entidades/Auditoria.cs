@@ -1,6 +1,6 @@
 namespace WorldCupPlanner.Dominio.Entidades;
 
-public class Auditoria
+public class Auditoria : IEntidadConId
 {
     public int Id { get; private set; }
     public string Timestamp { get; private set; }

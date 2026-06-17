@@ -5,14 +5,9 @@ using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
-public class RepositorioGrupoSql : IRepositorio<Grupo>
+public class RepositorioGrupoSql : RepositorioBase<Grupo>, IRepositorio<Grupo>
 {
-    private readonly SqlContext _contexto;
-
-    public RepositorioGrupoSql(SqlContext contexto)
-    {
-        _contexto = contexto;
-    }
+    public RepositorioGrupoSql(SqlContext contexto) : base(contexto) { }
 
     public void Agregar(Grupo grupo)
     {
@@ -68,7 +63,7 @@ public class RepositorioGrupoSql : IRepositorio<Grupo>
 
     private Grupo? ObtenerGrupoPersistido(Grupo grupo)
     {
-        if (grupo.Id > 0)
+        if (grupo.Id > IdNoAsignado)
             return _contexto.Grupos.Include(g => g.Equipos).FirstOrDefault(g => g.Id == grupo.Id);
 
         return _contexto.Grupos.Include(g => g.Equipos).FirstOrDefault(g => g.Etiqueta == grupo.Etiqueta);
@@ -76,26 +71,18 @@ public class RepositorioGrupoSql : IRepositorio<Grupo>
 
     private Equipo ObtenerEquipoParaRelacion(Equipo equipo)
     {
-        var local = equipo.Id > 0
-            ? _contexto.Equipos.Local.FirstOrDefault(e => e.Id == equipo.Id)
-            : _contexto.Equipos.Local.FirstOrDefault(e => e.Nombre == equipo.Nombre);
-        if (local != null)
-            return local;
-
-        var existente = equipo.Id > 0
-            ? _contexto.Equipos.FirstOrDefault(e => e.Id == equipo.Id)
-            : _contexto.Equipos.FirstOrDefault(e => e.Nombre == equipo.Nombre);
-        if (existente != null)
-            return existente;
+        var encontrado = BuscarEquipoEnContexto(equipo);
+        if (encontrado != null) return encontrado;
 
         var nuevo = new Equipo
         {
             Nombre = equipo.Nombre,
             RankingFIFA = equipo.RankingFIFA,
-            RankingInicial = equipo.RankingInicial == 0 ? equipo.RankingFIFA : equipo.RankingInicial,
+            RankingInicial = equipo.RankingInicial,
             Confederacion = equipo.Confederacion,
             Bandera = equipo.Bandera
         };
+        nuevo.InicializarRankingInicial();
         _contexto.Equipos.Add(nuevo);
         return nuevo;
     }

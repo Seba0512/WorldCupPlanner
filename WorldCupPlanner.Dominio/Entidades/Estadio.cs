@@ -1,6 +1,6 @@
 namespace WorldCupPlanner.Dominio.Entidades
 {
-    public class Estadio
+    public class Estadio : IEntidadConId
     {
         public int Id { get; set; } 
         public string Nombre { get; set; } = "";

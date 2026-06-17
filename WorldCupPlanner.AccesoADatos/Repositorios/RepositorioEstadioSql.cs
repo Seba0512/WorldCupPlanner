@@ -5,14 +5,9 @@ using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.AccesoADatos.Repositorios;
 
-public class RepositorioEstadioSql : IRepositorio<Estadio>, IRepositorioConClaveEditable<Estadio>
+public class RepositorioEstadioSql : RepositorioBase<Estadio>, IRepositorio<Estadio>, IRepositorioConClaveEditable<Estadio>
 {
-    private readonly SqlContext _contexto;
-
-    public RepositorioEstadioSql(SqlContext contexto)
-    {
-        _contexto = contexto;
-    }
+    public RepositorioEstadioSql(SqlContext contexto) : base(contexto) { }
 
     public void Agregar(Estadio estadio)
     {
@@ -26,7 +21,7 @@ public class RepositorioEstadioSql : IRepositorio<Estadio>, IRepositorioConClave
         if (!existe)
             throw new EntidadInexistenteExcepcion("El estadio no existe.");
 
-        DesvincularInstanciaLocal(estadio.Id, estadio);
+        DesvincularInstanciaLocal(_contexto.Estadios, estadio.Id, estadio);
         _contexto.Estadios.Update(estadio);
         _contexto.SaveChanges();
     }
@@ -61,16 +56,9 @@ public class RepositorioEstadioSql : IRepositorio<Estadio>, IRepositorioConClave
 
     private Estadio? ObtenerEstadioPersistido(Estadio estadio)
     {
-        if (estadio.Id > 0)
+        if (estadio.Id > IdNoAsignado)
             return _contexto.Estadios.FirstOrDefault(e => e.Id == estadio.Id);
 
         return _contexto.Estadios.FirstOrDefault(e => e.Nombre == estadio.Nombre);
-    }
-
-    private void DesvincularInstanciaLocal(int id, Estadio entidad)
-    {
-        var local = _contexto.Estadios.Local.FirstOrDefault(e => e.Id == id);
-        if (local != null && !ReferenceEquals(local, entidad))
-            _contexto.Entry(local).State = EntityState.Detached;
     }
 }

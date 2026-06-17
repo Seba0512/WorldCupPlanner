@@ -6,7 +6,7 @@ using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Dominio.Entidades;
 
-public class Usuario
+public class Usuario : IEntidadConId
 {
     private const string PatronEmail = @"^[^\s@]+@[^\s@]+\.[^\s@]+$";
     private const string PatronFormatoFecha = @"^\d{2}-\d{2}-\d{4}$";

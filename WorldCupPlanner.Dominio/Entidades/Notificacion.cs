@@ -1,6 +1,6 @@
 namespace WorldCupPlanner.Dominio.Entidades;
 
-public class Notificacion
+public class Notificacion : IEntidadConId
 {
     public int Id { get; set; }
     public string Mensaje { get; set; } = "";
