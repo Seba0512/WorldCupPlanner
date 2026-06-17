@@ -326,6 +326,95 @@ public class ServicioRankingDinamicoTests
         Assert.AreEqual(equipoC.RankingFIFA, equipoCMemoria.RankingFIFA);
     }
 
+    [TestMethod]
+    public void RecalcularRankingsEnMemoria_SimularVariosPartidos_RegistraAuditoriaRankingPorCadaPartido()
+    {
+        // Arrange — reproduce el loop del orquestador: recalcular en memoria por cada partido
+        var equipoA = CrearEquipo(1, "EquipoA", 1500);
+        var equipoB = CrearEquipo(2, "EquipoB", 1200);
+        var equipoC = CrearEquipo(3, "EquipoC", 1000);
+        var partidoUno = CrearPartido(1, new DateTime(2026, 6, 1), equipoA, equipoB, 2, 0);
+        var partidoDos = CrearPartido(2, new DateTime(2026, 6, 2), equipoA, equipoC, 1, 1);
+        var estado = CrearEstadoConGrupo(
+            new List<Equipo> { equipoA, equipoB, equipoC },
+            partidoUno,
+            partidoDos);
+        var repoAuditoria = new RepositorioAuditoriaRankingStub();
+        var servicio = new ServicioRankingDinamico(null, null, new ServicioAuditoria(repoAuditoria));
+
+        // Act
+        servicio.RecalcularRankingsEnMemoria(estado, partidoUno);
+        servicio.RecalcularRankingsEnMemoria(estado, partidoDos);
+
+        // Assert — una entrada de RankingDinamico por cada partido simulado, sin truncar
+        var logsRanking = repoAuditoria.Buscar(a => a.Accion == "RankingDinamico");
+        Assert.AreEqual(2, logsRanking.Count);
+        Assert.IsFalse(logsRanking.Any(l => l.Detalle.Contains("cambios")));
+    }
+
+    [TestMethod]
+    public void RecalcularRankingsEnMemoria_ConPartidoReferencia_AuditaValoresAnteriorYNuevo()
+    {
+        // Arrange
+        var equipoA = CrearEquipo(1, "EquipoA", 1500);
+        var equipoB = CrearEquipo(2, "EquipoB", 1200);
+        var equipoC = CrearEquipo(3, "EquipoC", 1000);
+        var partidoUno = CrearPartido(1, new DateTime(2026, 6, 1), equipoA, equipoB, 2, 0);
+        var partidoDos = CrearPartido(2, new DateTime(2026, 6, 2), equipoA, equipoC, 1, 1);
+        var estado = CrearEstadoConGrupo(
+            new List<Equipo> { equipoA, equipoB, equipoC },
+            partidoUno,
+            partidoDos);
+        var repoAuditoria = new RepositorioAuditoriaRankingStub();
+        var servicio = new ServicioRankingDinamico(null, null, new ServicioAuditoria(repoAuditoria));
+
+        var rankingNuevoLocalUno = servicio.ActualizarRanking(1500, 1200, 1.0, FaseTorneo.FaseDeGrupos);
+        var rankingNuevoVisitanteUno = servicio.ActualizarRanking(1200, 1500, 0.0, FaseTorneo.FaseDeGrupos);
+        var rankingNuevoLocalDos = servicio.ActualizarRanking(rankingNuevoLocalUno, 1000, 0.5, FaseTorneo.FaseDeGrupos);
+
+        // Act
+        servicio.RecalcularRankingsEnMemoria(estado, partidoUno);
+        servicio.RecalcularRankingsEnMemoria(estado, partidoDos);
+
+        // Assert — cada entrada describe el cambio anterior -> nuevo del partido correspondiente
+        var logsRanking = repoAuditoria.Buscar(a => a.Accion == "RankingDinamico");
+        StringAssert.Contains(logsRanking[0].Detalle, $"EquipoA: 1500 -> {rankingNuevoLocalUno}");
+        StringAssert.Contains(logsRanking[0].Detalle, $"EquipoB: 1200 -> {rankingNuevoVisitanteUno}");
+        StringAssert.Contains(logsRanking[1].Detalle, $"EquipoA: {rankingNuevoLocalUno} -> {rankingNuevoLocalDos}");
+    }
+
+    [TestMethod]
+    public void RecalcularRankings_ConRegistrarAuditoriaFalse_NoRegistraAuditoriaConsolidada()
+    {
+        // Arrange
+        var equipoA = CrearEquipo(1, "EquipoA", 1500);
+        var equipoB = CrearEquipo(2, "EquipoB", 1200);
+        var repoEquipo = new RepositorioEquipoRankingStub();
+        repoEquipo.Agregar(equipoA);
+        repoEquipo.Agregar(equipoB);
+        var repoPartido = new RepositorioPartidoRankingStub();
+        repoPartido.Agregar(CrearPartido(1, new DateTime(2026, 6, 1), equipoA, equipoB, 2, 0));
+        var repoAuditoria = new RepositorioAuditoriaRankingStub();
+        var servicio = new ServicioRankingDinamico(repoEquipo, repoPartido, new ServicioAuditoria(repoAuditoria));
+
+        // Act
+        servicio.RecalcularRankings(null, null, registrarAuditoria: false);
+
+        // Assert — persiste el ranking pero no genera la entrada consolidada
+        Assert.AreEqual(0, repoAuditoria.Buscar(a => a.Accion == "RankingDinamico").Count);
+        Assert.AreNotEqual(1500, equipoA.RankingFIFA);
+    }
+
+    private static EstadoTorneo CrearEstadoConGrupo(List<Equipo> equipos, params Partido[] partidos)
+    {
+        var grupo = new Grupo("A", equipos);
+        foreach (var partido in partidos)
+            grupo.Partidos.Add(partido);
+        var estado = new EstadoTorneo();
+        estado.EstablecerFixture(new Fixture { Grupos = new List<Grupo> { grupo } });
+        return estado;
+    }
+
     private static Partido CrearPartido(
         int id, DateTime fecha, Equipo local, Equipo visitante, int golesLocal, int golesVisitante) => new()
     {

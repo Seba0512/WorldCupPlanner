@@ -89,7 +89,10 @@ public class ServicioRankingDinamico
         }
     }
 
-    public List<CambioRanking> RecalcularRankings(Usuario? usuario = null, int? partidoReferenciaId = null)
+    public List<CambioRanking> RecalcularRankings(
+        Usuario? usuario = null,
+        int? partidoReferenciaId = null,
+        bool registrarAuditoria = true)
     {
         if (_repositorioEquipo == null || _repositorioPartido == null)
             return new List<CambioRanking>();
@@ -148,7 +151,8 @@ public class ServicioRankingDinamico
                 cambios.Add(new CambioRanking(equipo.Nombre, rankingAnteriorAuditado, equipo.RankingFIFA));
         }
 
-        RegistrarAuditoria(cambios, usuario);
+        if (registrarAuditoria)
+            RegistrarAuditoria(cambios, usuario);
         return cambios;
     }
 
@@ -184,15 +188,24 @@ public class ServicioRankingDinamico
         return cambios;
     }
 
-    public void RecalcularRankingsEnMemoria(EstadoTorneo estado)
+    public List<CambioRanking> RecalcularRankingsEnMemoria(
+        EstadoTorneo estado,
+        Partido? partidoReferencia = null,
+        Usuario? usuario = null)
     {
         var equipos = _consultasTorneo.ObtenerTodosLosEquipos(estado).ToList();
         if (equipos.Count == 0)
-            return;
+            return new List<CambioRanking>();
 
         var rankingBase = ConstruirRankingBase(equipos);
-        var rankingActual = ReproducirHistorial(estado, rankingBase);
+        var cambiosDelPartido = new List<CambioRanking>();
+        var rankingActual = ReproducirHistorial(estado, rankingBase, partidoReferencia, cambiosDelPartido);
         AplicarRankings(equipos, rankingBase, rankingActual);
+
+        if (partidoReferencia != null)
+            RegistrarAuditoria(cambiosDelPartido, usuario);
+
+        return cambiosDelPartido;
     }
 
     private static Dictionary<string, int> ConstruirRankingBase(List<Equipo> equipos)
@@ -210,7 +223,9 @@ public class ServicioRankingDinamico
 
     private Dictionary<string, int> ReproducirHistorial(
         EstadoTorneo estado,
-        Dictionary<string, int> rankingBase)
+        Dictionary<string, int> rankingBase,
+        Partido? partidoReferencia,
+        List<CambioRanking> cambiosDelPartidoReferencia)
     {
         var rankingActual = new Dictionary<string, int>(rankingBase);
         var partidosJugados = _consultasTorneo.ObtenerTodosLosPartidos(estado)
@@ -219,27 +234,44 @@ public class ServicioRankingDinamico
             .ThenBy(p => p.Id);
 
         foreach (var partido in partidosJugados)
-            AplicarPartidoEnHistorial(partido, rankingActual);
+        {
+            var cambios = AplicarPartidoEnHistorial(partido, rankingActual);
+            if (partidoReferencia != null && EsMismoPartido(partido, partidoReferencia))
+                cambiosDelPartidoReferencia.AddRange(cambios);
+        }
 
         return rankingActual;
     }
 
-    private void AplicarPartidoEnHistorial(Partido partido, Dictionary<string, int> rankingActual)
+    private List<CambioRanking> AplicarPartidoEnHistorial(Partido partido, Dictionary<string, int> rankingActual)
     {
         if (partido.EquipoLocal == null || partido.EquipoVisitante == null)
-            return;
+            return new List<CambioRanking>();
 
         var claveLocal = ClaveEquipo(partido.EquipoLocal);
         var claveVisitante = ClaveEquipo(partido.EquipoVisitante);
         if (!rankingActual.ContainsKey(claveLocal) || !rankingActual.ContainsKey(claveVisitante))
-            return;
+            return new List<CambioRanking>();
 
         var rankingLocal = rankingActual[claveLocal];
         var rankingVisitante = rankingActual[claveVisitante];
         var resultadoLocal = DeterminarResultado(partido.GolesLocal!.Value, partido.GolesVisitante!.Value);
 
-        rankingActual[claveLocal] = ActualizarRanking(rankingLocal, rankingVisitante, resultadoLocal, partido.Fase);
-        rankingActual[claveVisitante] = ActualizarRanking(rankingVisitante, rankingLocal, 1.0 - resultadoLocal, partido.Fase);
+        var nuevoLocal = ActualizarRanking(rankingLocal, rankingVisitante, resultadoLocal, partido.Fase);
+        var nuevoVisitante = ActualizarRanking(rankingVisitante, rankingLocal, 1.0 - resultadoLocal, partido.Fase);
+        rankingActual[claveLocal] = nuevoLocal;
+        rankingActual[claveVisitante] = nuevoVisitante;
+
+        return new List<CambioRanking>
+        {
+            new(partido.EquipoLocal.Nombre, rankingLocal, nuevoLocal),
+            new(partido.EquipoVisitante.Nombre, rankingVisitante, nuevoVisitante)
+        };
+    }
+
+    private static bool EsMismoPartido(Partido partido, Partido referencia)
+    {
+        return ReferenceEquals(partido, referencia) || (referencia.Id != 0 && partido.Id == referencia.Id);
     }
 
     private static void AplicarRankings(
