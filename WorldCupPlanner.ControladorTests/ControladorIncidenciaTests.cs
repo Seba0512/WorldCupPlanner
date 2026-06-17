@@ -16,7 +16,7 @@ public class ControladorIncidenciaTests
         var repositorio = new RepositorioIncidenciaControladorFake();
         var controlador = CrearControlador(repositorio);
 
-        controlador.AgregarTarjeta(10, TipoTarjeta.Amarilla, 25, CrearEquipo("Uruguay"));
+        controlador.AgregarTarjeta(10, CrearEquipo("Uruguay"), new ComandoTarjeta(TipoTarjeta.Amarilla, 25));
 
         var incidencias = controlador.ObtenerIncidencias(10);
         Assert.AreEqual(1, incidencias.Count);
@@ -46,7 +46,7 @@ public class ControladorIncidenciaTests
             Fase = FaseTorneo.FaseDeGrupos
         };
 
-        controlador.AgregarTarjetaAPartido(partido, "Local", TipoTarjeta.Roja, 44);
+        controlador.AgregarTarjetaAPartido(partido, "Local", new ComandoTarjeta(TipoTarjeta.Roja, 44));
 
         Assert.AreEqual(1, repositorioPartido.Buscar(_ => true).Count);
         var incidencias = repositorioIncidencia.ObtenerPorPartido(partido.Id);
@@ -61,7 +61,7 @@ public class ControladorIncidenciaTests
         var controlador = CrearControlador(new RepositorioIncidenciaControladorFake());
 
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            controlador.AgregarTarjeta(10, TipoTarjeta.Roja, 91, CrearEquipo("Brasil")));
+            controlador.AgregarTarjeta(10, CrearEquipo("Brasil"), new ComandoTarjeta(TipoTarjeta.Roja, 91)));
     }
 
     [TestMethod]
@@ -69,9 +69,9 @@ public class ControladorIncidenciaTests
     {
         var repositorio = new RepositorioIncidenciaControladorFake();
         var controlador = CrearControlador(repositorio);
-        controlador.AgregarTarjeta(1, TipoTarjeta.Amarilla, 20, CrearEquipo("A"));
-        controlador.AgregarTarjeta(1, TipoTarjeta.Roja, 70, CrearEquipo("B"));
-        controlador.AgregarTarjeta(2, TipoTarjeta.Amarilla, 30, CrearEquipo("C"));
+        controlador.AgregarTarjeta(1, CrearEquipo("A"), new ComandoTarjeta(TipoTarjeta.Amarilla, 20));
+        controlador.AgregarTarjeta(1, CrearEquipo("B"), new ComandoTarjeta(TipoTarjeta.Roja, 70));
+        controlador.AgregarTarjeta(2, CrearEquipo("C"), new ComandoTarjeta(TipoTarjeta.Amarilla, 30));
 
         var incidencias = controlador.ObtenerIncidencias(1);
 
@@ -84,8 +84,8 @@ public class ControladorIncidenciaTests
     {
         var repositorio = new RepositorioIncidenciaControladorFake();
         var controlador = CrearControlador(repositorio);
-        controlador.AgregarTarjeta(1, TipoTarjeta.Amarilla, 20, CrearEquipo("A"));
-        controlador.AgregarTarjeta(1, TipoTarjeta.Roja, 70, CrearEquipo("B"));
+        controlador.AgregarTarjeta(1, CrearEquipo("A"), new ComandoTarjeta(TipoTarjeta.Amarilla, 20));
+        controlador.AgregarTarjeta(1, CrearEquipo("B"), new ComandoTarjeta(TipoTarjeta.Roja, 70));
 
         var incidencias = controlador.ObtenerIncidenciasDTO(1);
 
@@ -121,7 +121,7 @@ public class ControladorIncidenciaTests
             persistencia,
             servicioPartido);
 
-        controlador.AgregarTarjetaAPartido(partido.Id, "Visitante", TipoTarjeta.Roja, 44);
+        controlador.AgregarTarjetaAPartido(partido.Id, "Visitante", new ComandoTarjeta(TipoTarjeta.Roja, 44));
 
         var incidencias = controlador.ObtenerIncidenciasDTO(partido.Id);
         Assert.AreEqual(1, incidencias.Count);
@@ -134,7 +134,7 @@ public class ControladorIncidenciaTests
     {
         var repositorio = new RepositorioIncidenciaControladorFake();
         var controlador = CrearControlador(repositorio);
-        controlador.AgregarTarjeta(1, TipoTarjeta.Amarilla, 20, CrearEquipo("A"));
+        controlador.AgregarTarjeta(1, CrearEquipo("A"), new ComandoTarjeta(TipoTarjeta.Amarilla, 20));
         var incidenciaId = controlador.ObtenerIncidencias(1).Single().Id;
 
         controlador.EliminarIncidencia(incidenciaId);

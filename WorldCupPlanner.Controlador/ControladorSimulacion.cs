@@ -34,12 +34,12 @@ public class ControladorSimulacion
     public string ObtenerNombreMotor(MotorSimulacion motor) =>
         _servicioSimulacion.ObtenerNombreMotor(motor);
 
-    public void SimularYPersistirPartidos(
-        List<Partido> partidos,
-        ConfiguracionTorneo config,
-        UsuarioDTO? usuarioActual,
-        EstadoTorneo estadoTorneo) =>
-        _orquestadorSimulacion.SimularYPersistirPartidos(partidos, config, ResolverUsuario(usuarioActual), estadoTorneo);
+    public void SimularYPersistirPartidos(ComandoSimularPartidos comando) =>
+        _orquestadorSimulacion.SimularYPersistirPartidos(
+            comando.Partidos,
+            comando.Configuracion,
+            _servicioUsuario.ResolverUsuario(comando.Usuario),
+            comando.EstadoTorneo);
 
     public void SimularPartido(
         int partidoId,
@@ -48,25 +48,18 @@ public class ControladorSimulacion
     {
         var partido = ResolverPartido(partidoId, estadoTorneo);
         var configuracion = ObtenerConfiguracionUsadaParaFixture();
-        SimularYPersistirPartidos(new List<Partido> { partido }, configuracion, usuarioActual, estadoTorneo);
+        SimularYPersistirPartidos(new ComandoSimularPartidos(new List<Partido> { partido }, configuracion, estadoTorneo, usuarioActual));
     }
 
-    public void SimularJornadaOFecha(
-        FaseTorneo etapaActiva,
-        int jornadaActiva,
-        EstadoTorneo estadoTorneo,
-        UsuarioDTO? usuarioActual)
+    public void SimularJornadaOFecha(ComandoSimularJornada comando)
     {
-        var partidos = ObtenerPartidosJornadaOFechaActual(etapaActiva, jornadaActiva, estadoTorneo);
+        var partidos = ObtenerPartidosJornadaOFechaActual(comando.EtapaActiva, comando.JornadaActiva, comando.EstadoTorneo);
         var configuracion = ObtenerConfiguracionUsadaParaFixture();
-        SimularYPersistirPartidos(partidos, configuracion, usuarioActual, estadoTorneo);
+        SimularYPersistirPartidos(new ComandoSimularPartidos(partidos, configuracion, comando.EstadoTorneo, comando.Usuario));
     }
 
-    public bool HayPartidosJornadaOFechaSimulables(
-        FaseTorneo etapaActiva,
-        int jornadaActiva,
-        EstadoTorneo estadoTorneo) =>
-        ObtenerPartidosJornadaOFechaActual(etapaActiva, jornadaActiva, estadoTorneo).Any();
+    public bool HayPartidosJornadaOFechaSimulables(ComandoSimularJornada comando) =>
+        ObtenerPartidosJornadaOFechaActual(comando.EtapaActiva, comando.JornadaActiva, comando.EstadoTorneo).Any();
 
     public void SimularFaseActiva(
         FaseTorneo etapaActiva,
@@ -75,7 +68,7 @@ public class ControladorSimulacion
     {
         var partidos = ObtenerPartidosPendientesEtapaActiva(etapaActiva, estadoTorneo);
         var configuracion = ObtenerConfiguracionUsadaParaFixture();
-        SimularYPersistirPartidos(partidos, configuracion, usuarioActual, estadoTorneo);
+        SimularYPersistirPartidos(new ComandoSimularPartidos(partidos, configuracion, estadoTorneo, usuarioActual));
     }
 
     public bool HayPartidosFaseActivaSimulables(
@@ -133,15 +126,4 @@ public class ControladorSimulacion
         return _servicioConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();
     }
 
-    private Usuario? ResolverUsuario(UsuarioDTO? usuarioActual)
-    {
-        if (usuarioActual == null)
-            return null;
-
-        if (_servicioUsuario == null)
-            throw new InvalidOperationException("El servicio de usuario no fue configurado.");
-
-        return _servicioUsuario.ObtenerPorEmail(usuarioActual.Email)
-               ?? throw new EntidadInexistenteExcepcion($"No existe un usuario con el email '{usuarioActual.Email}'.");
-    }
 }

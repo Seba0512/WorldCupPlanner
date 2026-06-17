@@ -22,17 +22,5 @@ public class ControladorImportacion
     }
 
     public ResultadoImportacion Importar(Stream csv, UsuarioDTO? solicitante = null) =>
-        _servicioImportacion.Importar(csv, _servicioEquipo, ResolverUsuario(solicitante));
-
-    private Usuario? ResolverUsuario(UsuarioDTO? usuarioActual)
-    {
-        if (usuarioActual == null)
-            return null;
-
-        if (_servicioUsuario == null)
-            throw new InvalidOperationException("El servicio de usuario no fue configurado.");
-
-        return _servicioUsuario.ObtenerPorEmail(usuarioActual.Email)
-               ?? throw new EntidadInexistenteExcepcion($"No existe un usuario con el email '{usuarioActual.Email}'.");
-    }
+        _servicioImportacion.Importar(csv, _servicioEquipo, _servicioUsuario.ResolverUsuario(solicitante));
 }

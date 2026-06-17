@@ -116,9 +116,7 @@ internal static class MapeadorDtoDominio
             GolesVisitante = dto.GolesVisitante,
             GanadorPorPenales = MaterializarEquipo(dto.GanadorPorPenales, equiposPorNombre),
             Grupo = grupo ?? CrearGrupoDesdeEtiqueta(dto.GrupoEtiqueta),
-            Incidencias = dto.Incidencias
-                .Select(incidenciaDto => AIncidencia(incidenciaDto, equiposPorNombre))
-                .ToList()
+            Incidencias = MapearIncidencias(dto.Incidencias, equiposPorNombre)
         };
     }
 
@@ -134,6 +132,11 @@ internal static class MapeadorDtoDominio
         equiposPorNombre[equipo.Nombre] = equipo;
         return equipo;
     }
+
+    private static List<Incidencia> MapearIncidencias(
+        IEnumerable<IncidenciaDTO> dtos,
+        Dictionary<string, Equipo> equiposPorNombre) =>
+        dtos.Select(dto => AIncidencia(dto, equiposPorNombre)).ToList();
 
     private static Incidencia AIncidencia(IncidenciaDTO dto, Dictionary<string, Equipo> equiposPorNombre)
     {

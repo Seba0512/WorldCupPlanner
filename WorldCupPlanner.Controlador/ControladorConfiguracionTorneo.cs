@@ -25,15 +25,15 @@ public class ControladorConfiguracionTorneo
         ConfiguracionTorneoDTO.FromEntity(ObtenerConfiguracionActual());
 
     public void ModificarConfiguracion(UsuarioDTO usuario, ConfiguracionTorneo configuracion) =>
-        _servicioConfiguracionTorneo.ModificarConfiguracion(ResolverUsuario(usuario), configuracion);
+        _servicioConfiguracionTorneo.ModificarConfiguracion(_servicioUsuario.ResolverUsuario(usuario)!, configuracion);
 
     public void ModificarConfiguracion(UsuarioDTO usuario, ConfiguracionTorneoDTO configuracion) =>
         _servicioConfiguracionTorneo.ModificarConfiguracion(
-            ResolverUsuario(usuario),
+            _servicioUsuario.ResolverUsuario(usuario)!,
             MapeadorDtoDominio.AConfiguracionTorneo(configuracion));
 
     public bool PuedeModificarConfiguracion(UsuarioDTO? usuario) =>
-        _servicioConfiguracionTorneo.PuedeModificarConfiguracion(ResolverUsuarioOpcional(usuario));
+        _servicioConfiguracionTorneo.PuedeModificarConfiguracion(_servicioUsuario.ResolverUsuario(usuario)!);
 
     public bool EsConfiguracionModificable =>
         _servicioConfiguracionTorneo.EsConfiguracionModificable;
@@ -51,15 +51,4 @@ public class ControladorConfiguracionTorneo
     public ConfiguracionTorneoDTO ObtenerConfiguracionUsadaParaFixtureDTO() =>
         ConfiguracionTorneoDTO.FromEntity(ObtenerConfiguracionUsadaParaFixture());
 
-    private Usuario ResolverUsuario(UsuarioDTO usuarioActual)
-    {
-        if (_servicioUsuario == null)
-            throw new InvalidOperationException("El servicio de usuario no fue configurado.");
-
-        return _servicioUsuario.ObtenerPorEmail(usuarioActual.Email)
-               ?? throw new EntidadInexistenteExcepcion($"No existe un usuario con el email '{usuarioActual.Email}'.");
-    }
-
-    private Usuario? ResolverUsuarioOpcional(UsuarioDTO? usuarioActual) =>
-        usuarioActual == null ? null : ResolverUsuario(usuarioActual);
 }

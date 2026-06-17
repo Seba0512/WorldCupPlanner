@@ -34,7 +34,7 @@ public class ControladorNotificacion
         _servicioNotificacion.MarcarComoLeida(notificacionId, usuario);
 
     public void MarcarComoLeida(int notificacionId, UsuarioDTO usuario) =>
-        _servicioNotificacion.MarcarComoLeida(notificacionId, ResolverUsuario(usuario));
+        _servicioNotificacion.MarcarComoLeida(notificacionId, _servicioUsuario.ResolverUsuario(usuario)!);
 
     public void MarcarTodasComoLeidas(Usuario usuario)
     {
@@ -44,17 +44,8 @@ public class ControladorNotificacion
 
     public void MarcarTodasComoLeidas(UsuarioDTO usuario)
     {
-        var entidad = ResolverUsuario(usuario);
+        var entidad = _servicioUsuario.ResolverUsuario(usuario)!;
         foreach (var notificacion in _servicioNotificacion.ObtenerNoLeidas(entidad.Id))
             _servicioNotificacion.MarcarComoLeida(notificacion.Id, entidad);
-    }
-
-    private Usuario ResolverUsuario(UsuarioDTO usuarioActual)
-    {
-        if (_servicioUsuario == null)
-            throw new InvalidOperationException("El servicio de usuario no fue configurado.");
-
-        return _servicioUsuario.ObtenerPorEmail(usuarioActual.Email)
-               ?? throw new EntidadInexistenteExcepcion($"No existe un usuario con el email '{usuarioActual.Email}'.");
     }
 }

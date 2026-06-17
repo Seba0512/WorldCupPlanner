@@ -38,19 +38,19 @@ public class ControladorEstadio
         _servicioEstadio.AgregarEstadio(estadio, usuarioActual);
 
     public void Crear(EstadioDTO estadio, UsuarioDTO? usuarioActual = null) =>
-        _servicioEstadio.AgregarEstadio(MapeadorDtoDominio.AEstadio(estadio), ResolverUsuario(usuarioActual));
+        _servicioEstadio.AgregarEstadio(MapeadorDtoDominio.AEstadio(estadio), _servicioUsuario.ResolverUsuario(usuarioActual));
 
     public void Actualizar(string nombreOriginal, Estadio estadio, Usuario? usuarioActual = null) =>
         _servicioEstadio.EditarEstadio(nombreOriginal, estadio, usuarioActual);
 
     public void Actualizar(string nombreOriginal, EstadioDTO estadio, UsuarioDTO? usuarioActual = null) =>
-        _servicioEstadio.EditarEstadio(nombreOriginal, MapeadorDtoDominio.AEstadio(estadio), ResolverUsuario(usuarioActual));
+        _servicioEstadio.EditarEstadio(nombreOriginal, MapeadorDtoDominio.AEstadio(estadio), _servicioUsuario.ResolverUsuario(usuarioActual));
 
     public void Eliminar(Estadio estadio, Usuario? usuarioActual = null) =>
         _servicioEstadio.EliminarEstadio(estadio, usuarioActual);
 
     public void Eliminar(string nombre, UsuarioDTO? usuarioActual = null) =>
-        _servicioEstadio.EliminarEstadio(ObtenerPorNombre(nombre), ResolverUsuario(usuarioActual));
+        _servicioEstadio.EliminarEstadio(ObtenerPorNombre(nombre), _servicioUsuario.ResolverUsuario(usuarioActual));
 
     public void RegistrarFixtureGenerado(Fixture fixture) =>
         _servicioEstadio.RegistrarFixtureGenerado(fixture);
@@ -58,15 +58,4 @@ public class ControladorEstadio
     public void LimpiarFixtureGenerado() =>
         _servicioEstadio.LimpiarFixtureGenerado();
 
-    private Usuario? ResolverUsuario(UsuarioDTO? usuarioActual)
-    {
-        if (usuarioActual == null)
-            return null;
-
-        if (_servicioUsuario == null)
-            throw new InvalidOperationException("El servicio de usuario no fue configurado.");
-
-        return _servicioUsuario.ObtenerPorEmail(usuarioActual.Email)
-               ?? throw new EntidadInexistenteExcepcion($"No existe un usuario con el email '{usuarioActual.Email}'.");
-    }
 }

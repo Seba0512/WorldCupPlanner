@@ -114,14 +114,13 @@ public class ControladorPartidoTests
         estado.AgregarPartidosEliminatorios(new[] { partido });
         var nuevaFecha = new DateTime(2026, 6, 20, 19, 0, 0);
 
-        controlador.GuardarCambiosPartido(
+        controlador.GuardarCambiosPartido(new ComandoGuardarPartido(
             partido.Id,
             nuevaFecha,
             "Estadio Nuevo",
             null,
             null,
-            null,
-            estado);
+            estado));
 
         Assert.AreEqual(nuevaFecha, partido.Fecha);
         Assert.AreEqual("Estadio Nuevo", partido.Estadio!.Nombre);

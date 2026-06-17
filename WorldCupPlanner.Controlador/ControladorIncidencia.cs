@@ -37,8 +37,8 @@ public class ControladorIncidencia
     public Equipo ResolverEquipoPorRol(Partido partido, string rolEquipo) =>
         _servicioIncidencia.ResolverEquipoPorRol(partido, rolEquipo);
 
-    public void AgregarTarjeta(int partidoId, TipoTarjeta tipo, int minuto, Equipo equipo) =>
-        _servicioIncidencia.AgregarTarjeta(partidoId, tipo, minuto, equipo);
+    public void AgregarTarjeta(int partidoId, Equipo equipo, ComandoTarjeta comando) =>
+        _servicioIncidencia.AgregarTarjeta(partidoId, comando.Tipo, comando.Minuto, equipo);
 
     public List<Incidencia> ObtenerIncidencias(int partidoId) =>
         _servicioIncidencia.ObtenerIncidencias(partidoId);
@@ -49,23 +49,23 @@ public class ControladorIncidencia
     public void EliminarIncidencia(int incidenciaId) =>
         _servicioIncidencia.EliminarIncidencia(incidenciaId);
 
-    public void AgregarTarjetaAPartido(Partido partido, string rolEquipo, TipoTarjeta tipo, int minuto)
+    public void AgregarTarjetaAPartido(Partido partido, string rolEquipo, ComandoTarjeta comando)
     {
         if (_persistenciaFixture == null)
             throw new InvalidOperationException("La persistencia de fixture no fue configurada.");
 
         _persistenciaFixture.GuardarPartidos(new[] { partido });
         var equipo = _servicioIncidencia.ResolverEquipoPorRol(partido, rolEquipo);
-        _servicioIncidencia.AgregarTarjeta(partido.Id, tipo, minuto, equipo);
+        _servicioIncidencia.AgregarTarjeta(partido.Id, comando.Tipo, comando.Minuto, equipo);
     }
 
-    public void AgregarTarjetaAPartido(int partidoId, string rolEquipo, TipoTarjeta tipo, int minuto)
+    public void AgregarTarjetaAPartido(int partidoId, string rolEquipo, ComandoTarjeta comando)
     {
         if (_servicioPartido == null)
             throw new InvalidOperationException("El servicio de partido no fue configurado.");
 
         var partido = _servicioPartido.BuscarPartidoPorId(partidoId)
                       ?? throw new EntidadInexistenteExcepcion("El partido no existe.");
-        AgregarTarjetaAPartido(partido, rolEquipo, tipo, minuto);
+        AgregarTarjetaAPartido(partido, rolEquipo, comando);
     }
 }

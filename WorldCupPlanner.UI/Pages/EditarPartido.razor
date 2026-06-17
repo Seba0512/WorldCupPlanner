@@ -256,7 +256,7 @@ else
         _error = string.Empty;
         try
         {
-            ControladorIncidencia.AgregarTarjetaAPartido(_partido.Id, _equipoTarjeta, _tipoTarjeta, _minutoTarjeta);
+            ControladorIncidencia.AgregarTarjetaAPartido(_partido.Id, _equipoTarjeta, new ComandoTarjeta(_tipoTarjeta, _minutoTarjeta));
             _incidencias = ControladorIncidencia.ObtenerIncidenciasDTO(_partido.Id);
         }
         catch (Exception ex) { _error = MensajeErrorHelper.ParaUsuario(ex); }

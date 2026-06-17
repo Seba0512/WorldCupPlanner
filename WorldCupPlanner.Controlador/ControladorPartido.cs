@@ -100,49 +100,29 @@ public class ControladorPartido
     public void GuardarCambiosPartido(
         PartidoDTO partido,
         UsuarioDTO? usuarioActual,
-        EstadoTorneo estadoTorneo)
-    {
-        GuardarCambiosPartido(
+        EstadoTorneo estadoTorneo) =>
+        GuardarCambiosPartido(new ComandoGuardarPartido(
             partido.Id,
             partido.Fecha,
             partido.Estadio?.Nombre ?? string.Empty,
             partido.GolesLocal,
             partido.GolesVisitante,
-            usuarioActual,
-            estadoTorneo);
-    }
+            estadoTorneo,
+            usuarioActual));
 
-    public void GuardarCambiosPartido(
-        int partidoId,
-        DateTime nuevaFecha,
-        string nombreEstadio,
-        int? golesLocal,
-        int? golesVisitante,
-        UsuarioDTO? usuarioActual,
-        EstadoTorneo estadoTorneo)
+    public void GuardarCambiosPartido(ComandoGuardarPartido comando)
     {
         if (_orquestadorPartido == null)
             throw new InvalidOperationException("El orquestador de partido no fue configurado.");
 
         _orquestadorPartido.GuardarCambiosPartido(
-            partidoId,
-            nuevaFecha,
-            nombreEstadio,
-            golesLocal,
-            golesVisitante,
-            ResolverUsuario(usuarioActual),
-            estadoTorneo);
+            comando.PartidoId,
+            comando.NuevaFecha,
+            comando.NombreEstadio,
+            comando.GolesLocal,
+            comando.GolesVisitante,
+            _servicioUsuario.ResolverUsuario(comando.Usuario),
+            comando.EstadoTorneo);
     }
 
-    private Usuario? ResolverUsuario(UsuarioDTO? usuarioActual)
-    {
-        if (usuarioActual == null)
-            return null;
-
-        if (_servicioUsuario == null)
-            throw new InvalidOperationException("El servicio de usuario no fue configurado.");
-
-        return _servicioUsuario.ObtenerPorEmail(usuarioActual.Email)
-               ?? throw new EntidadInexistenteExcepcion($"No existe un usuario con el email '{usuarioActual.Email}'.");
-    }
 }

@@ -40,7 +40,7 @@ public class ControladorFixtureTests
         fixtureActual.Partidos[0].GolesVisitante = 0;
 
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            controlador.RegenerarFixture(equipos, fixtureActual, estadios, configuracion));
+            controlador.RegenerarFixture(new ComandoRegenerarFixture(equipos, fixtureActual, estadios, configuracion)));
     }
 
     [TestMethod]

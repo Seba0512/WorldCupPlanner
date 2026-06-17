@@ -46,11 +46,10 @@ public class ControladorSimulacionTests
         var contexto = CrearContextoSimulacion();
         var controlador = CrearControlador(repositorioPartido: contexto.RepositorioPartidos);
 
-        controlador.SimularYPersistirPartidos(
+        controlador.SimularYPersistirPartidos(new ComandoSimularPartidos(
             new List<Partido> { contexto.Partido },
             CrearConfiguracion(),
-            usuarioActual: null,
-            contexto.EstadoTorneo);
+            contexto.EstadoTorneo));
 
         Assert.IsTrue(contexto.Partido.EstaJugado());
         Assert.AreEqual(1, contexto.RepositorioPartidos.Buscar(_ => true).Count);
@@ -63,11 +62,10 @@ public class ControladorSimulacionTests
         var controlador = CrearControlador();
 
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            controlador.SimularYPersistirPartidos(
+            controlador.SimularYPersistirPartidos(new ComandoSimularPartidos(
                 new List<Partido>(),
                 CrearConfiguracion(),
-                usuarioActual: null,
-                new EstadoTorneo()));
+                new EstadoTorneo())));
     }
 
     [TestMethod]
@@ -122,11 +120,10 @@ public class ControladorSimulacionTests
             servicioConfiguracionTorneo: CrearServicioConfiguracion(),
             servicioFixture: new ServicioFixture());
 
-        controlador.SimularJornadaOFecha(
+        controlador.SimularJornadaOFecha(new ComandoSimularJornada(
             FaseTorneo.FaseDeGrupos,
             ServicioFixture.PrimeraJornada,
-            contexto.EstadoTorneo,
-            usuarioActual: null);
+            contexto.EstadoTorneo));
 
         Assert.IsTrue(contexto.Partido.EstaJugado());
         Assert.AreEqual(1, contexto.RepositorioPartidos.Buscar(_ => true).Count);
@@ -142,11 +139,10 @@ public class ControladorSimulacionTests
             servicioFixture: new ServicioFixture());
 
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            controlador.SimularJornadaOFecha(
+            controlador.SimularJornadaOFecha(new ComandoSimularJornada(
                 FaseTorneo.FaseDeGrupos,
                 ServicioFixture.SegundaJornada,
-                contexto.EstadoTorneo,
-                usuarioActual: null));
+                contexto.EstadoTorneo)));
 
         Assert.IsFalse(contexto.Partido.EstaJugado());
     }
@@ -157,15 +153,15 @@ public class ControladorSimulacionTests
         var contexto = CrearContextoSimulacion();
         var controlador = CrearControlador(servicioFixture: new ServicioFixture());
 
-        Assert.IsTrue(controlador.HayPartidosJornadaOFechaSimulables(
+        Assert.IsTrue(controlador.HayPartidosJornadaOFechaSimulables(new ComandoSimularJornada(
             FaseTorneo.FaseDeGrupos,
             ServicioFixture.PrimeraJornada,
-            contexto.EstadoTorneo));
+            contexto.EstadoTorneo)));
 
-        Assert.IsFalse(controlador.HayPartidosJornadaOFechaSimulables(
+        Assert.IsFalse(controlador.HayPartidosJornadaOFechaSimulables(new ComandoSimularJornada(
             FaseTorneo.FaseDeGrupos,
             ServicioFixture.SegundaJornada,
-            contexto.EstadoTorneo));
+            contexto.EstadoTorneo)));
     }
 
     [TestMethod]

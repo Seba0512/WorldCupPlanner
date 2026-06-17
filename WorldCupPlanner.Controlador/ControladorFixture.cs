@@ -63,18 +63,13 @@ public class ControladorFixture
         ConfiguracionTorneo configuracionTorneo) =>
         _servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo);
 
-    public Fixture RegenerarFixture(
-        List<Equipo> equipos,
-        Fixture fixtureActual,
-        List<Estadio> estadios,
-        ConfiguracionTorneo configuracionTorneo,
-        IReadOnlyList<Partido>? partidosEliminatorios = null) =>
+    public Fixture RegenerarFixture(ComandoRegenerarFixture comando) =>
         _servicioFixture.RegenerarFixture(
-            equipos,
-            fixtureActual,
-            estadios,
-            configuracionTorneo,
-            partidosEliminatorios);
+            comando.Equipos,
+            comando.FixtureActual,
+            comando.Estadios,
+            comando.Configuracion,
+            comando.PartidosEliminatorios);
 
     public bool FaseYaGenerada(FaseTorneo fase, EstadoTorneo estado) =>
         _servicioFixture.FaseYaGenerada(fase, estado);
@@ -183,7 +178,7 @@ public class ControladorFixture
         if (_orquestadorFixture == null)
             throw new InvalidOperationException("El orquestador de fixture no fue configurado.");
 
-        _orquestadorFixture.GenerarORegenerarFixture(motor, ResolverUsuario(usuario), estadoTorneo);
+        _orquestadorFixture.GenerarORegenerarFixture(motor, _servicioUsuario.ResolverUsuario(usuario), estadoTorneo);
     }
 
     public void CrearNuevoTorneo(EstadoTorneo estadoTorneo)
@@ -197,15 +192,4 @@ public class ControladorFixture
         _servicioEstadio.LimpiarFixtureGenerado();
     }
 
-    private Usuario? ResolverUsuario(UsuarioDTO? usuarioActual)
-    {
-        if (usuarioActual == null)
-            return null;
-
-        if (_servicioUsuario == null)
-            throw new InvalidOperationException("El servicio de usuario no fue configurado.");
-
-        return _servicioUsuario.ObtenerPorEmail(usuarioActual.Email)
-               ?? throw new EntidadInexistenteExcepcion($"No existe un usuario con el email '{usuarioActual.Email}'.");
-    }
 }

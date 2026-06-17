@@ -769,11 +769,11 @@ else
         _error = string.Empty;
         try
         {
-            ControladorSimulacion.SimularJornadaOFecha(
+            ControladorSimulacion.SimularJornadaOFecha(new ComandoSimularJornada(
                 _etapaActiva,
                 _jornadaActiva,
                 EstadoTorneo,
-                SesionServicio.UsuarioActual);
+                SesionServicio.UsuarioActual));
             SincronizarJornadaActivaConPendiente();
             Toast.Exito(ControladorFixture.ObtenerMensajeExitoSimulacion(_etapaActiva));
         }
@@ -823,10 +823,10 @@ else
     private bool PuedeSimularJornadaOFecha()
     {
         return SesionServicio.PuedeEditarPartidos
-               && ControladorSimulacion.HayPartidosJornadaOFechaSimulables(
+               && ControladorSimulacion.HayPartidosJornadaOFechaSimulables(new ComandoSimularJornada(
                    _etapaActiva,
                    _jornadaActiva,
-                   EstadoTorneo);
+                   EstadoTorneo));
     }
 
     private bool PuedeSimularFaseActiva()
