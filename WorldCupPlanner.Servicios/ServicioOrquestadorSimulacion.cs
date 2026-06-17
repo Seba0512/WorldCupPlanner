@@ -63,8 +63,8 @@ public class ServicioOrquestadorSimulacion
         _rankingDinamico.RecalcularRankings(usuarioActual, registrarAuditoria: false);
         _rankingDinamico.SincronizarRankingsEnEstado(estadoTorneo);
 
-        var periodistas = _usuario.ObtenerPeriodistas().ToList();
-        _notificacion.GenerarNotificacionesPorResultados(pendientes, periodistas);
+        var usuariosNotificables = _usuario.ObtenerUsuariosNotificables().ToList();
+        _notificacion.GenerarNotificacionesPorResultados(pendientes, usuariosNotificables);
         estadoTorneo.ActualizarEstadoFinalizacion();
     }
 }

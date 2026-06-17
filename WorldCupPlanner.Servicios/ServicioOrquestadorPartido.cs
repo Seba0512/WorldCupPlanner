@@ -48,7 +48,7 @@ public class ServicioOrquestadorPartido
                 GolesVisitante = golesVisitante.Value,
                 SemillaSimulation = config.SemillaSimulation,
                 Notificacion = _notificacion,
-                Periodistas = _usuario.ObtenerPeriodistas()
+                UsuariosNotificables = _usuario.ObtenerUsuariosNotificables()
             });
             _rankingDinamico.RecalcularRankings(usuarioActual, partidoId);
         }

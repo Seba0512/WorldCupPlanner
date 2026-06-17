@@ -293,6 +293,27 @@ public sealed class ServicioUsuarioTests
     }
 
     [TestMethod]
+    public void ObtenerUsuariosNotificables_ConAdministradorPeriodistaYEditor_DevuelveAdministradorYPeriodista()
+    {
+        // Arrange
+        var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var periodista = CrearUsuarioConRol(RolUsuario.Periodista);
+        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        _servicio.AgregarUsuario(administrador);
+        _servicio.AgregarUsuario(periodista);
+        _servicio.AgregarUsuario(editor);
+
+        // Act
+        var notificables = _servicio.ObtenerUsuariosNotificables().ToList();
+
+        // Assert
+        Assert.AreEqual(2, notificables.Count);
+        CollectionAssert.Contains(notificables, administrador);
+        CollectionAssert.Contains(notificables, periodista);
+        CollectionAssert.DoesNotContain(notificables, editor);
+    }
+
+    [TestMethod]
     public void ObtenerPorEmail_ConEmailExistente_DevuelveUsuario()
     {
         // Arrange

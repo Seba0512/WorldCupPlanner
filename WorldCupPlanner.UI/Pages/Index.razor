@@ -9,7 +9,7 @@
 
 <PageHeader Titulo="Dashboard" Subtitulo="@_saludo" />
 
-@if (SesionServicio.EsPeriodista)
+@if (PuedeVerNotificaciones)
 {
     <div class="table-card mb-4">
         <div class="table-card-header">
@@ -158,6 +158,7 @@
     private bool _cruces          = false;
     private string _saludo        = string.Empty;
     private List<NotificacionDTO> _notificaciones = new();
+    private bool PuedeVerNotificaciones => SesionServicio.EsPeriodista || SesionServicio.EsAdministrador;
 
     protected override void OnInitialized()
     {
@@ -173,7 +174,7 @@
         _partidos         = datos.TotalPartidos;
         _partidos_jugados = datos.PartidosJugados;
 
-        if (SesionServicio.EsPeriodista && SesionServicio.UsuarioActual != null)
+        if (PuedeVerNotificaciones && SesionServicio.UsuarioActual != null)
             _notificaciones = ControladorNotificacion.ObtenerNoLeidasDTO(SesionServicio.UsuarioActual);
     }
 

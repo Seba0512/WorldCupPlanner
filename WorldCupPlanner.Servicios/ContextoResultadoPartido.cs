@@ -8,5 +8,5 @@ public class ContextoResultadoPartido
     public int GolesVisitante { get; set; }
     public int SemillaSimulation { get; set; }
     public ServicioNotificacion Notificacion { get; set; } = null!;
-    public IEnumerable<Usuario> Periodistas { get; set; } = [];
+    public IEnumerable<Usuario> UsuariosNotificables { get; set; } = [];
 }

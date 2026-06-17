@@ -34,6 +34,22 @@ public class ServicioNotificacionTests
         Assert.AreEqual(1, notificaciones2.Count);
     }
 
+    [TestMethod]
+    public void GenerarNotificacionesResultado_CuandoHayAdministrador_CreaNotificacionParaAdministrador()
+    {
+        // Arrange
+        var repositorio = new RepositorioNotificacionStub();
+        var servicio = new ServicioNotificacion(repositorio);
+        var partido = new Partido();
+        var administrador = CrearAdministrador("admin@test.com");
+
+        // Act
+        servicio.GenerarNotificacionesResultado(partido, new List<Usuario> { administrador });
+
+        // Assert
+        Assert.AreEqual(1, repositorio.ObtenerPorUsuario(administrador.Id).Count);
+    }
+
 
 
     [TestMethod]
@@ -180,6 +196,14 @@ public class ServicioNotificacionTests
         var usuario = new Usuario(new DatosUsuario { Nombre = "Test", Apellido = "Test", Email = email, FechaNacimiento = "01-01-1990" });
         usuario.Id = SiguienteIdUsuario();
         usuario.AgregarRol(RolUsuario.Periodista);
+        return usuario;
+    }
+
+    private static Usuario CrearAdministrador(string email)
+    {
+        var usuario = new Usuario(new DatosUsuario { Nombre = "Admin", Apellido = "Test", Email = email, FechaNacimiento = "01-01-1990" });
+        usuario.Id = SiguienteIdUsuario();
+        usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
         return usuario;
     }
 }

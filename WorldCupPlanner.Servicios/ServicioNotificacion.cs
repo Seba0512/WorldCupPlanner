@@ -39,7 +39,7 @@ public class ServicioNotificacion
         _auditoria?.Registrar(
             usuarioAuditoria,
             "LecturaNotificacion",
-            $"Notificacion {notificacion.Id} marcada como leida por periodista.");
+            $"Notificacion {notificacion.Id} marcada como leida por usuario.");
     }
 
     private Notificacion ObtenerNotificacionPorId(int notificacionId)
@@ -49,23 +49,27 @@ public class ServicioNotificacion
     public List<Notificacion> ObtenerNoLeidas(int usuarioId)
         => _repositorio.Buscar(n => n.UsuarioDestinatarioId == usuarioId && !n.EsLeida);
 
-    public void GenerarNotificacionesPorResultados(IEnumerable<Partido> partidos, IEnumerable<Usuario> periodistas)
+    public void GenerarNotificacionesPorResultados(IEnumerable<Partido> partidos, IEnumerable<Usuario> usuariosNotificables)
     {
-        var periodistasList = periodistas.ToList();
+        var usuariosNotificablesList = usuariosNotificables.ToList();
         foreach (var partido in partidos.Where(p => p.EstaJugado()))
-            GenerarNotificacionesResultado(partido, periodistasList);
+            GenerarNotificacionesResultado(partido, usuariosNotificablesList);
     }
 
-    public void GenerarNotificacionesResultado(Partido partido, IEnumerable<Usuario> periodistas)
+    public void GenerarNotificacionesResultado(Partido partido, IEnumerable<Usuario> usuariosNotificables)
     {
-        foreach (var periodista in periodistas.Where(u => u.TieneRol(RolUsuario.Periodista)))
+        foreach (var usuario in usuariosNotificables.Where(EsUsuarioNotificable))
         {
             _repositorio.Agregar(new Notificacion
             {
                 Mensaje = $"Resultado cargado para el partido {partido.Id}.",
                 Timestamp = DateTime.UtcNow,
-                UsuarioDestinatarioId = periodista.Id
+                UsuarioDestinatarioId = usuario.Id
             });
         }
     }
+
+    private static bool EsUsuarioNotificable(Usuario usuario)
+        => usuario.TieneRol(RolUsuario.Periodista) ||
+           usuario.TieneRol(RolUsuario.AdministradorDelSistema);
 }

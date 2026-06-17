@@ -22,7 +22,7 @@ public class ServicioPartido
 
     public void AplicarResultadoConPenales(int id, ContextoResultadoPartido contexto)
     {
-        CargarResultado(id, contexto.GolesLocal, contexto.GolesVisitante, contexto.Notificacion, contexto.Periodistas);
+        CargarResultado(id, contexto.GolesLocal, contexto.GolesVisitante, contexto.Notificacion, contexto.UsuariosNotificables);
         ResolverEmpateConPenales(id, contexto.SemillaSimulation);
     }
 
@@ -69,11 +69,11 @@ public class ServicioPartido
         _partidos.Actualizar(partido);
     }
 
-    public void CargarResultado(int idPartido, int golesLocal, int golesVisitante, ServicioNotificacion servicioNotificacion, IEnumerable<Usuario> periodistas)
+    public void CargarResultado(int idPartido, int golesLocal, int golesVisitante, ServicioNotificacion servicioNotificacion, IEnumerable<Usuario> usuariosNotificables)
     {
         CargarResultado(idPartido, golesLocal, golesVisitante);
         var partido = ObtenerPartidoPorId(idPartido);
-        servicioNotificacion.GenerarNotificacionesResultado(partido, periodistas);
+        servicioNotificacion.GenerarNotificacionesResultado(partido, usuariosNotificables);
     }
 
     public void ResolverEmpateConPenales(int idPartido, int semilla)

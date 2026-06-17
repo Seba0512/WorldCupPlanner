@@ -193,6 +193,13 @@ public class ServicioUsuario
     public IEnumerable<Usuario> ObtenerPeriodistas() =>
         ObtenerTodosLosUsuarios().Where(u => u.TieneRol(RolUsuario.Periodista));
 
+    public IEnumerable<Usuario> ObtenerUsuariosNotificables() =>
+        ObtenerTodosLosUsuarios().Where(EsUsuarioNotificable);
+
+    private static bool EsUsuarioNotificable(Usuario usuario)
+        => usuario.TieneRol(RolUsuario.Periodista) ||
+           usuario.TieneRol(RolUsuario.AdministradorDelSistema);
+
     public Usuario? ObtenerPorEmail(string email)
     {
         return _repositorio.ObtenerPorEmail(email);
