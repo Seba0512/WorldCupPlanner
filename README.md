@@ -104,14 +104,32 @@ tambien debe actualizarse este valor.
 - El contexto de base de datos se encuentra en `WorldCupPlanner.AccesoADatos/SqlContext.cs`.
 - El archivo `docker-compose.yml` define el contenedor `sqlserver`.
 - Los datos persistidos del contenedor se guardan en la carpeta local `data`.
-- En el estado actual del repositorio no hay scripts `.sql` independientes; la instalacion de
-  esquema se realiza con las migraciones EF.
+- Tambien se incluyen scripts SQL independientes en la carpeta `Scripts-SQL`:
+  - `ScriptTablas.SQL`: definicion de tablas y relaciones.
+  - `datosDePrueba.sql`: datos de prueba con usuarios, equipos, estadios, auditorias,
+    partidos, incidencias y notificaciones.
+  - `scriptUsuarios.sql`: usuarios de prueba.
+- Para la ejecucion normal de la aplicacion se recomienda usar las migraciones EF. Los scripts
+  SQL quedan disponibles como entregables auxiliares y para carga/restauracion de datos de prueba.
 
 ### Usuario inicial
 
-En el estado actual del repositorio no se define un usuario inicial hardcodeado ni sembrado por
-codigo. Si para una demo se requiere un usuario inicial, debe crearse desde la aplicacion o
-incorporarse mediante un respaldo/script de datos de prueba documentado por el equipo.
+La aplicacion no crea usuarios por codigo al iniciar. Para una demo o base de prueba se pueden
+cargar los usuarios incluidos en `Scripts-SQL/scriptUsuarios.sql`.
+
+Usuarios de prueba incluidos:
+
+| Rol | Email |
+|---|---|
+| Administrador | `administrador@mail.com` |
+| Administrador | `administrador2@mail.com` |
+| Editor | `editor@mail.com` |
+| Editor | `editor2@mail.com` |
+| Periodista | `periodista@mail.com` |
+| Periodista | `periodista2@mail.com` |
+| Administrador, Editor y Periodista | `admineditorperiodista@mail.com` |
+
+Las contrasenias estan almacenadas en el script como valores cifrados, no en texto plano.
 
 ## Configuracion De Base De Datos
 
