@@ -1,5 +1,6 @@
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
+using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.Servicios;
 
@@ -122,7 +123,7 @@ public class ServicioImportacionLegible
             {
                 bandera = NormalizadorBanderaCsv.Normalizar(columnas[IndiceBandera].Trim(), descargador);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
             {
                 contexto.Errores.Add($"Línea {contexto.NumeroDeLinea} ({nombre}): Bandera inválida — {ex.Message}");
                 return null;
@@ -157,7 +158,7 @@ public class ServicioImportacionLegible
             servicioEquipo.Agregar(equipo);
             return true;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is EntidadInvalidaExcepcion or EntidadYaExistenteExcepcion)
         {
             errores.Add($"Equipo \"{equipo.Nombre}\": {ex.Message}");
             return false;

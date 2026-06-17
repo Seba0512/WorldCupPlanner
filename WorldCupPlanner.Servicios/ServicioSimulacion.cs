@@ -24,6 +24,24 @@ public class ServicioSimulacion
     private const int AmarillasMaximasExclusivo = 4;
     private const double ProbabilidadAmarillaExtra = 0.35;
     private const double ProbabilidadRoja = 0.12;
+
+    private const double UmbralFuerzaAlta = 0.70;
+    private const double VentajaParaGolExtra = 0.18;
+    private const double ProbabilidadGolPorVentaja = 0.55;
+    private const double DesventajaParaGolMenos = -0.24;
+    private const double ProbabilidadGolPorDesventaja = 0.45;
+    private const double UmbralFuerzaBaja = 0.30;
+    private const double ProbabilidadGolPorFuerzaBaja = 0.30;
+
+    private const int PuntosPorVictoria = 3;
+    private const double PuntosMaximosPorPartido = 3.0;
+    private const double GolesReferenciaPorPartido = 3.0;
+    private const double DiferenciaGolesMaximaEsperada = 3.0;
+
+    private const double PesoPuntos = 0.55;
+    private const double PesoDiferencia = 0.30;
+    private const double PesoGoles = 0.15;
+
     private readonly ServicioAuditoria? _auditoria;
 
     public ServicioSimulacion(ServicioAuditoria? auditoria = null)
@@ -158,22 +176,22 @@ public class ServicioSimulacion
         var goles = random.Next(GolesMinimos, GolesBaseMaximosExclusivo);
         var ventaja = fuerzaPropia - fuerzaRival;
 
-        if (fuerzaPropia >= 0.70)
+        if (fuerzaPropia >= UmbralFuerzaAlta)
         {
             goles++;
         }
 
-        if (ventaja >= 0.18 && random.NextDouble() < 0.55)
+        if (ventaja >= VentajaParaGolExtra && random.NextDouble() < ProbabilidadGolPorVentaja)
         {
             goles++;
         }
 
-        if (ventaja <= -0.24 && random.NextDouble() < 0.45)
+        if (ventaja <= DesventajaParaGolMenos && random.NextDouble() < ProbabilidadGolPorDesventaja)
         {
             goles--;
         }
 
-        if (fuerzaPropia <= 0.30 && random.NextDouble() < 0.30)
+        if (fuerzaPropia <= UmbralFuerzaBaja && random.NextDouble() < ProbabilidadGolPorFuerzaBaja)
         {
             goles--;
         }
@@ -231,12 +249,15 @@ public class ServicioSimulacion
         }
 
         var cantidad = partidosJugados.Count;
-        var ratioPuntos = puntos / (cantidad * 3.0);
+        var ratioPuntos = puntos / (cantidad * PuntosMaximosPorPartido);
         var promedioDiferencia = (golesAFavor - golesEnContra) / (double)cantidad;
-        var ratioDiferencia = Math.Clamp((promedioDiferencia + 3) / 6.0, 0, 1);
-        var ratioGoles = Math.Clamp(golesAFavor / (cantidad * 3.0), 0, 1);
+        var ratioDiferencia = Math.Clamp(
+            (promedioDiferencia + DiferenciaGolesMaximaEsperada) / (DiferenciaGolesMaximaEsperada * 2),
+            0,
+            1);
+        var ratioGoles = Math.Clamp(golesAFavor / (cantidad * GolesReferenciaPorPartido), 0, 1);
 
-        return ratioPuntos * 0.55 + ratioDiferencia * 0.30 + ratioGoles * 0.15;
+        return ratioPuntos * PesoPuntos + ratioDiferencia * PesoDiferencia + ratioGoles * PesoGoles;
     }
 
     private int CalcularPuntosDeForma(Partido partido, Equipo equipo)
@@ -245,7 +266,7 @@ public class ServicioSimulacion
 
         if (EsMismoEquipo(ganador, equipo))
         {
-            return 3;
+            return PuntosPorVictoria;
         }
 
         return partido.EsEmpate() ? 1 : 0;

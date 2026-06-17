@@ -274,37 +274,24 @@ public class ServicioCruces
         ConfiguracionTorneo configuracionTorneo,
         IReadOnlyList<Partido>? existentes = null)
     {
-        ValidarFaseNoGenerada(existentes, FaseTorneo.Octavos, "octavos");
-        ValidarPartidosDeFaseAnterior(
-            partidosPrimeraRonda,
-            new ContextoValidacionFase
+        return GenerarFaseEliminatoria(new GeneracionFaseEliminatoria
+        {
+            PartidosFaseAnterior = partidosPrimeraRonda,
+            Estadios = estadios,
+            ConfiguracionTorneo = configuracionTorneo,
+            Existentes = existentes,
+            Fase = FaseTorneo.Octavos,
+            CantidadPartidos = CantidadPartidosOctavos,
+            Validacion = new ContextoValidacionFase
             {
                 CantidadEsperada = CantidadPartidosPrimeraRonda,
                 FaseEsperada = FaseTorneo.PrimeraRondaEliminatoria,
                 FaseAGenerar = "octavos",
                 FaseAnterior = "primera ronda",
                 FaseAnteriorEsperada = "primera ronda eliminatoria"
-            });
-
-        var ganadores = ObtenerGanadores(partidosPrimeraRonda);
-        var partidos = new List<Partido>();
-        var proximoId = partidosPrimeraRonda.Max(p => p.Id) + 1;
-        var fechaInicio = partidosPrimeraRonda.Max(p => p.Fecha.Date).AddDays(configuracionTorneo.SeparacionEntreFechas);
-
-        for (int i = 0; i < CantidadPartidosOctavos; i++)
-        {
-            partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
-            {
-                Id = proximoId++,
-                EquipoLocal = ganadores[i],
-                EquipoVisitante = ganadores[i + CantidadPartidosOctavos],
-                Estadio = estadios[partidos.Count % estadios.Count],
-                Fecha = CalcularFechaPartidoEliminatorio(fechaInicio, i, configuracionTorneo),
-                Fase = FaseTorneo.Octavos
-            }));
-        }
-
-        return partidos;
+            },
+            Emparejar = (ganadores, i) => (ganadores[i], ganadores[i + CantidadPartidosOctavos])
+        });
     }
 
     public List<Partido> GenerarCuartos(
@@ -313,36 +300,23 @@ public class ServicioCruces
         ConfiguracionTorneo configuracionTorneo,
         IReadOnlyList<Partido>? existentes = null)
     {
-        ValidarFaseNoGenerada(existentes, FaseTorneo.Cuartos, "cuartos");
-        ValidarPartidosDeFaseAnterior(
-            octavos,
-            new ContextoValidacionFase
+        return GenerarFaseEliminatoria(new GeneracionFaseEliminatoria
+        {
+            PartidosFaseAnterior = octavos,
+            Estadios = estadios,
+            ConfiguracionTorneo = configuracionTorneo,
+            Existentes = existentes,
+            Fase = FaseTorneo.Cuartos,
+            CantidadPartidos = CantidadPartidosCuartos,
+            Validacion = new ContextoValidacionFase
             {
                 CantidadEsperada = CantidadPartidosOctavos,
                 FaseEsperada = FaseTorneo.Octavos,
                 FaseAGenerar = "cuartos",
                 FaseAnterior = "octavos"
-            });
-
-        var ganadores = ObtenerGanadores(octavos);
-        var partidos = new List<Partido>();
-        var proximoId = octavos.Max(p => p.Id) + 1;
-        var fechaInicio = octavos.Max(p => p.Fecha.Date).AddDays(configuracionTorneo.SeparacionEntreFechas);
-
-        for (int i = 0; i < CantidadPartidosCuartos; i++)
-        {
-            partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
-            {
-                Id = proximoId++,
-                EquipoLocal = ganadores[i * 2],
-                EquipoVisitante = ganadores[i * 2 + 1],
-                Estadio = estadios[partidos.Count % estadios.Count],
-                Fecha = CalcularFechaPartidoEliminatorio(fechaInicio, i, configuracionTorneo),
-                Fase = FaseTorneo.Cuartos
-            }));
-        }
-
-        return partidos;
+            },
+            Emparejar = EmparejarPorParesConsecutivos
+        });
     }
 
     public List<Partido> GenerarSemifinales(
@@ -351,36 +325,68 @@ public class ServicioCruces
         ConfiguracionTorneo configuracionTorneo,
         IReadOnlyList<Partido>? existentes = null)
     {
-        ValidarFaseNoGenerada(existentes, FaseTorneo.Semifinal, "semifinales");
-        ValidarPartidosDeFaseAnterior(
-            cuartos,
-            new ContextoValidacionFase
+        return GenerarFaseEliminatoria(new GeneracionFaseEliminatoria
+        {
+            PartidosFaseAnterior = cuartos,
+            Estadios = estadios,
+            ConfiguracionTorneo = configuracionTorneo,
+            Existentes = existentes,
+            Fase = FaseTorneo.Semifinal,
+            CantidadPartidos = CantidadPartidosSemifinales,
+            Validacion = new ContextoValidacionFase
             {
                 CantidadEsperada = CantidadPartidosCuartos,
                 FaseEsperada = FaseTorneo.Cuartos,
                 FaseAGenerar = "semifinales",
                 FaseAnterior = "cuartos"
-            });
+            },
+            Emparejar = EmparejarPorParesConsecutivos
+        });
+    }
 
-        var ganadores = ObtenerGanadores(cuartos);
+    private static (Equipo Local, Equipo Visitante) EmparejarPorParesConsecutivos(List<Equipo> ganadores, int indice)
+    {
+        return (ganadores[indice * PasoEntreParesDeEquipos], ganadores[indice * PasoEntreParesDeEquipos + 1]);
+    }
+
+    private List<Partido> GenerarFaseEliminatoria(GeneracionFaseEliminatoria generacion)
+    {
+        ValidarFaseNoGenerada(generacion.Existentes, generacion.Fase, generacion.Validacion.FaseAGenerar);
+        ValidarPartidosDeFaseAnterior(generacion.PartidosFaseAnterior, generacion.Validacion);
+
+        var ganadores = ObtenerGanadores(generacion.PartidosFaseAnterior);
         var partidos = new List<Partido>();
-        var proximoId = cuartos.Max(p => p.Id) + 1;
-        var fechaInicio = cuartos.Max(p => p.Fecha.Date).AddDays(configuracionTorneo.SeparacionEntreFechas);
+        var proximoId = generacion.PartidosFaseAnterior.Max(p => p.Id) + 1;
+        var fechaInicio = generacion.PartidosFaseAnterior.Max(p => p.Fecha.Date)
+            .AddDays(generacion.ConfiguracionTorneo.SeparacionEntreFechas);
 
-        for (int i = 0; i < CantidadPartidosSemifinales; i++)
+        for (int i = 0; i < generacion.CantidadPartidos; i++)
         {
+            var (local, visitante) = generacion.Emparejar(ganadores, i);
             partidos.Add(CrearPartidoEliminatorio(new DatosPartidoEliminatorio
             {
                 Id = proximoId++,
-                EquipoLocal = ganadores[i * 2],
-                EquipoVisitante = ganadores[i * 2 + 1],
-                Estadio = estadios[partidos.Count % estadios.Count],
-                Fecha = CalcularFechaPartidoEliminatorio(fechaInicio, i, configuracionTorneo),
-                Fase = FaseTorneo.Semifinal
+                EquipoLocal = local,
+                EquipoVisitante = visitante,
+                Estadio = generacion.Estadios[partidos.Count % generacion.Estadios.Count],
+                Fecha = CalcularFechaPartidoEliminatorio(fechaInicio, i, generacion.ConfiguracionTorneo),
+                Fase = generacion.Fase
             }));
         }
 
         return partidos;
+    }
+
+    private sealed class GeneracionFaseEliminatoria
+    {
+        public required List<Partido> PartidosFaseAnterior { get; init; }
+        public required List<Estadio> Estadios { get; init; }
+        public required ConfiguracionTorneo ConfiguracionTorneo { get; init; }
+        public IReadOnlyList<Partido>? Existentes { get; init; }
+        public required FaseTorneo Fase { get; init; }
+        public required int CantidadPartidos { get; init; }
+        public required ContextoValidacionFase Validacion { get; init; }
+        public required Func<List<Equipo>, int, (Equipo Local, Equipo Visitante)> Emparejar { get; init; }
     }
 
     private void ValidarFaseNoGenerada(IReadOnlyList<Partido>? existentes, FaseTorneo fase, string nombreFase)

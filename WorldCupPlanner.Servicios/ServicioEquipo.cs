@@ -142,7 +142,7 @@ namespace WorldCupPlanner.Servicios
         public string ObtenerMensajeComplecion(int cantidadGenerados) =>
             cantidadGenerados > 0
                 ? $"Se generaron {cantidadGenerados} equipos ficticios correctamente."
-                : "Ya hay 48 equipos registrados.";
+                : $"Ya hay {MaximoEquipos} equipos registrados.";
 
         private void ValidarSemillaNoNegativa(int semilla)
         {

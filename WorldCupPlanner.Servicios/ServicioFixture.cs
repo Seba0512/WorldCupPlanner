@@ -24,6 +24,12 @@ public class ServicioFixture
 
     private const int MaxIntentosGeneracionFixture = 100;
 
+    private const int NumeroJornadaInicial = 1;
+
+    public const int PrimeraJornada = NumeroJornadaInicial;
+    public const int SegundaJornada = NumeroJornadaInicial + 1;
+    public const int TerceraJornada = NumeroJornadaInicial + 2;
+
     public Fixture GenerarFixture(List<Equipo> equipos, List<Estadio> estadios, ConfiguracionTorneo configuracionTorneo)
     {
         ValidarCantidadEquipos(equipos);
@@ -103,7 +109,8 @@ public class ServicioFixture
 
         if (equipos.Count > ConstantesTorneo.CantidadEquipos)
         {
-            throw new EntidadInvalidaExcepcion("No se puede generar el fixture con más de 48 equipos.");
+            throw new EntidadInvalidaExcepcion(
+                $"No se puede generar el fixture con más de {ConstantesTorneo.CantidadEquipos} equipos.");
         }
     }
 
@@ -125,7 +132,8 @@ public class ServicioFixture
     {
         if (estadios.Count < CantidadMinimaEstadios)
         {
-            throw new EntidadInvalidaExcepcion("No se puede generar el fixture con menos de 4 estadios.");
+            throw new EntidadInvalidaExcepcion(
+                $"No se puede generar el fixture con menos de {CantidadMinimaEstadios} estadios.");
         }
     }
 
@@ -440,12 +448,6 @@ public class ServicioFixture
             Fase = FaseTorneo.FaseDeGrupos
         };
     }
-
-    private const int NumeroJornadaInicial = 1;
-
-    public const int PrimeraJornada = NumeroJornadaInicial;
-    public const int SegundaJornada = NumeroJornadaInicial + 1;
-    public const int TerceraJornada = NumeroJornadaInicial + 2;
 
     public List<Partido> ObtenerPartidosPendientesDeJornada(Fixture? fixture, int jornada)
     {
