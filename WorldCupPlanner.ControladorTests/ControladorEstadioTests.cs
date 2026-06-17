@@ -169,12 +169,8 @@ public class ControladorEstadioTests
         return new ControladorEstadio(servicio);
     }
 
-    private static Estadio CrearEstadio(string nombre) => new()
-    {
-        Nombre = nombre,
-        Ciudad = "Montevideo",
-        Capacidad = 30000
-    };
+    private static Estadio CrearEstadio(string nombre) =>
+        FabricaEntidades.CrearEstadio(nombre, capacidad: FabricaEntidades.CapacidadEstadioMinima);
 }
 
 file sealed class RepositorioEstadioControladorFake : IRepositorio<Estadio>

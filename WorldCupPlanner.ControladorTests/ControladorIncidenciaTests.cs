@@ -160,12 +160,8 @@ public class ControladorIncidenciaTests
         return new ControladorIncidencia(servicio);
     }
 
-    private static Equipo CrearEquipo(string nombre) => new()
-    {
-        Nombre = nombre,
-        Confederacion = Confederacion.CONMEBOL,
-        RankingFIFA = 1200
-    };
+    private static Equipo CrearEquipo(string nombre) =>
+        FabricaEntidades.CrearEquipo(nombre, Confederacion.CONMEBOL);
 }
 
 file sealed class RepositorioIncidenciaControladorFake : IRepositorioIncidencia

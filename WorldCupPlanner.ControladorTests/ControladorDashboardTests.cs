@@ -109,19 +109,11 @@ public class ControladorDashboardTests
         return new ContextoDashboardTest(repositorioEquipos, repositorioEstadios, new EstadoTorneo());
     }
 
-    private static Equipo CrearEquipo(string nombre, Confederacion confederacion) => new()
-    {
-        Nombre = nombre,
-        Confederacion = confederacion,
-        RankingFIFA = 1200
-    };
+    private static Equipo CrearEquipo(string nombre, Confederacion confederacion) =>
+        FabricaEntidades.CrearEquipo(nombre, confederacion);
 
-    private static Estadio CrearEstadio(string nombre) => new()
-    {
-        Nombre = nombre,
-        Ciudad = "Montevideo",
-        Capacidad = 60000
-    };
+    private static Estadio CrearEstadio(string nombre) =>
+        FabricaEntidades.CrearEstadio(nombre);
 
     private static Partido CrearPartido(
         Equipo local,

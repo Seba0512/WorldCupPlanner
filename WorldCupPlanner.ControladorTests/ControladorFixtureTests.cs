@@ -16,7 +16,7 @@ public class ControladorFixtureTests
     {
         var servicio = new ServicioFixture();
         var controlador = new ControladorFixture(servicio);
-        var equipos = CrearEquiposValidos();
+        var equipos = FabricaEntidades.CrearEquiposValidos();
         var estadios = CrearEstadiosValidos();
         var configuracion = CrearConfiguracion();
 
@@ -32,7 +32,7 @@ public class ControladorFixtureTests
     {
         var servicio = new ServicioFixture();
         var controlador = new ControladorFixture(servicio);
-        var equipos = CrearEquiposValidos();
+        var equipos = FabricaEntidades.CrearEquiposValidos();
         var estadios = CrearEstadiosValidos();
         var configuracion = CrearConfiguracion();
         var fixtureActual = servicio.GenerarFixture(equipos, estadios, configuracion);
@@ -274,38 +274,7 @@ public class ControladorFixtureTests
         CrearEstadio("Estadio4")
     ];
 
-    private static List<Equipo> CrearEquiposValidos()
-    {
-        var distribucion = new (Confederacion Confederacion, int Cantidad)[]
-        {
-            (Confederacion.UEFA, 16),
-            (Confederacion.CONMEBOL, 7),
-            (Confederacion.CONCACAF, 7),
-            (Confederacion.CAF, 9),
-            (Confederacion.AFC, 8),
-            (Confederacion.OFC, 1)
-        };
 
-        var equipos = new List<Equipo>();
-        var contador = 1;
-
-        foreach (var (confederacion, cantidad) in distribucion)
-        {
-            for (var i = 0; i < cantidad; i++)
-            {
-                equipos.Add(new Equipo
-                {
-                    Id = contador,
-                    Nombre = $"Equipo{contador:00}",
-                    Confederacion = confederacion,
-                    RankingFIFA = 2500 - contador
-                });
-                contador++;
-            }
-        }
-
-        return equipos;
-    }
 
     private static EstadoTorneo CrearEstadoConFixtureDeGruposCompleto()
     {
@@ -396,20 +365,11 @@ public class ControladorFixtureTests
         return partido;
     }
 
-    private static Equipo CrearEquipo(string nombre, Confederacion confederacion, int id) => new()
-    {
-        Id = id,
-        Nombre = nombre,
-        Confederacion = confederacion,
-        RankingFIFA = 1200
-    };
+    private static Equipo CrearEquipo(string nombre, Confederacion confederacion, int id) =>
+        FabricaEntidades.CrearEquipo(nombre, confederacion, id: id);
 
-    private static Estadio CrearEstadio(string nombre) => new()
-    {
-        Nombre = nombre,
-        Ciudad = "Montevideo",
-        Capacidad = 60000
-    };
+    private static Estadio CrearEstadio(string nombre) =>
+        FabricaEntidades.CrearEstadio(nombre);
 
     private static Partido CrearPartido(
         Equipo local,
@@ -429,7 +389,7 @@ public class ControladorFixtureTests
     private static ContextoOrquestadorFixture CrearContextoOrquestadorFixture()
     {
         var repositorioEquipo = new RepositorioGenericoControladorFixtureFake<Equipo>();
-        foreach (var equipo in CrearEquiposValidos())
+        foreach (var equipo in FabricaEntidades.CrearEquiposValidos())
             repositorioEquipo.Agregar(equipo);
 
         var repositorioEstadio = new RepositorioGenericoControladorFixtureFake<Estadio>();
@@ -467,7 +427,7 @@ public class ControladorFixtureTests
     }
 }
 
-sealed record ContextoOrquestadorFixture(
+internal sealed record ContextoOrquestadorFixture(
     ServicioFixture ServicioFixture,
     ServicioEquipo ServicioEquipo,
     ServicioEstadio ServicioEstadio,
@@ -477,7 +437,7 @@ sealed record ContextoOrquestadorFixture(
     RepositorioGenericoControladorFixtureFake<Partido> RepositorioPartido,
     RepositorioTorneoArchivadoControladorFixtureFake RepositorioTorneoArchivado);
 
-sealed class RepositorioGenericoControladorFixtureFake<T> : IRepositorio<T>
+internal sealed class RepositorioGenericoControladorFixtureFake<T> : IRepositorio<T>
 {
     private readonly List<T> _entidades = new();
 
@@ -497,7 +457,7 @@ sealed class RepositorioGenericoControladorFixtureFake<T> : IRepositorio<T>
     public List<T> Buscar(Func<T, bool> predicado) => _entidades.Where(predicado).ToList();
 }
 
-sealed class RepositorioTorneoArchivadoControladorFixtureFake : IRepositorioTorneoArchivado
+internal sealed class RepositorioTorneoArchivadoControladorFixtureFake : IRepositorioTorneoArchivado
 {
     private TorneoArchivado? _torneoArchivado;
 

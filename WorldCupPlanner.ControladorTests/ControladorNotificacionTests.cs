@@ -142,7 +142,7 @@ public class ControladorNotificacionTests
         foreach (var usuario in usuarios)
             repositorioUsuario.Agregar(usuario);
 
-        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaNotificacionControladorFake());
+        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaFake());
         var servicioUsuario = new ServicioUsuario(repositorioUsuario, auditoria);
         var servicioNotificacion = new ServicioNotificacion(repositorioNotificacion);
 
@@ -176,17 +176,7 @@ file sealed class RepositorioUsuarioNotificacionControladorFake : IRepositorioUs
         _usuarios.FirstOrDefault(u => string.Equals(u.Email, email, StringComparison.OrdinalIgnoreCase));
 }
 
-file sealed class RepositorioAuditoriaNotificacionControladorFake : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _auditorias = new();
-    private int _siguienteId;
 
-    public int SiguienteId() => ++_siguienteId;
-    public void Agregar(Auditoria auditoria) => _auditorias.Add(auditoria);
-    public void Actualizar(Auditoria auditoria) { }
-    public void Eliminar(Auditoria auditoria) => _auditorias.Remove(auditoria);
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado) => _auditorias.Where(predicado).ToList();
-}
 
 file sealed class RepositorioNotificacionControladorFake : IRepositorioNotificacion
 {

@@ -189,8 +189,8 @@ public class ControladorEquipoTests
         var controlador = CrearControlador(new RepositorioEquipoControladorFake());
         var equipos = new List<EquipoDTO>
         {
-            new() { Nombre = "UEFA 1", Confederacion = Confederacion.UEFA, RankingFIFA = 1200 },
-            new() { Nombre = "CONMEBOL 1", Confederacion = Confederacion.CONMEBOL, RankingFIFA = 1200 }
+            new() { Nombre = "UEFA 1", Confederacion = Confederacion.UEFA, RankingFIFA = FabricaEntidades.RankingFifaPorDefecto },
+            new() { Nombre = "CONMEBOL 1", Confederacion = Confederacion.CONMEBOL, RankingFIFA = FabricaEntidades.RankingFifaPorDefecto }
         };
 
         var cupos = controlador.ObtenerCuposConOcupacionDTO(equipos);
@@ -206,13 +206,8 @@ public class ControladorEquipoTests
         return new ControladorEquipo(servicio);
     }
 
-    private static Equipo CrearEquipo(string nombre, Confederacion confederacion) => new()
-    {
-        Nombre = nombre,
-        Confederacion = confederacion,
-        RankingFIFA = 1200,
-        RankingInicial = 1200
-    };
+    private static Equipo CrearEquipo(string nombre, Confederacion confederacion) =>
+        FabricaEntidades.CrearEquipo(nombre, confederacion);
 }
 
 file sealed class RepositorioEquipoControladorFake : IRepositorio<Equipo>

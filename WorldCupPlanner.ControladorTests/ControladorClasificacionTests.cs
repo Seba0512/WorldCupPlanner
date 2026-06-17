@@ -10,7 +10,10 @@ namespace WorldCupPlanner.ControladorTests;
 [TestClass]
 public class ControladorClasificacionTests
 {
-    private int _proximoEquipoId = 1;
+    private int _proximoEquipoId;
+
+    [TestInitialize]
+    public void Initialize() => _proximoEquipoId = 1;
 
     [TestMethod]
     public void CalcularTabla_SinConfiguracion_DelegaEnServicioClasificacion()
@@ -356,14 +359,8 @@ public class ControladorClasificacionTests
         return estado;
     }
 
-    private Equipo CrearEquipo(string nombre, Confederacion confederacion = Confederacion.UEFA) => new()
-    {
-        Id = _proximoEquipoId++,
-        Nombre = nombre,
-        Confederacion = confederacion,
-        RankingFIFA = 1200,
-        Bandera = $"bandera-{nombre}"
-    };
+    private Equipo CrearEquipo(string nombre, Confederacion confederacion = Confederacion.UEFA) =>
+        FabricaEntidades.CrearEquipo(nombre, confederacion, id: _proximoEquipoId++, bandera: $"bandera-{nombre}");
 
     private static Partido CrearPartido(Equipo local, Equipo visitante, int golesLocal, int golesVisitante) => new()
     {
@@ -372,7 +369,7 @@ public class ControladorClasificacionTests
         GolesLocal = golesLocal,
         GolesVisitante = golesVisitante,
         Fase = FaseTorneo.FaseDeGrupos,
-        Estadio = new Estadio { Nombre = "Estadio", Ciudad = "Ciudad", Capacidad = 30000 },
+        Estadio = FabricaEntidades.CrearEstadio("Estadio", "Ciudad", FabricaEntidades.CapacidadEstadioMinima),
         Fecha = new DateTime(2026, 6, 1, 14, 0, 0)
     };
 

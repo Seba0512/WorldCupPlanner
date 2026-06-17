@@ -85,13 +85,13 @@ public class ControladorConsultasTorneoTests
         {
             Nombre = "Uruguay",
             Confederacion = Confederacion.CONMEBOL,
-            RankingFIFA = 1200
+            RankingFIFA = FabricaEntidades.RankingFifaPorDefecto
         }));
         Assert.IsTrue(controlador.EstadioParticipaEnFixture(estado, new EstadioDTO
         {
             Nombre = "Centenario",
             Ciudad = "Montevideo",
-            Capacidad = 60000
+            Capacidad = FabricaEntidades.CapacidadEstadioGrande
         }));
     }
 
@@ -166,18 +166,10 @@ public class ControladorConsultasTorneoTests
         };
     }
 
-    private static Equipo CrearEquipo(string nombre, Confederacion confederacion) => new()
-    {
-        Nombre = nombre,
-        Confederacion = confederacion,
-        RankingFIFA = 1200
-    };
+    private static Equipo CrearEquipo(string nombre, Confederacion confederacion) =>
+        FabricaEntidades.CrearEquipo(nombre, confederacion);
 
-    private static Estadio CrearEstadio(string nombre) => new()
-    {
-        Nombre = nombre,
-        Ciudad = "Montevideo",
-        Capacidad = 60000
-    };
+    private static Estadio CrearEstadio(string nombre) =>
+        FabricaEntidades.CrearEstadio(nombre);
 }
 

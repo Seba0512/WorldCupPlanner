@@ -14,7 +14,7 @@ public class ControladorExportacionTests
     [TestMethod]
     public void ExportarAuditoriasCsv_DelegaEnServicio()
     {
-        var repo = new RepositorioAuditoriaControladorExportacionFake();
+        var repo = new RepositorioAuditoriaFake();
         repo.Agregar(new Auditoria(1, new DateTime(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc).ToString("o"),
             "admin", "Alta", "Dentro del rango"));
         repo.Agregar(new Auditoria(2, new DateTime(2026, 6, 3, 10, 0, 0, DateTimeKind.Utc).ToString("o"),
@@ -31,7 +31,7 @@ public class ControladorExportacionTests
     [TestMethod]
     public void ExportarAuditoriasCsv_ConRangoInvertido_MantieneValidacionDelServicio()
     {
-        var controlador = CrearControlador(new RepositorioAuditoriaControladorExportacionFake());
+        var controlador = CrearControlador(new RepositorioAuditoriaFake());
 
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             controlador.ExportarAuditoriasCsv(new DateTime(2026, 6, 2), new DateTime(2026, 6, 1), "admin"));
@@ -40,7 +40,7 @@ public class ControladorExportacionTests
     [TestMethod]
     public void ExportarAuditoriasXlsx_DelegaGeneracionExcel()
     {
-        var repo = new RepositorioAuditoriaControladorExportacionFake();
+        var repo = new RepositorioAuditoriaFake();
         repo.Agregar(new Auditoria(1, new DateTime(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc).ToString("o"),
             "admin", "Alta", "Detalle"));
         var controlador = CrearControlador(repo);
@@ -49,6 +49,7 @@ public class ControladorExportacionTests
             new DateTime(2026, 6, 1), new DateTime(2026, 6, 1), "Administrador");
 
         Assert.IsTrue(bytes.Length > 0);
+        // Firma "PK" identifica el formato ZIP (base de XLSX)
         Assert.AreEqual((byte)'P', bytes[0]);
         Assert.AreEqual((byte)'K', bytes[1]);
     }
@@ -56,7 +57,7 @@ public class ControladorExportacionTests
     [TestMethod]
     public void ExportarFixtureCsv_DelegaEnServicio()
     {
-        var controlador = CrearControlador(new RepositorioAuditoriaControladorExportacionFake(), CrearEstadoConFixture());
+        var controlador = CrearControlador(new RepositorioAuditoriaFake(), CrearEstadoConFixture());
 
         var contenido = Encoding.UTF8.GetString(controlador.ExportarFixtureCsv("Administrador"));
 
@@ -67,11 +68,12 @@ public class ControladorExportacionTests
     [TestMethod]
     public void ExportarFixtureXlsx_DelegaGeneracionExcel()
     {
-        var controlador = CrearControlador(new RepositorioAuditoriaControladorExportacionFake(), CrearEstadoConFixture());
+        var controlador = CrearControlador(new RepositorioAuditoriaFake(), CrearEstadoConFixture());
 
         var bytes = controlador.ExportarFixtureXlsx("Administrador");
 
         Assert.IsTrue(bytes.Length > 0);
+        // Firma "PK" identifica el formato ZIP (base de XLSX)
         Assert.AreEqual((byte)'P', bytes[0]);
         Assert.AreEqual((byte)'K', bytes[1]);
     }
@@ -95,7 +97,7 @@ public class ControladorExportacionTests
         var francia = CrearEquipo("Francia", Confederacion.UEFA);
         var japon = CrearEquipo("Japon", Confederacion.AFC);
         var marruecos = CrearEquipo("Marruecos", Confederacion.CAF);
-        var estadio = new Estadio { Nombre = "Centenario", Ciudad = "Montevideo", Capacidad = 60000 };
+        var estadio = FabricaEntidades.CrearEstadio("Centenario");
         var grupo = new Grupo("A", [uruguay, francia, japon, marruecos]);
         grupo.Partidos.Add(new Partido
         {
@@ -128,34 +130,9 @@ public class ControladorExportacionTests
         };
     }
 
-    private static Equipo CrearEquipo(string nombre, Confederacion confederacion) => new()
-    {
-        Nombre = nombre,
-        RankingFIFA = 1000,
-        RankingInicial = 1000,
-        Confederacion = confederacion
-    };
+    private static Equipo CrearEquipo(string nombre, Confederacion confederacion) =>
+        FabricaEntidades.CrearEquipo(nombre, confederacion, rankingFifa: 1000);
 }
 
-file sealed class RepositorioAuditoriaControladorExportacionFake : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _auditorias = new();
-    private int _contador;
 
-    public int SiguienteId() => ++_contador;
-
-    public void Agregar(Auditoria entidad) => _auditorias.Add(entidad);
-
-    public void Actualizar(Auditoria entidad)
-    {
-        var indice = _auditorias.FindIndex(a => a.Id == entidad.Id);
-        if (indice >= 0)
-            _auditorias[indice] = entidad;
-    }
-
-    public void Eliminar(Auditoria entidad) => _auditorias.Remove(entidad);
-
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado) =>
-        _auditorias.Where(predicado).ToList();
-}
 

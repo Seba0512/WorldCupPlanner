@@ -14,7 +14,7 @@ public class ControladorAuditoriaTests
     [TestMethod]
     public void ObtenerTodos_DevuelveRegistrosDelServicio()
     {
-        var repositorio = new RepositorioAuditoriaControladorFake();
+        var repositorio = new RepositorioAuditoriaFake();
         var servicio = new ServicioAuditoria(repositorio);
         var controlador = new ControladorAuditoria(servicio);
         servicio.Registrar("admin@test.com", "ALTA", "detalle");
@@ -29,7 +29,7 @@ public class ControladorAuditoriaTests
     [TestMethod]
     public void ObtenerTodos_ConSolicitanteNoAdministrador_MantieneValidacionDelServicio()
     {
-        var servicio = new ServicioAuditoria(new RepositorioAuditoriaControladorFake());
+        var servicio = new ServicioAuditoria(new RepositorioAuditoriaFake());
         var controlador = new ControladorAuditoria(servicio);
         var editor = CrearUsuarioConRol(RolUsuario.Editor);
 
@@ -40,7 +40,7 @@ public class ControladorAuditoriaTests
     [TestMethod]
     public void ObtenerTodos_ConSolicitanteAdministrador_DevuelveRegistros()
     {
-        var repositorio = new RepositorioAuditoriaControladorFake();
+        var repositorio = new RepositorioAuditoriaFake();
         var servicio = new ServicioAuditoria(repositorio);
         var controlador = new ControladorAuditoria(servicio);
         var administrador = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
@@ -54,7 +54,7 @@ public class ControladorAuditoriaTests
     [TestMethod]
     public void ObtenerTodosDTO_DevuelveAuditoriasParaUI()
     {
-        var repositorio = new RepositorioAuditoriaControladorFake();
+        var repositorio = new RepositorioAuditoriaFake();
         var servicio = new ServicioAuditoria(repositorio);
         var controlador = new ControladorAuditoria(servicio);
         servicio.Registrar("admin@test.com", "ALTA", "detalle");
@@ -71,7 +71,7 @@ public class ControladorAuditoriaTests
     [TestMethod]
     public void ExportarComoTexto_DelegaFormatoDelServicio()
     {
-        var servicio = new ServicioAuditoria(new RepositorioAuditoriaControladorFake());
+        var servicio = new ServicioAuditoria(new RepositorioAuditoriaFake());
         var controlador = new ControladorAuditoria(servicio);
         var registros = new List<Auditoria>
         {
@@ -89,7 +89,7 @@ public class ControladorAuditoriaTests
     [TestMethod]
     public void ExportarComoTexto_ConAuditoriaDTO_MantieneFormato()
     {
-        var servicio = new ServicioAuditoria(new RepositorioAuditoriaControladorFake());
+        var servicio = new ServicioAuditoria(new RepositorioAuditoriaFake());
         var controlador = new ControladorAuditoria(servicio);
         var registros = new List<AuditoriaDTO>
         {
@@ -125,20 +125,4 @@ public class ControladorAuditoriaTests
     }
 }
 
-file sealed class RepositorioAuditoriaControladorFake : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _auditorias = new();
-    private int _contador;
-
-    public int SiguienteId() => ++_contador;
-
-    public void Agregar(Auditoria auditoria) => _auditorias.Add(auditoria);
-
-    public void Actualizar(Auditoria auditoria) { }
-
-    public void Eliminar(Auditoria auditoria) => _auditorias.Remove(auditoria);
-
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado) =>
-        _auditorias.Where(predicado).ToList();
-}
 

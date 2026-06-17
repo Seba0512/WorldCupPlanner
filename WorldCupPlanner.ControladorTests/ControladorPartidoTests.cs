@@ -41,7 +41,7 @@ public class ControladorPartidoTests
     public void BuscarPartidoPorIdDTO_DevuelvePartidoDTO()
     {
         var repositorio = new RepositorioPartidoControladorFake();
-        var partido = CrearPartido(1, grupo: "A");
+        var partido = CrearPartido(1, grupoEtiqueta: "A");
         partido.Incidencias.Add(new TarjetaRoja
         {
             Id = 10,
@@ -155,8 +155,8 @@ public class ControladorPartidoTests
         var controlador = CrearControlador(new RepositorioPartidoControladorFake());
         var partidos = new List<Partido>
         {
-            CrearPartido(1, estadio: "Estadio A", grupo: "A"),
-            CrearPartido(2, estadio: "Estadio B", grupo: "B")
+            CrearPartido(1, estadio: "Estadio A", grupoEtiqueta: "A"),
+            CrearPartido(2, estadio: "Estadio B", grupoEtiqueta: "B")
         };
 
         var filtrados = controlador.FiltrarPartidos(partidos, new FiltroPartidos { Grupo = "A" }).ToList();
@@ -171,8 +171,8 @@ public class ControladorPartidoTests
         var controlador = CrearControlador(new RepositorioPartidoControladorFake());
         var partidos = new List<PartidoDTO>
         {
-            PartidoDTO.FromEntity(CrearPartido(1, estadio: "Estadio A", grupo: "A")),
-            PartidoDTO.FromEntity(CrearPartido(2, estadio: "Estadio B", grupo: "B"))
+            PartidoDTO.FromEntity(CrearPartido(1, estadio: "Estadio A", grupoEtiqueta: "A")),
+            PartidoDTO.FromEntity(CrearPartido(2, estadio: "Estadio B", grupoEtiqueta: "B"))
         };
 
         var filtrados = controlador.FiltrarPartidosDTO(partidos, new FiltroPartidos { Grupo = "A" }).ToList();
@@ -216,8 +216,8 @@ public class ControladorPartidoTests
         var controlador = CrearControlador(new RepositorioPartidoControladorFake());
         var partidos = new List<Partido>
         {
-            CrearPartido(1, estadio: "Estadio B", grupo: "B"),
-            CrearPartido(2, estadio: "Estadio A", grupo: "A", fase: FaseTorneo.Octavos)
+            CrearPartido(1, estadio: "Estadio B", grupoEtiqueta: "B"),
+            CrearPartido(2, estadio: "Estadio A", grupoEtiqueta: "A", fase: FaseTorneo.Octavos)
         };
 
         CollectionAssert.AreEqual(
@@ -239,7 +239,7 @@ public class ControladorPartidoTests
 
     private static ServicioUsuario CrearServicioUsuario()
     {
-        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaControladorPartidoFake());
+        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaFake());
         return new ServicioUsuario(new RepositorioUsuarioControladorPartidoFake(), auditoria);
     }
 
@@ -247,7 +247,7 @@ public class ControladorPartidoTests
         int id,
         FaseTorneo fase = FaseTorneo.FaseDeGrupos,
         string estadio = "Estadio Inicial",
-        string? grupo = null)
+        string? grupoEtiqueta = null)
     {
         return new Partido
         {
@@ -256,24 +256,16 @@ public class ControladorPartidoTests
             Estadio = CrearEstadio(estadio),
             EquipoLocal = CrearEquipo($"Local {id}"),
             EquipoVisitante = CrearEquipo($"Visitante {id}"),
-            Grupo = grupo == null ? null : new Grupo(grupo),
+            Grupo = grupoEtiqueta == null ? null : new Grupo(grupoEtiqueta),
             Fase = fase
         };
     }
 
-    private static Equipo CrearEquipo(string nombre) => new()
-    {
-        Nombre = nombre,
-        Confederacion = Confederacion.UEFA,
-        RankingFIFA = 1200
-    };
+    private static Equipo CrearEquipo(string nombre) =>
+        FabricaEntidades.CrearEquipo(nombre);
 
-    private static Estadio CrearEstadio(string nombre) => new()
-    {
-        Nombre = nombre,
-        Ciudad = "Ciudad",
-        Capacidad = 30000
-    };
+    private static Estadio CrearEstadio(string nombre) =>
+        FabricaEntidades.CrearEstadio(nombre, "Ciudad", FabricaEntidades.CapacidadEstadioMinima);
 }
 
 file sealed class RepositorioPartidoControladorFake : IRepositorio<Partido>
@@ -363,30 +355,5 @@ file sealed class RepositorioUsuarioControladorPartidoFake : IRepositorioUsuario
         _usuarios.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
 }
 
-file sealed class RepositorioAuditoriaControladorPartidoFake : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _auditorias = new();
-    private int _siguienteId = 1;
 
-    public void Agregar(Auditoria entidad)
-    {
-        SiguienteId();
-        _auditorias.Add(entidad);
-    }
-
-    public void Actualizar(Auditoria entidad)
-    {
-        var indice = _auditorias.FindIndex(a => a.Id == entidad.Id);
-        if (indice == -1)
-            _auditorias.Add(entidad);
-        else
-            _auditorias[indice] = entidad;
-    }
-
-    public void Eliminar(Auditoria entidad) => _auditorias.Remove(entidad);
-
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado) => _auditorias.Where(predicado).ToList();
-
-    public int SiguienteId() => _siguienteId++;
-}
 

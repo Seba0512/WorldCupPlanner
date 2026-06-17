@@ -85,7 +85,7 @@ public class ControladorImportacionTests
         var repositorioUsuario = new RepositorioUsuarioControladorImportacionFake();
         repositorioUsuario.Agregar(CrearUsuarioSinRol());
         repositorioUsuario.Agregar(CrearAdministrador());
-        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaControladorImportacionFake());
+        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaFake());
         var servicioUsuario = new ServicioUsuario(repositorioUsuario, auditoria);
         var servicioEquipo = new ServicioEquipo(repositorioEquipo);
         var servicioImportacion = new ServicioImportacionLegible();
@@ -129,17 +129,7 @@ file sealed class RepositorioUsuarioControladorImportacionFake : IRepositorioUsu
         _usuarios.FirstOrDefault(u => string.Equals(u.Email, email, StringComparison.OrdinalIgnoreCase));
 }
 
-file sealed class RepositorioAuditoriaControladorImportacionFake : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _auditorias = new();
-    private int _siguienteId;
 
-    public int SiguienteId() => ++_siguienteId;
-    public void Agregar(Auditoria auditoria) => _auditorias.Add(auditoria);
-    public void Actualizar(Auditoria auditoria) { }
-    public void Eliminar(Auditoria auditoria) => _auditorias.Remove(auditoria);
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado) => _auditorias.Where(predicado).ToList();
-}
 
 file sealed class RepositorioEquipoControladorImportacionFake : IRepositorio<Equipo>
 {

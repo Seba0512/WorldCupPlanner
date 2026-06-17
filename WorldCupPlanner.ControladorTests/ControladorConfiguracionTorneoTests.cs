@@ -174,7 +174,7 @@ public class ControladorConfiguracionTorneoTests
         foreach (var usuario in usuarios)
             repositorio.Agregar(usuario);
 
-        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaConfiguracionControladorFake());
+        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaFake());
         var servicioUsuario = new ServicioUsuario(repositorio, auditoria);
         return new ControladorConfiguracionTorneo(servicioConfiguracion, servicioUsuario);
     }
@@ -205,15 +205,5 @@ file sealed class RepositorioUsuarioConfiguracionControladorFake : IRepositorioU
         _usuarios.FirstOrDefault(u => string.Equals(u.Email, email, StringComparison.OrdinalIgnoreCase));
 }
 
-file sealed class RepositorioAuditoriaConfiguracionControladorFake : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _auditorias = new();
-    private int _siguienteId;
 
-    public int SiguienteId() => ++_siguienteId;
-    public void Agregar(Auditoria auditoria) => _auditorias.Add(auditoria);
-    public void Actualizar(Auditoria auditoria) { }
-    public void Eliminar(Auditoria auditoria) => _auditorias.Remove(auditoria);
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado) => _auditorias.Where(predicado).ToList();
-}
 

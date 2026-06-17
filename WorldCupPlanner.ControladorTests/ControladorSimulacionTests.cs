@@ -227,7 +227,7 @@ public class ControladorSimulacionTests
         servicioSimulacion ??= new ServicioSimulacion();
         repositorioPartido ??= new RepositorioGenericoControladorSimulacionFake<Partido>();
 
-        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaControladorSimulacionFake());
+        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaFake());
         var persistencia = new ServicioPersistenciaFixture(
             new RepositorioGenericoControladorSimulacionFake<Grupo>(),
             repositorioPartido,
@@ -263,7 +263,7 @@ public class ControladorSimulacionTests
             Fecha = new DateTime(2026, 6, 1, 14, 0, 0),
             EquipoLocal = local,
             EquipoVisitante = visitante,
-            Estadio = new Estadio { Nombre = "Estadio", Ciudad = "Montevideo", Capacidad = 60000 },
+            Estadio = FabricaEntidades.CrearEstadio("Estadio"),
             Fase = FaseTorneo.FaseDeGrupos
         };
         var grupo = new Grupo("A", new List<Equipo> { local, visitante });
@@ -290,14 +290,8 @@ public class ControladorSimulacionTests
         return servicio;
     }
 
-    private static Equipo CrearEquipo(int id, string nombre) => new()
-    {
-        Id = id,
-        Nombre = nombre,
-        Confederacion = Confederacion.UEFA,
-        RankingFIFA = 1500,
-        RankingInicial = 1500
-    };
+    private static Equipo CrearEquipo(int id, string nombre) =>
+        FabricaEntidades.CrearEquipo(nombre, id: id, rankingFifa: 1500);
 }
 
 internal sealed record ContextoSimulacionControlador(
@@ -321,24 +315,7 @@ internal sealed class RepositorioGenericoControladorSimulacionFake<T> : IReposit
         _entidades.Where(predicado).ToList();
 }
 
-file sealed class RepositorioAuditoriaControladorSimulacionFake : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _auditorias = new();
-    private int _siguienteId = 1;
 
-    public int SiguienteId() => _siguienteId++;
-
-    public void Agregar(Auditoria entidad) => _auditorias.Add(entidad);
-
-    public void Actualizar(Auditoria entidad)
-    {
-    }
-
-    public void Eliminar(Auditoria entidad) => _auditorias.Remove(entidad);
-
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado) =>
-        _auditorias.Where(predicado).ToList();
-}
 
 file sealed class RepositorioTorneoArchivadoControladorSimulacionFake : IRepositorioTorneoArchivado
 {

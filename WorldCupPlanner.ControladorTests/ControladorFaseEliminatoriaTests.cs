@@ -63,7 +63,7 @@ public class ControladorFaseEliminatoriaTests
         }
 
         var repositorioPartido = new RepositorioPartidoControladorFaseFake();
-        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaControladorFaseFake());
+        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaFake());
         var servicioEstadio = new ServicioEstadio(repositorioEstadio, auditoria);
         var persistencia = new ServicioPersistenciaFixture(
             new RepositorioGrupoControladorFaseFake(),
@@ -83,7 +83,7 @@ public class ControladorFaseEliminatoriaTests
     private static Fixture CrearFixtureFaseGruposCompleto(List<Estadio> estadios)
     {
         var fixture = new ServicioFixture().GenerarFixture(
-            CrearEquiposValidos(),
+            FabricaEntidades.CrearEquiposValidos(),
             estadios,
             new ConfiguracionTorneo { SemillaFixture = 1 });
 
@@ -96,51 +96,16 @@ public class ControladorFaseEliminatoriaTests
         return fixture;
     }
 
-    private static List<Equipo> CrearEquiposValidos()
-    {
-        var distribucion = new (Confederacion Confederacion, int Cantidad)[]
-        {
-            (Confederacion.UEFA, 16),
-            (Confederacion.CONMEBOL, 7),
-            (Confederacion.CONCACAF, 7),
-            (Confederacion.CAF, 9),
-            (Confederacion.AFC, 8),
-            (Confederacion.OFC, 1)
-        };
 
-        var equipos = new List<Equipo>();
-        var contador = 1;
-
-        foreach (var (confederacion, cantidad) in distribucion)
-        {
-            for (var i = 0; i < cantidad; i++)
-            {
-                equipos.Add(new Equipo
-                {
-                    Id = contador,
-                    Nombre = $"Equipo{contador:00}",
-                    Confederacion = confederacion,
-                    RankingFIFA = 2500 - contador,
-                    RankingInicial = 2500 - contador
-                });
-                contador++;
-            }
-        }
-
-        return equipos;
-    }
 
     private static List<Estadio> CrearEstadiosValidos(int cantidad) =>
-        Enumerable.Range(1, cantidad).Select(i => new Estadio
-        {
-            Nombre = $"Estadio{i}",
-            Ciudad = $"Ciudad{i}",
-            Capacidad = 30000
-        }).ToList();
+        Enumerable.Range(1, cantidad)
+            .Select(i => FabricaEntidades.CrearEstadio($"Estadio{i}", $"Ciudad{i}", FabricaEntidades.CapacidadEstadioMinima))
+            .ToList();
 
     private static List<Partido> CrearPartidosSemifinalesJugados()
     {
-        var estadio = new Estadio { Nombre = "Estadio", Ciudad = "Ciudad", Capacidad = 30000 };
+        var estadio = FabricaEntidades.CrearEstadio("Estadio", "Ciudad", FabricaEntidades.CapacidadEstadioMinima);
         return Enumerable.Range(1, 2).Select(i => new Partido
         {
             Id = 100 + i,
@@ -154,12 +119,8 @@ public class ControladorFaseEliminatoriaTests
         }).ToList();
     }
 
-    private static Equipo CrearEquipo(string nombre, int ranking) => new()
-    {
-        Nombre = nombre,
-        RankingFIFA = ranking,
-        Confederacion = Confederacion.UEFA
-    };
+    private static Equipo CrearEquipo(string nombre, int ranking) =>
+        FabricaEntidades.CrearEquipo(nombre, rankingFifa: ranking);
 }
 
 internal sealed record ContextoFaseEliminatoriaControlador(
@@ -183,7 +144,7 @@ internal sealed class RepositorioPartidoControladorFaseFake : IRepositorio<Parti
         _partidos.Where(predicado).ToList();
 }
 
-file sealed class RepositorioEstadioControladorFaseFake : IRepositorio<Estadio>
+internal sealed class RepositorioEstadioControladorFaseFake : IRepositorio<Estadio>
 {
     private readonly List<Estadio> _estadios = new();
 
@@ -199,7 +160,7 @@ file sealed class RepositorioEstadioControladorFaseFake : IRepositorio<Estadio>
         _estadios.Where(predicado).ToList();
 }
 
-file sealed class RepositorioGrupoControladorFaseFake : IRepositorio<Grupo>
+internal sealed class RepositorioGrupoControladorFaseFake : IRepositorio<Grupo>
 {
     private readonly List<Grupo> _grupos = new();
 
@@ -215,26 +176,9 @@ file sealed class RepositorioGrupoControladorFaseFake : IRepositorio<Grupo>
         _grupos.Where(predicado).ToList();
 }
 
-file sealed class RepositorioAuditoriaControladorFaseFake : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _auditorias = new();
-    private int _siguienteId = 1;
 
-    public int SiguienteId() => _siguienteId++;
 
-    public void Agregar(Auditoria auditoria) => _auditorias.Add(auditoria);
-
-    public void Actualizar(Auditoria auditoria)
-    {
-    }
-
-    public void Eliminar(Auditoria auditoria) => _auditorias.Remove(auditoria);
-
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado) =>
-        _auditorias.Where(predicado).ToList();
-}
-
-file sealed class RepositorioTorneoArchivadoControladorFaseFake : IRepositorioTorneoArchivado
+internal sealed class RepositorioTorneoArchivadoControladorFaseFake : IRepositorioTorneoArchivado
 {
     private TorneoArchivado? _torneoArchivado;
 
