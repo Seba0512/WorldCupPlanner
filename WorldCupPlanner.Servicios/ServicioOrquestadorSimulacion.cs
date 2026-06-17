@@ -53,11 +53,15 @@ public class ServicioOrquestadorSimulacion
                 config,
                 usuarioActual,
                 _consultasTorneo.ObtenerTodosLosPartidos(estadoTorneo));
-            _persistencia.GuardarPartidos(new[] { partido });
-            _incidencia.PersistirIncidenciasDePartido(partido);
-            _rankingDinamico.RecalcularRankings(usuarioActual, partido.Id);
-            _rankingDinamico.SincronizarRankingsEnEstado(estadoTorneo);
+            _rankingDinamico.RecalcularRankingsEnMemoria(estadoTorneo);
         }
+
+        _persistencia.GuardarPartidos(pendientes);
+        foreach (var partido in pendientes)
+            _incidencia.PersistirIncidenciasDePartido(partido);
+
+        _rankingDinamico.RecalcularRankings(usuarioActual);
+        _rankingDinamico.SincronizarRankingsEnEstado(estadoTorneo);
 
         var periodistas = _usuario.ObtenerPeriodistas().ToList();
         _notificacion.GenerarNotificacionesPorResultados(pendientes, periodistas);

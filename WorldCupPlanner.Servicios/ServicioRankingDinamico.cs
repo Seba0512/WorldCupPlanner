@@ -184,6 +184,77 @@ public class ServicioRankingDinamico
         return cambios;
     }
 
+    public void RecalcularRankingsEnMemoria(EstadoTorneo estado)
+    {
+        var equipos = _consultasTorneo.ObtenerTodosLosEquipos(estado).ToList();
+        if (equipos.Count == 0)
+            return;
+
+        var rankingBase = ConstruirRankingBase(equipos);
+        var rankingActual = ReproducirHistorial(estado, rankingBase);
+        AplicarRankings(equipos, rankingBase, rankingActual);
+    }
+
+    private static Dictionary<string, int> ConstruirRankingBase(List<Equipo> equipos)
+    {
+        var rankingBase = new Dictionary<string, int>();
+        foreach (var equipo in equipos)
+        {
+            var clave = ClaveEquipo(equipo);
+            if (!rankingBase.ContainsKey(clave))
+                rankingBase[clave] = ObtenerRankingInicial(equipo);
+        }
+
+        return rankingBase;
+    }
+
+    private Dictionary<string, int> ReproducirHistorial(
+        EstadoTorneo estado,
+        Dictionary<string, int> rankingBase)
+    {
+        var rankingActual = new Dictionary<string, int>(rankingBase);
+        var partidosJugados = _consultasTorneo.ObtenerTodosLosPartidos(estado)
+            .Where(p => p.EstaJugado())
+            .OrderBy(p => p.Fecha)
+            .ThenBy(p => p.Id);
+
+        foreach (var partido in partidosJugados)
+            AplicarPartidoEnHistorial(partido, rankingActual);
+
+        return rankingActual;
+    }
+
+    private void AplicarPartidoEnHistorial(Partido partido, Dictionary<string, int> rankingActual)
+    {
+        if (partido.EquipoLocal == null || partido.EquipoVisitante == null)
+            return;
+
+        var claveLocal = ClaveEquipo(partido.EquipoLocal);
+        var claveVisitante = ClaveEquipo(partido.EquipoVisitante);
+        if (!rankingActual.ContainsKey(claveLocal) || !rankingActual.ContainsKey(claveVisitante))
+            return;
+
+        var rankingLocal = rankingActual[claveLocal];
+        var rankingVisitante = rankingActual[claveVisitante];
+        var resultadoLocal = DeterminarResultado(partido.GolesLocal!.Value, partido.GolesVisitante!.Value);
+
+        rankingActual[claveLocal] = ActualizarRanking(rankingLocal, rankingVisitante, resultadoLocal, partido.Fase);
+        rankingActual[claveVisitante] = ActualizarRanking(rankingVisitante, rankingLocal, 1.0 - resultadoLocal, partido.Fase);
+    }
+
+    private static void AplicarRankings(
+        List<Equipo> equipos,
+        Dictionary<string, int> rankingBase,
+        Dictionary<string, int> rankingActual)
+    {
+        foreach (var equipo in equipos)
+        {
+            var clave = ClaveEquipo(equipo);
+            equipo.RankingInicial = rankingBase[clave];
+            equipo.RankingFIFA = rankingActual[clave];
+        }
+    }
+
     public void SincronizarRankingsEnEstado(EstadoTorneo estado)
     {
         if (_repositorioEquipo == null)

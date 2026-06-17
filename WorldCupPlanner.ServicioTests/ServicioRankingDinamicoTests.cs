@@ -292,6 +292,52 @@ public class ServicioRankingDinamicoTests
         Assert.IsFalse(ultimoLog.Detalle.Contains($"CAF_02: {rankingLocalTrasResultadoOriginal} ->"));
     }
 
+    [TestMethod]
+    public void RecalcularRankingsEnMemoria_ProduceLosMismosRankingsQueRecalcularRankings()
+    {
+        // Arrange — mismo escenario reproducido por ambos caminos
+        var equipoA = CrearEquipo(1, "EquipoA", 1500);
+        var equipoB = CrearEquipo(2, "EquipoB", 1200);
+        var equipoC = CrearEquipo(3, "EquipoC", 1000);
+        var repoEquipo = new RepositorioEquipoRankingStub();
+        repoEquipo.Agregar(equipoA);
+        repoEquipo.Agregar(equipoB);
+        repoEquipo.Agregar(equipoC);
+        var repoPartido = new RepositorioPartidoRankingStub();
+        repoPartido.Agregar(CrearPartido(1, new DateTime(2026, 6, 1), equipoA, equipoB, 2, 0));
+        repoPartido.Agregar(CrearPartido(2, new DateTime(2026, 6, 2), equipoA, equipoC, 1, 1));
+        new ServicioRankingDinamico(repoEquipo, repoPartido, null).RecalcularRankings();
+
+        var equipoAMemoria = CrearEquipo(1, "EquipoA", 1500);
+        var equipoBMemoria = CrearEquipo(2, "EquipoB", 1200);
+        var equipoCMemoria = CrearEquipo(3, "EquipoC", 1000);
+        var grupo = new Grupo("A", new List<Equipo> { equipoAMemoria, equipoBMemoria, equipoCMemoria });
+        grupo.Partidos.Add(CrearPartido(1, new DateTime(2026, 6, 1), equipoAMemoria, equipoBMemoria, 2, 0));
+        grupo.Partidos.Add(CrearPartido(2, new DateTime(2026, 6, 2), equipoAMemoria, equipoCMemoria, 1, 1));
+        var estado = new EstadoTorneo();
+        estado.EstablecerFixture(new Fixture { Grupos = new List<Grupo> { grupo } });
+
+        // Act
+        new ServicioRankingDinamico().RecalcularRankingsEnMemoria(estado);
+
+        // Assert
+        Assert.AreEqual(equipoA.RankingFIFA, equipoAMemoria.RankingFIFA);
+        Assert.AreEqual(equipoB.RankingFIFA, equipoBMemoria.RankingFIFA);
+        Assert.AreEqual(equipoC.RankingFIFA, equipoCMemoria.RankingFIFA);
+    }
+
+    private static Partido CrearPartido(
+        int id, DateTime fecha, Equipo local, Equipo visitante, int golesLocal, int golesVisitante) => new()
+    {
+        Id = id,
+        Fecha = fecha,
+        EquipoLocal = local,
+        EquipoVisitante = visitante,
+        GolesLocal = golesLocal,
+        GolesVisitante = golesVisitante,
+        Fase = FaseTorneo.FaseDeGrupos
+    };
+
     private static Equipo CrearEquipo(int id, string nombre, int ranking) => new()
     {
         Id = id,
