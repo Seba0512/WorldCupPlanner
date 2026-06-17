@@ -46,7 +46,7 @@ public class FixtureTests
         Assert.AreEqual(0, partidos.Count);
     }
 
-    private Partido CrearPartido(int id)
+    private static Partido CrearPartido(int id)
     {
         return new Partido
         {

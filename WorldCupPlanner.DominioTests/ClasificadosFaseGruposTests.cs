@@ -7,7 +7,7 @@ namespace WorldCupPlanner.DominioTests;
 public class ClasificadosFaseGruposTests
 {
     [TestMethod]
-    public void ClasificadosFaseGrupos_Todos_IncluseLosTresListados()
+    public void ClasificadosFaseGrupos_Todos_IncluyeLosTresListados()
     {
         // Arrange
         var clasificados = new ClasificadosFaseGrupos();

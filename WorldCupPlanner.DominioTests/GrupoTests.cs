@@ -295,7 +295,7 @@ public class GrupoTests
         Assert.IsFalse(resultado);
     }
 
-    private Grupo CrearGrupoValido(string etiqueta = "A")
+    private static Grupo CrearGrupoValido(string etiqueta = "A")
     {
         var equipos = new List<Equipo>
         {
@@ -308,7 +308,7 @@ public class GrupoTests
         return new Grupo(etiqueta, equipos);
     }
 
-    private Equipo CrearEquipoValido(string nombre, Confederacion confederacion)
+    private static Equipo CrearEquipoValido(string nombre, Confederacion confederacion)
     {
         return new Equipo { Nombre = nombre, RankingFIFA = 500, Confederacion = confederacion };
     }

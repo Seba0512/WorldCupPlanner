@@ -61,7 +61,7 @@ public class EstadioTests
         // Arrange
         var estadio = new Estadio
         {
-            Nombre = "Estadio Centenaario",
+            Nombre = "Estadio Centenario",
             Ciudad = new string('A', 61),
             Capacidad = 20000
         };

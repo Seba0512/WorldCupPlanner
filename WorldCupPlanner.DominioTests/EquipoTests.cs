@@ -6,6 +6,8 @@ namespace WorldCupPlanner.DominioTests;
 [TestClass]
 public class EquipoTests
 {
+    private const int MaxLongitudBandera = 2_800_000;
+
     [TestMethod]
     public void Equipo_ConNombreVacio_NoEsValido()
     {
@@ -195,13 +197,13 @@ public class EquipoTests
     [TestMethod]
     public void Equipo_ConBanderaQueSuperaElTamanoMaximo_NoEsValido()
     {
-        // Arrange — Data URI válido en formato pero excede los 2 800 000 caracteres
+        // Arrange — Data URI válido en formato pero excede el tamaño máximo permitido
         var equipo = new Equipo
         {
             Nombre = "Uruguay",
             RankingFIFA = 1000,
             Confederacion = Confederacion.CONMEBOL,
-            Bandera = "data:image/svg+xml;base64," + new string('A', 2_800_000)
+            Bandera = "data:image/svg+xml;base64," + new string('A', MaxLongitudBandera)
         };
 
         // Act
@@ -214,14 +216,14 @@ public class EquipoTests
     [TestMethod]
     public void Equipo_ConBanderaEnElLimiteDeTamano_EsValido()
     {
-        // Arrange — exactamente 2 800 000 caracteres en el campo Bandera
+        // Arrange — el campo Bandera queda exactamente en el tamaño máximo permitido
         var prefijo = "data:image/svg+xml;base64,";
         var equipo = new Equipo
         {
             Nombre = "Uruguay",
             RankingFIFA = 1000,
             Confederacion = Confederacion.CONMEBOL,
-            Bandera = prefijo + new string('A', 2_800_000 - prefijo.Length)
+            Bandera = prefijo + new string('A', MaxLongitudBandera - prefijo.Length)
         };
 
         // Act

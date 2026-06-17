@@ -146,7 +146,7 @@ public class UsuarioTests
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contrasenia = "Pass12!"; // 7 caracteres
+        var contrasenia = "Pass12!";
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
@@ -155,11 +155,11 @@ public class UsuarioTests
     }
 
     [TestMethod]
-    public void EstablecerContrasenia_SinMayúsculas_DebeLanzarExcepcion()
+    public void EstablecerContrasenia_SinMayusculas_DebeLanzarExcepcion()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contrasenia = "password123!"; // Sin mayúsculas
+        var contrasenia = "password123!";
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
@@ -168,11 +168,11 @@ public class UsuarioTests
     }
 
     [TestMethod]
-    public void EstablecerContrasenia_SinMinúsculas_DebeLanzarExcepcion()
+    public void EstablecerContrasenia_SinMinusculas_DebeLanzarExcepcion()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contrasenia = "PASSWORD123!"; // Sin minúsculas
+        var contrasenia = "PASSWORD123!";
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
@@ -181,11 +181,11 @@ public class UsuarioTests
     }
 
     [TestMethod]
-    public void EstablecerContrasenia_SinNúmeros_DebeLanzarExcepcion()
+    public void EstablecerContrasenia_SinNumeros_DebeLanzarExcepcion()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contrasenia = "PasswordAbc!"; // Sin números
+        var contrasenia = "PasswordAbc!";
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
@@ -198,7 +198,7 @@ public class UsuarioTests
     {
         // Arrange
         var usuario = CrearUsuarioValido();
-        var contrasenia = "Password1234"; // Sin caracteres especiales
+        var contrasenia = "Password1234";
 
         // Act & Assert
         Assert.ThrowsException<ArgumentException>(() =>
@@ -355,10 +355,10 @@ public class UsuarioTests
         // Act
         var rolesAntes = usuario.ObtenerRoles().Count();
         usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
-        var rolesDepues = usuario.ObtenerRoles().Count();
+        var rolesDespues = usuario.ObtenerRoles().Count();
 
         // Assert
-        Assert.AreEqual(rolesAntes, rolesDepues);
+        Assert.AreEqual(rolesAntes, rolesDespues);
     }
 
     [TestMethod]
@@ -639,7 +639,7 @@ public class UsuarioTests
     }
 
     [TestMethod]
-    public void EstablecerContrasenia_LimpieFlagDebeCambiarContrasenia()
+    public void EstablecerContrasenia_LimpiaFlagDebeCambiarContrasenia()
     {
         // Arrange
         var usuario = CrearUsuarioValido();
