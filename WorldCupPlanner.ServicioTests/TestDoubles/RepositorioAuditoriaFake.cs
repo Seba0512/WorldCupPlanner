@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.ServicioTests;
 
+[ExcludeFromCodeCoverage]
 internal sealed class RepositorioAuditoriaFake : IRepositorioConId<Auditoria>
 {
     private int _nextId = 1;

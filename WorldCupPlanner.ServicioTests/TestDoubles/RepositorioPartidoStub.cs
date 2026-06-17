@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Excepciones;
 
 namespace WorldCupPlanner.ServicioTests;
 
+[ExcludeFromCodeCoverage]
 internal sealed class RepositorioPartidoStub : IRepositorio<Partido>
 {
     private readonly List<Partido> _partidos = new();

@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.ControladorTests;
 
+[ExcludeFromCodeCoverage]
 internal sealed class RepositorioAuditoriaFake : IRepositorioConId<Auditoria>
 {
     private readonly List<Auditoria> _auditorias = new();
