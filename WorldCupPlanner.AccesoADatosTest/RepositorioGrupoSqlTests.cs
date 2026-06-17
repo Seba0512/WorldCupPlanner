@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using WorldCupPlanner.AccesoADatos;
 using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
@@ -10,14 +8,6 @@ namespace WorldCupPlanner.AccesoADatosTest;
 [TestClass]
 public class RepositorioGrupoSqlTests
 {
-    private static SqlContext CrearContexto(string nombre)
-    {
-        var opciones = new DbContextOptionsBuilder<SqlContext>()
-            .UseInMemoryDatabase(nombre)
-            .Options;
-        return new SqlContext(opciones);
-    }
-
     private static Equipo CrearEquipo(string nombre, Confederacion confederacion = Confederacion.UEFA)
     {
         return new Equipo { Nombre = nombre, Confederacion = confederacion, RankingFIFA = 1000 };
@@ -27,7 +17,7 @@ public class RepositorioGrupoSqlTests
     public void AgregarGrupo_SinEquipos_DebePersistirGrupo()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(AgregarGrupo_SinEquipos_DebePersistirGrupo));
+        using var contexto = SqlContextFactory.Crear(nameof(AgregarGrupo_SinEquipos_DebePersistirGrupo));
         var repositorio = new RepositorioGrupoSql(contexto);
         var grupo = new Grupo("A");
 
@@ -35,7 +25,7 @@ public class RepositorioGrupoSqlTests
         repositorio.Agregar(grupo);
 
         // Assert
-        using var contextoVerificacion = CrearContexto(nameof(AgregarGrupo_SinEquipos_DebePersistirGrupo));
+        using var contextoVerificacion = SqlContextFactory.Crear(nameof(AgregarGrupo_SinEquipos_DebePersistirGrupo));
         var repositorioVerificacion = new RepositorioGrupoSql(contextoVerificacion);
         var grupos = repositorioVerificacion.Buscar(_ => true);
         Assert.AreEqual(1, grupos.Count);
@@ -46,7 +36,7 @@ public class RepositorioGrupoSqlTests
     public void AgregarGrupo_ConEquipos_DebePersistirEquiposDelGrupo()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(AgregarGrupo_ConEquipos_DebePersistirEquiposDelGrupo));
+        using var contexto = SqlContextFactory.Crear(nameof(AgregarGrupo_ConEquipos_DebePersistirEquiposDelGrupo));
         var equipo1 = CrearEquipo("Uruguay");
         var equipo2 = CrearEquipo("Argentina");
         contexto.Equipos.Add(equipo1);
@@ -60,7 +50,7 @@ public class RepositorioGrupoSqlTests
         repositorio.Agregar(grupo);
 
         // Assert
-        using var contextoVerificacion = CrearContexto(nameof(AgregarGrupo_ConEquipos_DebePersistirEquiposDelGrupo));
+        using var contextoVerificacion = SqlContextFactory.Crear(nameof(AgregarGrupo_ConEquipos_DebePersistirEquiposDelGrupo));
         var repositorioVerificacion = new RepositorioGrupoSql(contextoVerificacion);
         var grupos = repositorioVerificacion.Buscar(g => g.Etiqueta == "A");
         Assert.AreEqual(1, grupos.Count);
@@ -71,7 +61,7 @@ public class RepositorioGrupoSqlTests
     public void BuscarGrupo_PorEtiqueta_DebeRetornarGrupoCorrecto()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(BuscarGrupo_PorEtiqueta_DebeRetornarGrupoCorrecto));
+        using var contexto = SqlContextFactory.Crear(nameof(BuscarGrupo_PorEtiqueta_DebeRetornarGrupoCorrecto));
         var repositorio = new RepositorioGrupoSql(contexto);
         repositorio.Agregar(new Grupo("A"));
         repositorio.Agregar(new Grupo("B"));
@@ -88,7 +78,7 @@ public class RepositorioGrupoSqlTests
     public void BuscarGrupos_SinCoincidencias_DebeRetornarListaVacia()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(BuscarGrupos_SinCoincidencias_DebeRetornarListaVacia));
+        using var contexto = SqlContextFactory.Crear(nameof(BuscarGrupos_SinCoincidencias_DebeRetornarListaVacia));
         var repositorio = new RepositorioGrupoSql(contexto);
         repositorio.Agregar(new Grupo("A"));
 
@@ -103,7 +93,7 @@ public class RepositorioGrupoSqlTests
     public void ActualizarGrupo_NoExistente_LanzaExcepcion()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(ActualizarGrupo_NoExistente_LanzaExcepcion));
+        using var contexto = SqlContextFactory.Crear(nameof(ActualizarGrupo_NoExistente_LanzaExcepcion));
         var repositorio = new RepositorioGrupoSql(contexto);
         var grupo = new Grupo("A");
 
@@ -115,7 +105,7 @@ public class RepositorioGrupoSqlTests
     public void EliminarGrupo_Existente_EliminaGrupo()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(EliminarGrupo_Existente_EliminaGrupo));
+        using var contexto = SqlContextFactory.Crear(nameof(EliminarGrupo_Existente_EliminaGrupo));
         var repositorio = new RepositorioGrupoSql(contexto);
         var grupo = new Grupo("A");
         repositorio.Agregar(grupo);
@@ -132,7 +122,7 @@ public class RepositorioGrupoSqlTests
     public void EliminarGrupo_NoExistente_LanzaExcepcion()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(EliminarGrupo_NoExistente_LanzaExcepcion));
+        using var contexto = SqlContextFactory.Crear(nameof(EliminarGrupo_NoExistente_LanzaExcepcion));
         var repositorio = new RepositorioGrupoSql(contexto);
         var grupo = new Grupo("A");
 
@@ -144,7 +134,7 @@ public class RepositorioGrupoSqlTests
     public void AgregarVariosGrupos_DebePersistirTodos()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(AgregarVariosGrupos_DebePersistirTodos));
+        using var contexto = SqlContextFactory.Crear(nameof(AgregarVariosGrupos_DebePersistirTodos));
         var repositorio = new RepositorioGrupoSql(contexto);
 
         // Act
@@ -152,7 +142,7 @@ public class RepositorioGrupoSqlTests
             repositorio.Agregar(new Grupo(etiqueta));
 
         // Assert
-        using var contextoVerificacion = CrearContexto(nameof(AgregarVariosGrupos_DebePersistirTodos));
+        using var contextoVerificacion = SqlContextFactory.Crear(nameof(AgregarVariosGrupos_DebePersistirTodos));
         var repositorioVerificacion = new RepositorioGrupoSql(contextoVerificacion);
         var grupos = repositorioVerificacion.Buscar(_ => true);
         Assert.AreEqual(4, grupos.Count);
@@ -162,7 +152,7 @@ public class RepositorioGrupoSqlTests
     public void AgregarGrupo_DespuesDeEliminarConMismosEquipos_NoDebeDuplicarTracking()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(AgregarGrupo_DespuesDeEliminarConMismosEquipos_NoDebeDuplicarTracking));
+        using var contexto = SqlContextFactory.Crear(nameof(AgregarGrupo_DespuesDeEliminarConMismosEquipos_NoDebeDuplicarTracking));
         var equipos = new List<Equipo>
         {
             CrearEquipo("Uruguay", Confederacion.CONMEBOL),

@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using WorldCupPlanner.AccesoADatos;
 using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
 
@@ -8,36 +6,29 @@ namespace WorldCupPlanner.AccesoADatosTest;
 [TestClass]
 public class RepositorioConfiguracionTorneoSqlTests
 {
-    private static SqlContext CrearContexto(string nombre)
-    {
-        var opciones = new DbContextOptionsBuilder<SqlContext>()
-            .UseInMemoryDatabase(nombre)
-            .Options;
-        return new SqlContext(opciones);
-    }
-
     [TestMethod]
     public void ObtenerConfiguracionActual_SinDatosEnBd_DevuelveValoresPorDefecto()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(ObtenerConfiguracionActual_SinDatosEnBd_DevuelveValoresPorDefecto));
+        using var contexto = SqlContextFactory.Crear(nameof(ObtenerConfiguracionActual_SinDatosEnBd_DevuelveValoresPorDefecto));
         var repositorio = new RepositorioConfiguracionTorneoSql(contexto);
 
         // Act
         var configuracion = repositorio.ObtenerConfiguracionActual();
 
         // Assert
+        var porDefecto = new ConfiguracionTorneo();
         Assert.IsNotNull(configuracion);
-        Assert.AreEqual(0, configuracion.SemillaFixture);
-        Assert.AreEqual(3, configuracion.MaxPartidosPorDia);
-        Assert.AreEqual(new DateTime(2026, 6, 1), configuracion.FechaInicioTorneo);
+        Assert.AreEqual(porDefecto.SemillaFixture, configuracion.SemillaFixture);
+        Assert.AreEqual(porDefecto.MaxPartidosPorDia, configuracion.MaxPartidosPorDia);
+        Assert.AreEqual(porDefecto.FechaInicioTorneo, configuracion.FechaInicioTorneo);
     }
 
     [TestMethod]
     public void GuardarConfiguracionActual_PrimeraVez_PersisteLaConfiguracion()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(GuardarConfiguracionActual_PrimeraVez_PersisteLaConfiguracion));
+        using var contexto = SqlContextFactory.Crear(nameof(GuardarConfiguracionActual_PrimeraVez_PersisteLaConfiguracion));
         var repositorio = new RepositorioConfiguracionTorneoSql(contexto);
         var configuracion = new ConfiguracionTorneo { SemillaFixture = 42, MaxPartidosPorDia = 5 };
 
@@ -45,7 +36,7 @@ public class RepositorioConfiguracionTorneoSqlTests
         repositorio.GuardarConfiguracionActual(configuracion);
 
         // Assert
-        using var contextoVerificacion = CrearContexto(nameof(GuardarConfiguracionActual_PrimeraVez_PersisteLaConfiguracion));
+        using var contextoVerificacion = SqlContextFactory.Crear(nameof(GuardarConfiguracionActual_PrimeraVez_PersisteLaConfiguracion));
         var repositorioVerificacion = new RepositorioConfiguracionTorneoSql(contextoVerificacion);
         var recuperada = repositorioVerificacion.ObtenerConfiguracionActual();
         Assert.AreEqual(42, recuperada.SemillaFixture);
@@ -56,7 +47,7 @@ public class RepositorioConfiguracionTorneoSqlTests
     public void GuardarConfiguracionActual_Actualizar_SobreescribeValores()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(GuardarConfiguracionActual_Actualizar_SobreescribeValores));
+        using var contexto = SqlContextFactory.Crear(nameof(GuardarConfiguracionActual_Actualizar_SobreescribeValores));
         var repositorio = new RepositorioConfiguracionTorneoSql(contexto);
         repositorio.GuardarConfiguracionActual(new ConfiguracionTorneo { SemillaFixture = 10 });
 
@@ -66,14 +57,14 @@ public class RepositorioConfiguracionTorneoSqlTests
         // Assert
         var recuperada = repositorio.ObtenerConfiguracionActual();
         Assert.AreEqual(99, recuperada.SemillaFixture);
-        Assert.AreEqual(1, contexto.ConfiguracionesTorneo.Count(c => c.Id == 1));
+        Assert.AreEqual(1, contexto.ConfiguracionesTorneo.Count());
     }
 
     [TestMethod]
     public void ObtenerConfiguracionUsadaParaFixture_SinDatos_DevuelveNull()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(ObtenerConfiguracionUsadaParaFixture_SinDatos_DevuelveNull));
+        using var contexto = SqlContextFactory.Crear(nameof(ObtenerConfiguracionUsadaParaFixture_SinDatos_DevuelveNull));
         var repositorio = new RepositorioConfiguracionTorneoSql(contexto);
 
         // Act
@@ -87,7 +78,7 @@ public class RepositorioConfiguracionTorneoSqlTests
     public void GuardarConfiguracionUsadaParaFixture_PersisteSemillaUsada()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(GuardarConfiguracionUsadaParaFixture_PersisteSemillaUsada));
+        using var contexto = SqlContextFactory.Crear(nameof(GuardarConfiguracionUsadaParaFixture_PersisteSemillaUsada));
         var repositorio = new RepositorioConfiguracionTorneoSql(contexto);
         var configuracionDeFixture = new ConfiguracionTorneo
         {
@@ -100,7 +91,7 @@ public class RepositorioConfiguracionTorneoSqlTests
         repositorio.GuardarConfiguracionUsadaParaFixture(configuracionDeFixture);
 
         // Assert
-        using var contextoVerificacion = CrearContexto(nameof(GuardarConfiguracionUsadaParaFixture_PersisteSemillaUsada));
+        using var contextoVerificacion = SqlContextFactory.Crear(nameof(GuardarConfiguracionUsadaParaFixture_PersisteSemillaUsada));
         var repositorioVerificacion = new RepositorioConfiguracionTorneoSql(contextoVerificacion);
         var recuperada = repositorioVerificacion.ObtenerConfiguracionUsadaParaFixture();
         Assert.IsNotNull(recuperada);
@@ -113,7 +104,7 @@ public class RepositorioConfiguracionTorneoSqlTests
     public void ConfiguracionActualYDeFixture_SonRegistrosSeparados()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(ConfiguracionActualYDeFixture_SonRegistrosSeparados));
+        using var contexto = SqlContextFactory.Crear(nameof(ConfiguracionActualYDeFixture_SonRegistrosSeparados));
         var repositorio = new RepositorioConfiguracionTorneoSql(contexto);
 
         // Act
@@ -130,7 +121,7 @@ public class RepositorioConfiguracionTorneoSqlTests
     public void GuardarConfiguracionActual_PersisteTodosLosParametros()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(GuardarConfiguracionActual_PersisteTodosLosParametros));
+        using var contexto = SqlContextFactory.Crear(nameof(GuardarConfiguracionActual_PersisteTodosLosParametros));
         var repositorio = new RepositorioConfiguracionTorneoSql(contexto);
         var horaInicio = new TimeSpan(15, 30, 0);
         var configuracion = new ConfiguracionTorneo

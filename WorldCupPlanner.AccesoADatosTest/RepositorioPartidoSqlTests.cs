@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using WorldCupPlanner.AccesoADatos;
 using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
@@ -9,14 +8,6 @@ namespace WorldCupPlanner.AccesoADatosTest;
 [TestClass]
 public class RepositorioPartidoSqlTests
 {
-    private static SqlContext CrearContexto(string nombre)
-    {
-        var opciones = new DbContextOptionsBuilder<SqlContext>()
-            .UseInMemoryDatabase(nombre)
-            .Options;
-        return new SqlContext(opciones);
-    }
-
     private static (Equipo, Equipo, Estadio) SeedEntidades(SqlContext contexto)
     {
         var equipo1 = new Equipo { Nombre = "Uruguay", Confederacion = Confederacion.CONMEBOL, RankingFIFA = 1000 };
@@ -32,7 +23,7 @@ public class RepositorioPartidoSqlTests
     public void AgregarPartidoSql_NoDebeCambiarIdDeterministico()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(AgregarPartidoSql_NoDebeCambiarIdDeterministico));
+        using var contexto = SqlContextFactory.Crear(nameof(AgregarPartidoSql_NoDebeCambiarIdDeterministico));
         var (equipo1, equipo2, estadio) = SeedEntidades(contexto);
         var partido = new Partido
         {
@@ -49,7 +40,7 @@ public class RepositorioPartidoSqlTests
         repositorio.Agregar(partido);
 
         // Assert
-        using var contextoVerificacion = CrearContexto(nameof(AgregarPartidoSql_NoDebeCambiarIdDeterministico));
+        using var contextoVerificacion = SqlContextFactory.Crear(nameof(AgregarPartidoSql_NoDebeCambiarIdDeterministico));
         var repositorioVerificacion = new RepositorioPartidoSql(contextoVerificacion);
         var partidos = repositorioVerificacion.Buscar(p => p.Id == 73);
         Assert.AreEqual(1, partidos.Count);
@@ -60,7 +51,7 @@ public class RepositorioPartidoSqlTests
     public void AgregarPartidoSql_DebePersistirEquiposYEstadio()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(AgregarPartidoSql_DebePersistirEquiposYEstadio));
+        using var contexto = SqlContextFactory.Crear(nameof(AgregarPartidoSql_DebePersistirEquiposYEstadio));
         var (equipo1, equipo2, estadio) = SeedEntidades(contexto);
         var partido = new Partido
         {
@@ -77,7 +68,7 @@ public class RepositorioPartidoSqlTests
         repositorio.Agregar(partido);
 
         // Assert
-        using var contextoVerificacion = CrearContexto(nameof(AgregarPartidoSql_DebePersistirEquiposYEstadio));
+        using var contextoVerificacion = SqlContextFactory.Crear(nameof(AgregarPartidoSql_DebePersistirEquiposYEstadio));
         var repositorioVerificacion = new RepositorioPartidoSql(contextoVerificacion);
         var partidos = repositorioVerificacion.Buscar(p => p.Id == 1);
         Assert.AreEqual(1, partidos.Count);
@@ -90,7 +81,7 @@ public class RepositorioPartidoSqlTests
     public void ActualizarResultadoSql_DebeGuardarGoles()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(ActualizarResultadoSql_DebeGuardarGoles));
+        using var contexto = SqlContextFactory.Crear(nameof(ActualizarResultadoSql_DebeGuardarGoles));
         var (equipo1, equipo2, estadio) = SeedEntidades(contexto);
         var partido = new Partido
         {
@@ -110,7 +101,7 @@ public class RepositorioPartidoSqlTests
         repositorio.Actualizar(partido);
 
         // Assert
-        using var contextoVerificacion = CrearContexto(nameof(ActualizarResultadoSql_DebeGuardarGoles));
+        using var contextoVerificacion = SqlContextFactory.Crear(nameof(ActualizarResultadoSql_DebeGuardarGoles));
         var repositorioVerificacion = new RepositorioPartidoSql(contextoVerificacion);
         var resultado = repositorioVerificacion.Buscar(p => p.Id == 5);
         Assert.AreEqual(1, resultado.Count);
@@ -127,7 +118,7 @@ public class RepositorioPartidoSqlTests
         int equipoVisitanteId;
         int estadioId;
 
-        using (var contexto = CrearContexto(nombreBase))
+        using (var contexto = SqlContextFactory.Crear(nombreBase))
         {
             var (equipo1, equipo2, estadio) = SeedEntidades(contexto);
             var repositorio = new RepositorioPartidoSql(contexto);
@@ -159,14 +150,14 @@ public class RepositorioPartidoSqlTests
         };
 
         // Act
-        using (var contextoActualizacion = CrearContexto(nombreBase))
+        using (var contextoActualizacion = SqlContextFactory.Crear(nombreBase))
         {
             var repositorio = new RepositorioPartidoSql(contextoActualizacion);
             repositorio.Actualizar(partidoSimulado);
         }
 
         // Assert
-        using var contextoVerificacion = CrearContexto(nombreBase);
+        using var contextoVerificacion = SqlContextFactory.Crear(nombreBase);
         var repositorioVerificacion = new RepositorioPartidoSql(contextoVerificacion);
         var resultado = repositorioVerificacion.Buscar(p => p.Id == 9);
         Assert.AreEqual(1, resultado.Count);

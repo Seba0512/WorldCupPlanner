@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using WorldCupPlanner.AccesoADatos;
 using WorldCupPlanner.AccesoADatos.Repositorios;
 using WorldCupPlanner.Dominio.Entidades;
@@ -9,14 +8,6 @@ namespace WorldCupPlanner.AccesoADatosTest;
 [TestClass]
 public class RepositorioIncidenciaSqlTests
 {
-    private static SqlContext CrearContexto(string nombre)
-    {
-        var opciones = new DbContextOptionsBuilder<SqlContext>()
-            .UseInMemoryDatabase(nombre)
-            .Options;
-        return new SqlContext(opciones);
-    }
-
     private static Equipo SeedEquipo(SqlContext contexto, string nombre = "Uruguay")
     {
         var equipo = new Equipo { Nombre = nombre, Confederacion = Confederacion.CONMEBOL, RankingFIFA = 1000 };
@@ -29,7 +20,7 @@ public class RepositorioIncidenciaSqlTests
     public void AgregarIncidenciaSql_DebePersistirTarjetaAmarillaConEquipoYPartidoId()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(AgregarIncidenciaSql_DebePersistirTarjetaAmarillaConEquipoYPartidoId));
+        using var contexto = SqlContextFactory.Crear(nameof(AgregarIncidenciaSql_DebePersistirTarjetaAmarillaConEquipoYPartidoId));
         var equipo = SeedEquipo(contexto);
         var repositorio = new RepositorioIncidenciaSql(contexto);
         var tarjeta = new TarjetaAmarilla { MinutoDelPartido = 30, Equipo = equipo, PartidoId = 1 };
@@ -38,7 +29,7 @@ public class RepositorioIncidenciaSqlTests
         repositorio.Agregar(tarjeta);
 
         // Assert
-        using var contextoVerificacion = CrearContexto(nameof(AgregarIncidenciaSql_DebePersistirTarjetaAmarillaConEquipoYPartidoId));
+        using var contextoVerificacion = SqlContextFactory.Crear(nameof(AgregarIncidenciaSql_DebePersistirTarjetaAmarillaConEquipoYPartidoId));
         var repositorioVerificacion = new RepositorioIncidenciaSql(contextoVerificacion);
         var incidencias = repositorioVerificacion.ObtenerPorPartido(1);
         Assert.AreEqual(1, incidencias.Count);
@@ -52,7 +43,7 @@ public class RepositorioIncidenciaSqlTests
     public void AgregarIncidenciaSql_DebePersistirTarjetaRoja()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(AgregarIncidenciaSql_DebePersistirTarjetaRoja));
+        using var contexto = SqlContextFactory.Crear(nameof(AgregarIncidenciaSql_DebePersistirTarjetaRoja));
         var equipo = SeedEquipo(contexto, "Brasil");
         var repositorio = new RepositorioIncidenciaSql(contexto);
         var tarjeta = new TarjetaRoja { MinutoDelPartido = 75, Equipo = equipo, PartidoId = 2 };
@@ -61,7 +52,7 @@ public class RepositorioIncidenciaSqlTests
         repositorio.Agregar(tarjeta);
 
         // Assert
-        using var contextoVerificacion = CrearContexto(nameof(AgregarIncidenciaSql_DebePersistirTarjetaRoja));
+        using var contextoVerificacion = SqlContextFactory.Crear(nameof(AgregarIncidenciaSql_DebePersistirTarjetaRoja));
         var repositorioVerificacion = new RepositorioIncidenciaSql(contextoVerificacion);
         var incidencias = repositorioVerificacion.ObtenerPorPartido(2);
         Assert.AreEqual(1, incidencias.Count);
@@ -73,7 +64,7 @@ public class RepositorioIncidenciaSqlTests
     public void ObtenerPorPartidoSql_DebeRetornarSoloIncidenciasDelPartido()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(ObtenerPorPartidoSql_DebeRetornarSoloIncidenciasDelPartido));
+        using var contexto = SqlContextFactory.Crear(nameof(ObtenerPorPartidoSql_DebeRetornarSoloIncidenciasDelPartido));
         var equipo = SeedEquipo(contexto);
         var repositorio = new RepositorioIncidenciaSql(contexto);
         repositorio.Agregar(new TarjetaAmarilla { MinutoDelPartido = 10, Equipo = equipo, PartidoId = 1 });
@@ -92,7 +83,7 @@ public class RepositorioIncidenciaSqlTests
     public void EliminarIncidenciaSql_DebeEliminarCorrectamente()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(EliminarIncidenciaSql_DebeEliminarCorrectamente));
+        using var contexto = SqlContextFactory.Crear(nameof(EliminarIncidenciaSql_DebeEliminarCorrectamente));
         var equipo = SeedEquipo(contexto);
         var repositorio = new RepositorioIncidenciaSql(contexto);
         var tarjeta = new TarjetaAmarilla { MinutoDelPartido = 40, Equipo = equipo, PartidoId = 1 };
@@ -102,7 +93,7 @@ public class RepositorioIncidenciaSqlTests
         repositorio.Eliminar(tarjeta);
 
         // Assert
-        using var contextoVerificacion = CrearContexto(nameof(EliminarIncidenciaSql_DebeEliminarCorrectamente));
+        using var contextoVerificacion = SqlContextFactory.Crear(nameof(EliminarIncidenciaSql_DebeEliminarCorrectamente));
         var repositorioVerificacion = new RepositorioIncidenciaSql(contextoVerificacion);
         Assert.AreEqual(0, repositorioVerificacion.ObtenerPorPartido(1).Count);
     }
@@ -113,7 +104,7 @@ public class RepositorioIncidenciaSqlTests
         // Arrange
         const string nombreBase = nameof(AgregarIncidenciaSql_AlRecrearContexto_DebeRecuperarIncidencia);
 
-        using (var contexto = CrearContexto(nombreBase))
+        using (var contexto = SqlContextFactory.Crear(nombreBase))
         {
             var equipo = SeedEquipo(contexto);
             var repositorio = new RepositorioIncidenciaSql(contexto);
@@ -126,7 +117,7 @@ public class RepositorioIncidenciaSqlTests
         }
 
         // Act
-        using var contextoNuevo = CrearContexto(nombreBase);
+        using var contextoNuevo = SqlContextFactory.Crear(nombreBase);
         var repositorioNuevo = new RepositorioIncidenciaSql(contextoNuevo);
         var incidencias = repositorioNuevo.ObtenerPorPartido(7);
 
@@ -141,7 +132,7 @@ public class RepositorioIncidenciaSqlTests
     public void BuscarIncidenciaSql_DebeFiltrarPorPredicado()
     {
         // Arrange
-        using var contexto = CrearContexto(nameof(BuscarIncidenciaSql_DebeFiltrarPorPredicado));
+        using var contexto = SqlContextFactory.Crear(nameof(BuscarIncidenciaSql_DebeFiltrarPorPredicado));
         var equipo = SeedEquipo(contexto);
         var repositorio = new RepositorioIncidenciaSql(contexto);
         repositorio.Agregar(new TarjetaAmarilla { MinutoDelPartido = 15, Equipo = equipo, PartidoId = 1 });
