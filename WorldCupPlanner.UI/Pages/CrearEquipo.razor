@@ -48,8 +48,8 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">Puntos FIFA <span style="color:red">*</span></label>
-        <input type="number" class="form-control" @bind="_dto.RankingFIFA" min="300" max="2500" placeholder="Ej: 1580" />
+        <label class="form-label">Ranking FIFA <span style="color:red">*</span></label>
+        <input type="number" class="form-control" @bind="_rankingFIFA" min="300" max="2500" placeholder="1891" />
         <span class="form-hint">Valor entre 300 y 2500.</span>
     </div>
 
@@ -61,8 +61,8 @@
                 <img src="@_dto.Bandera" alt="Bandera" style="height:40px; border-radius:4px;" />
             </div>
         }
-        <InputFile OnChange="CargarBandera" accept="image/svg+xml" class="form-control" />
-        <span class="form-hint">Archivo SVG, o ingresá una URL SVG o valor Base64:</span>
+        <InputFile OnChange="CargarBandera" accept="image/svg+xml,image/jpeg,image/png,image/webp" class="form-control" />
+        <span class="form-hint">Formatos aceptados: SVG, JPG, PNG y WebP. También podés ingresar una URL SVG o valor Base64:</span>
         <div class="input-group mt-1">
             <input type="text" class="form-control" @bind="_urlOBase64"
                    placeholder="https://... o Base64 puro o data:image/svg+xml;base64,..." />
@@ -85,6 +85,7 @@
 
 @code {
     private EquipoDTO _dto = new();
+    private int? _rankingFIFA;
     private string _error = string.Empty;
     private string _errorBandera = string.Empty;
     private string _urlOBase64 = string.Empty;
@@ -121,6 +122,7 @@
     {
         _error = string.Empty;
         _erroresCampos = [];
+        _dto.RankingFIFA = _rankingFIFA ?? 0;
 
         var camposInvalidos = ValidarCampos();
         if (camposInvalidos.Count == 1)

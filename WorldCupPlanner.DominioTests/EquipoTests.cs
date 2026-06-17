@@ -232,7 +232,7 @@ public class EquipoTests
     }
 
     [TestMethod]
-    public void Equipo_ConBanderaConTipoNoSvg_NoEsValido()
+    public void Equipo_ConBanderaPng_EsValido()
     {
         // Arrange
         var equipo = new Equipo
@@ -241,6 +241,63 @@ public class EquipoTests
             RankingFIFA = 1000,
             Confederacion = Confederacion.CONMEBOL,
             Bandera = "data:image/png;base64,dXJ1Z3VheQ=="
+        };
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void Equipo_ConBanderaJpeg_EsValido()
+    {
+        // Arrange
+        var equipo = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL,
+            Bandera = "data:image/jpeg;base64,dXJ1Z3VheQ=="
+        };
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void Equipo_ConBanderaWebp_EsValido()
+    {
+        // Arrange
+        var equipo = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL,
+            Bandera = "data:image/webp;base64,dXJ1Z3VheQ=="
+        };
+
+        // Act
+        var resultado = equipo.EsValido();
+
+        // Assert
+        Assert.IsTrue(resultado);
+    }
+
+    [TestMethod]
+    public void Equipo_ConBanderaDeFormatoNoPermitido_NoEsValido()
+    {
+        // Arrange — bmp no está en la lista de formatos aceptados
+        var equipo = new Equipo
+        {
+            Nombre = "Uruguay",
+            RankingFIFA = 1000,
+            Confederacion = Confederacion.CONMEBOL,
+            Bandera = "data:image/bmp;base64,dXJ1Z3VheQ=="
         };
 
         // Act

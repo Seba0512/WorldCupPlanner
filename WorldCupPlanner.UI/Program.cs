@@ -82,7 +82,6 @@ builder.Services.AddScoped<ServicioOrquestadorFaseEliminatoria>();
 builder.Services.AddScoped<ControladorFaseEliminatoria>();
 builder.Services.AddScoped<ServicioDashboard>();
 builder.Services.AddScoped<ControladorDashboard>();
-builder.Services.AddScoped<InicializadorDatos>();
 
 builder.Services.AddScoped<SesionServicio>();
 builder.Services.AddScoped<ToastServicio>();
@@ -94,7 +93,6 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     scope.ServiceProvider.GetRequiredService<SqlContext>().Database.Migrate();
-    scope.ServiceProvider.GetRequiredService<InicializadorDatos>().InicializarUsuariosSemilla();
 
     var persistencia = scope.ServiceProvider.GetRequiredService<ServicioPersistenciaFixture>();
     var estadoTorneo = app.Services.GetRequiredService<EstadoTorneo>();

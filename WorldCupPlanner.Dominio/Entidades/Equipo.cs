@@ -4,7 +4,13 @@ namespace WorldCupPlanner.Dominio.Entidades
 {
     public class Equipo
     {
-        private const string PrefijoSvgBase64 = "data:image/svg+xml;base64,";
+        private static readonly string[] PrefijosBanderaValidos =
+        [
+            "data:image/svg+xml;base64,",
+            "data:image/jpeg;base64,",
+            "data:image/png;base64,",
+            "data:image/webp;base64,"
+        ];
         private const int TamanoMaximoBanderaCaracteres = 2_800_000;
 
         public int Id { get; set; }
@@ -23,6 +29,6 @@ namespace WorldCupPlanner.Dominio.Entidades
         private bool BanderaEsValida() =>
             string.IsNullOrEmpty(Bandera) ||
             (Bandera.Length <= TamanoMaximoBanderaCaracteres &&
-             Bandera.StartsWith(PrefijoSvgBase64));
+             PrefijosBanderaValidos.Any(p => Bandera.StartsWith(p)));
     }
 }
