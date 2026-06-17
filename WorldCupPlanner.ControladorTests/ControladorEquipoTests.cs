@@ -46,7 +46,7 @@ public class ControladorEquipoTests
         var repositorio = new RepositorioEquipoControladorFake();
         var controlador = CrearControlador(repositorio);
 
-        controlador.Crear(new NuevoEquipoDto
+        controlador.Crear(new NuevoEquipoComando
         {
             Nombre = "Nuevo",
             Confederacion = Confederacion.UEFA,

@@ -37,11 +37,11 @@ public class ControladorEquipo
             .Where(e => !string.IsNullOrEmpty(e.Bandera))
             .ToDictionary(e => e.Nombre, e => e.Bandera, StringComparer.OrdinalIgnoreCase);
 
-    public void Crear(NuevoEquipoDto equipo, UsuarioDTO? usuarioActual = null) =>
+    public void Crear(NuevoEquipoComando equipo, UsuarioDTO? usuarioActual = null) =>
         _servicioEquipo.Crear(equipo, ResolverUsuario(usuarioActual));
 
     public void Crear(EquipoDTO equipo, UsuarioDTO? usuarioActual = null) =>
-        _servicioEquipo.Crear(new NuevoEquipoDto
+        _servicioEquipo.Crear(new NuevoEquipoComando
         {
             Nombre = equipo.Nombre,
             Confederacion = equipo.Confederacion,

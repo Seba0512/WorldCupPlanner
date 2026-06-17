@@ -1,6 +1,6 @@
 namespace WorldCupPlanner.Servicios;
 
-public class CambiarContraseniaDto
+public class CambiarContraseniaComando
 {
     public const string MensajeContrasenasNoCoinciden = "Las contraseñas no coinciden.";
 

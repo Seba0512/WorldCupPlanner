@@ -2,7 +2,7 @@ using WorldCupPlanner.Dominio.Enumeraciones;
 
 namespace WorldCupPlanner.Servicios;
 
-public class NuevoUsuarioDto
+public class NuevoUsuarioFormulario
 {
     public string Nombre { get; set; } = string.Empty;
     public string Apellido { get; set; } = string.Empty;

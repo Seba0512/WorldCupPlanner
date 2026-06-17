@@ -2,7 +2,7 @@ using WorldCupPlanner.Dominio.Enumeraciones;
 
 namespace WorldCupPlanner.Servicios;
 
-public class NuevoEquipoDto
+public class NuevoEquipoComando
 {
     public string Nombre { get; set; } = string.Empty;
     public Confederacion? Confederacion { get; set; }

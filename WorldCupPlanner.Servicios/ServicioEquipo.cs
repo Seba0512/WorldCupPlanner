@@ -35,7 +35,7 @@ namespace WorldCupPlanner.Servicios
         private const int RankingMinimoFicticio = 300;
         private const int RankingMaximoFicticioExclusivo = 2501;
 
-        public void Crear(NuevoEquipoDto dto, Usuario? solicitante = null)
+        public void Crear(NuevoEquipoComando dto, Usuario? solicitante = null)
         {
             var equipo = new Equipo
             {

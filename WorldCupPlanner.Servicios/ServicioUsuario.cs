@@ -20,7 +20,7 @@ public class ServicioUsuario
 
     private const string FormatoFechaNacimiento = "MM-dd-yyyy";
 
-    public void CrearUsuario(NuevoUsuarioDto dto, string? ejecutadoPor = null, Usuario? solicitante = null)
+    public void CrearUsuario(NuevoUsuarioFormulario dto, string? ejecutadoPor = null, Usuario? solicitante = null)
     {
         if (solicitante != null)
             _autorizacion.VerificarEsAdministrador(solicitante);
@@ -274,10 +274,10 @@ public class ServicioUsuario
         return contraseniaTemporal;
     }
 
-    public void CambiarContrasenia(Usuario usuario, CambiarContraseniaDto datos)
+    public void CambiarContrasenia(Usuario usuario, CambiarContraseniaComando datos)
     {
         if (datos.NuevaContrasenia != datos.ConfirmarContrasenia)
-            throw new EntidadInvalidaExcepcion(CambiarContraseniaDto.MensajeContrasenasNoCoinciden);
+            throw new EntidadInvalidaExcepcion(CambiarContraseniaComando.MensajeContrasenasNoCoinciden);
 
         if (!usuario.VerificarContrasenia(datos.ContraseniaAnterior))
             throw new EntidadInvalidaExcepcion("La contraseña actual es incorrecta.");

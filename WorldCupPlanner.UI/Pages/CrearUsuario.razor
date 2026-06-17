@@ -142,7 +142,7 @@
         {
             var roles = UsuarioFormHelper.ConstruirRoles(_esAdmin, _esEditor, _esPeriodista);
 
-            ControladorUsuario.Crear(new NuevoUsuarioDto
+            ControladorUsuario.Crear(new NuevoUsuarioFormulario
             {
                 Nombre = _nombre,
                 Apellido = _apellido,

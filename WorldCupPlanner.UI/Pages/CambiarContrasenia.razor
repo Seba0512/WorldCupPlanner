@@ -135,7 +135,7 @@
 
         try
         {
-            ControladorUsuario.CambiarContrasenia(SesionServicio.UsuarioActual!.Email, new CambiarContraseniaDto
+            ControladorUsuario.CambiarContrasenia(SesionServicio.UsuarioActual!.Email, new CambiarContraseniaComando
             {
                 ContraseniaAnterior = _contraseniaActual,
                 NuevaContrasenia = _nuevaContrasenia,
@@ -144,7 +144,7 @@
             Toast.Exito("Contraseña cambiada correctamente.");
             NavigationManager.NavigateTo("/");
         }
-        catch (EntidadInvalidaExcepcion ex) when (ex.Message == CambiarContraseniaDto.MensajeContrasenasNoCoinciden)
+        catch (EntidadInvalidaExcepcion ex) when (ex.Message == CambiarContraseniaComando.MensajeContrasenasNoCoinciden)
         {
             _confirmarConError = true;
         }

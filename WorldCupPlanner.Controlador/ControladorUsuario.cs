@@ -26,7 +26,7 @@ public class ControladorUsuario
         return usuario == null ? null : UsuarioDTO.FromEntity(usuario);
     }
 
-    public void Crear(NuevoUsuarioDto usuario, string? ejecutadoPor = null, Usuario? solicitante = null) =>
+    public void Crear(NuevoUsuarioFormulario usuario, string? ejecutadoPor = null, Usuario? solicitante = null) =>
         _servicioUsuario.CrearUsuario(usuario, ejecutadoPor, solicitante);
 
     public void Actualizar(string emailActual, ActualizacionUsuario actualizacion, Usuario? solicitante = null)
@@ -62,7 +62,7 @@ public class ControladorUsuario
     public UsuarioDTO Login(string email, string contrasenia) =>
         UsuarioDTO.FromEntity(_servicioUsuario.Login(email, contrasenia));
 
-    public void CambiarContrasenia(string email, CambiarContraseniaDto datos)
+    public void CambiarContrasenia(string email, CambiarContraseniaComando datos)
     {
         var usuario = ObtenerEntidadPorEmailOExcepcion(email);
         _servicioUsuario.CambiarContrasenia(usuario, datos);

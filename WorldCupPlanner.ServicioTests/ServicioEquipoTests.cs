@@ -993,13 +993,13 @@ public class ServicioEquipoTests
         });
     }
 
-    // --- Crear (NuevoEquipoDto) ---
+    // --- Crear (NuevoEquipoComando) ---
 
     [TestMethod]
     public void Crear_ConDatosValidos_AgregaEquipo()
     {
         // Arrange
-        var dto = new NuevoEquipoDto
+        var dto = new NuevoEquipoComando
         {
             Nombre = "Uruguay",
             Confederacion = Confederacion.CONMEBOL,
@@ -1017,7 +1017,7 @@ public class ServicioEquipoTests
     public void Crear_ConDatosValidos_AgregaEquipoConPropiedadesCorrectas()
     {
         // Arrange
-        var dto = new NuevoEquipoDto
+        var dto = new NuevoEquipoComando
         {
             Nombre = "Uruguay",
             Confederacion = Confederacion.CONMEBOL,
@@ -1041,7 +1041,7 @@ public class ServicioEquipoTests
     {
         // Arrange
         _servicio.Agregar(CrearEquipo("Uruguay", Confederacion.CONMEBOL));
-        var dto = new NuevoEquipoDto
+        var dto = new NuevoEquipoComando
         {
             Nombre = "Uruguay",
             Confederacion = Confederacion.CONMEBOL,
@@ -1056,7 +1056,7 @@ public class ServicioEquipoTests
     public void Crear_ConDatosInvalidos_LanzaExcepcion()
     {
         // Arrange
-        var dto = new NuevoEquipoDto
+        var dto = new NuevoEquipoComando
         {
             Nombre = "",
             Confederacion = Confederacion.UEFA,

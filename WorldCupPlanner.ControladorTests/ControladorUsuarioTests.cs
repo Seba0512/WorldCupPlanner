@@ -45,7 +45,7 @@ public class ControladorUsuarioTests
         var repositorio = new RepositorioUsuarioControladorFake();
         var controlador = CrearControlador(repositorio);
 
-        controlador.Crear(new NuevoUsuarioDto
+        controlador.Crear(new NuevoUsuarioFormulario
         {
             Nombre = "Nuevo",
             Apellido = "Usuario",

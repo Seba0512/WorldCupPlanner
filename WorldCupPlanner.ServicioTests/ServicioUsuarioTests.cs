@@ -387,7 +387,7 @@ public sealed class ServicioUsuarioTests
         usuario.EstablecerContrasenia("ViejaPass@123");
 
         // Act
-        _servicio.CambiarContrasenia(usuario, new CambiarContraseniaDto
+        _servicio.CambiarContrasenia(usuario, new CambiarContraseniaComando
         {
             ContraseniaAnterior = "ViejaPass@123",
             NuevaContrasenia = "NuevaPass@456",
@@ -408,7 +408,7 @@ public sealed class ServicioUsuarioTests
 
         // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            _servicio.CambiarContrasenia(usuario, new CambiarContraseniaDto
+            _servicio.CambiarContrasenia(usuario, new CambiarContraseniaComando
             {
                 ContraseniaAnterior = "IncorrectPass@999",
                 NuevaContrasenia = "NuevaPass@456",
@@ -426,7 +426,7 @@ public sealed class ServicioUsuarioTests
 
         // Act & Assert
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            _servicio.CambiarContrasenia(usuario, new CambiarContraseniaDto
+            _servicio.CambiarContrasenia(usuario, new CambiarContraseniaComando
             {
                 ContraseniaAnterior = "MismaPass@123",
                 NuevaContrasenia = "MismaPass@123",
@@ -444,7 +444,7 @@ public sealed class ServicioUsuarioTests
 
         // Act
         var ex = Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
-            _servicio.CambiarContrasenia(usuario, new CambiarContraseniaDto
+            _servicio.CambiarContrasenia(usuario, new CambiarContraseniaComando
             {
                 ContraseniaAnterior = "MismaPass@123",
                 NuevaContrasenia = "MismaPass@123",
@@ -468,7 +468,7 @@ public sealed class ServicioUsuarioTests
         usuario.EstablecerContrasenia("MismaPass@123");
 
         // Act
-        try { servicio.CambiarContrasenia(usuario, new CambiarContraseniaDto { ContraseniaAnterior = "MismaPass@123", NuevaContrasenia = "MismaPass@123", ConfirmarContrasenia = "MismaPass@123" }); } catch (EntidadInvalidaExcepcion) { }
+        try { servicio.CambiarContrasenia(usuario, new CambiarContraseniaComando { ContraseniaAnterior = "MismaPass@123", NuevaContrasenia = "MismaPass@123", ConfirmarContrasenia = "MismaPass@123" }); } catch (EntidadInvalidaExcepcion) { }
 
         // Assert
         Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "CAMBIO_CONTRASENIA_RECHAZADO"),
@@ -483,7 +483,7 @@ public sealed class ServicioUsuarioTests
         usuario.EstablecerContrasenia("MismaPass@123");
 
         // Act
-        try { _servicio.CambiarContrasenia(usuario, new CambiarContraseniaDto { ContraseniaAnterior = "MismaPass@123", NuevaContrasenia = "MismaPass@123", ConfirmarContrasenia = "MismaPass@123" }); } catch (EntidadInvalidaExcepcion) { }
+        try { _servicio.CambiarContrasenia(usuario, new CambiarContraseniaComando { ContraseniaAnterior = "MismaPass@123", NuevaContrasenia = "MismaPass@123", ConfirmarContrasenia = "MismaPass@123" }); } catch (EntidadInvalidaExcepcion) { }
 
         // Assert — la contraseña original debe seguir siendo válida
         Assert.IsTrue(usuario.VerificarContrasenia("MismaPass@123"),
@@ -496,7 +496,7 @@ public sealed class ServicioUsuarioTests
         // Arrange
         var usuario = CrearUsuarioValido("juan@example.com");
         usuario.EstablecerContrasenia("ViejaPass@123");
-        var dto = new CambiarContraseniaDto
+        var dto = new CambiarContraseniaComando
         {
             ContraseniaAnterior = "ViejaPass@123",
             NuevaContrasenia = "NuevaPass@456",
@@ -515,7 +515,7 @@ public sealed class ServicioUsuarioTests
         // Arrange
         var usuario = CrearUsuarioValido("juan@example.com");
         usuario.EstablecerContrasenia("ViejaPass@123");
-        var dto = new CambiarContraseniaDto
+        var dto = new CambiarContraseniaComando
         {
             ContraseniaAnterior = "ViejaPass@123",
             NuevaContrasenia = "NuevaPass@456",
@@ -528,7 +528,7 @@ public sealed class ServicioUsuarioTests
         );
 
         // Assert
-        Assert.AreEqual(CambiarContraseniaDto.MensajeContrasenasNoCoinciden, ex.Message);
+        Assert.AreEqual(CambiarContraseniaComando.MensajeContrasenasNoCoinciden, ex.Message);
     }
 
     [TestMethod]
@@ -1325,7 +1325,7 @@ public sealed class ServicioUsuarioTests
         usuario.MarcarParaCambioForzado();
 
         // Act
-        _servicio.CambiarContrasenia(usuario, new CambiarContraseniaDto
+        _servicio.CambiarContrasenia(usuario, new CambiarContraseniaComando
         {
             ContraseniaAnterior = "ViejaPass@123",
             NuevaContrasenia = "NuevaPass@456",
@@ -1343,10 +1343,10 @@ public sealed class ServicioUsuarioTests
     public void CrearUsuario_ConDatosValidos_CreaElUsuario()
     {
         // Arrange
-        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
+        var formulario = CrearNuevoUsuarioFormularioValido("nuevo@example.com");
 
         // Act
-        _servicio.CrearUsuario(dto);
+        _servicio.CrearUsuario(formulario);
 
         // Assert
         var usuarios = _servicio.ObtenerTodosLosUsuarios();
@@ -1358,22 +1358,22 @@ public sealed class ServicioUsuarioTests
     public void CrearUsuario_ConContrasenasQueNoCoinciden_LanzaExcepcion()
     {
         // Arrange
-        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
-        dto.ConfirmarContrasenia = "OtraPass@999";
+        var formulario = CrearNuevoUsuarioFormularioValido("nuevo@example.com");
+        formulario.ConfirmarContrasenia = "OtraPass@999";
 
         // Act & Assert
-        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.CrearUsuario(dto));
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.CrearUsuario(formulario));
     }
 
     [TestMethod]
     public void CrearUsuario_ConContrasenasQueNoCoinciden_MensajeDeErrorAmigable()
     {
         // Arrange
-        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
-        dto.ConfirmarContrasenia = "OtraPass@999";
+        var formulario = CrearNuevoUsuarioFormularioValido("nuevo@example.com");
+        formulario.ConfirmarContrasenia = "OtraPass@999";
 
         // Act
-        var ex = Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.CrearUsuario(dto));
+        var ex = Assert.ThrowsException<EntidadInvalidaExcepcion>(() => _servicio.CrearUsuario(formulario));
 
         // Assert
         Assert.AreEqual("Las contraseñas no coinciden.", ex.Message);
@@ -1383,23 +1383,23 @@ public sealed class ServicioUsuarioTests
     public void CrearUsuario_ConEmailDuplicado_LanzaExcepcion()
     {
         // Arrange
-        var dto1 = CrearNuevoUsuarioDtoValido("nuevo@example.com");
-        _servicio.CrearUsuario(dto1);
-        var dto2 = CrearNuevoUsuarioDtoValido("nuevo@example.com");
+        var formulario1 = CrearNuevoUsuarioFormularioValido("nuevo@example.com");
+        _servicio.CrearUsuario(formulario1);
+        var formulario2 = CrearNuevoUsuarioFormularioValido("nuevo@example.com");
 
         // Act & Assert
-        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.CrearUsuario(dto2));
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => _servicio.CrearUsuario(formulario2));
     }
 
     [TestMethod]
     public void CrearUsuario_ConRolesExplicitos_AsignaRolesCorrectamente()
     {
         // Arrange
-        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
-        dto.Roles = new[] { RolUsuario.AdministradorDelSistema, RolUsuario.Editor };
+        var formulario = CrearNuevoUsuarioFormularioValido("nuevo@example.com");
+        formulario.Roles = new[] { RolUsuario.AdministradorDelSistema, RolUsuario.Editor };
 
         // Act
-        _servicio.CrearUsuario(dto);
+        _servicio.CrearUsuario(formulario);
 
         // Assert
         var usuario = _servicio.ObtenerTodosLosUsuarios()[0];
@@ -1411,11 +1411,11 @@ public sealed class ServicioUsuarioTests
     public void CrearUsuario_SinRoles_AsignaRolEditorPorDefecto()
     {
         // Arrange
-        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
-        dto.Roles = Enumerable.Empty<RolUsuario>();
+        var formulario = CrearNuevoUsuarioFormularioValido("nuevo@example.com");
+        formulario.Roles = Enumerable.Empty<RolUsuario>();
 
         // Act
-        _servicio.CrearUsuario(dto);
+        _servicio.CrearUsuario(formulario);
 
         // Assert
         var usuario = _servicio.ObtenerTodosLosUsuarios()[0];
@@ -1427,11 +1427,11 @@ public sealed class ServicioUsuarioTests
     {
         // Arrange
         var fechaEsperada = new DateTime(1990, 3, 15);
-        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
-        dto.FechaNacimiento = fechaEsperada;
+        var formulario = CrearNuevoUsuarioFormularioValido("nuevo@example.com");
+        formulario.FechaNacimiento = fechaEsperada;
 
         // Act
-        _servicio.CrearUsuario(dto);
+        _servicio.CrearUsuario(formulario);
 
         // Assert
         var usuario = _servicio.ObtenerTodosLosUsuarios()[0];
@@ -1442,15 +1442,15 @@ public sealed class ServicioUsuarioTests
     public void CrearUsuario_ConContraseniaValida_EstableceContraseniaCifrada()
     {
         // Arrange
-        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
+        var formulario = CrearNuevoUsuarioFormularioValido("nuevo@example.com");
 
         // Act
-        _servicio.CrearUsuario(dto);
+        _servicio.CrearUsuario(formulario);
 
         // Assert
         var usuario = _servicio.ObtenerTodosLosUsuarios()[0];
         Assert.IsNotNull(usuario.ContraseniaCifrada);
-        Assert.IsTrue(usuario.VerificarContrasenia(dto.Contrasenia));
+        Assert.IsTrue(usuario.VerificarContrasenia(formulario.Contrasenia));
     }
 
     [TestMethod]
@@ -1461,17 +1461,17 @@ public sealed class ServicioUsuarioTests
         var auditoria = new ServicioAuditoria(repoAuditoria);
         var repositorio = new RepositorioUsuarioStub();
         var servicio = new ServicioUsuario(repositorio, auditoria);
-        var dto = CrearNuevoUsuarioDtoValido("nuevo@example.com");
+        var formulario = CrearNuevoUsuarioFormularioValido("nuevo@example.com");
 
         // Act
-        servicio.CrearUsuario(dto);
+        servicio.CrearUsuario(formulario);
 
         // Assert
         Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "ALTA_USUARIO"),
             "Debe registrarse ALTA_USUARIO en auditoría al crear un usuario.");
     }
 
-    private static NuevoUsuarioDto CrearNuevoUsuarioDtoValido(string email) => new()
+    private static NuevoUsuarioFormulario CrearNuevoUsuarioFormularioValido(string email) => new()
     {
         Nombre = "Juan",
         Apellido = "Pérez",
