@@ -1,4 +1,3 @@
-using System.Reflection;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 using WorldCupPlanner.Dominio.Excepciones;
@@ -1693,15 +1692,9 @@ public class ServicioCrucesTests
             Fase = FaseTorneo.Semifinal
         };
 
-        var metodo = typeof(ServicioCruces).GetMethod(
-            "ObtenerPerdedor",
-            BindingFlags.Instance | BindingFlags.NonPublic);
-
         // Act & Assert
-        var excepcion = Assert.ThrowsException<TargetInvocationException>(() =>
-            metodo!.Invoke(servicioCruces, new object[] { partido }));
-
-        Assert.IsInstanceOfType(excepcion.InnerException, typeof(EntidadInvalidaExcepcion));
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioCruces.ObtenerPerdedor(partido));
     }
 
     [TestMethod]

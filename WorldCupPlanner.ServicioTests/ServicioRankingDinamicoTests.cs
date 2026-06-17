@@ -185,7 +185,7 @@ public class ServicioRankingDinamicoTests
         var repoEquipo = new RepositorioEquipoRankingStub();
         repoEquipo.Agregar(local);
         repoEquipo.Agregar(visitante);
-        var repoAuditoria = new RepositorioAuditoriaRankingStub();
+        var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
         var servicio = new ServicioRankingDinamico(repoEquipo, auditoria);
         // Act
@@ -268,7 +268,7 @@ public class ServicioRankingDinamicoTests
         };
         var repoPartido = new RepositorioPartidoRankingStub();
         repoPartido.Agregar(partido);
-        var repoAuditoria = new RepositorioAuditoriaRankingStub();
+        var repoAuditoria = new RepositorioAuditoriaFake();
         var servicio = new ServicioRankingDinamico(
             repoEquipo,
             repoPartido,
@@ -339,7 +339,7 @@ public class ServicioRankingDinamicoTests
             new List<Equipo> { equipoA, equipoB, equipoC },
             partidoUno,
             partidoDos);
-        var repoAuditoria = new RepositorioAuditoriaRankingStub();
+        var repoAuditoria = new RepositorioAuditoriaFake();
         var servicio = new ServicioRankingDinamico(null, null, new ServicioAuditoria(repoAuditoria));
 
         // Act
@@ -365,7 +365,7 @@ public class ServicioRankingDinamicoTests
             new List<Equipo> { equipoA, equipoB, equipoC },
             partidoUno,
             partidoDos);
-        var repoAuditoria = new RepositorioAuditoriaRankingStub();
+        var repoAuditoria = new RepositorioAuditoriaFake();
         var servicio = new ServicioRankingDinamico(null, null, new ServicioAuditoria(repoAuditoria));
 
         var rankingNuevoLocalUno = servicio.ActualizarRanking(1500, 1200, 1.0, FaseTorneo.FaseDeGrupos);
@@ -394,7 +394,7 @@ public class ServicioRankingDinamicoTests
         repoEquipo.Agregar(equipoB);
         var repoPartido = new RepositorioPartidoRankingStub();
         repoPartido.Agregar(CrearPartido(1, new DateTime(2026, 6, 1), equipoA, equipoB, 2, 0));
-        var repoAuditoria = new RepositorioAuditoriaRankingStub();
+        var repoAuditoria = new RepositorioAuditoriaFake();
         var servicio = new ServicioRankingDinamico(repoEquipo, repoPartido, new ServicioAuditoria(repoAuditoria));
 
         // Act
@@ -468,17 +468,4 @@ file sealed class RepositorioPartidoRankingStub : IRepositorio<Partido>
     public void Eliminar(Partido partido) => _partidos.Remove(partido);
     public List<Partido> Buscar(Func<Partido, bool> predicado)
         => _partidos.Where(predicado).ToList();
-}
-
-file sealed class RepositorioAuditoriaRankingStub : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _logs = new();
-    private int _contador;
-
-    public int SiguienteId() => ++_contador;
-    public void Agregar(Auditoria entidad) => _logs.Add(entidad);
-    public void Actualizar(Auditoria entidad) { }
-    public void Eliminar(Auditoria entidad) => _logs.Remove(entidad);
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado)
-        => _logs.Where(predicado).ToList();
 }

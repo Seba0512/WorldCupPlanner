@@ -74,7 +74,7 @@ public class ServicioSimulacionTests
     public void SimularResultados_ConAuditoria_RegistraSemillaYCantidadDePartidos()
     {
         // Arrange
-        var repoAuditoria = new RepositorioAuditoriaSimulacionStub();
+        var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
         var servicioSimulacion = new ServicioSimulacion(auditoria);
         var partidos = CrearPartidosSinResultado(2);
@@ -581,12 +581,8 @@ public class ServicioSimulacionTests
         partido.GolesVisitante = 2;
         var random = new Random(1);
 
-        var metodo = typeof(ServicioSimulacion).GetMethod(
-            "DesempatarPartido",
-            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-
         // Act
-        metodo!.Invoke(servicioSimulacion, new object[] { partido, random });
+        servicioSimulacion.DesempatarPartido(partido, random);
 
         // Assert
         Assert.IsTrue(
@@ -606,13 +602,9 @@ public class ServicioSimulacionTests
         partido1.GolesLocal = partido2.GolesLocal = 1;
         partido1.GolesVisitante = partido2.GolesVisitante = 1;
 
-        var metodo = typeof(ServicioSimulacion).GetMethod(
-            "DesempatarPartido",
-            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-
         // Act — misma semilla, mismo equipo debe ganar
-        metodo!.Invoke(servicioSimulacion, new object[] { partido1, new Random(42) });
-        metodo!.Invoke(servicioSimulacion, new object[] { partido2, new Random(42) });
+        servicioSimulacion.DesempatarPartido(partido1, new Random(42));
+        servicioSimulacion.DesempatarPartido(partido2, new Random(42));
 
         // Assert
         Assert.IsNotNull(partido1.GanadorPorPenales);
@@ -622,29 +614,3 @@ public class ServicioSimulacionTests
 
 }
 
-file sealed class RepositorioAuditoriaSimulacionStub : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _auditorias = new();
-    private int _siguienteId = 1;
-
-    public int SiguienteId() => _siguienteId++;
-
-    public void Agregar(Auditoria entidad)
-    {
-        _auditorias.Add(entidad);
-    }
-
-    public void Actualizar(Auditoria entidad)
-    {
-        var indice = _auditorias.FindIndex(a => a.Id == entidad.Id);
-        if (indice >= 0)
-        {
-            _auditorias[indice] = entidad;
-        }
-    }
-
-    public void Eliminar(Auditoria entidad) => _auditorias.Remove(entidad);
-
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado)
-        => _auditorias.Where(predicado).ToList();
-}

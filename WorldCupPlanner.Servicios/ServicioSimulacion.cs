@@ -321,7 +321,7 @@ public class ServicioSimulacion
         return 0;
     }
 
-    private void DesempatarPartido(Partido partido, Random random)
+    internal void DesempatarPartido(Partido partido, Random random)
     {
         partido.GanadorPorPenales = random.Next(2) == 0 ? partido.EquipoLocal : partido.EquipoVisitante;
     }

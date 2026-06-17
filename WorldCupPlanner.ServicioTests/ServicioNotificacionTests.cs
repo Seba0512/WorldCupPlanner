@@ -58,7 +58,7 @@ public class ServicioNotificacionTests
     {
         // Arrange
         var repositorio = new RepositorioNotificacionStub();
-        var repoAuditoria = new RepositorioAuditoriaNotificacionStub();
+        var repoAuditoria = new RepositorioAuditoriaFake();
         var servicio = new ServicioNotificacion(repositorio, new ServicioAuditoria(repoAuditoria));
         var usuario = CrearPeriodista("periodista@test.com");
         var notificacion = new Notificacion { UsuarioDestinatarioId = usuario.Id };
@@ -184,57 +184,3 @@ public class ServicioNotificacionTests
     }
 }
 
-file sealed class RepositorioNotificacionStub : IRepositorioNotificacion
-{
-    private readonly List<Notificacion> _notificaciones = new();
-    private int _siguienteId = 1;
-
-    public void Agregar(Notificacion notificacion)
-    {
-        notificacion.Id = _siguienteId++;
-        _notificaciones.Add(notificacion);
-    }
-
-    public void Actualizar(Notificacion notificacion)
-    {
-        var indice = _notificaciones.FindIndex(n => n.Id == notificacion.Id);
-        if (indice == -1)
-            throw new EntidadInexistenteExcepcion("La notificación no existe.");
-        _notificaciones[indice] = notificacion;
-    }
-
-    public void Eliminar(Notificacion notificacion) => _notificaciones.Remove(notificacion);
-
-    public List<Notificacion> Buscar(Func<Notificacion, bool> predicado)
-        => _notificaciones.Where(predicado).ToList();
-
-    public List<Notificacion> ObtenerPorUsuario(int usuarioId)
-        => _notificaciones.Where(n => n.UsuarioDestinatarioId == usuarioId).ToList();
-}
-
-file sealed class RepositorioAuditoriaNotificacionStub : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _auditorias = new();
-    private int _siguienteId = 1;
-
-    public int SiguienteId() => _siguienteId++;
-
-    public void Agregar(Auditoria entidad)
-    {
-        _auditorias.Add(entidad);
-    }
-
-    public void Actualizar(Auditoria entidad)
-    {
-        var indice = _auditorias.FindIndex(a => a.Id == entidad.Id);
-        if (indice >= 0)
-        {
-            _auditorias[indice] = entidad;
-        }
-    }
-
-    public void Eliminar(Auditoria entidad) => _auditorias.Remove(entidad);
-
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado)
-        => _auditorias.Where(predicado).ToList();
-}

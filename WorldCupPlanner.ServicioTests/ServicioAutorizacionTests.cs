@@ -22,7 +22,7 @@ public class ServicioAutorizacionTests
     public void VerificarEsAdministrador_UsuarioAdministrador_NoLanzaExcepcion()
     {
         // Arrange
-        var usuario = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.AdministradorDelSistema);
 
         // Act & Assert
         _servicio.VerificarEsAdministrador(usuario);
@@ -32,7 +32,7 @@ public class ServicioAutorizacionTests
     public void VerificarEsAdministrador_UsuarioEditor_LanzaAccesoDenegado()
     {
         // Arrange
-        var usuario = CrearUsuarioConRol(RolUsuario.Editor);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.Editor);
 
         // Act & Assert
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
@@ -43,7 +43,7 @@ public class ServicioAutorizacionTests
     public void VerificarEsAdministrador_UsuarioSinRoles_LanzaAccesoDenegado()
     {
         // Arrange
-        var usuario = CrearUsuarioSinRoles();
+        var usuario = UsuariosDePrueba.SinRoles();
 
         // Act & Assert
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
@@ -54,7 +54,7 @@ public class ServicioAutorizacionTests
     public void VerificarEsAdministrador_UsuarioConAmbosRoles_NoLanzaExcepcion()
     {
         // Arrange
-        var usuario = CrearUsuarioSinRoles();
+        var usuario = UsuariosDePrueba.SinRoles();
         usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
         usuario.AgregarRol(RolUsuario.Editor);
 
@@ -68,7 +68,7 @@ public class ServicioAutorizacionTests
     public void VerificarEsEditorOAdministrador_UsuarioEditor_NoLanzaExcepcion()
     {
         // Arrange
-        var usuario = CrearUsuarioConRol(RolUsuario.Editor);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.Editor);
 
         // Act & Assert
         _servicio.VerificarEsEditorOAdministrador(usuario);
@@ -78,7 +78,7 @@ public class ServicioAutorizacionTests
     public void VerificarEsEditorOAdministrador_UsuarioAdministrador_NoLanzaExcepcion()
     {
         // Arrange
-        var usuario = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.AdministradorDelSistema);
 
         // Act & Assert
         _servicio.VerificarEsEditorOAdministrador(usuario);
@@ -88,7 +88,7 @@ public class ServicioAutorizacionTests
     public void VerificarEsEditorOAdministrador_UsuarioConAmbosRoles_NoLanzaExcepcion()
     {
         // Arrange
-        var usuario = CrearUsuarioSinRoles();
+        var usuario = UsuariosDePrueba.SinRoles();
         usuario.AgregarRol(RolUsuario.AdministradorDelSistema);
         usuario.AgregarRol(RolUsuario.Editor);
 
@@ -100,7 +100,7 @@ public class ServicioAutorizacionTests
     public void VerificarEsEditorOAdministrador_UsuarioSinRoles_LanzaAccesoDenegado()
     {
         // Arrange
-        var usuario = CrearUsuarioSinRoles();
+        var usuario = UsuariosDePrueba.SinRoles();
 
         // Act & Assert
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
@@ -113,7 +113,7 @@ public class ServicioAutorizacionTests
     public void VerificarEsPeriodista_CuandoUsuarioEsPeriodista_NoLanzaExcepcion()
     {
         // Arrange
-        var usuario = CrearUsuarioConRol(RolUsuario.Periodista);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.Periodista);
 
         // Act & Assert
         _servicio.VerificarEsPeriodista(usuario);
@@ -123,7 +123,7 @@ public class ServicioAutorizacionTests
     public void VerificarEsPeriodista_CuandoUsuarioEsEditor_LanzaAccesoDenegado()
     {
         // Arrange
-        var usuario = CrearUsuarioConRol(RolUsuario.Editor);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.Editor);
 
         // Act & Assert
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
@@ -134,7 +134,7 @@ public class ServicioAutorizacionTests
     public void VerificarEsPeriodista_CuandoUsuarioNoEsPeriodista_LanzaAccesoDenegado()
     {
         // Arrange
-        var usuario = CrearUsuarioSinRoles();
+        var usuario = UsuariosDePrueba.SinRoles();
 
         // Act & Assert
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
@@ -145,7 +145,7 @@ public class ServicioAutorizacionTests
     public void VerificarEsPeriodista_CuandoUsuarioEsAdministrador_LanzaAccesoDenegado()
     {
         // Arrange
-        var usuario = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.AdministradorDelSistema);
 
         // Act & Assert
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
@@ -158,7 +158,7 @@ public class ServicioAutorizacionTests
     public void VerificarPuedeConsultarFixture_CuandoUsuarioEsPeriodista_NoLanzaExcepcion()
     {
         // Arrange
-        var usuario = CrearUsuarioConRol(RolUsuario.Periodista);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.Periodista);
 
         // Act & Assert
         _servicio.VerificarPuedeConsultarFixture(usuario);
@@ -168,7 +168,7 @@ public class ServicioAutorizacionTests
     public void VerificarPuedeConsultarFixture_CuandoUsuarioEsEditor_NoLanzaExcepcion()
     {
         // Arrange
-        var usuario = CrearUsuarioConRol(RolUsuario.Editor);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.Editor);
 
         // Act & Assert
         _servicio.VerificarPuedeConsultarFixture(usuario);
@@ -178,7 +178,7 @@ public class ServicioAutorizacionTests
     public void VerificarPuedeConsultarFixture_CuandoUsuarioEsAdministrador_NoLanzaExcepcion()
     {
         // Arrange
-        var usuario = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.AdministradorDelSistema);
 
         // Act & Assert
         _servicio.VerificarPuedeConsultarFixture(usuario);
@@ -188,7 +188,7 @@ public class ServicioAutorizacionTests
     public void VerificarPuedeConsultarFixture_CuandoUsuarioSinRol_LanzaAccesoDenegado()
     {
         // Arrange
-        var usuario = CrearUsuarioSinRoles();
+        var usuario = UsuariosDePrueba.SinRoles();
 
         // Act & Assert
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
@@ -201,7 +201,7 @@ public class ServicioAutorizacionTests
     public void VerificarEsAdministrador_CuandoUsuarioEsPeriodista_LanzaAccesoDenegado()
     {
         // Arrange
-        var usuario = CrearUsuarioConRol(RolUsuario.Periodista);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.Periodista);
 
         // Act & Assert
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
@@ -212,7 +212,7 @@ public class ServicioAutorizacionTests
     public void VerificarEsEditorOAdministrador_CuandoUsuarioEsPeriodista_LanzaAccesoDenegado()
     {
         // Arrange
-        var usuario = CrearUsuarioConRol(RolUsuario.Periodista);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.Periodista);
 
         // Act & Assert
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
@@ -225,7 +225,7 @@ public class ServicioAutorizacionTests
     public void VerificarPermiso_UsuarioTieneRolRequerido_NoLanzaExcepcion()
     {
         // Arrange
-        var usuario = CrearUsuarioConRol(RolUsuario.Editor);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.Editor);
 
         // Act & Assert
         _servicio.VerificarPermiso(usuario, RolUsuario.Editor);
@@ -235,7 +235,7 @@ public class ServicioAutorizacionTests
     public void VerificarPermiso_UsuarioNoTieneRolRequerido_LanzaAccesoDenegado()
     {
         // Arrange
-        var usuario = CrearUsuarioConRol(RolUsuario.Editor);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.Editor);
 
         // Act & Assert
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
@@ -246,28 +246,11 @@ public class ServicioAutorizacionTests
     public void VerificarPermiso_UsuarioSinRolRequerido_LanzaAccesoDenegado()
     {
         // Arrange
-        var usuario = CrearUsuarioSinRoles();
+        var usuario = UsuariosDePrueba.SinRoles();
 
         // Act & Assert
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
             _servicio.VerificarPermiso(usuario, RolUsuario.AdministradorDelSistema));
     }
 
-    private static Usuario CrearUsuarioConRol(RolUsuario rol)
-    {
-        var usuario = CrearUsuarioSinRoles();
-        usuario.AgregarRol(rol);
-        return usuario;
-    }
-
-    private static Usuario CrearUsuarioSinRoles()
-    {
-        return new Usuario(new DatosUsuario
-        {
-            Nombre = "Test",
-            Apellido = "User",
-            Email = "test@example.com",
-            FechaNacimiento = "01-01-1990"
-        });
-    }
 }

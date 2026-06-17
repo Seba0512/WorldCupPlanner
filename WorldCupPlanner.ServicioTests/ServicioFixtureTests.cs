@@ -1,4 +1,3 @@
-using System.Reflection;
 using WorldCupPlanner.AccesoADatos.Interfaces;
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
@@ -68,8 +67,8 @@ public class ServicioFixtureTests
         int cantidadAntes = repositorio.Buscar(_ => true).Count;
 
         // Act
-        try { servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo); }
-        catch (EntidadInvalidaExcepcion) { }
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioFixture.GenerarFixture(equipos, estadios, configuracionTorneo));
 
         // Assert
         Assert.AreEqual(cantidadAntes, repositorio.Buscar(_ => true).Count,
@@ -560,12 +559,8 @@ public class ServicioFixtureTests
             Confederacion = Confederacion.UEFA
         };
 
-        var metodo = typeof(ServicioFixture).GetMethod(
-            "PuedeAsignarseEquipoAGrupo",
-            BindingFlags.Instance | BindingFlags.NonPublic);
-
         // Act
-        var resultado = (bool)metodo!.Invoke(servicioFixture, new object[] { equipoInvalido, grupo })!;
+        var resultado = servicioFixture.PuedeAsignarseEquipoAGrupo(equipoInvalido, grupo);
 
         // Assert
         Assert.IsFalse(resultado);
@@ -596,16 +591,11 @@ public class ServicioFixtureTests
             CrearEquipoParaAsignacion("Extra", Confederacion.CAF)
         };
 
-        var metodo = typeof(ServicioFixture).GetMethod(
-            "AsignarEquiposAGrupos",
-            BindingFlags.Instance | BindingFlags.NonPublic);
-
         // Act & Assert
-        var excepcion = Assert.ThrowsException<TargetInvocationException>(() =>
-            metodo!.Invoke(servicioFixture, new object[] { fixture, equiposOrdenados }));
+        var excepcion = Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicioFixture.AsignarEquiposAGrupos(fixture, equiposOrdenados));
 
-        Assert.IsInstanceOfType(excepcion.InnerException, typeof(EntidadInvalidaExcepcion));
-        StringAssert.Contains(excepcion.InnerException!.Message, "Estado de grupos");
+        StringAssert.Contains(excepcion.Message, "Estado de grupos");
     }
 
     [TestMethod]
@@ -1185,24 +1175,4 @@ public class ServicioFixtureTests
 
         return (estado, proximoPartido, segundoPartido);
     }
-}
-
-file sealed class RepositorioEquipoStub : IRepositorio<Equipo>
-{
-    private readonly List<Equipo> _equipos = new();
-
-    public void Agregar(Equipo equipo) => _equipos.Add(equipo);
-
-    public void Actualizar(Equipo equipo)
-    {
-        var indice = _equipos.FindIndex(e => ReferenceEquals(e, equipo));
-        if (indice == -1)
-            throw new EntidadInexistenteExcepcion("El equipo no existe.");
-        _equipos[indice] = equipo;
-    }
-
-    public void Eliminar(Equipo equipo) => _equipos.Remove(equipo);
-
-    public List<Equipo> Buscar(Func<Equipo, bool> predicado)
-        => _equipos.Where(predicado).ToList();
 }

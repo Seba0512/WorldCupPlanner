@@ -630,7 +630,7 @@ public class ServicioImportacionLegibleTests
         var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
         var servicio = new ServicioImportacionLegible(auditoria);
-        var usuario = CrearUsuarioConRol(RolUsuario.Editor);
+        var usuario = UsuariosDePrueba.ConRol(RolUsuario.Editor);
         var csv = CrearCSV(
             "Nombre,Confederacion,RankingFIFA",
             "Uruguay,CONMEBOL,1000");
@@ -883,7 +883,7 @@ public class ServicioImportacionLegibleTests
     public void Importar_ConSolicitanteEditor_ImportaCorrectamente()
     {
         // Arrange
-        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        var editor = UsuariosDePrueba.ConRol(RolUsuario.Editor);
         var csv = CrearCSV(
             "Nombre,Confederacion,RankingFIFA",
             "Uruguay,CONMEBOL,1000");
@@ -899,7 +899,7 @@ public class ServicioImportacionLegibleTests
     public void Importar_ConSolicitanteAdministrador_ImportaCorrectamente()
     {
         // Arrange
-        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var admin = UsuariosDePrueba.ConRol(RolUsuario.AdministradorDelSistema);
         var csv = CrearCSV(
             "Nombre,Confederacion,RankingFIFA",
             "Uruguay,CONMEBOL,1000");
@@ -915,7 +915,7 @@ public class ServicioImportacionLegibleTests
     public void Importar_ConSolicitanteSinRol_LanzaAccesoDenegado()
     {
         // Arrange
-        var sinRol = CrearUsuarioSinRoles();
+        var sinRol = UsuariosDePrueba.SinRoles();
         var csv = CrearCSV(
             "Nombre,Confederacion,RankingFIFA",
             "Uruguay,CONMEBOL,1000");
@@ -934,23 +934,6 @@ public class ServicioImportacionLegibleTests
         return new MemoryStream(bytes);
     }
 
-    private static Usuario CrearUsuarioConRol(RolUsuario rol)
-    {
-        var usuario = CrearUsuarioSinRoles();
-        usuario.AgregarRol(rol);
-        return usuario;
-    }
-
-    private static Usuario CrearUsuarioSinRoles()
-    {
-        return new Usuario(new DatosUsuario
-        {
-            Nombre = "Test",
-            Apellido = "User",
-            Email = "test@example.com",
-            FechaNacimiento = "01-01-1990"
-        });
-    }
 }
 
 // SVG mínimo de prueba y sus representaciones derivadas.
@@ -975,22 +958,3 @@ file sealed class DescargadorQueSimulaError : IDescargadorContenido
         throw new InvalidOperationException($"No se pudo conectar a \"{url}\".");
 }
 
-file sealed class RepositorioEquipoStub : IRepositorio<Equipo>
-{
-    private readonly List<Equipo> _equipos = new();
-
-    public void Agregar(Equipo equipo) => _equipos.Add(equipo);
-
-    public void Actualizar(Equipo equipo)
-    {
-        var indice = _equipos.FindIndex(e => ReferenceEquals(e, equipo));
-        if (indice == -1)
-            throw new EntidadInexistenteExcepcion("El equipo no existe.");
-        _equipos[indice] = equipo;
-    }
-
-    public void Eliminar(Equipo equipo) => _equipos.Remove(equipo);
-
-    public List<Equipo> Buscar(Func<Equipo, bool> predicado)
-        => _equipos.Where(predicado).ToList();
-}

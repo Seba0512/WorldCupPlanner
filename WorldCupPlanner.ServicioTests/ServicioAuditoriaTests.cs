@@ -14,7 +14,7 @@ public class ServicioAuditoriaTests
     [TestInitialize]
     public void Setup()
     {
-        _servicio = new ServicioAuditoria(new RepositorioAuditoriaStub());
+        _servicio = new ServicioAuditoria(new RepositorioAuditoriaFake());
     }
 
     [TestMethod]
@@ -74,7 +74,7 @@ public class ServicioAuditoriaTests
     public void ObtenerTodos_ConSolicitanteAdministrador_DevuelveLista()
     {
         // Arrange
-        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var admin = UsuariosDePrueba.ConRol(RolUsuario.AdministradorDelSistema);
         _servicio.Registrar("sistema", "ACCION", "detalle");
 
         // Act
@@ -88,7 +88,7 @@ public class ServicioAuditoriaTests
     public void ObtenerTodos_ConSolicitanteEditor_LanzaAccesoDenegado()
     {
         // Arrange
-        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        var editor = UsuariosDePrueba.ConRol(RolUsuario.Editor);
 
         // Act & Assert
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
@@ -99,51 +99,11 @@ public class ServicioAuditoriaTests
     public void ObtenerTodos_ConSolicitanteSinRoles_LanzaAccesoDenegado()
     {
         // Arrange
-        var sinRoles = CrearUsuarioSinRoles();
+        var sinRoles = UsuariosDePrueba.SinRoles();
 
         // Act & Assert
         Assert.ThrowsException<AccesoDenegadoExcepcion>(() =>
             _servicio.ObtenerTodos(solicitante: sinRoles));
     }
 
-    private static Usuario CrearUsuarioConRol(RolUsuario rol)
-    {
-        var usuario = CrearUsuarioSinRoles();
-        usuario.AgregarRol(rol);
-        return usuario;
-    }
-
-    private static Usuario CrearUsuarioSinRoles()
-    {
-        return new Usuario(new DatosUsuario
-        {
-            Nombre = "Test",
-            Apellido = "User",
-            Email = "test@example.com",
-            FechaNacimiento = "01-01-1990"
-        });
-    }
-}
-
-file sealed class RepositorioAuditoriaStub : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _logs = new();
-    private int _contador;
-
-    public int SiguienteId() => ++_contador;
-
-    public void Agregar(Auditoria entidad) => _logs.Add(entidad);
-
-    public void Actualizar(Auditoria entidad)
-    {
-        var indice = _logs.FindIndex(e => e.Id == entidad.Id);
-        if (indice == -1)
-            throw new EntidadInexistenteExcepcion("El log de auditoría no existe.");
-        _logs[indice] = entidad;
-    }
-
-    public void Eliminar(Auditoria entidad) => _logs.Remove(entidad);
-
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado)
-        => _logs.Where(predicado).ToList();
 }

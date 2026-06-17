@@ -13,7 +13,7 @@ public class ServicioExportacionTests
     [TestMethod]
     public void ExportarAuditoriasCsv_FiltraRegistrosPorRangoDeFechas()
     {
-        var repo = new RepositorioAuditoriaExportacionStub();
+        var repo = new RepositorioAuditoriaFake();
         repo.Agregar(new Auditoria(1, new DateTime(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc).ToString("o"),
             "admin", "Alta", "Dentro del rango"));
         repo.Agregar(new Auditoria(2, new DateTime(2026, 6, 3, 10, 0, 0, DateTimeKind.Utc).ToString("o"),
@@ -30,7 +30,7 @@ public class ServicioExportacionTests
     [TestMethod]
     public void ExportarAuditoriasXlsx_GeneraArchivoExcel()
     {
-        var repo = new RepositorioAuditoriaExportacionStub();
+        var repo = new RepositorioAuditoriaFake();
         repo.Agregar(new Auditoria(1, new DateTime(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc).ToString("o"),
             "admin", "Alta", "Detalle"));
         var servicio = CrearServicio(repo);
@@ -46,7 +46,7 @@ public class ServicioExportacionTests
     [TestMethod]
     public void ExportarAuditoriasCsv_ConRangoInvertido_LanzaExcepcion()
     {
-        var servicio = CrearServicio(new RepositorioAuditoriaExportacionStub());
+        var servicio = CrearServicio(new RepositorioAuditoriaFake());
 
         Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
             servicio.ExportarAuditoriasCsv(new DateTime(2026, 6, 2), new DateTime(2026, 6, 1), "admin"));
@@ -56,7 +56,7 @@ public class ServicioExportacionTests
     public void ExportarFixtureCsv_IncluyePartidosDeGruposYEliminatorias()
     {
         var estado = CrearEstadoConFixtureCompleto();
-        var servicio = CrearServicio(new RepositorioAuditoriaExportacionStub(), estado);
+        var servicio = CrearServicio(new RepositorioAuditoriaFake(), estado);
 
         var contenido = Encoding.UTF8.GetString(servicio.ExportarFixtureCsv("Administrador"));
 
@@ -68,7 +68,7 @@ public class ServicioExportacionTests
     public void ExportarFixtureXlsx_GeneraArchivoExcel()
     {
         var estado = CrearEstadoConFixtureCompleto();
-        var servicio = CrearServicio(new RepositorioAuditoriaExportacionStub(), estado);
+        var servicio = CrearServicio(new RepositorioAuditoriaFake(), estado);
 
         var bytes = servicio.ExportarFixtureXlsx("Administrador");
 
@@ -78,7 +78,7 @@ public class ServicioExportacionTests
     }
 
     private static ServicioExportacion CrearServicio(
-        RepositorioAuditoriaExportacionStub repo,
+        RepositorioAuditoriaFake repo,
         EstadoTorneo? estadoTorneo = null)
     {
         var auditoria = new ServicioAuditoria(repo);
@@ -133,23 +133,3 @@ public class ServicioExportacionTests
     };
 }
 
-internal sealed class RepositorioAuditoriaExportacionStub : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _logs = [];
-    private int _contador;
-
-    public int SiguienteId() => ++_contador;
-
-    public void Agregar(Auditoria entidad) => _logs.Add(entidad);
-
-    public void Actualizar(Auditoria entidad)
-    {
-        var indice = _logs.FindIndex(e => e.Id == entidad.Id);
-        if (indice >= 0)
-            _logs[indice] = entidad;
-    }
-
-    public void Eliminar(Auditoria entidad) => _logs.Remove(entidad);
-
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado) => _logs.Where(predicado).ToList();
-}

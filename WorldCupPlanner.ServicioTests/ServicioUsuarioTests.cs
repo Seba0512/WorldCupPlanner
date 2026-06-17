@@ -15,7 +15,7 @@ public sealed class ServicioUsuarioTests
     public ServicioUsuarioTests()
     {
         _repositorio = new RepositorioUsuarioStub();
-        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaStub());
+        var auditoria = new ServicioAuditoria(new RepositorioAuditoriaFake());
         _servicio = new ServicioUsuario(_repositorio, auditoria);
     }
 
@@ -87,7 +87,7 @@ public sealed class ServicioUsuarioTests
         repoAuditoria.Entradas.Clear();
 
         // Act
-        try { servicio.AgregarUsuario(usuario2); } catch (EntidadYaExistenteExcepcion) { }
+        Assert.ThrowsException<EntidadYaExistenteExcepcion>(() => servicio.AgregarUsuario(usuario2));
 
         // Assert
         Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "EMAIL_DUPLICADO_INTENTO"),
@@ -468,7 +468,8 @@ public sealed class ServicioUsuarioTests
         usuario.EstablecerContrasenia("MismaPass@123");
 
         // Act
-        try { servicio.CambiarContrasenia(usuario, new CambiarContraseniaComando { ContraseniaAnterior = "MismaPass@123", NuevaContrasenia = "MismaPass@123", ConfirmarContrasenia = "MismaPass@123" }); } catch (EntidadInvalidaExcepcion) { }
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicio.CambiarContrasenia(usuario, new CambiarContraseniaComando { ContraseniaAnterior = "MismaPass@123", NuevaContrasenia = "MismaPass@123", ConfirmarContrasenia = "MismaPass@123" }));
 
         // Assert
         Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "CAMBIO_CONTRASENIA_RECHAZADO"),
@@ -483,7 +484,8 @@ public sealed class ServicioUsuarioTests
         usuario.EstablecerContrasenia("MismaPass@123");
 
         // Act
-        try { _servicio.CambiarContrasenia(usuario, new CambiarContraseniaComando { ContraseniaAnterior = "MismaPass@123", NuevaContrasenia = "MismaPass@123", ConfirmarContrasenia = "MismaPass@123" }); } catch (EntidadInvalidaExcepcion) { }
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            _servicio.CambiarContrasenia(usuario, new CambiarContraseniaComando { ContraseniaAnterior = "MismaPass@123", NuevaContrasenia = "MismaPass@123", ConfirmarContrasenia = "MismaPass@123" }));
 
         // Assert — la contraseña original debe seguir siendo válida
         Assert.IsTrue(usuario.VerificarContrasenia("MismaPass@123"),
@@ -1163,7 +1165,7 @@ public sealed class ServicioUsuarioTests
         repoAuditoria.Entradas.Clear();
 
         // Act
-        try { servicio.EliminarUsuario(admin); } catch (EntidadInvalidaExcepcion) { }
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() => servicio.EliminarUsuario(admin));
 
         // Assert
         Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "INTENTO_ELIMINAR_ULTIMO_ADMIN"),
@@ -1199,7 +1201,8 @@ public sealed class ServicioUsuarioTests
         _servicio.AgregarUsuario(admin);
 
         // Act
-        try { _servicio.GestionarRoles(admin, new[] { RolUsuario.Editor }); } catch (EntidadInvalidaExcepcion) { }
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            _servicio.GestionarRoles(admin, new[] { RolUsuario.Editor }));
 
         // Assert — la excepción se lanzó ANTES de mutar la entidad
         Assert.IsTrue(admin.TieneRol(RolUsuario.AdministradorDelSistema),
@@ -1222,7 +1225,8 @@ public sealed class ServicioUsuarioTests
         repoAuditoria.Entradas.Clear();
 
         // Act
-        try { servicio.GestionarRoles(admin, new[] { RolUsuario.Editor }); } catch (EntidadInvalidaExcepcion) { }
+        Assert.ThrowsException<EntidadInvalidaExcepcion>(() =>
+            servicio.GestionarRoles(admin, new[] { RolUsuario.Editor }));
 
         // Assert
         Assert.IsTrue(repoAuditoria.Entradas.Any(e => e.Accion == "INTENTO_QUITAR_ROL_ADMIN_ULTIMO"),
@@ -1522,28 +1526,5 @@ file sealed class RepositorioUsuarioStub : IRepositorioUsuario
 
     public Usuario? ObtenerPorEmail(string email)
         => _usuarios.FirstOrDefault(u => u.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
-}
-
-file sealed class RepositorioAuditoriaStub : IRepositorioConId<Auditoria>
-{
-    private readonly List<Auditoria> _logs = new();
-    private int _contador;
-
-    public int SiguienteId() => ++_contador;
-
-    public void Agregar(Auditoria entidad) => _logs.Add(entidad);
-
-    public void Actualizar(Auditoria entidad)
-    {
-        var indice = _logs.FindIndex(e => e.Id == entidad.Id);
-        if (indice == -1)
-            throw new EntidadInexistenteExcepcion("El log de auditoría no existe.");
-        _logs[indice] = entidad;
-    }
-
-    public void Eliminar(Auditoria entidad) => _logs.Remove(entidad);
-
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado)
-        => _logs.Where(predicado).ToList();
 }
 

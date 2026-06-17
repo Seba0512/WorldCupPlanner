@@ -509,7 +509,7 @@ public class ServicioCruces
             .Select(ObtenerPerdedor));
     }
 
-    private Equipo ObtenerPerdedor(Partido partido)
+    internal Equipo ObtenerPerdedor(Partido partido)
     {
         var ganador = partido.Ganador();
 

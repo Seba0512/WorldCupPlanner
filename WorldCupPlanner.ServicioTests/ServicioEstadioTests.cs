@@ -6,18 +6,6 @@ using WorldCupPlanner.Servicios;
 
 namespace WorldCupPlanner.ServicioTests;
 
-internal class RepositorioAuditoriaEstadioFake : IRepositorioConId<Auditoria>
-{
-    private int _nextId = 1;
-    public List<Auditoria> Entradas { get; } = [];
-
-    public int SiguienteId() => _nextId++;
-    public void Agregar(Auditoria entidad) => Entradas.Add(entidad);
-    public void Actualizar(Auditoria entidad) { }
-    public void Eliminar(Auditoria entidad) => Entradas.Remove(entidad);
-    public List<Auditoria> Buscar(Func<Auditoria, bool> predicado) => Entradas.Where(predicado).ToList();
-}
-
 [TestClass]
 public class ServicioEstadioTests
 {
@@ -29,9 +17,9 @@ public class ServicioEstadioTests
         _servicio = new ServicioEstadio(new RepositorioEstadioStub());
     }
 
-    private static (ServicioEstadio servicio, RepositorioAuditoriaEstadioFake repoAuditoria) CrearServicioConAuditoria()
+    private static (ServicioEstadio servicio, RepositorioAuditoriaFake repoAuditoria) CrearServicioConAuditoria()
     {
-        var repoAuditoria = new RepositorioAuditoriaEstadioFake();
+        var repoAuditoria = new RepositorioAuditoriaFake();
         var auditoria = new ServicioAuditoria(repoAuditoria);
         var servicio = new ServicioEstadio(new RepositorioEstadioStub(), auditoria);
         return (servicio, repoAuditoria);
@@ -94,7 +82,7 @@ public class ServicioEstadioTests
     {
         // Arrange
         var repositorioEstadio = new RepositorioEstadioStub();
-        var repositorioPartido = new RepositorioPartidoEstadioStub();
+        var repositorioPartido = new RepositorioPartidoStub();
         var estadio = CrearEstadio();
         repositorioEstadio.Agregar(estadio);
         repositorioPartido.Agregar(new Partido
@@ -490,7 +478,7 @@ public class ServicioEstadioTests
     public void AgregarEstadio_ConSolicitanteAdministrador_AgregaCorrectamente()
     {
         // Arrange
-        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var admin = UsuariosDePrueba.ConRol(RolUsuario.AdministradorDelSistema);
         var estadio = CrearEstadio();
 
         // Act
@@ -504,7 +492,7 @@ public class ServicioEstadioTests
     public void AgregarEstadio_ConSolicitanteEditor_LanzaAccesoDenegado()
     {
         // Arrange
-        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        var editor = UsuariosDePrueba.ConRol(RolUsuario.Editor);
         var estadio = CrearEstadio();
 
         // Act & Assert
@@ -516,7 +504,7 @@ public class ServicioEstadioTests
     public void AgregarEstadio_ConSolicitanteSinRoles_LanzaAccesoDenegado()
     {
         // Arrange
-        var sinRoles = CrearUsuarioSinRoles();
+        var sinRoles = UsuariosDePrueba.SinRoles();
         var estadio = CrearEstadio();
 
         // Act & Assert
@@ -528,7 +516,7 @@ public class ServicioEstadioTests
     public void EditarEstadio_ConSolicitanteEditor_LanzaAccesoDenegado()
     {
         // Arrange
-        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        var editor = UsuariosDePrueba.ConRol(RolUsuario.Editor);
         _servicio.AgregarEstadio(CrearEstadio());
         var actualizado = CrearEstadio("Estadio Nuevo");
 
@@ -541,7 +529,7 @@ public class ServicioEstadioTests
     public void EditarEstadio_ConSolicitanteAdministrador_EditaCorrectamente()
     {
         // Arrange
-        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var admin = UsuariosDePrueba.ConRol(RolUsuario.AdministradorDelSistema);
         _servicio.AgregarEstadio(CrearEstadio());
         var actualizado = CrearEstadio("Estadio Nuevo");
 
@@ -556,7 +544,7 @@ public class ServicioEstadioTests
     public void EliminarEstadio_ConSolicitanteEditor_LanzaAccesoDenegado()
     {
         // Arrange
-        var editor = CrearUsuarioConRol(RolUsuario.Editor);
+        var editor = UsuariosDePrueba.ConRol(RolUsuario.Editor);
         var estadio = CrearEstadio();
         _servicio.AgregarEstadio(estadio);
 
@@ -569,7 +557,7 @@ public class ServicioEstadioTests
     public void EliminarEstadio_ConSolicitanteAdministrador_EliminaCorrectamente()
     {
         // Arrange
-        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var admin = UsuariosDePrueba.ConRol(RolUsuario.AdministradorDelSistema);
         var estadio = CrearEstadio();
         _servicio.AgregarEstadio(estadio);
 
@@ -585,7 +573,7 @@ public class ServicioEstadioTests
     {
         // Arrange
         var (servicio, repoAuditoria) = CrearServicioConAuditoria();
-        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var admin = UsuariosDePrueba.ConRol(RolUsuario.AdministradorDelSistema);
 
         // Act
         servicio.AgregarEstadio(CrearEstadio(), solicitante: admin);
@@ -599,7 +587,7 @@ public class ServicioEstadioTests
     {
         // Arrange
         var (servicio, repoAuditoria) = CrearServicioConAuditoria();
-        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var admin = UsuariosDePrueba.ConRol(RolUsuario.AdministradorDelSistema);
         servicio.AgregarEstadio(CrearEstadio());
         repoAuditoria.Entradas.Clear();
 
@@ -615,7 +603,7 @@ public class ServicioEstadioTests
     {
         // Arrange
         var (servicio, repoAuditoria) = CrearServicioConAuditoria();
-        var admin = CrearUsuarioConRol(RolUsuario.AdministradorDelSistema);
+        var admin = UsuariosDePrueba.ConRol(RolUsuario.AdministradorDelSistema);
         var estadio = CrearEstadio();
         servicio.AgregarEstadio(estadio);
         repoAuditoria.Entradas.Clear();
@@ -625,24 +613,6 @@ public class ServicioEstadioTests
 
         // Assert
         Assert.AreEqual("Test User", repoAuditoria.Entradas[0].Usuario);
-    }
-
-    private static Usuario CrearUsuarioConRol(RolUsuario rol)
-    {
-        var usuario = CrearUsuarioSinRoles();
-        usuario.AgregarRol(rol);
-        return usuario;
-    }
-
-    private static Usuario CrearUsuarioSinRoles()
-    {
-        return new Usuario(new DatosUsuario
-        {
-            Nombre = "Test",
-            Apellido = "User",
-            Email = "test@example.com",
-            FechaNacimiento = "01-01-1990"
-        });
     }
 
     // --- ObtenerPorNombre ---
@@ -705,22 +675,3 @@ file sealed class RepositorioEstadioStub : IRepositorio<Estadio>
         => _estadios.Where(predicado).ToList();
 }
 
-file sealed class RepositorioPartidoEstadioStub : IRepositorio<Partido>
-{
-    private readonly List<Partido> _partidos = new();
-
-    public void Agregar(Partido partido) => _partidos.Add(partido);
-
-    public void Actualizar(Partido partido)
-    {
-        var indice = _partidos.FindIndex(p => ReferenceEquals(p, partido));
-        if (indice == -1)
-            throw new EntidadInexistenteExcepcion("El partido no existe.");
-        _partidos[indice] = partido;
-    }
-
-    public void Eliminar(Partido partido) => _partidos.Remove(partido);
-
-    public List<Partido> Buscar(Func<Partido, bool> predicado)
-        => _partidos.Where(predicado).ToList();
-}

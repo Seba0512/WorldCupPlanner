@@ -199,7 +199,7 @@ public class ServicioFixture
         return fixture;
     }
 
-    private void AsignarEquiposAGrupos(Fixture fixture, List<Equipo> equiposOrdenados)
+    internal void AsignarEquiposAGrupos(Fixture fixture, List<Equipo> equiposOrdenados)
     {
         if (IntentarAsignarEquiposAGrupos(fixture, equiposOrdenados, 0))
         {
@@ -255,7 +255,7 @@ public class ServicioFixture
         return fixture.Grupos[indiceGrupo];
     }
 
-    private bool PuedeAsignarseEquipoAGrupo(Equipo equipo, Grupo grupo)
+    internal bool PuedeAsignarseEquipoAGrupo(Equipo equipo, Grupo grupo)
     {
         if (grupo.Equipos.Count >= CantidadEquiposPorGrupo)
         {
