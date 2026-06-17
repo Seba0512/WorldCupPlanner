@@ -9,17 +9,6 @@ public class EstadioDTO
     public int Capacidad { get; set; }
     public string? Descripcion { get; set; }
 
-    public Estadio ToEntity()
-    {
-        return new Estadio
-        {
-            Nombre = Nombre,
-            Ciudad = Ciudad,
-            Capacidad = Capacidad,
-            Descripcion = Descripcion
-        };
-    }
-
     public static EstadioDTO FromEntity(Estadio estadio)
     {
         ArgumentNullException.ThrowIfNull(estadio);

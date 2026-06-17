@@ -28,7 +28,9 @@ public class ControladorConfiguracionTorneo
         _servicioConfiguracionTorneo.ModificarConfiguracion(ResolverUsuario(usuario), configuracion);
 
     public void ModificarConfiguracion(UsuarioDTO usuario, ConfiguracionTorneoDTO configuracion) =>
-        _servicioConfiguracionTorneo.ModificarConfiguracion(ResolverUsuario(usuario), configuracion.ToEntity());
+        _servicioConfiguracionTorneo.ModificarConfiguracion(
+            ResolverUsuario(usuario),
+            MapeadorDtoDominio.AConfiguracionTorneo(configuracion));
 
     public bool PuedeModificarConfiguracion(UsuarioDTO? usuario) =>
         _servicioConfiguracionTorneo.PuedeModificarConfiguracion(ResolverUsuarioOpcional(usuario));
@@ -40,7 +42,8 @@ public class ControladorConfiguracionTorneo
         _servicioConfiguracionTorneo.RegistrarFixtureGenerado(configuracionUsada);
 
     public void RegistrarFixtureGenerado(ConfiguracionTorneoDTO configuracionUsada) =>
-        _servicioConfiguracionTorneo.RegistrarFixtureGenerado(configuracionUsada.ToEntity());
+        _servicioConfiguracionTorneo.RegistrarFixtureGenerado(
+            MapeadorDtoDominio.AConfiguracionTorneo(configuracionUsada));
 
     public ConfiguracionTorneo ObtenerConfiguracionUsadaParaFixture() =>
         _servicioConfiguracionTorneo.ObtenerConfiguracionUsadaParaFixture();

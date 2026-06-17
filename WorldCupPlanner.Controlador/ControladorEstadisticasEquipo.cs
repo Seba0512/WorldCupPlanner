@@ -17,7 +17,7 @@ public class ControladorEstadisticasEquipo
         _servicioEstadisticasEquipo.ObtenerEstadisticasPorEquipo(equipos);
 
     public Dictionary<string, EstadisticasEquipo> ObtenerEstadisticasPorEquipo(List<EquipoDTO> equipos) =>
-        _servicioEstadisticasEquipo.ObtenerEstadisticasPorEquipo(equipos.Select(e => e.ToEntity()).ToList());
+        _servicioEstadisticasEquipo.ObtenerEstadisticasPorEquipo(equipos.Select(MapeadorDtoDominio.AEquipo).ToList());
 
     public Dictionary<string, EstadisticasEquipoDTO> ObtenerEstadisticasPorEquipoDTO(List<EquipoDTO> equipos) =>
         ObtenerEstadisticasPorEquipo(equipos)
@@ -30,7 +30,7 @@ public class ControladorEstadisticasEquipo
         _servicioEstadisticasEquipo.ObtenerEstadisticas(equipo);
 
     public EstadisticasEquipo ObtenerEstadisticas(EquipoDTO equipo) =>
-        _servicioEstadisticasEquipo.ObtenerEstadisticas(equipo.ToEntity());
+        _servicioEstadisticasEquipo.ObtenerEstadisticas(MapeadorDtoDominio.AEquipo(equipo));
 
     public EstadisticasEquipoDTO ObtenerEstadisticasDTO(EquipoDTO equipo) =>
         EstadisticasEquipoDTO.FromEntity(ObtenerEstadisticas(equipo));

@@ -835,9 +835,6 @@ else
                && ControladorSimulacion.HayPartidosFaseActivaSimulables(_etapaActiva, EstadoTorneo);
     }
 
-    private Partido? ObtenerProximoPartidoSimulable() =>
-        ControladorFixture.ObtenerProximoPartidoSimulable(EstadoTorneo, _etapaActiva);
-
     private void SincronizarJornadaActivaConPendiente()
     {
         var jornada = ControladorFixture.ObtenerJornadaActivaParaFase(_etapaActiva, EstadoTorneo.Fixture);

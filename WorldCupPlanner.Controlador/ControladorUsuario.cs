@@ -36,7 +36,7 @@ public class ControladorUsuario
     }
 
     public void Actualizar(string emailActual, ActualizacionUsuarioDTO actualizacion, UsuarioDTO? solicitante = null) =>
-        Actualizar(emailActual, actualizacion.ToEntity(), ResolverUsuarioOpcional(solicitante));
+        Actualizar(emailActual, MapeadorDtoDominio.AActualizacionUsuario(actualizacion), ResolverUsuarioOpcional(solicitante));
 
     public void Eliminar(string email, string? ejecutadoPor = null, Usuario? solicitante = null)
     {

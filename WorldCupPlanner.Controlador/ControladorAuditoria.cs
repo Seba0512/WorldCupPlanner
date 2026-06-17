@@ -23,5 +23,5 @@ public class ControladorAuditoria
         _servicioAuditoria.ExportarComoTexto(registros);
 
     public string ExportarComoTexto(List<AuditoriaDTO> registros) =>
-        _servicioAuditoria.ExportarComoTexto(registros.Select(registro => registro.ToEntity()).ToList());
+        _servicioAuditoria.ExportarComoTexto(registros.Select(MapeadorDtoDominio.AAuditoria).ToList());
 }

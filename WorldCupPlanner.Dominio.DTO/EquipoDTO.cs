@@ -10,14 +10,6 @@ namespace WorldCupPlanner.Dominio.DTO
         public Confederacion? Confederacion { get; set; }
         public string Bandera { get; set; } = string.Empty;
 
-        public Equipo ToEntity() => new Equipo
-        {
-            Nombre = Nombre,
-            RankingFIFA = RankingFIFA,
-            Confederacion = Confederacion,
-            Bandera = Bandera
-        };
-
         public static EquipoDTO FromEntity(Equipo equipo)
         {
             ArgumentNullException.ThrowIfNull(equipo);

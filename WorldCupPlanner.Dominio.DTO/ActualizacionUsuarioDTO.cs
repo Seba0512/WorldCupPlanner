@@ -11,18 +11,6 @@ public class ActualizacionUsuarioDTO
     public string? FechaNacimiento { get; set; }
     public string? EjecutadoPor { get; set; }
 
-    public ActualizacionUsuario ToEntity()
-    {
-        return new ActualizacionUsuario
-        {
-            Nombre = Nombre,
-            Apellido = Apellido,
-            Email = Email,
-            FechaNacimiento = FechaNacimiento,
-            EjecutadoPor = EjecutadoPor
-        };
-    }
-
     public static ActualizacionUsuarioDTO FromEntity(ActualizacionUsuario actualizacion)
     {
         ArgumentNullException.ThrowIfNull(actualizacion);

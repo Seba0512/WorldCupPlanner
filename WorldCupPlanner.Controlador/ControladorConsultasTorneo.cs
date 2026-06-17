@@ -36,7 +36,7 @@ public class ControladorConsultasTorneo
         _servicioConsultasTorneo.EquipoParticipaEnFixture(estado, equipo);
 
     public bool EquipoParticipaEnFixture(EstadoTorneo estado, EquipoDTO equipo) =>
-        EquipoParticipaEnFixture(estado, equipo.ToEntity());
+        EquipoParticipaEnFixture(estado, MapeadorDtoDominio.AEquipo(equipo));
 
     public bool EquipoParticipaEnFixture(EstadoTorneo estado, string nombreEquipo) =>
         EquipoParticipaEnFixture(estado, new Equipo { Nombre = nombreEquipo });
@@ -45,7 +45,7 @@ public class ControladorConsultasTorneo
         _servicioConsultasTorneo.EstadioParticipaEnFixture(estado, estadio);
 
     public bool EstadioParticipaEnFixture(EstadoTorneo estado, EstadioDTO estadio) =>
-        EstadioParticipaEnFixture(estado, estadio.ToEntity());
+        EstadioParticipaEnFixture(estado, MapeadorDtoDominio.AEstadio(estadio));
 
     public bool EstadioParticipaEnFixture(EstadoTorneo estado, string nombreEstadio) =>
         EstadioParticipaEnFixture(estado, new Estadio { Nombre = nombreEstadio });

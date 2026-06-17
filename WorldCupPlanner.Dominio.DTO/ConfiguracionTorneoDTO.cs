@@ -16,23 +16,6 @@ public class ConfiguracionTorneoDTO
     public TimeSpan HoraInicioPartidos { get; set; }
     public int SeparacionHorasEntrePartidos { get; set; }
 
-    public ConfiguracionTorneo ToEntity()
-    {
-        return new ConfiguracionTorneo
-        {
-            SemillaFixture = SemillaFixture,
-            SemillaCompletar = SemillaCompletar,
-            SemillaCrucesFase = SemillaCrucesFase,
-            SemillaSimulation = SemillaSimulation,
-            MotorSimulacion = MotorSimulacion,
-            FechaInicioTorneo = FechaInicioTorneo,
-            MaxPartidosPorDia = MaxPartidosPorDia,
-            SeparacionEntreFechas = SeparacionEntreFechas,
-            HoraInicioPartidos = HoraInicioPartidos,
-            SeparacionHorasEntrePartidos = SeparacionHorasEntrePartidos
-        };
-    }
-
     public static ConfiguracionTorneoDTO FromEntity(ConfiguracionTorneo configuracion)
     {
         ArgumentNullException.ThrowIfNull(configuracion);

@@ -182,6 +182,9 @@ public class ControladorClasificacionTests
         Assert.IsTrue(clasificados.GruposDeOrigen.All(origen => origen.Grupo.Equipos.Count == 4));
         Assert.IsTrue(clasificados.GruposDeOrigen.All(origen =>
             origen.Grupo.Equipos.Any(equipo => equipo.Nombre == origen.Equipo.Nombre)));
+        Assert.IsTrue(clasificados.Todos.All(equipo => equipo.Bandera == $"bandera-{equipo.Nombre}"));
+        Assert.IsTrue(clasificados.GruposDeOrigen.All(origen =>
+            origen.Grupo.Equipos.All(equipo => equipo.Bandera == $"bandera-{equipo.Nombre}")));
     }
 
     [TestMethod]
@@ -358,7 +361,8 @@ public class ControladorClasificacionTests
         Id = _proximoEquipoId++,
         Nombre = nombre,
         Confederacion = confederacion,
-        RankingFIFA = 1200
+        RankingFIFA = 1200,
+        Bandera = $"bandera-{nombre}"
     };
 
     private static Partido CrearPartido(Equipo local, Equipo visitante, int golesLocal, int golesVisitante) => new()

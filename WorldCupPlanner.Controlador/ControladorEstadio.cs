@@ -38,13 +38,13 @@ public class ControladorEstadio
         _servicioEstadio.AgregarEstadio(estadio, usuarioActual);
 
     public void Crear(EstadioDTO estadio, UsuarioDTO? usuarioActual = null) =>
-        _servicioEstadio.AgregarEstadio(estadio.ToEntity(), ResolverUsuario(usuarioActual));
+        _servicioEstadio.AgregarEstadio(MapeadorDtoDominio.AEstadio(estadio), ResolverUsuario(usuarioActual));
 
     public void Actualizar(string nombreOriginal, Estadio estadio, Usuario? usuarioActual = null) =>
         _servicioEstadio.EditarEstadio(nombreOriginal, estadio, usuarioActual);
 
     public void Actualizar(string nombreOriginal, EstadioDTO estadio, UsuarioDTO? usuarioActual = null) =>
-        _servicioEstadio.EditarEstadio(nombreOriginal, estadio.ToEntity(), ResolverUsuario(usuarioActual));
+        _servicioEstadio.EditarEstadio(nombreOriginal, MapeadorDtoDominio.AEstadio(estadio), ResolverUsuario(usuarioActual));
 
     public void Eliminar(Estadio estadio, Usuario? usuarioActual = null) =>
         _servicioEstadio.EliminarEstadio(estadio, usuarioActual);

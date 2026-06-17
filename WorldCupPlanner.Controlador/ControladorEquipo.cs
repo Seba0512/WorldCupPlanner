@@ -56,7 +56,7 @@ public class ControladorEquipo
         _servicioEquipo.EditarEquipo(equipo, nombreOriginal, usuarioActual);
 
     public void Actualizar(EquipoDTO equipo, string nombreOriginal, UsuarioDTO? usuarioActual = null) =>
-        _servicioEquipo.EditarEquipo(equipo.ToEntity(), nombreOriginal, ResolverUsuario(usuarioActual));
+        _servicioEquipo.EditarEquipo(MapeadorDtoDominio.AEquipo(equipo), nombreOriginal, ResolverUsuario(usuarioActual));
 
     public void Eliminar(Equipo equipo, Usuario? usuarioActual = null) =>
         _servicioEquipo.Eliminar(equipo, usuarioActual);
@@ -87,7 +87,7 @@ public class ControladorEquipo
         _servicioEquipo.ObtenerCuposConOcupacion(equipos);
 
     public Dictionary<Confederacion, (int registrados, int cupo)> ObtenerCuposConOcupacionDTO(List<EquipoDTO> equipos) =>
-        _servicioEquipo.ObtenerCuposConOcupacion(equipos.Select(e => e.ToEntity()).ToList());
+        _servicioEquipo.ObtenerCuposConOcupacion(equipos.Select(MapeadorDtoDominio.AEquipo).ToList());
 
     public int ObtenerCantidadFaltante(int cantidadInscritos) =>
         _servicioEquipo.ObtenerCantidadFaltante(cantidadInscritos);

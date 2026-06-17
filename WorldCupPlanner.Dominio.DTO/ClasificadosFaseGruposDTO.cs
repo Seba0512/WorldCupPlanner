@@ -37,6 +37,7 @@ public class EquipoClasificadoDTO
     public string Nombre { get; set; } = string.Empty;
     public int RankingFIFA { get; set; }
     public Confederacion? Confederacion { get; set; }
+    public string Bandera { get; set; } = string.Empty;
 
     public static EquipoClasificadoDTO FromEntity(Equipo equipo)
     {
@@ -46,7 +47,8 @@ public class EquipoClasificadoDTO
         {
             Nombre = equipo.Nombre,
             RankingFIFA = equipo.RankingFIFA,
-            Confederacion = equipo.Confederacion
+            Confederacion = equipo.Confederacion,
+            Bandera = equipo.Bandera
         };
     }
 }

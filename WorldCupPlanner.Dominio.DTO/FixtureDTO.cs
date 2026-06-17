@@ -11,18 +11,6 @@ public class FixtureDTO
             .SelectMany(grupo => grupo.Partidos)
             .ToList();
 
-    public Fixture ToEntity()
-    {
-        var equiposPorNombre = new Dictionary<string, Equipo>();
-
-        return new Fixture
-        {
-            Grupos = Grupos
-                .Select(grupoDto => grupoDto.ToEntity(equiposPorNombre))
-                .ToList()
-        };
-    }
-
     public static FixtureDTO FromEntity(Fixture fixture)
     {
         ArgumentNullException.ThrowIfNull(fixture);

@@ -42,6 +42,13 @@ public class ControladorPartidoTests
     {
         var repositorio = new RepositorioPartidoControladorFake();
         var partido = CrearPartido(1, grupo: "A");
+        partido.Incidencias.Add(new TarjetaRoja
+        {
+            Id = 10,
+            PartidoId = partido.Id,
+            Equipo = partido.EquipoLocal,
+            MinutoDelPartido = 77
+        });
         repositorio.Agregar(partido);
         var controlador = CrearControlador(repositorio);
 
@@ -51,6 +58,9 @@ public class ControladorPartidoTests
         Assert.AreEqual(partido.Id, encontrado.Id);
         Assert.AreEqual(partido.EquipoLocal!.Nombre, encontrado.EquipoLocal!.Nombre);
         Assert.AreEqual("A", encontrado.GrupoEtiqueta);
+        Assert.AreEqual(1, encontrado.Incidencias.Count);
+        Assert.AreEqual(TipoTarjeta.Roja, encontrado.Incidencias[0].Tipo);
+        Assert.AreEqual(partido.EquipoLocal.Nombre, encontrado.Incidencias[0].EquipoNombre);
     }
 
     [TestMethod]

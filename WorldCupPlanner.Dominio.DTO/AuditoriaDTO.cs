@@ -10,13 +10,6 @@ public class AuditoriaDTO
     public string Accion { get; set; } = string.Empty;
     public string Detalle { get; set; } = string.Empty;
 
-    public Auditoria ToEntity()
-    {
-        return string.IsNullOrWhiteSpace(Timestamp)
-            ? new Auditoria(Id, Usuario, Accion, Detalle)
-            : new Auditoria(Id, Timestamp, Usuario, Accion, Detalle);
-    }
-
     public static AuditoriaDTO FromEntity(Auditoria auditoria)
     {
         ArgumentNullException.ThrowIfNull(auditoria);

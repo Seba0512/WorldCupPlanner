@@ -15,25 +15,7 @@ public class PartidoDTO
     public int? GolesVisitante { get; set; }
     public EquipoDTO? GanadorPorPenales { get; set; }
     public string? GrupoEtiqueta { get; set; }
-
-    public Partido ToEntity(Dictionary<string, Equipo>? equiposPorNombre = null, Grupo? grupo = null)
-    {
-        equiposPorNombre ??= new Dictionary<string, Equipo>();
-
-        return new Partido
-        {
-            Id = Id,
-            Fecha = Fecha,
-            Estadio = Estadio?.ToEntity(),
-            EquipoLocal = MaterializarEquipo(EquipoLocal, equiposPorNombre),
-            EquipoVisitante = MaterializarEquipo(EquipoVisitante, equiposPorNombre),
-            Fase = Fase,
-            GolesLocal = GolesLocal,
-            GolesVisitante = GolesVisitante,
-            GanadorPorPenales = MaterializarEquipo(GanadorPorPenales, equiposPorNombre),
-            Grupo = grupo ?? CrearGrupoDesdeEtiqueta()
-        };
-    }
+    public List<IncidenciaDTO> Incidencias { get; set; } = [];
 
     public static PartidoDTO FromEntity(Partido partido)
     {
@@ -50,27 +32,8 @@ public class PartidoDTO
             GolesLocal = partido.GolesLocal,
             GolesVisitante = partido.GolesVisitante,
             GanadorPorPenales = partido.GanadorPorPenales == null ? null : EquipoDTO.FromEntity(partido.GanadorPorPenales),
-            GrupoEtiqueta = partido.Grupo?.Etiqueta
+            GrupoEtiqueta = partido.Grupo?.Etiqueta,
+            Incidencias = partido.Incidencias.Select(IncidenciaDTO.FromEntity).ToList()
         };
-    }
-
-    private static Equipo? MaterializarEquipo(EquipoDTO? equipoDto, Dictionary<string, Equipo> equiposPorNombre)
-    {
-        if (equipoDto == null)
-            return null;
-
-        if (equiposPorNombre.TryGetValue(equipoDto.Nombre, out var existente))
-            return existente;
-
-        var equipo = equipoDto.ToEntity();
-        equiposPorNombre[equipo.Nombre] = equipo;
-        return equipo;
-    }
-
-    private Grupo? CrearGrupoDesdeEtiqueta()
-    {
-        return string.IsNullOrWhiteSpace(GrupoEtiqueta)
-            ? null
-            : new Grupo(GrupoEtiqueta);
     }
 }
