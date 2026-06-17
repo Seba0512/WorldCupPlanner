@@ -372,7 +372,7 @@ public class ServicioSimulacionTests
     }
 
     [TestMethod]
-    public void SimularResultados_ConPartidosEliminatorios_TodosDienenGanador()
+    public void SimularResultados_ConPartidosEliminatorios_TodosTienenGanador()
     {
         // Arrange
         var servicioSimulacion = new ServicioSimulacion();

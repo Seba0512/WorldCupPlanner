@@ -403,7 +403,7 @@ public class ServicioCrucesTests
         {
             partidos.Add(new Partido
             {
-                Id = 72 + i,
+                Id = IdsFaseEliminatoria.UltimoDeFaseDeGrupos + i,
                 EquipoLocal = new Equipo
                 {
                     Nombre = $"Local{i}",
@@ -474,7 +474,7 @@ public class ServicioCrucesTests
 
             partidos.Add(new Partido
             {
-                Id = 72 + i,
+                Id = IdsFaseEliminatoria.UltimoDeFaseDeGrupos + i,
                 EquipoLocal = equipoLocal,
                 EquipoVisitante = equipoVisitante,
                 GolesLocal = 2,
@@ -507,7 +507,7 @@ public class ServicioCrucesTests
         {
             partidos.Add(new Partido
             {
-                Id = 88 + i,
+                Id = IdsFaseEliminatoria.UltimoDePrimeraRonda + i,
                 EquipoLocal = new Equipo
                 {
                     Nombre = $"LocalOctavos{i}",
@@ -545,7 +545,7 @@ public class ServicioCrucesTests
         {
             partidos.Add(new Partido
             {
-                Id = 96 + i,
+                Id = IdsFaseEliminatoria.UltimoDeOctavos + i,
                 EquipoLocal = new Equipo
                 {
                     Nombre = $"LocalCuartos{i}",
@@ -1251,7 +1251,7 @@ public class ServicioCrucesTests
         {
             partidos.Add(new Partido
             {
-                Id = 100 + i,
+                Id = IdsFaseEliminatoria.UltimoDeCuartos + i,
                 EquipoLocal = new Equipo
                 {
                     Nombre = $"LocalSemifinal{i}",
@@ -1828,6 +1828,29 @@ public class ServicioCrucesTests
         }
     }
 
+    private int _contadorClasificados;
+
+    // Crea 'cantidad' clasificados asociados a 'grupo' (registra su grupo de origen) y los devuelve
+    // en orden. La confederación y el ranking no afectan el sorteo: solo importan el grupo y el orden.
+    private List<Equipo> CrearClasificados(int cantidad, Grupo grupo, ClasificadosFaseGrupos clasificados)
+    {
+        var equipos = new List<Equipo>();
+
+        for (int i = 0; i < cantidad; i++)
+        {
+            var equipo = new Equipo
+            {
+                Nombre = $"Clasificado{++_contadorClasificados}",
+                RankingFIFA = 1000,
+                Confederacion = Confederacion.UEFA
+            };
+            clasificados.GruposDeOrigen[equipo] = grupo;
+            equipos.Add(equipo);
+        }
+
+        return equipos;
+    }
+
     [TestMethod]
     public void GenerarPrimeraRondaEliminatoria_CuandoTodosDelMismoGrupo_CompletaSinExcepcion()
     {
@@ -1840,45 +1863,17 @@ public class ServicioCrucesTests
 
         var clasificados = new ClasificadosFaseGrupos();
 
-        // 8 primeros desde grupoA → se cruzarán contra terceros (todos grupoA)
-        for (int i = 1; i <= 8; i++)
-        {
-            var e = new Equipo { Nombre = $"Primero{i}", RankingFIFA = 1000 + i, Confederacion = Confederacion.UEFA };
-            clasificados.Primeros.Add(e);
-            clasificados.GruposDeOrigen[e] = grupoA;
-        }
-        // 4 primeros adicionales desde grupoB
-        for (int i = 9; i <= 12; i++)
-        {
-            var e = new Equipo { Nombre = $"Primero{i}", RankingFIFA = 1000 + i, Confederacion = Confederacion.UEFA };
-            clasificados.Primeros.Add(e);
-            clasificados.GruposDeOrigen[e] = grupoB;
-        }
+        // 8 primeros grupoA (se cruzan contra terceros, todos grupoA) + 4 primeros grupoB
+        clasificados.Primeros.AddRange(CrearClasificados(8, grupoA, clasificados));
+        clasificados.Primeros.AddRange(CrearClasificados(4, grupoB, clasificados));
 
-        // 8 segundos desde grupoA → segundosRestantes, todos del mismo grupo
-        // (fuerza BuscarRivalAlternativo a devolver null)
-        for (int i = 1; i <= 8; i++)
-        {
-            var e = new Equipo { Nombre = $"Segundo{i}", RankingFIFA = 900 + i, Confederacion = Confederacion.CONMEBOL };
-            clasificados.Segundos.Add(e);
-            clasificados.GruposDeOrigen[e] = grupoA;
-        }
-        // 4 segundos adicionales desde grupoC (segundosDeMenorRendimiento)
-        for (int i = 9; i <= 12; i++)
-        {
-            var e = new Equipo { Nombre = $"Segundo{i}", RankingFIFA = 900 + i, Confederacion = Confederacion.CONMEBOL };
-            clasificados.Segundos.Add(e);
-            clasificados.GruposDeOrigen[e] = grupoC;
-        }
+        // 8 segundos grupoA → segundosRestantes del mismo grupo (fuerza BuscarRivalAlternativo a null)
+        // + 4 segundos grupoC (segundosDeMenorRendimiento)
+        clasificados.Segundos.AddRange(CrearClasificados(8, grupoA, clasificados));
+        clasificados.Segundos.AddRange(CrearClasificados(4, grupoC, clasificados));
 
-        // 8 terceros desde grupoA → cruces primeros vs terceros todos conflictan
-        // (fuerza BuscarVisitanteAlternativo a devolver null)
-        for (int i = 1; i <= 8; i++)
-        {
-            var e = new Equipo { Nombre = $"Tercero{i}", RankingFIFA = 800 + i, Confederacion = Confederacion.AFC };
-            clasificados.MejoresTerceros.Add(e);
-            clasificados.GruposDeOrigen[e] = grupoA;
-        }
+        // 8 terceros grupoA → cruces primeros vs terceros conflictan (fuerza BuscarVisitanteAlternativo a null)
+        clasificados.MejoresTerceros.AddRange(CrearClasificados(8, grupoA, clasificados));
 
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };
@@ -1914,57 +1909,23 @@ public class ServicioCrucesTests
 
         var grupoA = new Grupo("A");
         var grupoB = new Grupo("B");
-        var grupoC = new Grupo("C");
-        var grupoD = new Grupo("D");
-        var grupoE = new Grupo("E");
-        var grupoF = new Grupo("F");
         var grupoG = new Grupo("G"); // primeros[0-7] → sin conflicto con terceros(H)
         var grupoH = new Grupo("H"); // terceros[0-7]
+        var gruposExtra = new[] { new Grupo("C"), new Grupo("D"), new Grupo("E"), new Grupo("F") };
 
-        // Primeros[0-7] → todos en grupoG (distinto de grupoH de terceros → sin conflictos en ese cruce)
-        for (int i = 0; i < 8; i++)
-        {
-            var e = new Equipo { Nombre = $"Primero{i + 1}", RankingFIFA = 1000 + i, Confederacion = Confederacion.UEFA };
-            clasificados.Primeros.Add(e);
-            clasificados.GruposDeOrigen[e] = grupoG;
-        }
-        // Primeros[8-11] → grupos C,D,E,F
-        var gruposExtra = new[] { grupoC, grupoD, grupoE, grupoF };
-        for (int i = 0; i < 4; i++)
-        {
-            var e = new Equipo { Nombre = $"Primero{i + 9}", RankingFIFA = 1100 + i, Confederacion = Confederacion.UEFA };
-            clasificados.Primeros.Add(e);
-            clasificados.GruposDeOrigen[e] = gruposExtra[i];
-        }
+        // Primeros[0-7] grupoG (sin conflicto con terceros de H); Primeros[8-11] grupos C,D,E,F
+        clasificados.Primeros.AddRange(CrearClasificados(8, grupoG, clasificados));
+        foreach (var grupo in gruposExtra)
+            clasificados.Primeros.AddRange(CrearClasificados(1, grupo, clasificados));
 
-        // Segundos[0-7] → 4 de grupoA, 4 de grupoB (para segundosRestantes con conflictos)
-        for (int i = 0; i < 4; i++)
-        {
-            var e = new Equipo { Nombre = $"SegundoA{i + 1}", RankingFIFA = 900 + i, Confederacion = Confederacion.CONMEBOL };
-            clasificados.Segundos.Add(e);
-            clasificados.GruposDeOrigen[e] = grupoA;
-        }
-        for (int i = 0; i < 4; i++)
-        {
-            var e = new Equipo { Nombre = $"SegundoB{i + 1}", RankingFIFA = 850 + i, Confederacion = Confederacion.CONMEBOL };
-            clasificados.Segundos.Add(e);
-            clasificados.GruposDeOrigen[e] = grupoB;
-        }
-        // Segundos[8-11] → grupos C,D,E,F (para segundosDeMenorRendimiento con conflictos)
-        for (int i = 0; i < 4; i++)
-        {
-            var e = new Equipo { Nombre = $"SegundoExtra{i + 1}", RankingFIFA = 800 + i, Confederacion = Confederacion.CONMEBOL };
-            clasificados.Segundos.Add(e);
-            clasificados.GruposDeOrigen[e] = gruposExtra[i];
-        }
+        // Segundos[0-3] grupoA, [4-7] grupoB (segundosRestantes con conflictos); [8-11] grupos C,D,E,F
+        clasificados.Segundos.AddRange(CrearClasificados(4, grupoA, clasificados));
+        clasificados.Segundos.AddRange(CrearClasificados(4, grupoB, clasificados));
+        foreach (var grupo in gruposExtra)
+            clasificados.Segundos.AddRange(CrearClasificados(1, grupo, clasificados));
 
-        // MejoresTerceros[0-7] → todos en grupoH (distinto de grupoG → sin conflictos al cruzar con primeros)
-        for (int i = 0; i < 8; i++)
-        {
-            var e = new Equipo { Nombre = $"Tercero{i + 1}", RankingFIFA = 700 + i, Confederacion = Confederacion.AFC };
-            clasificados.MejoresTerceros.Add(e);
-            clasificados.GruposDeOrigen[e] = grupoH;
-        }
+        // MejoresTerceros[0-7] grupoH (sin conflictos al cruzar con primeros de G)
+        clasificados.MejoresTerceros.AddRange(CrearClasificados(8, grupoH, clasificados));
 
         var estadios = CrearEstadiosValidos(4);
         var configuracionTorneo = new ConfiguracionTorneo { SemillaCrucesFase = 1 };

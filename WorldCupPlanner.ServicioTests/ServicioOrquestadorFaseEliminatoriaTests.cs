@@ -180,7 +180,7 @@ public class ServicioOrquestadorFaseEliminatoriaTests
         var estadio = new Estadio { Nombre = "Estadio", Ciudad = "Ciudad", Capacidad = 30000 };
         return Enumerable.Range(1, cantidad).Select(i => new Partido
         {
-            Id = 72 + i,
+            Id = IdsFaseEliminatoria.UltimoDeFaseDeGrupos + i,
             EquipoLocal = new Equipo { Nombre = $"Local{i}", RankingFIFA = 1000 + i, Confederacion = Confederacion.UEFA },
             EquipoVisitante = new Equipo { Nombre = $"Visitante{i}", RankingFIFA = 900 + i, Confederacion = Confederacion.CONMEBOL },
             Estadio = estadio,
@@ -196,7 +196,7 @@ public class ServicioOrquestadorFaseEliminatoriaTests
         var estadio = new Estadio { Nombre = "Estadio", Ciudad = "Ciudad", Capacidad = 30000 };
         return Enumerable.Range(1, cantidad).Select(i => new Partido
         {
-            Id = 88 + i,
+            Id = IdsFaseEliminatoria.UltimoDePrimeraRonda + i,
             EquipoLocal = new Equipo { Nombre = $"LocalOctavos{i}", RankingFIFA = 1000 + i, Confederacion = Confederacion.UEFA },
             EquipoVisitante = new Equipo { Nombre = $"VisitanteOctavos{i}", RankingFIFA = 900 + i, Confederacion = Confederacion.CONMEBOL },
             Estadio = estadio,
@@ -212,7 +212,7 @@ public class ServicioOrquestadorFaseEliminatoriaTests
         var estadio = new Estadio { Nombre = "Estadio", Ciudad = "Ciudad", Capacidad = 30000 };
         return Enumerable.Range(1, cantidad).Select(i => new Partido
         {
-            Id = 96 + i,
+            Id = IdsFaseEliminatoria.UltimoDeOctavos + i,
             EquipoLocal = new Equipo { Nombre = $"LocalCuartos{i}", RankingFIFA = 1000 + i, Confederacion = Confederacion.UEFA },
             EquipoVisitante = new Equipo { Nombre = $"VisitanteCuartos{i}", RankingFIFA = 900 + i, Confederacion = Confederacion.CONMEBOL },
             Estadio = estadio,
@@ -228,7 +228,7 @@ public class ServicioOrquestadorFaseEliminatoriaTests
         var estadio = new Estadio { Nombre = "Estadio", Ciudad = "Ciudad", Capacidad = 30000 };
         return Enumerable.Range(1, cantidad).Select(i => new Partido
         {
-            Id = 100 + i,
+            Id = IdsFaseEliminatoria.UltimoDeCuartos + i,
             EquipoLocal = new Equipo { Nombre = $"LocalSemifinal{i}", RankingFIFA = 1000 + i, Confederacion = Confederacion.UEFA },
             EquipoVisitante = new Equipo { Nombre = $"VisitanteSemifinal{i}", RankingFIFA = 900 + i, Confederacion = Confederacion.CONMEBOL },
             Estadio = estadio,

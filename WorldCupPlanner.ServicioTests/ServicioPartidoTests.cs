@@ -741,7 +741,7 @@ public class ServicioPartidoTests
     }
 
     [TestMethod]
-    public void RegistrarFaseGenerada_Octavos_BloquePrimeraRonda()
+    public void RegistrarFaseGenerada_Octavos_BloqueaPrimeraRonda()
     {
         // Arrange
         var servicio = CrearServicio(new RepositorioPartidoStub());
