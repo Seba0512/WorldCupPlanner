@@ -91,6 +91,7 @@ internal static class MapeadorDtoDominio
     {
         var equipos = dto.Equipos
             .Select(equipoDto => MaterializarEquipo(equipoDto, equiposPorNombre))
+            .OfType<Equipo>()
             .ToList();
         var grupo = new Grupo(dto.Etiqueta, equipos);
 
@@ -120,10 +121,10 @@ internal static class MapeadorDtoDominio
         };
     }
 
-    private static Equipo MaterializarEquipo(EquipoDTO? dto, Dictionary<string, Equipo> equiposPorNombre)
+    private static Equipo? MaterializarEquipo(EquipoDTO? dto, Dictionary<string, Equipo> equiposPorNombre)
     {
         if (dto == null)
-            return null!;
+            return null;
 
         if (equiposPorNombre.TryGetValue(dto.Nombre, out var existente))
             return existente;

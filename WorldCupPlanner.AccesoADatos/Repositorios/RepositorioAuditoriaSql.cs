@@ -9,10 +9,7 @@ public class RepositorioAuditoriaSql : RepositorioBase<Auditoria>, IRepositorioC
 {
     public RepositorioAuditoriaSql(SqlContext contexto) : base(contexto) { }
 
-    public int SiguienteId()
-    {
-        return 0;
-    }
+    public int SiguienteId() => IdNoAsignado;
 
     public void Agregar(Auditoria entidad)
     {
