@@ -21,9 +21,3 @@ public class ReglasConfederacionDTO
         };
     }
 }
-
-public class CupoConfederacionDTO
-{
-    public Confederacion Confederacion { get; set; }
-    public int Cupos { get; set; }
-}

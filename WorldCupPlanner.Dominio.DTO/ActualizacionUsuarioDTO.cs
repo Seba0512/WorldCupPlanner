@@ -1,5 +1,4 @@
-﻿
-using WorldCupPlanner.Dominio.Entidades;
+﻿using WorldCupPlanner.Dominio.Entidades;
 
 namespace WorldCupPlanner.Dominio.DTO;
 

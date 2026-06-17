@@ -1,26 +1,25 @@
 using WorldCupPlanner.Dominio.Entidades;
 using WorldCupPlanner.Dominio.Enumeraciones;
 
-namespace WorldCupPlanner.Dominio.DTO
+namespace WorldCupPlanner.Dominio.DTO;
+
+public class EquipoDTO
 {
-    public class EquipoDTO
+    public string Nombre { get; set; } = string.Empty;
+    public int RankingFIFA { get; set; }
+    public Confederacion? Confederacion { get; set; }
+    public string Bandera { get; set; } = string.Empty;
+
+    public static EquipoDTO FromEntity(Equipo equipo)
     {
-        public string Nombre { get; set; } = string.Empty;
-        public int RankingFIFA { get; set; }
-        public Confederacion? Confederacion { get; set; }
-        public string Bandera { get; set; } = string.Empty;
+        ArgumentNullException.ThrowIfNull(equipo);
 
-        public static EquipoDTO FromEntity(Equipo equipo)
+        return new EquipoDTO
         {
-            ArgumentNullException.ThrowIfNull(equipo);
-
-            return new EquipoDTO
-            {
-                Nombre = equipo.Nombre,
-                RankingFIFA = equipo.RankingFIFA,
-                Confederacion = equipo.Confederacion,
-                Bandera = equipo.Bandera
-            };
-        }
+            Nombre = equipo.Nombre,
+            RankingFIFA = equipo.RankingFIFA,
+            Confederacion = equipo.Confederacion,
+            Bandera = equipo.Bandera
+        };
     }
 }
